@@ -1,0 +1,31 @@
+# public/.htaccess — routage front controller + durcissement
+# Le document root doit pointer sur public/ (réglage Hostinger hPanel).
+
+RewriteEngine On
+
+# Forcer HTTPS (en complément de Cloudflare)
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Tout ce qui n'est pas un fichier/dossier réel => index.php (front controller)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# Interdire l'accès aux fichiers sensibles
+<FilesMatch "(^\.|\.(env|ini|log|sql|md|sh|lock|json|dist)$)">
+  Require all denied
+</FilesMatch>
+
+# Pas de listing de répertoire
+Options -Indexes
+
+# En-têtes de sécurité (doublon défensif avec security_headers.php)
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  Header always unset X-Powered-By
+</IfModule>

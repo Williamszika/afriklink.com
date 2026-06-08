@@ -1,0 +1,372 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Global helper functions for AfrikaLink.
+ *
+ * Loaded once at bootstrap. Security-critical escaping/validation helpers live in
+ * app/Support/validation.php (e(), input_*), CSRF in csrf.php, DB in db.php.
+ * This file adds config, i18n, views, flash, auth and small utilities.
+ */
+
+/* ------------------------------------------------------------------ */
+/* Configuration                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Read a config value with dot notation: config('app.debug').
+ * First segment = file in config/, remaining segments = nested keys.
+ */
+function config(string $key, mixed $default = null): mixed
+{
+    static $cache = [];
+
+    $segments = explode('.', $key);
+    $file = array_shift($segments);
+
+    if (!array_key_exists($file, $cache)) {
+        $path = CONFIG_PATH . '/' . $file . '.php';
+        $cache[$file] = is_file($path) ? require $path : [];
+    }
+
+    $value = $cache[$file];
+    foreach ($segments as $segment) {
+        if (!is_array($value) || !array_key_exists($segment, $value)) {
+            return $default;
+        }
+        $value = $value[$segment];
+    }
+
+    return $value;
+}
+
+/** Read an environment variable (loaded from .env) with a default. */
+function env(string $key, mixed $default = null): mixed
+{
+    $value = $_ENV[$key] ?? getenv($key);
+    if ($value === false || $value === null || $value === '') {
+        return $default;
+    }
+    return match (strtolower((string) $value)) {
+        'true'  => true,
+        'false' => false,
+        'null'  => null,
+        default => $value,
+    };
+}
+
+/* ------------------------------------------------------------------ */
+/* Logging                                                             */
+/* ------------------------------------------------------------------ */
+
+/** Append a structured line to a log file in storage/logs. Never log secrets. */
+function log_message(string $level, string $message, array $context = [], string $channel = 'app'): void
+{
+    $line = sprintf(
+        "[%s] %s: %s%s\n",
+        (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
+        strtoupper($level),
+        $message,
+        $context ? ' ' . json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : ''
+    );
+    $file = STORAGE_PATH . '/logs/' . preg_replace('/[^a-z0-9_-]/i', '', $channel) . '.log';
+    @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
+}
+
+/* ------------------------------------------------------------------ */
+/* Internationalisation (i18n)                                         */
+/* ------------------------------------------------------------------ */
+
+/** Get the active interface locale (e.g. 'fr', 'en'). */
+function current_locale(): string
+{
+    static $locale = null;
+    if ($locale === null) {
+        $locale = config('app.default_locale', 'fr');
+    }
+    return $GLOBALS['__afrikalink_locale'] ?? $locale;
+}
+
+/** Set the active locale (validated against config('app.locales')). */
+function set_locale(string $locale): void
+{
+    $allowed = config('app.locales', ['fr', 'en']);
+    if (!in_array($locale, $allowed, true)) {
+        $locale = config('app.default_locale', 'fr');
+    }
+    $GLOBALS['__afrikalink_locale'] = $locale;
+    $GLOBALS['__afrikalink_translations'] = null; // force reload
+}
+
+/** Translate a key from lang/<locale>.php, with :placeholder replacement. */
+function t(string $key, array $replace = []): string
+{
+    if (empty($GLOBALS['__afrikalink_translations'])) {
+        $path = LANG_PATH . '/' . current_locale() . '.php';
+        $GLOBALS['__afrikalink_translations'] = is_file($path) ? require $path : [];
+    }
+    $translations = $GLOBALS['__afrikalink_translations'];
+    $text = $translations[$key] ?? $key;
+
+    foreach ($replace as $name => $value) {
+        $text = str_replace(':' . $name, (string) $value, $text);
+    }
+    return $text;
+}
+
+/** Active display currency (cookie > user preference > default). */
+function current_currency(): string
+{
+    return $GLOBALS['__afrikalink_currency'] ?? config('app.default_currency', 'EUR');
+}
+
+function set_currency(string $currency): void
+{
+    $allowed = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
+    $currency = strtoupper($currency);
+    $GLOBALS['__afrikalink_currency'] = in_array($currency, $allowed, true)
+        ? $currency
+        : config('app.default_currency', 'EUR');
+}
+
+/* ------------------------------------------------------------------ */
+/* Identifiers                                                         */
+/* ------------------------------------------------------------------ */
+
+/** Generate a RFC-4122 v4 UUID (uses ramsey/uuid if installed, else native). */
+function uuid(): string
+{
+    if (class_exists(\Ramsey\Uuid\Uuid::class)) {
+        return \Ramsey\Uuid\Uuid::uuid4()->toString();
+    }
+    $data = random_bytes(16);
+    $data[6] = chr((ord($data[6]) & 0x0f) | 0x40); // version 4
+    $data[8] = chr((ord($data[8]) & 0x3f) | 0x80); // variant 10
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
+
+/* ------------------------------------------------------------------ */
+/* HTTP / URLs                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Absolute URL for a path, based on APP_URL (falls back to current host). */
+function url(string $path = ''): string
+{
+    $base = rtrim((string) config('app.url', ''), '/');
+    if ($base === '') {
+        $scheme = request_is_https() ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $base = $scheme . '://' . $host;
+    }
+    return $base . '/' . ltrim($path, '/');
+}
+
+/** Versioned URL for a public asset. */
+function asset(string $path): string
+{
+    return url('assets/' . ltrim($path, '/'));
+}
+
+/** True if the current request is served over HTTPS (incl. behind Cloudflare). */
+function request_is_https(): bool
+{
+    if (($_SERVER['HTTPS'] ?? '') === 'on') {
+        return true;
+    }
+    if (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') {
+        return true;
+    }
+    return ((int) ($_SERVER['SERVER_PORT'] ?? 0)) === 443;
+}
+
+/** Send a redirect and stop execution. */
+function redirect(string $path, int $status = 302): never
+{
+    $location = preg_match('#^https?://#i', $path) ? $path : url($path);
+    header('Location: ' . $location, true, $status);
+    exit;
+}
+
+/** Redirect back to the referring page (or a fallback). */
+function back(string $fallback = '/'): never
+{
+    $ref = $_SERVER['HTTP_REFERER'] ?? '';
+    // Only honour same-host referrers to avoid open-redirects.
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($ref !== '' && $host !== '' && str_contains($ref, $host)) {
+        redirect($ref);
+    }
+    redirect($fallback);
+}
+
+/** Send a JSON response and stop. */
+function json_response(mixed $data, int $status = 200): never
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+/* ------------------------------------------------------------------ */
+/* Views                                                               */
+/* ------------------------------------------------------------------ */
+
+/** Render a view template inside a layout and echo it. */
+function view(string $template, array $data = [], ?string $layout = 'layouts/app'): void
+{
+    $content = render_partial($template, $data);
+    if ($layout !== null) {
+        echo render_partial($layout, array_merge($data, ['content' => $content]));
+    } else {
+        echo $content;
+    }
+}
+
+/** Render a template to a string (no layout). */
+function render_partial(string $template, array $data = []): string
+{
+    $file = APP_PATH . '/Views/' . $template . '.php';
+    if (!is_file($file)) {
+        throw new RuntimeException("View not found: {$template}");
+    }
+    extract($data, EXTR_SKIP);
+    ob_start();
+    require $file;
+    return (string) ob_get_clean();
+}
+
+/* ------------------------------------------------------------------ */
+/* Flash messages, old input, validation errors                        */
+/* ------------------------------------------------------------------ */
+
+/** Queue a flash message ('success' | 'error' | 'info'). */
+function flash(string $type, string $message): void
+{
+    $_SESSION['_flash'][$type][] = $message;
+}
+
+/** Pull and clear all flash messages. */
+function get_flashes(): array
+{
+    $flashes = $_SESSION['_flash'] ?? [];
+    unset($_SESSION['_flash']);
+    return $flashes;
+}
+
+/** Remember submitted input so a form can be re-populated after a redirect. */
+function keep_old(array $input, array $except = ['password', 'password_confirm', 'csrf_token']): void
+{
+    foreach ($except as $key) {
+        unset($input[$key]);
+    }
+    $_SESSION['_old'] = $input;
+}
+
+/** Previously submitted value for a field. */
+function old(string $key, string $default = ''): string
+{
+    $value = $_SESSION['_old'][$key] ?? $default;
+    return e(is_string($value) ? $value : $default);
+}
+
+function clear_old(): void
+{
+    unset($_SESSION['_old']);
+}
+
+/** Store validation errors (keyed by field). */
+function set_errors(array $errors): void
+{
+    $_SESSION['_errors'] = $errors;
+}
+
+/** All current validation errors (pulled once, then cleared). */
+function errors(): array
+{
+    static $pulled = null;
+    if ($pulled === null) {
+        $pulled = $_SESSION['_errors'] ?? [];
+        unset($_SESSION['_errors']);
+    }
+    return $pulled;
+}
+
+function error(string $key): ?string
+{
+    return errors()[$key] ?? null;
+}
+
+function has_error(string $key): bool
+{
+    return isset(errors()[$key]);
+}
+
+/* ------------------------------------------------------------------ */
+/* Authentication                                                      */
+/* ------------------------------------------------------------------ */
+
+/** The currently authenticated user (array) or null. Cached per request. */
+function current_user(): ?array
+{
+    static $user = null;
+    static $loaded = false;
+
+    if ($loaded) {
+        return $user;
+    }
+    $loaded = true;
+
+    $id = $_SESSION['user_id'] ?? null;
+    if ($id === null) {
+        return $user = null;
+    }
+    return $user = \App\Models\User::findById((int) $id);
+}
+
+function current_user_id(): ?int
+{
+    $id = $_SESSION['user_id'] ?? null;
+    return $id === null ? null : (int) $id;
+}
+
+function auth_check(): bool
+{
+    return current_user_id() !== null;
+}
+
+/** Establish an authenticated session for a user id (regenerates session id). */
+function login_user(int $userId): void
+{
+    session_regenerate_id(true);
+    $_SESSION['user_id'] = $userId;
+    $_SESSION['__created'] = time();
+}
+
+/**
+ * Log the current user out: drop all session data and rotate the session id.
+ * (Clearing + regenerating — rather than a hard destroy — keeps the session alive
+ * so a post-logout flash message can be shown, while invalidating the old id.)
+ */
+function logout_user(): void
+{
+    $_SESSION = [];
+    session_regenerate_id(true);
+    $_SESSION['__created'] = time();
+}
+
+/** Stop with an HTTP error (404 is used to hide forbidden resources — see security.md §5). */
+function abort(int $status, string $message = ''): never
+{
+    if (!headers_sent()) {
+        http_response_code($status);
+    }
+    $view = 'errors/' . $status;
+    // Error pages render WITHOUT the app layout so they never depend on the DB/session.
+    if (is_file(APP_PATH . '/Views/' . $view . '.php')) {
+        view($view, ['message' => $message], null);
+    } else {
+        echo $message !== '' ? e($message) : 'Error ' . $status;
+    }
+    exit;
+}
