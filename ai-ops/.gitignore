@@ -1,0 +1,16 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Runtime storage (SQLite DB, logs)
+storage/*.db
+storage/*.db-wal
+storage/*.db-shm
+storage/*.log

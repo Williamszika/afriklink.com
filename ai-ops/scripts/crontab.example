@@ -1,0 +1,18 @@
+# AfriLink AI-Ops — example crontab.
+# The orchestrator decides which agents are due (frequency lives in the DB), so a
+# single hourly line is enough. Install with:  crontab scripts/crontab.example
+#
+# Adjust the two paths: the venv python and the ai-ops directory.
+
+AIOPS=/home/user/afriklink.com/ai-ops
+PY=/home/user/afriklink.com/ai-ops/.venv/bin/python
+
+# Run the orchestrator every hour; it runs only the agents that are due
+# (security_audit ~daily, market_research ~weekly, …) and logs to storage/.
+0 * * * * cd $AIOPS && $PY -m afrilink_agents run >> $AIOPS/storage/cron.log 2>&1
+
+# --- Alternatives (if you prefer explicit per-agent schedules) -------------
+# Daily security audit at 03:00:
+# 0 3 * * *   cd $AIOPS && $PY -m afrilink_agents run-agent security_audit --trigger schedule >> $AIOPS/storage/cron.log 2>&1
+# Weekly market research, Monday 04:00:
+# 0 4 * * 1   cd $AIOPS && $PY -m afrilink_agents run-agent market_research --trigger schedule >> $AIOPS/storage/cron.log 2>&1

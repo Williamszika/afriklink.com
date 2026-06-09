@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# AfriLink AI-Ops — on-commit security audit trigger.
+#
+# Install (from the repo root):
+#   ln -s ../../ai-ops/scripts/git-hooks/post-commit .git/hooks/post-commit
+#   chmod +x ai-ops/scripts/git-hooks/post-commit
+#
+# Runs the SecurityAuditAgent in the background so commits stay fast. Requires
+# ANTHROPIC_API_KEY in ai-ops/.env. No-ops quietly if the venv is missing.
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+AIOPS="$REPO_ROOT/ai-ops"
+PY="$AIOPS/.venv/bin/python"
+[ -x "$PY" ] || PY="$(command -v python3 || true)"
+[ -n "$PY" ] || exit 0
+
+(
+  cd "$AIOPS" && "$PY" -m afrilink_agents run-agent security_audit --trigger commit \
+    >> "$AIOPS/storage/commit-audit.log" 2>&1
+) &
+
+exit 0
