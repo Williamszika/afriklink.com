@@ -7,12 +7,15 @@ $verticals = [
 ];
 ?>
 <section class="hero">
+    <div class="hero-logo"><?= render_partial('partials/logo', ['uid' => 'hero']) ?></div>
+    <p class="hero-wordmark">Afrik<span>link</span></p>
     <h1><?= e(t('home.hero_title')) ?></h1>
     <p class="lead"><?= e(t('home.hero_subtitle')) ?></p>
     <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="<?= e(url('/register')) ?>"><?= e(t('home.cta_sell')) ?></a>
-        <a class="btn btn-ghost btn-lg" href="#verticals"><?= e(t('home.cta_explore')) ?></a>
+        <a class="btn btn-primary btn-lg" href="<?= e(url('/register')) ?>"><?= e(t('home.cta_register')) ?></a>
+        <a class="btn btn-ghost btn-lg" href="<?= e(url('/login')) ?>"><?= e(t('home.cta_login')) ?></a>
     </div>
+    <p class="hero-secondary"><a href="#verticals"><?= e(t('home.cta_explore')) ?></a></p>
 </section>
 
 <section id="verticals" class="verticals">

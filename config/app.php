@@ -17,8 +17,8 @@ return [
     'key'   => $_ENV['APP_KEY'] ?? '',
     'session_driver' => $sessionDriver,
 
-    'name'    => 'AfrikaLink',
-    'support_email' => $_ENV['MAIL_FROM'] ?? 'no-reply@afrikalink.example',
+    'name'    => 'Afriklink',
+    'support_email' => $_ENV['MAIL_FROM'] ?? 'no-reply@afriklink.com',
 
     // i18n / money. Language, country and currency are three independent axes.
     'default_locale'   => $_ENV['DEFAULT_LOCALE'] ?? 'fr',

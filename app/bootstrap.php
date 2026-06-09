@@ -84,12 +84,14 @@ foreach (getenv() as $envKey => $envValue) {
 
 /* ---- 4. Support helpers + global helpers ------------------------ */
 
-require APP_PATH . '/Support/db.php';
-require APP_PATH . '/Support/csrf.php';
-require APP_PATH . '/Support/validation.php';
-require APP_PATH . '/Support/rate_limit.php';
-require APP_PATH . '/Support/security_headers.php';
-require APP_PATH . '/helpers.php';
+// require_once so these procedural helpers can't be double-loaded (e.g. if a
+// Composer autoloader 'files' entry also includes them) → no "cannot redeclare".
+require_once APP_PATH . '/Support/db.php';
+require_once APP_PATH . '/Support/csrf.php';
+require_once APP_PATH . '/Support/validation.php';
+require_once APP_PATH . '/Support/rate_limit.php';
+require_once APP_PATH . '/Support/security_headers.php';
+require_once APP_PATH . '/helpers.php';
 
 /* ---- 5. Error handling & logging -------------------------------- */
 

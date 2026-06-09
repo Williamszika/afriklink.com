@@ -19,7 +19,9 @@ return [
     'home.hero_title'      => 'The marketplace connecting Africa and the world',
     'home.hero_subtitle'   => 'Shops, restaurants, salons and services — sell and buy locally and internationally, across languages and currencies.',
     'home.cta_sell'        => 'Become a seller',
-    'home.cta_explore'     => 'Explore',
+    'home.cta_explore'     => 'Explore the shops',
+    'home.cta_login'       => 'Log in',
+    'home.cta_register'    => 'Sign up',
     'home.verticals_title' => 'Four worlds, one platform',
     'home.vertical.shop.title'        => 'Shops',
     'home.vertical.shop.desc'         => 'Sell physical products with stock and local or international shipping.',
@@ -103,10 +105,10 @@ return [
     'flash.already_verified'    => 'Your email is already verified.',
 
     // Emails
-    'mail.verify.subject' => 'Verify your email — AfrikaLink',
+    'mail.verify.subject' => 'Verify your email — Afriklink',
     'mail.verify.body'    => 'Welcome to :app. Confirm your email address by clicking the link below.',
     'mail.verify.cta'     => 'Verify my email',
-    'mail.reset.subject'  => 'Reset your password — AfrikaLink',
+    'mail.reset.subject'  => 'Reset your password — Afriklink',
     'mail.reset.body'     => 'You requested a password reset on :app. This link expires soon.',
     'mail.reset.cta'      => 'Reset my password',
 

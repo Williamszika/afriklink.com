@@ -18,15 +18,7 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/"
-        },
-        "files": [
-            "app/Support/db.php",
-            "app/Support/csrf.php",
-            "app/Support/validation.php",
-            "app/Support/rate_limit.php",
-            "app/Support/security_headers.php",
-            "app/helpers.php"
-        ]
+        }
     },
     "config": {
         "optimize-autoloader": true,

@@ -8,13 +8,18 @@ $user = current_user();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-    <title><?= e(config('app.name', 'AfrikaLink')) ?></title>
+    <meta name="description" content="<?= e(t('home.hero_subtitle')) ?>">
+    <title><?= e(config('app.name', 'Afriklink')) ?></title>
+    <link rel="icon" type="image/svg+xml" href="<?= e(asset('img/logo-cauri.svg')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 </head>
 <body>
 <header class="site-header">
     <div class="container header-inner">
-        <a class="brand" href="<?= e(url('/')) ?>">Afrika<span>Link</span></a>
+        <a class="brand" href="<?= e(url('/')) ?>">
+            <span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'hdr']) ?></span>
+            <span class="brand-text">Afrik<span>link</span></span>
+        </a>
 
         <nav class="main-nav" aria-label="<?= e(t('nav.home')) ?>">
             <a href="<?= e(url('/')) ?>"><?= e(t('nav.home')) ?></a>
