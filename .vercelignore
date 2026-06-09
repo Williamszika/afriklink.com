@@ -1,0 +1,12 @@
+# Don't deploy these to Vercel (smaller, safer build)
+.git
+.claude
+ai-ops
+storage
+tests
+
+# Secrets & local env (configure these in the Vercel dashboard instead)
+.env
+
+# Composer is run by the build; don't upload a local vendor/
+vendor

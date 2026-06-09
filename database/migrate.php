@@ -36,6 +36,7 @@ try {
         $user,
         $pass,
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false]
+        + pdo_ssl_options(), // TLS for TiDB Cloud Serverless
     );
 } catch (Throwable $e) {
     fwrite(STDERR, 'Cannot connect to database: ' . $e->getMessage() . "\n");

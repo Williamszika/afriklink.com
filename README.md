@@ -88,6 +88,48 @@ Every feature follows the golden rules in
 - Security headers + CSP (`security_headers.php` and `public/.htaccess`)
 - Secrets in `.env` (never committed); amounts stored as integer cents
 
+## Database — TiDB Cloud Serverless (free, MySQL-compatible)
+
+The app targets MySQL 8.4. The recommended **free** managed database is **TiDB Cloud
+Serverless** (MySQL wire-compatible, scales to zero) — usable from both Hostinger and
+Vercel with no schema changes.
+
+1. Create a free cluster at tidbcloud.com → copy the connection details.
+2. In `.env` (local) or the host's env vars, set:
+   ```
+   DB_HOST=gateway01.<region>.prod.aws.tidbcloud.com
+   DB_PORT=4000
+   DB_NAME=afrikalink
+   DB_USER=<prefix>.root
+   DB_PASS=<password>
+   DB_SSL=true                 # TiDB requires TLS
+   DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt   # or DB_SSL_VERIFY=false as a fallback
+   ```
+3. Apply migrations from your machine (TiDB is reachable over TLS from anywhere):
+   ```
+   php database/migrate.php
+   ```
+
+## Deploy on Vercel (preview/test)
+
+PHP is not native to Vercel — it runs via the community `vercel-php` runtime, so two
+things differ from Apache/Hostinger and are already wired up:
+
+- **`vercel.json`** maps `api/index.php` to the PHP 8.4 runtime and routes `/assets/*`
+  to static files and everything else to the front controller (replacing `.htaccess`).
+- **Sessions move to the database** automatically (`SESSION_DRIVER=database`, auto on
+  Vercel) — the serverless filesystem is ephemeral. Run the `sessions` migration.
+
+Steps:
+1. Push to GitHub and import the repo in Vercel.
+2. Set environment variables in the Vercel dashboard: `APP_ENV=production`, `APP_KEY`,
+   the `DB_*` (+ `DB_SSL=true`) for your TiDB cluster. `VERCEL` is set by the platform.
+3. Apply migrations against TiDB (`php database/migrate.php` from your machine).
+4. Deploy. The front controller, auth, i18n and DB sessions run on Vercel.
+
+> Hostinger remains the simplest production host for this stack (native PHP, `.htaccess`,
+> file sessions). The same codebase runs on both — only `SESSION_DRIVER` and the DB differ.
+
 ## Roadmap
 
 - **Phase 0 — Foundations & security** ✅ *(this branch)* — structure, secure bootstrap,

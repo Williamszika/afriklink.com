@@ -6,11 +6,16 @@ declare(strict_types=1);
  * safe defaults. Access via config('app.<key>').
  */
 
+// Session storage: file by default, database on serverless (Vercel) where the
+// local filesystem is ephemeral. Override with SESSION_DRIVER=file|database.
+$sessionDriver = $_ENV['SESSION_DRIVER'] ?? (empty($_ENV['VERCEL']) ? 'file' : 'database');
+
 return [
     'env'   => $_ENV['APP_ENV'] ?? 'production',
     'debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOL),
     'url'   => $_ENV['APP_URL'] ?? '',
     'key'   => $_ENV['APP_KEY'] ?? '',
+    'session_driver' => $sessionDriver,
 
     'name'    => 'AfrikaLink',
     'support_email' => $_ENV['MAIL_FROM'] ?? 'no-reply@afrikalink.example',

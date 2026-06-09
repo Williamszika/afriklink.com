@@ -74,6 +74,14 @@ if (is_file(BASE_PATH . '/vendor/autoload.php')) {
     }
 })();
 
+// Backfill $_ENV from the process environment (platforms like Vercel inject config
+// as real env vars, not a .env file). .env-file values already set above win.
+foreach (getenv() as $envKey => $envValue) {
+    if (!array_key_exists($envKey, $_ENV)) {
+        $_ENV[$envKey] = $envValue;
+    }
+}
+
 /* ---- 4. Support helpers + global helpers ------------------------ */
 
 require APP_PATH . '/Support/db.php';
@@ -90,7 +98,10 @@ $debug = (bool) config('app.debug', false);
 error_reporting(E_ALL);
 ini_set('display_errors', $debug ? '1' : '0');
 ini_set('log_errors', '1');
-ini_set('error_log', STORAGE_PATH . '/logs/php.log');
+// On serverless (Vercel) the project filesystem is read-only — log to the temp dir.
+ini_set('error_log', empty($_ENV['VERCEL'])
+    ? STORAGE_PATH . '/logs/php.log'
+    : sys_get_temp_dir() . '/afrikalink-php.log');
 
 set_error_handler(static function (int $severity, string $message, string $file, int $line): bool {
     if (!(error_reporting() & $severity)) {
@@ -124,6 +135,13 @@ set_exception_handler(static function (Throwable $e) use ($debug): void {
 
 if (PHP_SAPI !== 'cli') {
     send_security_headers();
+
+    // Serverless (Vercel) has an ephemeral filesystem, so file-based sessions don't
+    // persist between invocations — store them in the database instead. Driven by
+    // SESSION_DRIVER (auto = 'database' on Vercel, 'file' elsewhere). See config/app.php.
+    if (config('app.session_driver', 'file') === 'database') {
+        session_set_save_handler(new \App\Support\DbSessionHandler(), true);
+    }
 
     // Env-aware session start. The skill's start_secure_session() forces a Secure
     // cookie (correct for production behind HTTPS). Locally over plain HTTP we relax
