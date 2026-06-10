@@ -73,16 +73,8 @@ return [
     'register.pro_desc'          => 'Shop, restaurant, salon or trade — sell as a business.',
     'register.pro_soon'          => 'Professional sign-up is coming soon. Start as an Individual for now.',
     'register.choose'            => 'Continue',
-    'register.auto_detected'     => 'Country and city detected automatically (editable).',
-
-    // Precise geolocation (browser)
-    'geo.detecting' => '📡 Detecting your precise position…',
+    // Precise geolocation (browser) — only the confirmation is shown
     'geo.detected'  => '📍 Position detected at ±:acc m — city: :city (editable).',
-    'geo.approx'    => '📍 Approximate position (±:acc m) — suggested city: :city. Double-check it.',
-    'geo.coarse'    => '⚠️ Location is too imprecise on this device (±:acc m). The city shown comes from your internet connection and may be wrong — fix it, or enable GPS and retry.',
-    'geo.denied'    => 'Location denied. For your exact city: allow location (🔒 icon near the address) then “Detect my position”. Otherwise, edit the city manually.',
-    'geo.error'     => 'Precise location unavailable — double-check the suggested city (editable).',
-    'geo.retry'     => '📍 Detect my precise position',
     'register.particulier_submit'=> 'Create my account',
     'register.back_choice'       => 'Change account type',
     'register.by_email'          => 'By email',

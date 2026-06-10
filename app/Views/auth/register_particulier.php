@@ -4,7 +4,6 @@ $selCountry = old('country_code', $detected_country);
 $selDial    = old('dial_country', $detected_country);
 $cm         = old('contact_method') ?: 'email';
 $g          = old('gender');
-$detectedNote = ($detected_country !== '' || $detected_city !== '');
 ?>
 <section class="auth-card auth-card--wide">
     <h1><?= e(t('register.particulier_title')) ?></h1>
@@ -89,17 +88,8 @@ $detectedNote = ($detected_country !== '' || $detected_city !== '');
                 <input type="text" id="city" name="city" value="<?= old('city', $detected_city) ?>" autocomplete="address-level2">
             </div>
         </div>
-        <?php if ($detectedNote): ?>
-            <p class="detected-badge">📍 <?= e(t('register.auto_detected')) ?></p>
-        <?php endif; ?>
         <p id="geo-status" class="hint" aria-live="polite"
-           data-detecting="<?= e(t('geo.detecting')) ?>"
-           data-detected="<?= e(t('geo.detected')) ?>"
-           data-approx="<?= e(t('geo.approx')) ?>"
-           data-coarse="<?= e(t('geo.coarse')) ?>"
-           data-denied="<?= e(t('geo.denied')) ?>"
-           data-error="<?= e(t('geo.error')) ?>"></p>
-        <button type="button" id="geo-retry" class="btn btn-ghost geo-retry"><?= e(t('geo.retry')) ?></button>
+           data-detected="<?= e(t('geo.detected')) ?>"></p>
 
         <label for="password"><?= e(t('field.password')) ?></label>
         <input type="password" id="password" name="password" required autocomplete="new-password"

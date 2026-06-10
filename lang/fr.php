@@ -73,16 +73,8 @@ return [
     'register.pro_desc'          => 'Boutique, restaurant, salon ou métier — vends en tant qu’entreprise.',
     'register.pro_soon'          => 'L’inscription professionnelle arrive bientôt. Commence en Particulier en attendant.',
     'register.choose'            => 'Continuer',
-    'register.auto_detected'     => 'Pays et ville détectés automatiquement (modifiable).',
-
-    // Géolocalisation précise (navigateur)
-    'geo.detecting' => '📡 Détection précise de ta position…',
+    // Géolocalisation précise (navigateur) — seule la confirmation s'affiche
     'geo.detected'  => '📍 Position détectée à ±:acc m — ville : :city (modifiable).',
-    'geo.approx'    => '📍 Position approximative (±:acc m) — ville proposée : :city. Vérifie-la.',
-    'geo.coarse'    => '⚠️ Localisation trop imprécise sur cet appareil (±:acc m). La ville affichée vient de ta connexion internet et peut être fausse — corrige-la, ou active le GPS et réessaie.',
-    'geo.denied'    => 'Localisation refusée. Pour la ville exacte : autorise la localisation (icône 🔒 près de l’adresse) puis « Détecter ma position ». Sinon, corrige la ville à la main.',
-    'geo.error'     => 'Localisation précise indisponible — vérifie la ville proposée (modifiable).',
-    'geo.retry'     => '📍 Détecter ma position précise',
     'register.particulier_submit'=> 'Créer mon compte',
     'register.back_choice'       => 'Changer de type de compte',
     'register.by_email'          => 'Par e-mail',

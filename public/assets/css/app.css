@@ -130,11 +130,8 @@ a:hover { text-decoration: underline; }
 .choice-card h2 { margin: 4px 0 0; font-size: 1.15rem; }
 .choice-card p { margin: 0; color: var(--muted); font-size: .92rem; }
 .choice-cta { margin-top: 8px; color: var(--brand); font-weight: 700; font-size: .9rem; }
-.detected-badge { margin: 8px 0 2px; font-size: .85rem; color: var(--success); background: var(--success-bg); border: 1px solid #abefc6; border-radius: 8px; padding: 6px 10px; }
 #geo-status:empty { display: none; }
 #geo-status.geo-ok { color: var(--success); font-weight: 600; }
-#geo-status.geo-warn { color: var(--warning); }
-.geo-retry { margin-top: 8px; padding: 6px 12px; font-size: .85rem; }
 
 /* Contact-method switch (email / phone) — CSS-only tabs, no JS */
 .contact-radio { position: absolute; opacity: 0; pointer-events: none; }
