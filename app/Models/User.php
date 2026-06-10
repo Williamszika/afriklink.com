@@ -45,6 +45,34 @@ final class User
         return (bool) $stmt->fetchColumn();
     }
 
+    public static function findByPhone(string $phone): ?array
+    {
+        $stmt = db()->prepare(
+            'SELECT * FROM users WHERE phone = :phone AND deleted_at IS NULL LIMIT 1'
+        );
+        $stmt->execute(['phone' => $phone]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public static function phoneExists(string $phone): bool
+    {
+        $stmt = db()->prepare('SELECT 1 FROM users WHERE phone = :phone LIMIT 1');
+        $stmt->execute(['phone' => $phone]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /** Look up by email (if the identifier contains '@') or by normalised phone. */
+    public static function findByEmailOrPhone(string $identifier): ?array
+    {
+        $identifier = trim($identifier);
+        if ($identifier === '') {
+            return null;
+        }
+        return str_contains($identifier, '@')
+            ? self::findByEmail(strtolower($identifier))
+            : self::findByPhone(normalize_phone($identifier));
+    }
+
     /**
      * Create a user. Expects an already-hashed password.
      * @return int new user id
@@ -53,15 +81,16 @@ final class User
     {
         $stmt = db()->prepare(
             'INSERT INTO users
-                (public_id, email, password_hash, role, account_type, full_name, nickname,
+                (public_id, email, phone, password_hash, role, account_type, full_name, nickname,
                  birthdate, gender, locale, country_code, city, preferred_currency, status)
              VALUES
-                (:public_id, :email, :password_hash, :role, :account_type, :full_name, :nickname,
+                (:public_id, :email, :phone, :password_hash, :role, :account_type, :full_name, :nickname,
                  :birthdate, :gender, :locale, :country_code, :city, :preferred_currency, :status)'
         );
         $stmt->execute([
             'public_id'          => uuid(),
-            'email'              => $data['email'],
+            'email'              => $data['email'] ?? null,
+            'phone'              => $data['phone'] ?? null,
             'password_hash'      => $data['password_hash'],
             'role'               => $data['role'] ?? 'user',
             'account_type'       => $data['account_type'] ?? 'particulier',

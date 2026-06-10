@@ -52,6 +52,12 @@ return [
     'field.gender'           => 'Sexe',
     'field.city'             => 'Ville',
     'field.choose'           => 'Choisir…',
+    'field.phone'            => 'Téléphone',
+    'field.dial_code'        => 'Indicatif',
+    'field.phone_placeholder'=> 'Numéro sans l’indicatif',
+    'field.phone_hint'       => 'Indicatif détecté automatiquement (modifiable).',
+    'field.identifier'       => 'E-mail ou téléphone',
+    'field.identifier_placeholder' => 'vous@exemple.com ou +221…',
 
     // Sexe
     'gender.homme' => 'Homme',
@@ -70,6 +76,8 @@ return [
     'register.auto_detected'     => 'Pays et ville détectés automatiquement (modifiable).',
     'register.particulier_submit'=> 'Créer mon compte',
     'register.back_choice'       => 'Changer de type de compte',
+    'register.by_email'          => 'Par e-mail',
+    'register.by_phone'          => 'Par téléphone',
 
     // Inscription
     'auth.register.title'    => 'Créer un compte',
@@ -117,9 +125,12 @@ return [
     'validation.password_mismatch' => 'Les mots de passe ne correspondent pas.',
     'validation.required'          => 'Ce champ est obligatoire.',
     'validation.birthdate_invalid' => 'Date de naissance invalide (format jj/mm/aaaa).',
+    'validation.phone_invalid'     => 'Numéro de téléphone invalide.',
+    'validation.phone_taken'       => 'Ce numéro est déjà utilisé.',
 
     // Messages flash
     'flash.registered'          => 'Compte créé. Vérifiez votre e-mail pour l’activer.',
+    'flash.registered_phone'    => 'Compte créé. Bienvenue sur Afriklink !',
     'flash.logged_in'           => 'Vous êtes connecté.',
     'flash.logged_out'          => 'Vous êtes déconnecté.',
     'flash.invalid_credentials' => 'E-mail ou mot de passe incorrect.',

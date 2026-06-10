@@ -1,7 +1,9 @@
 <?php
 /** @var array $countries  @var string $detected_country  @var string $detected_city */
 $selCountry = old('country_code', $detected_country);
-$g = old('gender');
+$selDial    = old('dial_country', $detected_country);
+$cm         = old('contact_method') ?: 'email';
+$g          = old('gender');
 $detectedNote = ($detected_country !== '' || $detected_city !== '');
 ?>
 <section class="auth-card auth-card--wide">
@@ -19,9 +21,34 @@ $detectedNote = ($detected_country !== '' || $detected_city !== '');
         <input type="text" id="nickname" name="nickname" value="<?= old('nickname') ?>" required autocomplete="nickname" maxlength="64">
         <?php if (has_error('nickname')): ?><p class="field-error"><?= e(error('nickname')) ?></p><?php endif; ?>
 
-        <label for="email"><?= e(t('field.email')) ?></label>
-        <input type="email" id="email" name="email" value="<?= old('email') ?>" required autocomplete="email">
-        <?php if (has_error('email')): ?><p class="field-error"><?= e(error('email')) ?></p><?php endif; ?>
+        <div class="contact-switch">
+            <input type="radio" id="cm-email" name="contact_method" value="email" class="contact-radio" <?= $cm !== 'phone' ? 'checked' : '' ?>>
+            <input type="radio" id="cm-phone" name="contact_method" value="phone" class="contact-radio" <?= $cm === 'phone' ? 'checked' : '' ?>>
+            <div class="contact-tabs">
+                <label for="cm-email" class="contact-tab"><?= e(t('register.by_email')) ?></label>
+                <label for="cm-phone" class="contact-tab"><?= e(t('register.by_phone')) ?></label>
+            </div>
+
+            <div class="contact-panel contact-panel-email">
+                <label for="email"><?= e(t('field.email')) ?></label>
+                <input type="email" id="email" name="email" value="<?= old('email') ?>" autocomplete="email">
+                <?php if (has_error('email')): ?><p class="field-error"><?= e(error('email')) ?></p><?php endif; ?>
+            </div>
+
+            <div class="contact-panel contact-panel-phone">
+                <label><?= e(t('field.phone')) ?></label>
+                <div class="phone-row">
+                    <select name="dial_country" class="dial-select" aria-label="<?= e(t('field.dial_code')) ?>">
+                        <?php foreach ($countries as $code => $name): $dc = dial_code($code); if ($dc === '') continue; ?>
+                            <option value="<?= e($code) ?>" <?= $selDial === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?> (+<?= e($dc) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="tel" name="phone_number" value="<?= old('phone_number') ?>" inputmode="tel" placeholder="<?= e(t('field.phone_placeholder')) ?>" class="phone-input" autocomplete="tel-national">
+                </div>
+                <p class="hint"><?= e(t('field.phone_hint')) ?></p>
+                <?php if (has_error('phone')): ?><p class="field-error"><?= e(error('phone')) ?></p><?php endif; ?>
+            </div>
+        </div>
 
         <div class="grid-2">
             <div>

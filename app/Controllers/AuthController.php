@@ -44,7 +44,6 @@ final class AuthController
 
     public function registerParticulier(Request $request): void
     {
-        $email     = input_email('email');
         $password  = (string) ($_POST['password'] ?? '');
         $confirm   = (string) ($_POST['password_confirm'] ?? '');
         $fullName  = input_string('full_name');
@@ -57,11 +56,29 @@ final class AuthController
         $country   = strtoupper((string) input_string('country_code', ''));
         $country   = isset($countries[$country]) ? $country : null;
 
+        // Identify with EITHER email OR phone.
+        $method = whitelist((string) input_string('contact_method', 'email'), ['email', 'phone'], 'email');
+        $email  = null;
+        $phone  = null;
+
         $errors = [];
+        if ($method === 'email') {
+            $email = input_email('email');
+            if ($email === null)               { $errors['email'] = t('validation.email_invalid'); }
+            elseif (User::emailExists($email)) { $errors['email'] = t('validation.email_taken'); }
+        } else {
+            $dial     = dial_code(strtoupper((string) input_string('dial_country', '')));
+            $national = ltrim((string) preg_replace('/\D+/', '', (string) input_string('phone_number', '')), '0');
+            if ($dial === '' || strlen($national) < 6 || strlen($national) > 12) {
+                $errors['phone'] = t('validation.phone_invalid');
+            } else {
+                $phone = '+' . $dial . $national;
+                if (User::phoneExists($phone)) { $errors['phone'] = t('validation.phone_taken'); }
+            }
+        }
+
         if ($fullName === null)            { $errors['full_name'] = t('validation.required'); }
         if ($nickname === null)            { $errors['nickname'] = t('validation.required'); }
-        if ($email === null)               { $errors['email'] = t('validation.email_invalid'); }
-        elseif (User::emailExists($email)) { $errors['email'] = t('validation.email_taken'); }
         if (!is_valid_password($password)) { $errors['password'] = t('validation.password_short', ['min' => config('app.password_min_length', 12)]); }
         if ($password !== $confirm)        { $errors['password_confirm'] = t('validation.password_mismatch'); }
         if ($birthdate === null)           { $errors['birthdate'] = t('validation.birthdate_invalid'); }
@@ -76,6 +93,7 @@ final class AuthController
 
         $userId = User::create([
             'email'              => $email,
+            'phone'              => $phone,
             'password_hash'      => password_hash($password, PASSWORD_DEFAULT),
             'role'               => 'user',
             'account_type'       => 'particulier',
@@ -90,13 +108,19 @@ final class AuthController
             'status'             => 'active',
         ]);
 
-        AuditLog::record($userId, 'user.register', 'user', $userId, ['type' => 'particulier'], $request->ipBinary());
-        $this->sendVerificationEmail(['id' => $userId, 'email' => $email]);
-
+        AuditLog::record($userId, 'user.register', 'user', $userId, ['type' => 'particulier', 'via' => $method], $request->ipBinary());
         login_user($userId);
         clear_old();
-        flash('success', t('flash.registered'));
-        redirect('/verify-email/notice');
+
+        if ($email !== null) {
+            $this->sendVerificationEmail(['id' => $userId, 'email' => $email]);
+            flash('success', t('flash.registered'));
+            redirect('/verify-email/notice');
+        }
+
+        // Phone account: email verification N/A (SMS verification is a future step).
+        flash('success', t('flash.registered_phone'));
+        redirect('/dashboard');
     }
 
     /* ---- Login / logout ----------------------------------------- */
@@ -108,16 +132,16 @@ final class AuthController
 
     public function login(Request $request): void
     {
-        $email    = input_email('email');
-        $password = (string) ($_POST['password'] ?? '');
+        $identifier = (string) (input_string('identifier') ?? '');
+        $password   = (string) ($_POST['password'] ?? '');
 
-        $user = $email !== null ? User::findByEmail($email) : null;
+        $user = $identifier !== '' ? User::findByEmailOrPhone($identifier) : null;
         $ok   = $user !== null && password_verify($password, $user['password_hash']);
 
-        LoginAttempt::record($email, $request->ipBinary(), $ok);
+        LoginAttempt::record($identifier !== '' ? $identifier : null, $request->ipBinary(), $ok);
 
         if (!$ok) {
-            AuditLog::record(null, 'auth.login_failed', 'user', null, ['email' => $email], $request->ipBinary());
+            AuditLog::record(null, 'auth.login_failed', 'user', null, ['id' => $identifier], $request->ipBinary());
             keep_old($_POST);
             flash('error', t('flash.invalid_credentials'));
             redirect('/login');

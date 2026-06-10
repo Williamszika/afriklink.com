@@ -4,8 +4,9 @@
     <form method="post" action="<?= e(url('/login')) ?>" novalidate>
         <?= csrf_field() ?>
 
-        <label for="email"><?= e(t('field.email')) ?></label>
-        <input type="email" id="email" name="email" value="<?= old('email') ?>" required autocomplete="email">
+        <label for="identifier"><?= e(t('field.identifier')) ?></label>
+        <input type="text" id="identifier" name="identifier" value="<?= old('identifier') ?>" required autocomplete="username"
+               placeholder="<?= e(t('field.identifier_placeholder')) ?>">
 
         <label for="password"><?= e(t('field.password')) ?></label>
         <input type="password" id="password" name="password" required autocomplete="current-password">

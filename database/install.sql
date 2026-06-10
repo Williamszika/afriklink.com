@@ -1,6 +1,6 @@
--- Afriklink — installation complète du schéma (Phase 0 + profil Particulier).
--- Usage SANS terminal : copie-colle ce fichier dans l'éditeur SQL de TiDB Cloud
--- (console web → SQL Editor / Chat2Query), base 'afrikalink', à exécuter UNE fois.
+-- Afriklink — installation complète du schéma (Phase 0 + profil Particulier + email/téléphone).
+-- Usage SANS terminal : copie-colle ce fichier dans l'éditeur SQL de TiDB Cloud,
+-- base 'afrikalink', à exécuter UNE fois sur une base vierge.
 -- Équivaut à database/migrations/*.sql dans l'ordre.
 
 -- Phase 0 — Core account + authentication & security tables.
@@ -145,3 +145,14 @@ ALTER TABLE users ADD COLUMN nickname  VARCHAR(64)  NULL AFTER full_name;
 ALTER TABLE users ADD COLUMN birthdate DATE NULL AFTER nickname;
 ALTER TABLE users ADD COLUMN gender ENUM('homme','femme','autre') NULL AFTER birthdate;
 ALTER TABLE users ADD COLUMN city VARCHAR(128) NULL AFTER gender;
+
+-- Phase 1 — allow signing up with EITHER email OR phone.
+-- email becomes optional (NULL allowed); phone gets a UNIQUE index.
+-- MySQL/TiDB: a UNIQUE index allows multiple NULLs, so email-less or phone-less
+-- accounts coexist. Compatible MySQL 8.4 / TiDB Cloud Serverless.
+
+SET NAMES utf8mb4;
+
+ALTER TABLE users MODIFY COLUMN email VARCHAR(191) NULL;
+ALTER TABLE users ADD UNIQUE KEY uq_users_phone (phone);
+

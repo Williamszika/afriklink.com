@@ -237,6 +237,31 @@ function parse_birthdate_fr(string $value): ?string
     return $date <= (new DateTimeImmutable('today'))->format('Y-m-d') ? $date : null;
 }
 
+/** International dialing code (without '+') for an ISO country, or '' if unknown. */
+function dial_code(string $iso): string
+{
+    $map = config('dialing_codes', []);
+    return $map[strtoupper($iso)] ?? '';
+}
+
+/** Flag emoji for an ISO-3166 alpha-2 country code ('' if invalid). */
+function flag_emoji(string $iso): string
+{
+    $iso = strtoupper($iso);
+    if (!preg_match('/^[A-Z]{2}$/', $iso)) {
+        return '';
+    }
+    return mb_chr(0x1F1E6 + ord($iso[0]) - 65, 'UTF-8')
+        . mb_chr(0x1F1E6 + ord($iso[1]) - 65, 'UTF-8');
+}
+
+/** Normalise a phone number to E.164-ish '+digits' (or '' if it has no digits). */
+function normalize_phone(string $raw): string
+{
+    $digits = preg_replace('/\D+/', '', $raw);
+    return $digits === '' ? '' : '+' . $digits;
+}
+
 /** Send a redirect and stop execution. */
 function redirect(string $path, int $status = 302): never
 {
