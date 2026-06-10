@@ -27,12 +27,16 @@ final class AuthController
         view('auth/register_choice');
     }
 
-    /** Step 2 (Particulier): the individual form, with auto-detected country/city. */
+    /**
+     * Step 2 (Particulier): the individual form. The country select is pre-chosen
+     * from the IP (country-level is reliable); the city field intentionally starts
+     * EMPTY — IP-level city is too often wrong (carrier/VPN exit). The browser's
+     * silent GPS refinement fills it only with a precise fix (see app.js).
+     */
     public function showRegisterParticulier(Request $request): void
     {
         view('auth/register_particulier', [
             'detected_country' => detect_country_code(),
-            'detected_city'    => detect_city(),
             'countries'        => config('countries', []),
         ]);
     }

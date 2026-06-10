@@ -1,5 +1,5 @@
 <?php
-/** @var array $countries  @var string $detected_country  @var string $detected_city */
+/** @var array $countries  @var string $detected_country */
 $selCountry = old('country_code', $detected_country);
 $selDial    = old('dial_country', $detected_country);
 $cm         = old('contact_method') ?: 'email';
@@ -85,7 +85,7 @@ $g          = old('gender');
             </div>
             <div>
                 <label for="city"><?= e(t('field.city')) ?></label>
-                <input type="text" id="city" name="city" value="<?= old('city', $detected_city) ?>" autocomplete="address-level2">
+                <input type="text" id="city" name="city" value="<?= old('city') ?>" autocomplete="address-level2">
             </div>
         </div>
 
