@@ -93,7 +93,7 @@ $stats = [
     <!-- Actions rapides -->
     <div class="action-grid">
         <span class="action-card is-disabled" aria-disabled="true">
-            <span class="action-head">🏪 <strong><?= e(t('dash.action.sell_title')) ?></strong>
+            <span class="action-head">🏷️ <strong><?= e(t('dash.action.sell_title')) ?></strong>
                 <span class="chip-soon"><?= e(t('dash.soon')) ?></span></span>
             <span class="muted"><?= e(t('dash.action.sell_desc')) ?></span>
         </span>

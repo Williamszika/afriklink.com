@@ -122,14 +122,14 @@ return [
     'dash.stat.messages'     => 'Messages',
     'dash.phase'             => 'Phase :n — soon',
     'dash.soon'              => 'Soon',
-    'dash.action.sell_title'   => 'Create my shop',
-    'dash.action.sell_desc'    => 'Shop, restaurant, salon or trade — sell on Afriklink.',
+    'dash.action.sell_title'   => 'Sell an item',
+    'dash.action.sell_desc'    => 'Put an item up for sale, directly — no shop needed.',
     'dash.action.explore_title'=> 'Explore the marketplace',
     'dash.action.explore_desc' => 'Discover shops, restaurants, salons and services.',
     'dash.buys_title'        => 'My purchases',
     'dash.buys_empty'        => 'No purchases yet.',
     'dash.sales_title'       => 'My sales',
-    'dash.sales_empty'       => 'You are not a seller yet.',
+    'dash.sales_empty'       => 'No items for sale yet.',
     'dash.info_title'        => 'My information',
 
     // Dashboard
@@ -139,7 +139,7 @@ return [
     'dashboard.email_verified'  => 'Your email address is verified.',
     'dashboard.role'            => 'Role',
     'dashboard.member_since'    => 'Member since',
-    'dashboard.next_steps'      => 'Coming in Phase 1: create your seller profile (shop, restaurant, salon or service).',
+    'dashboard.next_steps'      => 'Coming soon: list your items for sale between individuals.',
 
     // Validation
     'validation.email_invalid'     => 'Invalid email address.',

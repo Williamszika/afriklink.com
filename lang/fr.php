@@ -122,14 +122,14 @@ return [
     'dash.stat.messages'     => 'Messages',
     'dash.phase'             => 'Phase :n — bientôt',
     'dash.soon'              => 'Bientôt',
-    'dash.action.sell_title'   => 'Créer ma boutique',
-    'dash.action.sell_desc'    => 'Boutique, restaurant, salon ou métier — vends sur Afriklink.',
+    'dash.action.sell_title'   => 'Vendre un article',
+    'dash.action.sell_desc'    => 'Mets un objet en vente, directement — sans boutique.',
     'dash.action.explore_title'=> 'Explorer la marketplace',
     'dash.action.explore_desc' => 'Découvre les boutiques, restaurants, salons et services.',
     'dash.buys_title'        => 'Mes achats',
     'dash.buys_empty'        => 'Aucun achat pour l’instant.',
     'dash.sales_title'       => 'Mes ventes',
-    'dash.sales_empty'       => 'Tu n’es pas encore vendeur.',
+    'dash.sales_empty'       => 'Aucun article en vente pour l’instant.',
     'dash.info_title'        => 'Mes informations',
 
     // Tableau de bord
@@ -139,7 +139,7 @@ return [
     'dashboard.email_verified'  => 'Votre adresse e-mail est vérifiée.',
     'dashboard.role'            => 'Rôle',
     'dashboard.member_since'    => 'Membre depuis',
-    'dashboard.next_steps'      => 'Phase 1 à venir : créez votre profil vendeur (boutique, restaurant, salon ou service).',
+    'dashboard.next_steps'      => 'Bientôt : mettez vos articles en vente entre particuliers.',
 
     // Validation
     'validation.email_invalid'     => 'Adresse e-mail invalide.',
