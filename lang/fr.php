@@ -45,6 +45,31 @@ return [
     'field.password_confirm' => 'Confirmer le mot de passe',
     'field.locale'           => 'Langue',
     'field.country'          => 'Pays',
+    'field.full_name'        => 'Nom complet',
+    'field.nickname'         => 'Surnom',
+    'field.birthdate'        => 'Date de naissance',
+    'field.birthdate_hint'   => 'Format : jj/mm/aaaa',
+    'field.gender'           => 'Sexe',
+    'field.city'             => 'Ville',
+    'field.choose'           => 'Choisir…',
+
+    // Sexe
+    'gender.homme' => 'Homme',
+    'gender.femme' => 'Femme',
+    'gender.autre' => 'Autre',
+
+    // Inscription — choix du type de compte
+    'register.choice_title'      => 'Créer un compte',
+    'register.choice_subtitle'   => 'Choisis le type de compte qui te correspond.',
+    'register.particulier_title' => 'Particulier',
+    'register.particulier_desc'  => 'Acheteur et vendeur — achète et vends en local et à l’international.',
+    'register.pro_title'         => 'Professionnel',
+    'register.pro_desc'          => 'Boutique, restaurant, salon ou métier — vends en tant qu’entreprise.',
+    'register.pro_soon'          => 'L’inscription professionnelle arrive bientôt. Commence en Particulier en attendant.',
+    'register.choose'            => 'Continuer',
+    'register.auto_detected'     => 'Pays et ville détectés automatiquement (modifiable).',
+    'register.particulier_submit'=> 'Créer mon compte',
+    'register.back_choice'       => 'Changer de type de compte',
 
     // Inscription
     'auth.register.title'    => 'Créer un compte',
@@ -90,6 +115,8 @@ return [
     'validation.email_taken'       => 'Cette adresse e-mail est déjà utilisée.',
     'validation.password_short'    => 'Le mot de passe doit contenir au moins :min caractères.',
     'validation.password_mismatch' => 'Les mots de passe ne correspondent pas.',
+    'validation.required'          => 'Ce champ est obligatoire.',
+    'validation.birthdate_invalid' => 'Date de naissance invalide (format jj/mm/aaaa).',
 
     // Messages flash
     'flash.registered'          => 'Compte créé. Vérifiez votre e-mail pour l’activer.',

@@ -23,8 +23,10 @@ return [
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
 
     // ---- Authentication (guests) -------------------------------------
-    ['GET',  '/register',          [AuthController::class, 'showRegister'],   ['guest']],
-    ['POST', '/register',          [AuthController::class, 'register'],       ['guest', 'csrf', 'throttle:register,10,3600']],
+    ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],
+    ['GET',  '/register/particulier',   [AuthController::class, 'showRegisterParticulier'],['guest']],
+    ['POST', '/register/particulier',   [AuthController::class, 'registerParticulier'],    ['guest', 'csrf', 'throttle:register,10,3600']],
+    ['GET',  '/register/professionnel', [AuthController::class, 'showRegisterPro'],         ['guest']],
 
     ['GET',  '/login',             [AuthController::class, 'showLogin'],      ['guest']],
     ['POST', '/login',             [AuthController::class, 'login'],          ['guest', 'csrf', 'throttle:login,10,900']],

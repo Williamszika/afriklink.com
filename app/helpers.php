@@ -179,6 +179,64 @@ function request_is_https(): bool
     return ((int) ($_SERVER['SERVER_PORT'] ?? 0)) === 443;
 }
 
+/** Read an incoming HTTP request header by name (e.g. 'X-Vercel-IP-Country'). */
+function request_header(string $name): string
+{
+    $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+    return isset($_SERVER[$key]) ? trim((string) $_SERVER[$key]) : '';
+}
+
+/* ------------------------------------------------------------------ */
+/* Geolocation (auto-detect country/city, server-side, no JS)          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Best-effort ISO-3166 alpha-2 country code from edge geo headers:
+ * Vercel (x-vercel-ip-country) then Cloudflare (cf-ipcountry). '' if unknown.
+ */
+function detect_country_code(): string
+{
+    foreach (['X-Vercel-IP-Country', 'CF-IPCountry'] as $header) {
+        $value = strtoupper(request_header($header));
+        if ($value !== '' && $value !== 'XX' && preg_match('/^[A-Z]{2}$/', $value)) {
+            return $value;
+        }
+    }
+    return '';
+}
+
+/** Best-effort city from Vercel's geo header (URL-encoded). '' if unknown. */
+function detect_city(): string
+{
+    $value = request_header('X-Vercel-IP-City');
+    return $value === '' ? '' : trim(rawurldecode($value));
+}
+
+/** French country name for an ISO code, or the code itself if unknown. */
+function country_name(string $code): string
+{
+    $code = strtoupper($code);
+    $list = config('countries', []);
+    return $list[$code] ?? $code;
+}
+
+/**
+ * Parse a French birthdate "jj/mm/aaaa" into a Y-m-d string, or null if invalid.
+ * Must be a real calendar date, in the past, and after 1900.
+ */
+function parse_birthdate_fr(string $value): ?string
+{
+    if (!preg_match('#^(\d{2})/(\d{2})/(\d{4})$#', trim($value), $m)) {
+        return null;
+    }
+    [, $day, $month, $year] = array_map('intval', $m);
+    if (!checkdate($month, $day, $year) || $year < 1900) {
+        return null;
+    }
+    $date = sprintf('%04d-%02d-%02d', $year, $month, $day);
+    return $date <= (new DateTimeImmutable('today'))->format('Y-m-d') ? $date : null;
+}
+
 /** Send a redirect and stop execution. */
 function redirect(string $path, int $status = 302): never
 {

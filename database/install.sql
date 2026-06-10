@@ -1,7 +1,7 @@
--- Afriklink — installation complète du schéma (Phase 0).
+-- Afriklink — installation complète du schéma (Phase 0 + profil Particulier).
 -- Usage SANS terminal : copie-colle ce fichier dans l'éditeur SQL de TiDB Cloud
--- (console web → Chat2Query / SQL Editor), base 'afrikalink', à exécuter UNE fois.
--- Équivaut à database/migrations/*.sql (core + auth + sessions).
+-- (console web → SQL Editor / Chat2Query), base 'afrikalink', à exécuter UNE fois.
+-- Équivaut à database/migrations/*.sql dans l'ordre.
 
 -- Phase 0 — Core account + authentication & security tables.
 -- AfrikaLink (MySQL 8.4 LTS / MariaDB 11.4+). InnoDB, utf8mb4.
@@ -132,3 +132,16 @@ CREATE TABLE sessions (
   PRIMARY KEY (id),
   KEY idx_sessions_last_activity (last_activity)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Phase 1 (start) — "Particulier" profile fields on users.
+-- Compatible MySQL 8.4 / TiDB Cloud Serverless. Separate ADD COLUMN statements
+-- for maximum compatibility. Run after the core schema (idempotent on a fresh DB).
+
+SET NAMES utf8mb4;
+
+ALTER TABLE users ADD COLUMN account_type ENUM('particulier','professionnel') NOT NULL DEFAULT 'particulier' AFTER role;
+ALTER TABLE users ADD COLUMN full_name VARCHAR(191) NULL AFTER account_type;
+ALTER TABLE users ADD COLUMN nickname  VARCHAR(64)  NULL AFTER full_name;
+ALTER TABLE users ADD COLUMN birthdate DATE NULL AFTER nickname;
+ALTER TABLE users ADD COLUMN gender ENUM('homme','femme','autre') NULL AFTER birthdate;
+ALTER TABLE users ADD COLUMN city VARCHAR(128) NULL AFTER gender;

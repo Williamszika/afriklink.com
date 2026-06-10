@@ -45,6 +45,31 @@ return [
     'field.password_confirm' => 'Confirm password',
     'field.locale'           => 'Language',
     'field.country'          => 'Country',
+    'field.full_name'        => 'Full name',
+    'field.nickname'         => 'Nickname',
+    'field.birthdate'        => 'Date of birth',
+    'field.birthdate_hint'   => 'Format: dd/mm/yyyy',
+    'field.gender'           => 'Gender',
+    'field.city'             => 'City',
+    'field.choose'           => 'Choose…',
+
+    // Gender
+    'gender.homme' => 'Male',
+    'gender.femme' => 'Female',
+    'gender.autre' => 'Other',
+
+    // Registration — account type choice
+    'register.choice_title'      => 'Create an account',
+    'register.choice_subtitle'   => 'Choose the account type that fits you.',
+    'register.particulier_title' => 'Individual',
+    'register.particulier_desc'  => 'Buyer and seller — buy and sell locally and internationally.',
+    'register.pro_title'         => 'Professional',
+    'register.pro_desc'          => 'Shop, restaurant, salon or trade — sell as a business.',
+    'register.pro_soon'          => 'Professional sign-up is coming soon. Start as an Individual for now.',
+    'register.choose'            => 'Continue',
+    'register.auto_detected'     => 'Country and city detected automatically (editable).',
+    'register.particulier_submit'=> 'Create my account',
+    'register.back_choice'       => 'Change account type',
 
     // Registration
     'auth.register.title'    => 'Create an account',
@@ -90,6 +115,8 @@ return [
     'validation.email_taken'       => 'This email address is already in use.',
     'validation.password_short'    => 'Password must be at least :min characters.',
     'validation.password_mismatch' => 'Passwords do not match.',
+    'validation.required'          => 'This field is required.',
+    'validation.birthdate_invalid' => 'Invalid date of birth (format dd/mm/yyyy).',
 
     // Flash messages
     'flash.registered'          => 'Account created. Check your email to activate it.',

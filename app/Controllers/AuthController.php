@@ -21,49 +21,76 @@ final class AuthController
 {
     /* ---- Registration ------------------------------------------- */
 
-    public function showRegister(Request $request): void
+    /** Step 1: choose an account type (Particulier / Professionnel). */
+    public function showRegisterChoice(Request $request): void
     {
-        view('auth/register');
+        view('auth/register_choice');
     }
 
-    public function register(Request $request): void
+    /** Step 2 (Particulier): the individual form, with auto-detected country/city. */
+    public function showRegisterParticulier(Request $request): void
     {
-        $email    = input_email('email');
-        $password = (string) ($_POST['password'] ?? '');
-        $confirm  = (string) ($_POST['password_confirm'] ?? '');
-        $locale   = whitelist(input_string('locale'), config('app.locales', ['fr', 'en']), current_locale());
-        $country  = $this->normaliseCountry(input_string('country'));
+        view('auth/register_particulier', [
+            'detected_country' => detect_country_code(),
+            'detected_city'    => detect_city(),
+            'countries'        => config('countries', []),
+        ]);
+    }
+
+    public function showRegisterPro(Request $request): void
+    {
+        view('auth/register_pro');
+    }
+
+    public function registerParticulier(Request $request): void
+    {
+        $email     = input_email('email');
+        $password  = (string) ($_POST['password'] ?? '');
+        $confirm   = (string) ($_POST['password_confirm'] ?? '');
+        $fullName  = input_string('full_name');
+        $nickname  = input_string('nickname');
+        $birthdate = parse_birthdate_fr((string) input_string('birthdate', ''));
+        $gender    = whitelist(strtolower((string) input_string('gender', '')), ['homme', 'femme', 'autre'], null);
+        $city      = input_string('city');
+
+        $countries = config('countries', []);
+        $country   = strtoupper((string) input_string('country_code', ''));
+        $country   = isset($countries[$country]) ? $country : null;
 
         $errors = [];
-        if ($email === null) {
-            $errors['email'] = t('validation.email_invalid');
-        } elseif (User::emailExists($email)) {
-            $errors['email'] = t('validation.email_taken');
-        }
-        if (!is_valid_password($password)) {
-            $errors['password'] = t('validation.password_short', ['min' => config('app.password_min_length', 12)]);
-        }
-        if ($password !== $confirm) {
-            $errors['password_confirm'] = t('validation.password_mismatch');
-        }
+        if ($fullName === null)            { $errors['full_name'] = t('validation.required'); }
+        if ($nickname === null)            { $errors['nickname'] = t('validation.required'); }
+        if ($email === null)               { $errors['email'] = t('validation.email_invalid'); }
+        elseif (User::emailExists($email)) { $errors['email'] = t('validation.email_taken'); }
+        if (!is_valid_password($password)) { $errors['password'] = t('validation.password_short', ['min' => config('app.password_min_length', 12)]); }
+        if ($password !== $confirm)        { $errors['password_confirm'] = t('validation.password_mismatch'); }
+        if ($birthdate === null)           { $errors['birthdate'] = t('validation.birthdate_invalid'); }
+        if ($gender === null)              { $errors['gender'] = t('validation.required'); }
+        if ($country === null)             { $errors['country_code'] = t('validation.required'); }
 
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);
-            redirect('/register');
+            redirect('/register/particulier');
         }
 
         $userId = User::create([
             'email'              => $email,
             'password_hash'      => password_hash($password, PASSWORD_DEFAULT),
             'role'               => 'user',
-            'locale'             => $locale,
+            'account_type'       => 'particulier',
+            'full_name'          => $fullName,
+            'nickname'           => $nickname,
+            'birthdate'          => $birthdate,
+            'gender'             => $gender,
             'country_code'       => $country,
+            'city'               => $city,
+            'locale'             => current_locale(),
             'preferred_currency' => current_currency(),
             'status'             => 'active',
         ]);
 
-        AuditLog::record($userId, 'user.register', 'user', $userId, [], $request->ipBinary());
+        AuditLog::record($userId, 'user.register', 'user', $userId, ['type' => 'particulier'], $request->ipBinary());
         $this->sendVerificationEmail(['id' => $userId, 'email' => $email]);
 
         login_user($userId);
@@ -243,13 +270,5 @@ final class AuthController
         return '<p>' . e($intro) . '</p>'
             . '<p><a href="' . e($link) . '">' . e($cta) . '</a></p>'
             . '<p style="color:#666;font-size:13px">' . e($link) . '</p>';
-    }
-
-    private function normaliseCountry(?string $value): ?string
-    {
-        if ($value !== null && preg_match('/^[A-Za-z]{2}$/', $value)) {
-            return strtoupper($value);
-        }
-        return null;
     }
 }

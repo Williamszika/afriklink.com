@@ -53,17 +53,25 @@ final class User
     {
         $stmt = db()->prepare(
             'INSERT INTO users
-                (public_id, email, password_hash, role, locale, country_code, preferred_currency, status)
+                (public_id, email, password_hash, role, account_type, full_name, nickname,
+                 birthdate, gender, locale, country_code, city, preferred_currency, status)
              VALUES
-                (:public_id, :email, :password_hash, :role, :locale, :country_code, :preferred_currency, :status)'
+                (:public_id, :email, :password_hash, :role, :account_type, :full_name, :nickname,
+                 :birthdate, :gender, :locale, :country_code, :city, :preferred_currency, :status)'
         );
         $stmt->execute([
             'public_id'          => uuid(),
             'email'              => $data['email'],
             'password_hash'      => $data['password_hash'],
             'role'               => $data['role'] ?? 'user',
+            'account_type'       => $data['account_type'] ?? 'particulier',
+            'full_name'          => $data['full_name'] ?? null,
+            'nickname'           => $data['nickname'] ?? null,
+            'birthdate'          => $data['birthdate'] ?? null,
+            'gender'             => $data['gender'] ?? null,
             'locale'             => $data['locale'] ?? 'fr',
             'country_code'       => $data['country_code'] ?? null,
+            'city'               => $data['city'] ?? null,
             'preferred_currency' => $data['preferred_currency'] ?? 'EUR',
             'status'             => $data['status'] ?? 'active',
         ]);

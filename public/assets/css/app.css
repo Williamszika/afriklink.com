@@ -118,8 +118,19 @@ a:hover { text-decoration: underline; }
     box-shadow: var(--shadow); padding: 28px;
 }
 .auth-card { max-width: 440px; margin: 24px auto; }
+.auth-card--wide { max-width: 560px; }
 .auth-card h1, .panel h1 { margin-top: 0; }
 .auth-alt { text-align: center; color: var(--muted); margin: 14px 0 0; font-size: .95rem; }
+
+/* Account-type choice cards */
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 22px 0 6px; }
+.choice-card { display: flex; flex-direction: column; gap: 4px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--ink); transition: .15s ease; }
+.choice-card:hover { border-color: var(--brand); box-shadow: var(--shadow); transform: translateY(-2px); text-decoration: none; }
+.choice-icon { font-size: 1.9rem; }
+.choice-card h2 { margin: 4px 0 0; font-size: 1.15rem; }
+.choice-card p { margin: 0; color: var(--muted); font-size: .92rem; }
+.choice-cta { margin-top: 8px; color: var(--brand); font-weight: 700; font-size: .9rem; }
+.detected-badge { margin: 8px 0 2px; font-size: .85rem; color: var(--success); background: var(--success-bg); border: 1px solid #abefc6; border-radius: 8px; padding: 6px 10px; }
 
 /* Forms */
 form label { display: block; font-weight: 600; font-size: .9rem; margin: 14px 0 6px; }
@@ -152,4 +163,5 @@ form input:focus, form select:focus { outline: 2px solid var(--brand); outline-o
 @media (max-width: 600px) {
     .main-nav { display: none; }
     .grid-2 { grid-template-columns: 1fr; }
+    .choice-grid { grid-template-columns: 1fr; }
 }
