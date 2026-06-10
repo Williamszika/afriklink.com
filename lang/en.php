@@ -143,6 +143,10 @@ return [
     'profile.info_title'       => 'Personal information',
     'profile.contact_locked'   => 'contact can’t be changed here',
     'profile.save'             => 'Save',
+    'profile.photo_title'      => 'Profile photo',
+    'profile.photo_change'     => 'Change my photo',
+    'profile.photo_delete'     => 'Remove photo',
+    'profile.photo_hint'       => 'JPG, PNG or WebP — automatically cropped to a square.',
     'profile.password_title'   => 'Password',
     'profile.current_password' => 'Current password',
     'profile.new_password'     => 'New password',
@@ -176,6 +180,8 @@ return [
     'validation.phone_invalid'     => 'Invalid phone number.',
     'validation.phone_taken'       => 'This phone number is already in use.',
     'validation.current_password_wrong' => 'Current password is incorrect.',
+    'validation.avatar_invalid'    => 'Invalid image — use a JPG, PNG or WebP file.',
+    'validation.avatar_too_big'    => 'Image too large. Try a smaller photo.',
 
     // Flash messages
     'flash.registered'          => 'Account created. Check your email to activate it.',
@@ -192,6 +198,8 @@ return [
     'flash.already_verified'    => 'Your email is already verified.',
     'flash.profile_updated'     => 'Profile updated.',
     'flash.password_changed'    => 'Password changed.',
+    'flash.avatar_updated'      => 'Profile photo updated.',
+    'flash.avatar_deleted'      => 'Profile photo removed.',
 
     // Emails
     'mail.verify.subject' => 'Verify your email — Afriklink',

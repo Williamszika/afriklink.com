@@ -13,9 +13,10 @@ final class DashboardController
         [$completion, $missing] = $this->profileCompletion($user);
 
         view('dashboard', [
-            'user'       => $user,
-            'completion' => $completion,
-            'missing'    => $missing,
+            'user'           => $user,
+            'completion'     => $completion,
+            'missing'        => $missing,
+            'avatar_version' => \App\Models\Avatar::versionFor((int) ($user['id'] ?? 0)),
         ]);
     }
 

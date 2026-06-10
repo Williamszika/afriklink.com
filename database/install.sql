@@ -159,3 +159,14 @@ SET NAMES utf8mb4;
 ALTER TABLE users MODIFY COLUMN email VARCHAR(191) NULL;
 ALTER TABLE users ADD UNIQUE KEY uq_users_phone (phone);
 
+
+-- ---------------------------------------------------------------
+-- Photos de profil (BLOB 256x256 re-encodé). NOTE : cette table est
+-- créée AUTOMATIQUEMENT par l'application au premier envoi de photo
+-- (Avatar::ensureTable) — la déclarer ici sert de documentation.
+CREATE TABLE IF NOT EXISTS user_avatars (
+  user_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+  mime       VARCHAR(32) NOT NULL,
+  data       MEDIUMBLOB NOT NULL,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

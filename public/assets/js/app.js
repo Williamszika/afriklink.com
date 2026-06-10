@@ -154,3 +154,32 @@
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 })();
+
+/* ---- Photo de profil : réduction côté navigateur avant envoi ----
+   Les photos de téléphone font souvent 3-8 Mo ; on les ramène à ~200 Ko
+   (max 1024 px, JPEG) pour passer la limite d'upload du serveur et
+   économiser la connexion de l'utilisateur. En cas d'échec, le serveur
+   garde ses propres garde-fous. */
+(function () {
+    var input = document.getElementById('avatar-input');
+    if (!input || typeof window.createImageBitmap !== 'function' || typeof DataTransfer === 'undefined') {
+        return;
+    }
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file || file.size < 600 * 1024) { return; } // déjà léger
+        createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+            var scale = Math.min(1, 1024 / Math.max(bmp.width, bmp.height));
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(bmp.width * scale));
+            canvas.height = Math.max(1, Math.round(bmp.height * scale));
+            canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(function (blob) {
+                if (!blob || blob.size >= file.size) { return; }
+                var dt = new DataTransfer();
+                dt.items.add(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
+                input.files = dt.files;
+            }, 'image/jpeg', 0.85);
+        }).catch(function () { /* le serveur validera l'original */ });
+    });
+})();

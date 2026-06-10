@@ -143,6 +143,10 @@ return [
     'profile.info_title'       => 'Informations personnelles',
     'profile.contact_locked'   => 'contact non modifiable ici',
     'profile.save'             => 'Enregistrer',
+    'profile.photo_title'      => 'Photo de profil',
+    'profile.photo_change'     => 'Changer ma photo',
+    'profile.photo_delete'     => 'Supprimer la photo',
+    'profile.photo_hint'       => 'JPG, PNG ou WebP — recadrée en carré automatiquement.',
     'profile.password_title'   => 'Mot de passe',
     'profile.current_password' => 'Mot de passe actuel',
     'profile.new_password'     => 'Nouveau mot de passe',
@@ -176,6 +180,8 @@ return [
     'validation.phone_invalid'     => 'Numéro de téléphone invalide.',
     'validation.phone_taken'       => 'Ce numéro est déjà utilisé.',
     'validation.current_password_wrong' => 'Mot de passe actuel incorrect.',
+    'validation.avatar_invalid'    => 'Image invalide — utilise un fichier JPG, PNG ou WebP.',
+    'validation.avatar_too_big'    => 'Image trop lourde. Réessaie avec une photo plus petite.',
 
     // Messages flash
     'flash.registered'          => 'Compte créé. Vérifiez votre e-mail pour l’activer.',
@@ -192,6 +198,8 @@ return [
     'flash.already_verified'    => 'Votre e-mail est déjà vérifié.',
     'flash.profile_updated'     => 'Profil mis à jour.',
     'flash.password_changed'    => 'Mot de passe modifié.',
+    'flash.avatar_updated'      => 'Photo de profil mise à jour.',
+    'flash.avatar_deleted'      => 'Photo de profil supprimée.',
 
     // E-mails
     'mail.verify.subject' => 'Vérifiez votre e-mail — Afriklink',

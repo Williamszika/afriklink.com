@@ -1,21 +1,13 @@
 <?php
-/** @var array $user  @var int $completion  @var list<string> $missing */
+/** @var array $user  @var int $completion  @var list<string> $missing  @var ?string $avatar_version */
 $hasEmail      = !empty($user['email']);
 $verifiedEmail = !empty($user['email_verified_at']);
 $contact       = $hasEmail ? (string) $user['email'] : (string) ($user['phone'] ?? '');
 $fullName      = trim((string) ($user['full_name'] ?? ''));
 $nickname      = (string) ($user['nickname'] ?? '');
 $firstName     = $fullName !== '' ? explode(' ', $fullName)[0] : ($nickname !== '' ? $nickname : $contact);
-
-$initials = 'A';
-if ($fullName !== '') {
-    $parts = preg_split('/\s+/u', $fullName) ?: [];
-    $first = mb_substr($parts[0] ?? '', 0, 1);
-    $last  = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
-    $initials = mb_strtoupper($first . $last);
-} elseif ($nickname !== '') {
-    $initials = mb_strtoupper(mb_substr($nickname, 0, 2));
-}
+$initials      = user_initials($user);
+$avatarUrl     = avatar_url($user, $avatar_version ?? null);
 
 $cc        = strtoupper((string) ($user['country_code'] ?? ''));
 $place     = trim(($cc !== '' ? flag_emoji($cc) . ' ' . country_name($cc) : '') .
@@ -35,7 +27,11 @@ $stats = [
 
     <!-- Bandeau profil -->
     <div class="panel dash-profile">
-        <div class="avatar" aria-hidden="true"><?= e($initials) ?></div>
+        <?php if ($avatarUrl !== null): ?>
+            <img class="avatar avatar-img" src="<?= e($avatarUrl) ?>" alt="" width="64" height="64">
+        <?php else: ?>
+            <div class="avatar" aria-hidden="true"><?= e($initials) ?></div>
+        <?php endif; ?>
         <div class="dash-id">
             <h1><?= e(t('dash.welcome', ['name' => $firstName])) ?></h1>
             <p class="dash-sub">

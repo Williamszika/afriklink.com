@@ -232,6 +232,12 @@ form input:focus, form select:focus { outline: 2px solid var(--brand); outline-o
 .dash { display: grid; gap: 16px; }
 .dash-profile { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.35rem; flex: none; letter-spacing: .02em; }
+img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var(--border); }
+.avatar-lg { width: 88px; height: 88px; font-size: 1.8rem; }
+.avatar-row { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.avatar-forms { display: grid; gap: 8px; justify-items: start; }
+.avatar-upload { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0; }
+.avatar-upload input[type="file"] { max-width: 240px; font-size: .85rem; color: var(--muted); }
 .dash-id h1 { margin: 0 0 2px; font-size: 1.35rem; }
 .dash-sub { margin: 2px 0 0; color: var(--muted); font-size: .95rem; }
 .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; margin-left: 6px; vertical-align: middle; }

@@ -264,6 +264,32 @@ function flag_emoji(string $iso): string
         . mb_chr(0x1F1E6 + ord($iso[1]) - 65, 'UTF-8');
 }
 
+/** Initiales pour l'avatar par défaut (« AD » pour « Awa Diop »). */
+function user_initials(array $user): string
+{
+    $fullName = trim((string) ($user['full_name'] ?? ''));
+    $nickname = (string) ($user['nickname'] ?? '');
+    if ($fullName !== '') {
+        $parts = preg_split('/\s+/u', $fullName) ?: [];
+        $first = mb_substr($parts[0] ?? '', 0, 1);
+        $last  = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
+        return mb_strtoupper($first . $last);
+    }
+    if ($nickname !== '') {
+        return mb_strtoupper(mb_substr($nickname, 0, 2));
+    }
+    return 'A';
+}
+
+/** URL de l'avatar d'un utilisateur, versionnée pour le cache, ou null. */
+function avatar_url(array $user, ?string $version): ?string
+{
+    if ($version === null || empty($user['public_id'])) {
+        return null;
+    }
+    return url('/avatar/' . $user['public_id']) . '?v=' . (string) strtotime($version);
+}
+
 /** Normalise a phone number to E.164-ish '+digits' (or '' if it has no digits). */
 function normalize_phone(string $raw): string
 {

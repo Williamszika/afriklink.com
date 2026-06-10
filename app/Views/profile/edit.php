@@ -1,16 +1,44 @@
 <?php
-/** @var array $user  @var array $countries */
-$hasEmail = !empty($user['email']);
-$contact  = $hasEmail ? (string) ($user['email'] ?? '') : (string) ($user['phone'] ?? '');
-$bd       = old('birthdate') ?: (!empty($user['birthdate']) ? date('d/m/Y', strtotime((string) $user['birthdate'])) : '');
-$g        = old('gender') ?: (string) ($user['gender'] ?? '');
-$cc       = old('country_code') ?: strtoupper((string) ($user['country_code'] ?? ''));
-$city     = old('city') ?: (string) ($user['city'] ?? '');
+/** @var array $user  @var array $countries  @var ?string $avatar_version */
+$hasEmail  = !empty($user['email']);
+$contact   = $hasEmail ? (string) ($user['email'] ?? '') : (string) ($user['phone'] ?? '');
+$bd        = old('birthdate') ?: (!empty($user['birthdate']) ? date('d/m/Y', strtotime((string) $user['birthdate'])) : '');
+$g         = old('gender') ?: (string) ($user['gender'] ?? '');
+$cc        = old('country_code') ?: strtoupper((string) ($user['country_code'] ?? ''));
+$city      = old('city') ?: (string) ($user['city'] ?? '');
+$avatarUrl = avatar_url($user, $avatar_version ?? null);
 ?>
 <section class="profile">
     <div class="profile-head">
         <h1><?= e(t('profile.title')) ?></h1>
         <a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>">← <?= e(t('profile.back_dashboard')) ?></a>
+    </div>
+
+    <!-- Photo de profil -->
+    <div class="panel">
+        <h2 class="panel-title"><?= e(t('profile.photo_title')) ?></h2>
+        <div class="avatar-row">
+            <?php if ($avatarUrl !== null): ?>
+                <img class="avatar avatar-img avatar-lg" src="<?= e($avatarUrl) ?>" alt="" width="88" height="88">
+            <?php else: ?>
+                <div class="avatar avatar-lg" aria-hidden="true"><?= e(user_initials($user)) ?></div>
+            <?php endif; ?>
+            <div class="avatar-forms">
+                <form method="post" action="<?= e(url('/profile/photo')) ?>" enctype="multipart/form-data" class="avatar-upload">
+                    <?= csrf_field() ?>
+                    <input type="file" id="avatar-input" name="photo" accept="image/jpeg,image/png,image/webp" required>
+                    <button type="submit" class="btn btn-primary btn-sm"><?= e(t('profile.photo_change')) ?></button>
+                </form>
+                <?php if ($avatarUrl !== null): ?>
+                    <form method="post" action="<?= e(url('/profile/photo/delete')) ?>" class="inline-form">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-ghost btn-sm"><?= e(t('profile.photo_delete')) ?></button>
+                    </form>
+                <?php endif; ?>
+                <p class="hint"><?= e(t('profile.photo_hint')) ?></p>
+                <?php if (has_error('photo')): ?><p class="field-error"><?= e(error('photo')) ?></p><?php endif; ?>
+            </div>
+        </div>
     </div>
 
     <!-- Informations personnelles -->

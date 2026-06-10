@@ -52,6 +52,9 @@ return [
     ['GET',  '/profile',           [ProfileController::class, 'edit'],            ['auth']],
     ['POST', '/profile',           [ProfileController::class, 'update'],          ['auth', 'csrf', 'throttle:profile,30,3600']],
     ['POST', '/profile/password',  [ProfileController::class, 'updatePassword'],  ['auth', 'csrf', 'throttle:pwd,10,3600']],
+    ['POST', '/profile/photo',         [ProfileController::class, 'updatePhoto'], ['auth', 'csrf', 'throttle:avatar,10,3600']],
+    ['POST', '/profile/photo/delete',  [ProfileController::class, 'deletePhoto'], ['auth', 'csrf']],
+    ['GET',  '/avatar/{pid}',          [ProfileController::class, 'avatar'],      []],
 
     // Roadmap interstitials for not-yet-built dashboard actions
     ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],
