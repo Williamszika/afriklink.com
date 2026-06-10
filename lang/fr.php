@@ -131,6 +131,31 @@ return [
     'dash.sales_title'       => 'Mes ventes',
     'dash.sales_empty'       => 'Aucun article en vente pour l’instant.',
     'dash.info_title'        => 'Mes informations',
+    'dash.complete_profile'  => 'Compléter mon profil →',
+    'dash.edit_profile'      => 'Modifier mon profil →',
+    'dash.action.profile_title' => 'Mon profil',
+    'dash.action.profile_desc'  => 'Modifie tes informations et ton mot de passe.',
+
+    // Profil (espace compte)
+    'profile.title'            => 'Mon profil',
+    'profile.back_dashboard'   => 'Retour au tableau de bord',
+    'profile.edit'             => 'Modifier',
+    'profile.info_title'       => 'Informations personnelles',
+    'profile.contact_locked'   => 'contact non modifiable ici',
+    'profile.save'             => 'Enregistrer',
+    'profile.password_title'   => 'Mot de passe',
+    'profile.current_password' => 'Mot de passe actuel',
+    'profile.new_password'     => 'Nouveau mot de passe',
+    'profile.change_password'  => 'Changer le mot de passe',
+
+    // Pages « Bientôt »
+    'soon.note'             => 'Cette fonctionnalité arrive bientôt. Merci de ta patience !',
+    'soon.vendre.title'     => '🏷️ Vendre un article — bientôt',
+    'soon.vendre.desc'      => 'Tu pourras bientôt mettre tes articles en vente : photos, prix, état, et discussion avec les acheteurs.',
+    'soon.annonces.title'   => '🏷️ Mes annonces — bientôt',
+    'soon.annonces.desc'    => 'Retrouve ici tous tes articles mis en vente dès que la fonctionnalité sera disponible.',
+    'soon.messages.title'   => '💬 Messagerie — bientôt',
+    'soon.messages.desc'    => 'La messagerie te permettra d’échanger avec les acheteurs et les vendeurs directement sur Afriklink.',
 
     // Tableau de bord
     'dashboard.title'           => 'Tableau de bord',
@@ -150,6 +175,7 @@ return [
     'validation.birthdate_invalid' => 'Date de naissance invalide (format jj/mm/aaaa).',
     'validation.phone_invalid'     => 'Numéro de téléphone invalide.',
     'validation.phone_taken'       => 'Ce numéro est déjà utilisé.',
+    'validation.current_password_wrong' => 'Mot de passe actuel incorrect.',
 
     // Messages flash
     'flash.registered'          => 'Compte créé. Vérifiez votre e-mail pour l’activer.',
@@ -164,6 +190,8 @@ return [
     'flash.verify_ok'           => 'Votre e-mail est vérifié. Merci !',
     'flash.verify_sent'         => 'E-mail de vérification envoyé.',
     'flash.already_verified'    => 'Votre e-mail est déjà vérifié.',
+    'flash.profile_updated'     => 'Profil mis à jour.',
+    'flash.password_changed'    => 'Mot de passe modifié.',
 
     // E-mails
     'mail.verify.subject' => 'Vérifiez votre e-mail — Afriklink',

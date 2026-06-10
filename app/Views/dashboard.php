@@ -25,10 +25,10 @@ $genderLbl = !empty($user['gender']) ? t('gender.' . $user['gender']) : '—';
 $contactOk = !empty($user['phone']) || $verifiedEmail;
 
 $stats = [
-    ['icon' => '🛒', 'key' => 'purchases', 'phase' => 3],
-    ['icon' => '💼', 'key' => 'sales',     'phase' => 3],
-    ['icon' => '🏷️', 'key' => 'listings',  'phase' => 2],
-    ['icon' => '💬', 'key' => 'messages',  'phase' => 5],
+    ['icon' => '🛒', 'key' => 'purchases', 'phase' => 3, 'href' => '#buys'],
+    ['icon' => '💼', 'key' => 'sales',     'phase' => 3, 'href' => '#sales'],
+    ['icon' => '🏷️', 'key' => 'listings',  'phase' => 2, 'href' => url('/bientot/vendre')],
+    ['icon' => '💬', 'key' => 'messages',  'phase' => 5, 'href' => url('/bientot/messages')],
 ];
 ?>
 <section class="dash">
@@ -77,26 +77,33 @@ $stats = [
                 <?= e(implode(' · ', array_map(static fn (string $k): string => t($k), $missing))) ?>
             </p>
         <?php endif; ?>
+        <a class="btn btn-ghost btn-sm" href="<?= e(url('/profile')) ?>">
+            <?= e(t($missing !== [] ? 'dash.complete_profile' : 'dash.edit_profile')) ?>
+        </a>
     </div>
 
-    <!-- Compteurs -->
+    <!-- Compteurs (cliquables) -->
     <div class="stat-grid">
         <?php foreach ($stats as $s): ?>
-            <div class="stat-card">
+            <a class="stat-card" href="<?= e($s['href']) ?>">
                 <div class="num"><span aria-hidden="true"><?= $s['icon'] ?></span> 0</div>
                 <div class="lbl"><?= e(t('dash.stat.' . $s['key'])) ?></div>
                 <div class="phase"><?= e(t('dash.phase', ['n' => $s['phase']])) ?></div>
-            </div>
+            </a>
         <?php endforeach; ?>
     </div>
 
     <!-- Actions rapides -->
     <div class="action-grid">
-        <span class="action-card is-disabled" aria-disabled="true">
+        <a class="action-card" href="<?= e(url('/bientot/vendre')) ?>">
             <span class="action-head">🏷️ <strong><?= e(t('dash.action.sell_title')) ?></strong>
                 <span class="chip-soon"><?= e(t('dash.soon')) ?></span></span>
             <span class="muted"><?= e(t('dash.action.sell_desc')) ?></span>
-        </span>
+        </a>
+        <a class="action-card" href="<?= e(url('/profile')) ?>">
+            <span class="action-head">👤 <strong><?= e(t('dash.action.profile_title')) ?></strong></span>
+            <span class="muted"><?= e(t('dash.action.profile_desc')) ?></span>
+        </a>
         <a class="action-card" href="<?= e(url('/')) ?>#verticals">
             <span class="action-head">🧭 <strong><?= e(t('dash.action.explore_title')) ?></strong></span>
             <span class="muted"><?= e(t('dash.action.explore_desc')) ?></span>
@@ -105,25 +112,28 @@ $stats = [
 
     <!-- Achats / Ventes -->
     <div class="grid-2 dash-cols">
-        <div class="panel">
+        <div class="panel" id="buys">
             <h2 class="panel-title">🛒 <?= e(t('dash.buys_title')) ?></h2>
             <div class="empty-state">
                 <p><?= e(t('dash.buys_empty')) ?></p>
                 <a class="btn btn-ghost" href="<?= e(url('/')) ?>#verticals"><?= e(t('dash.action.explore_title')) ?></a>
             </div>
         </div>
-        <div class="panel">
+        <div class="panel" id="sales">
             <h2 class="panel-title">💼 <?= e(t('dash.sales_title')) ?></h2>
             <div class="empty-state">
                 <p><?= e(t('dash.sales_empty')) ?></p>
-                <span class="btn btn-ghost is-disabled"><?= e(t('dash.action.sell_title')) ?> · <?= e(t('dash.soon')) ?></span>
+                <a class="btn btn-ghost" href="<?= e(url('/bientot/vendre')) ?>"><?= e(t('dash.action.sell_title')) ?> · <?= e(t('dash.soon')) ?></a>
             </div>
         </div>
     </div>
 
     <!-- Mes informations -->
     <div class="panel">
-        <h2 class="panel-title"><?= e(t('dash.info_title')) ?></h2>
+        <div class="panel-title-row">
+            <h2 class="panel-title"><?= e(t('dash.info_title')) ?></h2>
+            <a class="btn btn-ghost btn-sm" href="<?= e(url('/profile')) ?>"><?= e(t('profile.edit')) ?></a>
+        </div>
         <dl class="meta">
             <dt><?= e(t('field.full_name')) ?></dt><dd><?= $fullName !== '' ? e($fullName) : '—' ?></dd>
             <dt><?= e(t('field.nickname')) ?></dt><dd><?= $nickname !== '' ? '@' . e($nickname) : '—' ?></dd>

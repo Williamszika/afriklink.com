@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\HomeController;
+use App\Controllers\ProfileController;
 
 /**
  * Route table: [HTTP method, path, [Controller, action], [middleware...]].
@@ -46,4 +47,12 @@ return [
 
     ['POST', '/logout',            [AuthController::class, 'logout'],         ['auth', 'csrf']],
     ['GET',  '/dashboard',         [DashboardController::class, 'index'],     ['auth']],
+
+    // Account self-service
+    ['GET',  '/profile',           [ProfileController::class, 'edit'],            ['auth']],
+    ['POST', '/profile',           [ProfileController::class, 'update'],          ['auth', 'csrf', 'throttle:profile,30,3600']],
+    ['POST', '/profile/password',  [ProfileController::class, 'updatePassword'],  ['auth', 'csrf', 'throttle:pwd,10,3600']],
+
+    // Roadmap interstitials for not-yet-built dashboard actions
+    ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],
 ];

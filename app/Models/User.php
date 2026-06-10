@@ -121,6 +121,33 @@ final class User
         $stmt->execute(['h' => $passwordHash, 'id' => $id]);
     }
 
+    /**
+     * Update the editable profile fields of an account (never contact/credentials).
+     * `updated_at` refreshes automatically (ON UPDATE CURRENT_TIMESTAMP).
+     */
+    public static function updateProfile(int $id, array $data): void
+    {
+        $stmt = db()->prepare(
+            'UPDATE users SET
+                full_name    = :full_name,
+                nickname     = :nickname,
+                birthdate    = :birthdate,
+                gender       = :gender,
+                country_code = :country_code,
+                city         = :city
+             WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute([
+            'full_name'    => $data['full_name'] ?? null,
+            'nickname'     => $data['nickname'] ?? null,
+            'birthdate'    => $data['birthdate'] ?? null,
+            'gender'       => $data['gender'] ?? null,
+            'country_code' => $data['country_code'] ?? null,
+            'city'         => $data['city'] ?? null,
+            'id'           => $id,
+        ]);
+    }
+
     public static function isEmailVerified(array $user): bool
     {
         return !empty($user['email_verified_at']);

@@ -131,6 +131,31 @@ return [
     'dash.sales_title'       => 'My sales',
     'dash.sales_empty'       => 'No items for sale yet.',
     'dash.info_title'        => 'My information',
+    'dash.complete_profile'  => 'Complete my profile →',
+    'dash.edit_profile'      => 'Edit my profile →',
+    'dash.action.profile_title' => 'My profile',
+    'dash.action.profile_desc'  => 'Edit your information and password.',
+
+    // Profile (account space)
+    'profile.title'            => 'My profile',
+    'profile.back_dashboard'   => 'Back to dashboard',
+    'profile.edit'             => 'Edit',
+    'profile.info_title'       => 'Personal information',
+    'profile.contact_locked'   => 'contact can’t be changed here',
+    'profile.save'             => 'Save',
+    'profile.password_title'   => 'Password',
+    'profile.current_password' => 'Current password',
+    'profile.new_password'     => 'New password',
+    'profile.change_password'  => 'Change password',
+
+    // “Coming soon” pages
+    'soon.note'             => 'This feature is coming soon. Thanks for your patience!',
+    'soon.vendre.title'     => '🏷️ Sell an item — coming soon',
+    'soon.vendre.desc'      => 'Soon you’ll be able to list your items for sale: photos, price, condition, and chat with buyers.',
+    'soon.annonces.title'   => '🏷️ My listings — coming soon',
+    'soon.annonces.desc'    => 'All your items for sale will appear here once the feature is available.',
+    'soon.messages.title'   => '💬 Messaging — coming soon',
+    'soon.messages.desc'    => 'Messaging will let you chat with buyers and sellers directly on Afriklink.',
 
     // Dashboard
     'dashboard.title'           => 'Dashboard',
@@ -150,6 +175,7 @@ return [
     'validation.birthdate_invalid' => 'Invalid date of birth (format dd/mm/yyyy).',
     'validation.phone_invalid'     => 'Invalid phone number.',
     'validation.phone_taken'       => 'This phone number is already in use.',
+    'validation.current_password_wrong' => 'Current password is incorrect.',
 
     // Flash messages
     'flash.registered'          => 'Account created. Check your email to activate it.',
@@ -164,6 +190,8 @@ return [
     'flash.verify_ok'           => 'Your email is verified. Thank you!',
     'flash.verify_sent'         => 'Verification email sent.',
     'flash.already_verified'    => 'Your email is already verified.',
+    'flash.profile_updated'     => 'Profile updated.',
+    'flash.password_changed'    => 'Password changed.',
 
     // Emails
     'mail.verify.subject' => 'Verify your email — Afriklink',

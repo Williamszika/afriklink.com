@@ -20,6 +20,20 @@ final class DashboardController
     }
 
     /**
+     * Friendly interstitial for dashboard actions whose full feature is still on
+     * the roadmap (selling, messaging). Keeps every button clickable and honest
+     * instead of dead-disabled. The feature key is whitelisted.
+     */
+    public function comingSoon(Request $request): void
+    {
+        $feature = whitelist((string) $request->param('feature', ''), ['vendre', 'annonces', 'messages'], null);
+        if ($feature === null) {
+            abort(404);
+        }
+        view('coming_soon', ['feature' => $feature]);
+    }
+
+    /**
      * Profile completion: share of filled profile fields, plus a verified contact
      * (a phone, or a verified e-mail). Returns [percent, list of missing i18n keys].
      *

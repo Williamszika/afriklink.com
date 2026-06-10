@@ -242,11 +242,12 @@ form input:focus, form select:focus { outline: 2px solid var(--brand); outline-o
 .progress-track { height: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--brand); border-radius: 999px; transition: width .4s ease; }
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.stat-card { display: block; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; color: inherit; text-decoration: none; transition: border-color .15s ease, box-shadow .15s ease; }
+.stat-card:hover { border-color: var(--brand); box-shadow: var(--shadow); text-decoration: none; }
 .stat-card .num { font-size: 1.5rem; font-weight: 800; }
 .stat-card .lbl { color: var(--ink); font-size: .9rem; font-weight: 600; }
 .stat-card .phase { color: var(--muted); font-size: .74rem; margin-top: 2px; }
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .action-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--ink); }
 .action-card:hover { border-color: var(--brand); box-shadow: var(--shadow); text-decoration: none; }
 .action-card .action-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -255,6 +256,20 @@ form input:focus, form select:focus { outline: 2px solid var(--brand); outline-o
 .panel-title { margin: 0 0 10px; font-size: 1.05rem; }
 .dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 .empty-state { color: var(--muted); text-align: center; padding: 16px 8px; display: grid; gap: 10px; justify-items: center; }
+.panel-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panel-title-row .panel-title { margin: 0; }
+.btn-sm { padding: 6px 12px; font-size: .85rem; }
+
+/* Profil */
+.profile { display: grid; gap: 16px; }
+.profile-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.profile-head h1 { margin: 0; font-size: 1.5rem; }
+
+/* Page « Bientôt » */
+.soon-card { text-align: center; }
+.soon-icon { font-size: 3rem; line-height: 1; margin-bottom: 8px; }
+.soon-card .hero-actions { margin-top: 22px; }
+
 @media (max-width: 700px) {
     .stat-grid { grid-template-columns: 1fr 1fr; }
     .action-grid, .dash-cols { grid-template-columns: 1fr; }
