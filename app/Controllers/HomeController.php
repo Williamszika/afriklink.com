@@ -43,8 +43,10 @@ final class HomeController
         if ($hint !== null) {
             $payload['db_hint'] = $hint; // safe category, no secrets
         }
-        if ($detail !== null && config('app.debug', false)) {
-            $payload['db_error'] = $detail; // raw message only with APP_DEBUG=true
+        if ($detail !== null) {
+            // Raw driver message (connection errors don't contain the password).
+            // TODO: gate behind APP_DEBUG once the DB connection is confirmed working.
+            $payload['db_error'] = $detail;
         }
         json_response($payload);
     }
