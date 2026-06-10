@@ -37,8 +37,11 @@ function db(): PDO
 
 /**
  * Options TLS pour un MySQL managé (TiDB Cloud Serverless exige TLS).
- * Activées si DB_SSL est vrai. Fournir DB_SSL_CA (chemin du bundle CA) pour une
- * vérification complète ; DB_SSL_VERIFY=false seulement en dépannage.
+ * Activées si DB_SSL est vrai.
+ *  - DB_SSL_CA : chemin du bundle CA ; si absent, on auto-détecte le bundle système
+ *    (Debian, RHEL/Amazon Linux — cas de Vercel —, Alpine).
+ *  - Sans CA trouvable : TLS quand même, mais sans vérification du certificat
+ *    (mieux que pas de TLS ; DB_SSL_VERIFY=false force aussi ce mode en dépannage).
  */
 function pdo_ssl_options(): array
 {
@@ -46,14 +49,32 @@ function pdo_ssl_options(): array
         return [];
     }
 
-    $options = [];
+    $verify = filter_var($_ENV['DB_SSL_VERIFY'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
     $ca = $_ENV['DB_SSL_CA'] ?? '';
-    if ($ca !== '' && is_file($ca)) {
+    if ($ca === '' || !is_file($ca)) {
+        $ca = '';
+        foreach ([
+            '/etc/ssl/certs/ca-certificates.crt', // Debian/Ubuntu
+            '/etc/pki/tls/certs/ca-bundle.crt',   // RHEL/Amazon Linux (Vercel)
+            '/etc/ssl/ca-bundle.pem',             // openSUSE
+            '/etc/ssl/cert.pem',                  // Alpine/macOS
+        ] as $candidate) {
+            if (is_file($candidate)) {
+                $ca = $candidate;
+                break;
+            }
+        }
+    }
+
+    $options = [];
+    if ($ca !== '') {
         $options[PDO::MYSQL_ATTR_SSL_CA] = $ca;
+    } else {
+        $verify = false; // pas de CA disponible : TLS actif mais non vérifiable
     }
     if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] =
-            filter_var($_ENV['DB_SSL_VERIFY'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = $verify;
     }
     return $options;
 }

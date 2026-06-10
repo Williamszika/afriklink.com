@@ -20,6 +20,7 @@ use App\Controllers\HomeController;
 return [
     // ---- Public -------------------------------------------------------
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
+    ['GET',  '/health',            [HomeController::class, 'health'],         []],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
 
     // ---- Authentication (guests) -------------------------------------

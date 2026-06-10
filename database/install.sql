@@ -1,7 +1,10 @@
--- Afriklink — installation complète du schéma (Phase 0 + profil Particulier + email/téléphone).
--- Usage SANS terminal : copie-colle ce fichier dans l'éditeur SQL de TiDB Cloud,
--- base 'afrikalink', à exécuter UNE fois sur une base vierge.
--- Équivaut à database/migrations/*.sql dans l'ordre.
+-- Afriklink — installation complète du schéma (à jour : Phase 0 + Particulier + email/téléphone).
+-- Usage SANS terminal : ouvre l'éditeur SQL de TiDB Cloud (SQL Editor / Chat2Query),
+-- colle TOUT ce fichier tel quel, et exécute UNE seule fois sur un cluster vierge.
+-- (Sur un hébergeur qui interdit CREATE DATABASE, supprime les 2 premières lignes SQL.)
+
+CREATE DATABASE IF NOT EXISTS afrikalink;
+USE afrikalink;
 
 -- Phase 0 — Core account + authentication & security tables.
 -- AfrikaLink (MySQL 8.4 LTS / MariaDB 11.4+). InnoDB, utf8mb4.

@@ -26,9 +26,10 @@ function rate_limit_ok(string $key, int $max, int $windowSecs): bool
     $key = substr($key, 0, 191);
     $now = new DateTimeImmutable('now');
 
-    $pdo = db();
-    $pdo->beginTransaction();
+    $pdo = null;
     try {
+        $pdo = db();          // dans le try : si la base est injoignable, on laisse
+        $pdo->beginTransaction(); // passer (fail-open) au lieu de casser la page
         $stmt = $pdo->prepare(
             'SELECT id, hits, window_start FROM rate_limits WHERE bucket_key = :k FOR UPDATE'
         );
@@ -68,7 +69,9 @@ function rate_limit_ok(string $key, int $max, int $windowSecs): bool
         $pdo->commit();
         return true;
     } catch (Throwable $ex) {
-        $pdo->rollBack();
+        if ($pdo instanceof PDO && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         // En cas d'erreur, ne pas bloquer l'utilisateur légitime — mais logger.
         error_log('rate_limit error: ' . $ex->getMessage());
         return true;
