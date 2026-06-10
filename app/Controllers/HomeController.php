@@ -46,7 +46,45 @@ final class HomeController
         if ($detail !== null && config('app.debug', false)) {
             $payload['db_error'] = $detail; // raw message only with APP_DEBUG=true
         }
+
+        // Mail configuration state (no secrets; the from address is masked).
+        $from = (string) ($_ENV['MAIL_FROM'] ?? '');
+        $payload['mail'] = [
+            'driver'  => $_ENV['MAIL_DRIVER'] ?? 'log',
+            'api_key' => empty($_ENV['MAIL_API_KEY']) ? 'missing' : 'set',
+            'from'    => $from === '' ? 'missing' : self::maskEmail($from),
+        ];
+
+        // /health?mail_test=1 — real send to the configured sender's own address
+        // (never an arbitrary recipient), throttled to 3/hour per IP.
+        if (($_GET['mail_test'] ?? '') === '1') {
+            if (!rate_limit_ok('mailtest:' . $request->ip(), 3, 3600)) {
+                $payload['mail']['test'] = 'throttled';
+            } elseif ($from === '') {
+                $payload['mail']['test'] = 'failed: MAIL_FROM manquant';
+            } else {
+                $sent = \App\Services\MailService::send(
+                    $from,
+                    'Test de configuration — Afriklink',
+                    '<p>✅ La configuration e-mail d’Afriklink fonctionne. (Test envoyé depuis /health)</p>'
+                );
+                $payload['mail']['test'] = $sent
+                    ? 'sent'
+                    : 'failed: ' . (\App\Services\MailService::$lastError ?? 'cause inconnue');
+            }
+        }
+
         json_response($payload);
+    }
+
+    /** b…m@gmail.com — enough to recognise the address without publishing it. */
+    private static function maskEmail(string $email): string
+    {
+        $at = strpos($email, '@');
+        if ($at === false || $at < 1) {
+            return '(invalide)';
+        }
+        return $email[0] . '…' . substr($email, $at - 1);
     }
 
     /** Map a DB connection error to a safe category (no secrets leaked). */

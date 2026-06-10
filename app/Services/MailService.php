@@ -22,8 +22,12 @@ final class MailService
 {
     private const DEFAULT_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
+    /** Short, secret-free description of the last send failure (for diagnostics). */
+    public static ?string $lastError = null;
+
     public static function send(string $toEmail, string $subject, string $htmlBody, ?string $textBody = null): bool
     {
+        self::$lastError = null;
         $driver = $_ENV['MAIL_DRIVER'] ?? 'log';
 
         if ($driver === 'api') {
@@ -81,12 +85,15 @@ final class MailService
             if ($status >= 200 && $status < 300) {
                 return true;
             }
+            self::$lastError = 'HTTP ' . $status . ' — '
+                . ($error !== '' ? $error : substr((string) $body, 0, 200));
             log_message('error', 'mail api send failed', [
                 'status' => $status,
                 'error'  => $error !== '' ? $error : substr((string) $body, 0, 300),
             ]);
             return false;
         } catch (\Throwable $e) {
+            self::$lastError = 'exception — ' . $e->getMessage();
             log_message('error', 'mail api exception: ' . $e->getMessage());
             return false;
         }
