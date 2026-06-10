@@ -74,7 +74,7 @@ $city     = old('city') ?: (string) ($user['city'] ?? '');
     </div>
 
     <!-- Mot de passe -->
-    <div class="panel" id="password">
+    <div class="panel" id="password-section">
         <h2 class="panel-title"><?= e(t('profile.password_title')) ?></h2>
         <form method="post" action="<?= e(url('/profile/password')) ?>" novalidate>
             <?= csrf_field() ?>

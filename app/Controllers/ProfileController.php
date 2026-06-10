@@ -88,7 +88,7 @@ final class ProfileController
 
         if ($errors !== []) {
             set_errors($errors);
-            redirect('/profile#password');
+            redirect('/profile#password-section');
         }
 
         User::updatePassword($userId, password_hash($new, PASSWORD_DEFAULT));
