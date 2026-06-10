@@ -4,6 +4,10 @@ $selCountry = old('country_code', $detected_country);
 $selDial    = old('dial_country', $detected_country);
 $cm         = old('contact_method') ?: 'email';
 $g          = old('gender');
+// Verrouillé dès qu'une position (pays) est détectée : pays, drapeau et indicatif
+// ne sont plus modifiables ; le GPS les corrige silencieusement (voir app.js).
+$lockCountry = isset($countries[$selCountry]);
+$lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
 ?>
 <section class="auth-card auth-card--wide">
     <h1><?= e(t('register.particulier_title')) ?></h1>
@@ -37,11 +41,13 @@ $g          = old('gender');
             <div class="contact-panel contact-panel-phone">
                 <label><?= e(t('field.phone')) ?></label>
                 <div class="phone-row">
-                    <select name="dial_country" class="dial-select" aria-label="<?= e(t('field.dial_code')) ?>">
+                    <select id="dial_country"<?= $lockDial ? ' disabled aria-disabled="true" tabindex="-1"' : ' name="dial_country"' ?>
+                            class="dial-select<?= $lockDial ? ' locked-field' : '' ?>" aria-label="<?= e(t('field.dial_code')) ?>">
                         <?php foreach ($countries as $code => $name): $dc = dial_code($code); if ($dc === '') continue; ?>
                             <option value="<?= e($code) ?>" <?= $selDial === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?> (+<?= e($dc) ?>)</option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if ($lockDial): ?><input type="hidden" name="dial_country" id="dial_country_value" value="<?= e($selDial) ?>"><?php endif; ?>
                     <input type="tel" name="phone_number" value="<?= old('phone_number') ?>" inputmode="tel" placeholder="<?= e(t('field.phone_placeholder')) ?>" class="phone-input" autocomplete="tel-national">
                 </div>
                 <p class="hint"><?= e(t('field.phone_hint')) ?></p>
@@ -72,15 +78,21 @@ $g          = old('gender');
         <div class="grid-2">
             <div>
                 <label for="country_code"><?= e(t('field.country')) ?></label>
-                <select id="country_code" name="country_code" required>
-                    <option value=""><?= e(t('field.choose')) ?></option>
-                    <?php if ($selCountry !== '' && !isset($countries[$selCountry])): ?>
-                        <option value="<?= e($selCountry) ?>" selected><?= e($selCountry) ?></option>
-                    <?php endif; ?>
-                    <?php foreach ($countries as $code => $name): ?>
-                        <option value="<?= e($code) ?>" <?= $selCountry === $code ? 'selected' : '' ?>><?= e($name) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <?php if ($lockCountry): ?>
+                    <select id="country_code" class="locked-field" disabled aria-disabled="true" tabindex="-1">
+                        <?php foreach ($countries as $code => $name): ?>
+                            <option value="<?= e($code) ?>" <?= $selCountry === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="hidden" name="country_code" id="country_code_value" value="<?= e($selCountry) ?>">
+                <?php else: ?>
+                    <select id="country_code" name="country_code" required>
+                        <option value=""><?= e(t('field.choose')) ?></option>
+                        <?php foreach ($countries as $code => $name): ?>
+                            <option value="<?= e($code) ?>" <?= $selCountry === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php endif; ?>
                 <?php if (has_error('country_code')): ?><p class="field-error"><?= e(error('country_code')) ?></p><?php endif; ?>
             </div>
             <div>

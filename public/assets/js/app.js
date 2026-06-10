@@ -44,6 +44,22 @@
     var MAX_M = 2000;      // beyond this the fix is IP/WiFi-grade: don't trust it
     var REFINE_MS = 12000; // GPS refinement budget
 
+    // Update a (possibly locked/disabled) <select> + its hidden submit input, so a
+    // precise GPS fix corrects the locked country/flag/indicatif to the real one.
+    function setLocked(id, iso) {
+        var sel = document.getElementById(id);
+        if (sel && sel.querySelector('option[value="' + iso + '"]')) { sel.value = iso; }
+        var hidden = document.getElementById(id + '_value');
+        if (hidden) { hidden.value = iso; }
+    }
+
+    function applyCountry(iso) {
+        iso = (iso || '').toUpperCase();
+        if (!iso) { return; }
+        setLocked('country_code', iso);
+        setLocked('dial_country', iso);
+    }
+
     function conclude(best) {
         if (!best) { return; } // silent failure
         var acc = Math.round(best.coords.accuracy);
@@ -57,9 +73,7 @@
             .then(function (d) {
                 var name = d.city || d.locality || '';
                 if (name) { city.value = name; }
-                if (d.countryCode && country.querySelector('option[value="' + d.countryCode + '"]')) {
-                    country.value = d.countryCode;
-                }
+                applyCountry(d.countryCode);
             })
             .catch(function () { /* silent */ });
     }

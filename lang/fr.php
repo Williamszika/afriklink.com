@@ -55,7 +55,7 @@ return [
     'field.phone'            => 'Téléphone',
     'field.dial_code'        => 'Indicatif',
     'field.phone_placeholder'=> 'Numéro sans l’indicatif',
-    'field.phone_hint'       => 'Indicatif détecté automatiquement (modifiable).',
+    'field.phone_hint'       => 'Indicatif selon ta position.',
     'field.identifier'       => 'E-mail ou téléphone',
     'field.identifier_placeholder' => 'vous@exemple.com ou +221…',
 
