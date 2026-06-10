@@ -95,8 +95,11 @@ $detectedNote = ($detected_country !== '' || $detected_city !== '');
         <p id="geo-status" class="hint" aria-live="polite"
            data-detecting="<?= e(t('geo.detecting')) ?>"
            data-detected="<?= e(t('geo.detected')) ?>"
+           data-approx="<?= e(t('geo.approx')) ?>"
+           data-coarse="<?= e(t('geo.coarse')) ?>"
            data-denied="<?= e(t('geo.denied')) ?>"
            data-error="<?= e(t('geo.error')) ?>"></p>
+        <button type="button" id="geo-retry" class="btn btn-ghost geo-retry"><?= e(t('geo.retry')) ?></button>
 
         <label for="password"><?= e(t('field.password')) ?></label>
         <input type="password" id="password" name="password" required autocomplete="new-password"

@@ -78,8 +78,11 @@ return [
     // Precise geolocation (browser)
     'geo.detecting' => '📡 Detecting your precise position…',
     'geo.detected'  => '📍 Position detected at ±:acc m — city: :city (editable).',
-    'geo.denied'    => 'Location denied — country/city estimated from your connection (editable).',
-    'geo.error'     => 'Precise location unavailable — estimated values (editable).',
+    'geo.approx'    => '📍 Approximate position (±:acc m) — suggested city: :city. Double-check it.',
+    'geo.coarse'    => '⚠️ Location is too imprecise on this device (±:acc m). The city shown comes from your internet connection and may be wrong — fix it, or enable GPS and retry.',
+    'geo.denied'    => 'Location denied. For your exact city: allow location (🔒 icon near the address) then “Detect my position”. Otherwise, edit the city manually.',
+    'geo.error'     => 'Precise location unavailable — double-check the suggested city (editable).',
+    'geo.retry'     => '📍 Detect my precise position',
     'register.particulier_submit'=> 'Create my account',
     'register.back_choice'       => 'Change account type',
     'register.by_email'          => 'By email',

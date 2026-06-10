@@ -161,10 +161,19 @@ function url(string $path = ''): string
     return $base . '/' . ltrim($path, '/');
 }
 
-/** Versioned URL for a public asset. */
+/**
+ * Versioned URL for a public asset. The ?v=<mtime> suffix busts browser caches
+ * whenever the file changes, so deployed JS/CSS updates are picked up immediately.
+ */
 function asset(string $path): string
 {
-    return url('assets/' . ltrim($path, '/'));
+    $relative = 'assets/' . ltrim($path, '/');
+    $url = url($relative);
+    $file = PUBLIC_PATH . '/' . $relative;
+    if (is_file($file)) {
+        $url .= '?v=' . (string) filemtime($file);
+    }
+    return $url;
 }
 
 /** True if the current request is served over HTTPS (incl. behind Cloudflare). */
