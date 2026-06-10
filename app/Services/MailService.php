@@ -55,8 +55,8 @@ final class MailService
         try {
             $payload = json_encode([
                 'sender' => [
-                    'email' => $_ENV['MAIL_FROM'] ?? 'no-reply@afriklink.com',
-                    'name'  => $_ENV['MAIL_FROM_NAME'] ?? 'Afriklink',
+                    'email' => trim((string) ($_ENV['MAIL_FROM'] ?? 'no-reply@afriklink.com')),
+                    'name'  => trim((string) ($_ENV['MAIL_FROM_NAME'] ?? 'Afriklink')),
                 ],
                 'to'          => [['email' => $to]],
                 'subject'     => $subject,
@@ -74,7 +74,8 @@ final class MailService
                 CURLOPT_HTTPHEADER     => [
                     'accept: application/json',
                     'content-type: application/json',
-                    'api-key: ' . ($_ENV['MAIL_API_KEY'] ?? ''),
+                    // trim: un espace/retour à la ligne collé avec la clé la rendrait invalide
+                    'api-key: ' . trim((string) ($_ENV['MAIL_API_KEY'] ?? '')),
                 ],
             ]);
             $body   = curl_exec($ch);

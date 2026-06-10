@@ -47,18 +47,22 @@ final class HomeController
             $payload['db_error'] = $detail; // raw message only with APP_DEBUG=true
         }
 
-        // Mail configuration state (no secrets; the from address is masked).
-        $from = (string) ($_ENV['MAIL_FROM'] ?? '');
+        // Mail configuration state (no secrets; the from address is masked and only a
+        // harmless key fingerprint — public prefix + length — is shown).
+        $from = trim((string) ($_ENV['MAIL_FROM'] ?? ''));
+        $key  = trim((string) ($_ENV['MAIL_API_KEY'] ?? ''));
         $payload['mail'] = [
             'driver'  => $_ENV['MAIL_DRIVER'] ?? 'log',
-            'api_key' => empty($_ENV['MAIL_API_KEY']) ? 'missing' : 'set',
+            'api_key' => $key === ''
+                ? 'missing'
+                : sprintf('%s… (%d caractères)', substr($key, 0, 8), strlen($key)),
             'from'    => $from === '' ? 'missing' : self::maskEmail($from),
         ];
 
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.
         if (($_GET['mail_test'] ?? '') === '1') {
-            if (!rate_limit_ok('mailtest:' . $request->ip(), 3, 3600)) {
+            if (!rate_limit_ok('mailtest:' . $request->ip(), 6, 3600)) {
                 $payload['mail']['test'] = 'throttled';
             } elseif ($from === '') {
                 $payload['mail']['test'] = 'failed: MAIL_FROM manquant';
