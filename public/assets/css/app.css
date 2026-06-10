@@ -29,13 +29,32 @@ body {
     line-height: 1.55;
 }
 
+/* Photo de fond sur tout le site : calque fixe sous le contenu, voilé de clair
+   pour garder les textes lisibles (les cartes blanches flottent au-dessus).
+   ::before fixe plutôt que background-attachment:fixed, cassé sur iOS. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(rgba(247, 248, 247, .84), rgba(247, 248, 247, .84)),
+        url('../img/hero-bg.jpg') center 30% / cover no-repeat;
+}
+
 a { color: var(--brand); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .container { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 20px; }
 
 /* Header */
-.site-header { background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
+.site-header {
+    background: rgba(255, 255, 255, .9);
+    -webkit-backdrop-filter: blur(8px) saturate(1.1);
+    backdrop-filter: blur(8px) saturate(1.1);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 20;
+}
 .header-inner { display: flex; align-items: center; gap: 20px; height: 64px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; font-size: 1.35rem; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
 .brand:hover { text-decoration: none; }
@@ -183,13 +202,19 @@ form input:focus, form select:focus { outline: 2px solid var(--brand); outline-o
 .muted { color: var(--muted); }
 
 /* Footer */
-.site-footer { border-top: 1px solid var(--border); background: var(--card); padding: 24px 0; margin-top: auto; }
+.site-footer {
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, .88);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    padding: 24px 0; margin-top: auto;
+}
 .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--muted); }
 .footer-nav { display: flex; gap: 18px; }
 .footer-nav a { color: var(--muted); }
 
 /* Error pages */
-.error-page { display: grid; place-items: center; min-height: 100vh; background: var(--bg); }
+.error-page { display: grid; place-items: center; min-height: 100vh; }
 .error-box { text-align: center; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 48px; box-shadow: var(--shadow); }
 .error-code { font-size: 3rem; font-weight: 800; color: var(--brand); margin: 0; }
 
