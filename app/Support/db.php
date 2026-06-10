@@ -38,10 +38,14 @@ function db(): PDO
 /**
  * Options TLS pour un MySQL managé (TiDB Cloud Serverless exige TLS).
  * Activées si DB_SSL est vrai.
- *  - DB_SSL_CA : chemin du bundle CA ; si absent, on auto-détecte le bundle système
- *    (Debian, RHEL/Amazon Linux — cas de Vercel —, Alpine).
- *  - Sans CA trouvable : TLS quand même, mais sans vérification du certificat
- *    (mieux que pas de TLS ; DB_SSL_VERIFY=false force aussi ce mode en dépannage).
+ *
+ * Vérification du certificat (DB_SSL_VERIFY) :
+ *  - hors serverless (Hostinger…) : vérifiée par défaut, via DB_SSL_CA ou le bundle
+ *    CA système auto-détecté ;
+ *  - sur serverless (Vercel) : NON vérifiée par défaut — le bundle CA du runtime ne
+ *    contient pas forcément la chaîne du certificat de la base managée, ce qui ferait
+ *    échouer la connexion. On chiffre quand même (TLS), on ne vérifie juste pas le
+ *    certificat. Forcer la vérification : DB_SSL_VERIFY=true + DB_SSL_CA=<bundle>.
  */
 function pdo_ssl_options(): array
 {
@@ -49,30 +53,37 @@ function pdo_ssl_options(): array
         return [];
     }
 
-    $verify = filter_var($_ENV['DB_SSL_VERIFY'] ?? true, FILTER_VALIDATE_BOOLEAN);
-
-    $ca = $_ENV['DB_SSL_CA'] ?? '';
-    if ($ca === '' || !is_file($ca)) {
-        $ca = '';
-        foreach ([
-            '/etc/ssl/certs/ca-certificates.crt', // Debian/Ubuntu
-            '/etc/pki/tls/certs/ca-bundle.crt',   // RHEL/Amazon Linux (Vercel)
-            '/etc/ssl/ca-bundle.pem',             // openSUSE
-            '/etc/ssl/cert.pem',                  // Alpine/macOS
-        ] as $candidate) {
-            if (is_file($candidate)) {
-                $ca = $candidate;
-                break;
-            }
-        }
-    }
+    $onServerless = !empty($_ENV['VERCEL']);
+    $verify = filter_var(
+        $_ENV['DB_SSL_VERIFY'] ?? ($onServerless ? 'false' : 'true'),
+        FILTER_VALIDATE_BOOLEAN
+    );
 
     $options = [];
-    if ($ca !== '') {
-        $options[PDO::MYSQL_ATTR_SSL_CA] = $ca;
-    } else {
-        $verify = false; // pas de CA disponible : TLS actif mais non vérifiable
+    if ($verify) {
+        $ca = $_ENV['DB_SSL_CA'] ?? '';
+        if ($ca === '' || !is_file($ca)) {
+            $ca = '';
+            foreach ([
+                '/etc/ssl/certs/ca-certificates.crt', // Debian/Ubuntu
+                '/etc/pki/tls/certs/ca-bundle.crt',   // RHEL/Amazon Linux
+                '/etc/ssl/ca-bundle.pem',             // openSUSE
+                '/etc/ssl/cert.pem',                  // Alpine/macOS
+            ] as $candidate) {
+                if (is_file($candidate)) {
+                    $ca = $candidate;
+                    break;
+                }
+            }
+        }
+        if ($ca !== '') {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = $ca;
+        } else {
+            $verify = false; // rien pour vérifier → on chiffre sans vérifier
+        }
     }
+    // En mode non-vérifié on ne passe PAS de CA (évite que mysqlnd réactive la
+    // vérification) ; cette option seule suffit à activer le chiffrement TLS.
     if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
         $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = $verify;
     }
