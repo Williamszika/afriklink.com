@@ -61,6 +61,7 @@ final class HomeController
                 || str_contains($m, 'refused') || str_contains($m, 'timed out')  => 'cannot_reach_host',
             default                                                               => 'other',
         };
+    }
 
     /** Switch the interface language and remember it in a cookie. */
     public function switchLanguage(Request $request): void
