@@ -1,14 +1,60 @@
 <?php
-/** @var array $user */
-$hasEmail = !empty($user['email']);
-$verified = !empty($user['email_verified_at']);
-$contact  = $hasEmail ? $user['email'] : ($user['phone'] ?? '');
-?>
-<section class="panel">
-    <h1><?= e(t('dashboard.title')) ?></h1>
-    <p class="lead"><?= e(t('dashboard.welcome', ['email' => $contact])) ?></p>
+/** @var array $user  @var int $completion  @var list<string> $missing */
+$hasEmail      = !empty($user['email']);
+$verifiedEmail = !empty($user['email_verified_at']);
+$contact       = $hasEmail ? (string) $user['email'] : (string) ($user['phone'] ?? '');
+$fullName      = trim((string) ($user['full_name'] ?? ''));
+$nickname      = (string) ($user['nickname'] ?? '');
+$firstName     = $fullName !== '' ? explode(' ', $fullName)[0] : ($nickname !== '' ? $nickname : $contact);
 
-    <?php if ($hasEmail && !$verified): ?>
+$initials = 'A';
+if ($fullName !== '') {
+    $parts = preg_split('/\s+/u', $fullName) ?: [];
+    $first = mb_substr($parts[0] ?? '', 0, 1);
+    $last  = count($parts) > 1 ? mb_substr($parts[count($parts) - 1], 0, 1) : '';
+    $initials = mb_strtoupper($first . $last);
+} elseif ($nickname !== '') {
+    $initials = mb_strtoupper(mb_substr($nickname, 0, 2));
+}
+
+$cc        = strtoupper((string) ($user['country_code'] ?? ''));
+$place     = trim(($cc !== '' ? flag_emoji($cc) . ' ' . country_name($cc) : '') .
+                  (!empty($user['city']) ? ' · ' . $user['city'] : ''), ' ·');
+$birthdate = !empty($user['birthdate']) ? date('d/m/Y', strtotime((string) $user['birthdate'])) : '—';
+$genderLbl = !empty($user['gender']) ? t('gender.' . $user['gender']) : '—';
+$contactOk = !empty($user['phone']) || $verifiedEmail;
+
+$stats = [
+    ['icon' => '🛒', 'key' => 'purchases', 'phase' => 3],
+    ['icon' => '💼', 'key' => 'sales',     'phase' => 3],
+    ['icon' => '🏷️', 'key' => 'listings',  'phase' => 2],
+    ['icon' => '💬', 'key' => 'messages',  'phase' => 5],
+];
+?>
+<section class="dash">
+
+    <!-- Bandeau profil -->
+    <div class="panel dash-profile">
+        <div class="avatar" aria-hidden="true"><?= e($initials) ?></div>
+        <div class="dash-id">
+            <h1><?= e(t('dash.welcome', ['name' => $firstName])) ?></h1>
+            <p class="dash-sub">
+                <?php if ($nickname !== ''): ?>@<?= e($nickname) ?><?php endif; ?>
+                <?php if ($place !== ''): ?> · <?= e($place) ?><?php endif; ?>
+            </p>
+            <p class="dash-sub">
+                <?= $hasEmail ? '✉️ ' . e($contact) : '📱 ' . e($contact) ?>
+                <?php if ($contactOk): ?>
+                    <span class="badge badge-ok"><?= e(t('dash.badge_verified')) ?></span>
+                <?php else: ?>
+                    <span class="badge badge-warn"><?= e(t('dash.badge_unverified')) ?></span>
+                <?php endif; ?>
+                <span class="badge badge-neutral"><?= e(t('register.particulier_title')) ?></span>
+            </p>
+        </div>
+    </div>
+
+    <?php if ($hasEmail && !$verifiedEmail): ?>
         <div class="notice notice-warning">
             <p><?= e(t('dashboard.email_unverified')) ?></p>
             <form method="post" action="<?= e(url('/verify-email/resend')) ?>" class="inline-form">
@@ -16,20 +62,78 @@ $contact  = $hasEmail ? $user['email'] : ($user['phone'] ?? '');
                 <button type="submit" class="btn btn-primary"><?= e(t('verify.resend')) ?></button>
             </form>
         </div>
-    <?php elseif ($hasEmail): ?>
-        <div class="notice notice-success">
-            <p><?= e(t('dashboard.email_verified')) ?></p>
-        </div>
     <?php endif; ?>
 
-    <dl class="meta">
-        <dt><?= e($hasEmail ? t('field.email') : t('field.phone')) ?></dt>
-        <dd><?= e($contact) ?></dd>
-        <dt><?= e(t('dashboard.role')) ?></dt>
-        <dd><?= e($user['role'] ?? 'user') ?></dd>
-        <dt><?= e(t('dashboard.member_since')) ?></dt>
-        <dd><?= e((string) ($user['created_at'] ?? '')) ?></dd>
-    </dl>
+    <!-- Progression du profil -->
+    <div class="panel dash-progress">
+        <div class="progress-head">
+            <strong><?= e(t('dash.progress', ['pct' => $completion])) ?></strong>
+            <span class="muted"><?= $completion ?>%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: <?= (int) $completion ?>%"></div></div>
+        <?php if ($missing !== []): ?>
+            <p class="hint">
+                <?= e(t('dash.progress_missing')) ?>
+                <?= e(implode(' · ', array_map(static fn (string $k): string => t($k), $missing))) ?>
+            </p>
+        <?php endif; ?>
+    </div>
 
-    <p class="muted"><?= e(t('dashboard.next_steps')) ?></p>
+    <!-- Compteurs -->
+    <div class="stat-grid">
+        <?php foreach ($stats as $s): ?>
+            <div class="stat-card">
+                <div class="num"><span aria-hidden="true"><?= $s['icon'] ?></span> 0</div>
+                <div class="lbl"><?= e(t('dash.stat.' . $s['key'])) ?></div>
+                <div class="phase"><?= e(t('dash.phase', ['n' => $s['phase']])) ?></div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="action-grid">
+        <span class="action-card is-disabled" aria-disabled="true">
+            <span class="action-head">🏪 <strong><?= e(t('dash.action.sell_title')) ?></strong>
+                <span class="chip-soon"><?= e(t('dash.soon')) ?></span></span>
+            <span class="muted"><?= e(t('dash.action.sell_desc')) ?></span>
+        </span>
+        <a class="action-card" href="<?= e(url('/')) ?>#verticals">
+            <span class="action-head">🧭 <strong><?= e(t('dash.action.explore_title')) ?></strong></span>
+            <span class="muted"><?= e(t('dash.action.explore_desc')) ?></span>
+        </a>
+    </div>
+
+    <!-- Achats / Ventes -->
+    <div class="grid-2 dash-cols">
+        <div class="panel">
+            <h2 class="panel-title">🛒 <?= e(t('dash.buys_title')) ?></h2>
+            <div class="empty-state">
+                <p><?= e(t('dash.buys_empty')) ?></p>
+                <a class="btn btn-ghost" href="<?= e(url('/')) ?>#verticals"><?= e(t('dash.action.explore_title')) ?></a>
+            </div>
+        </div>
+        <div class="panel">
+            <h2 class="panel-title">💼 <?= e(t('dash.sales_title')) ?></h2>
+            <div class="empty-state">
+                <p><?= e(t('dash.sales_empty')) ?></p>
+                <span class="btn btn-ghost is-disabled"><?= e(t('dash.action.sell_title')) ?> · <?= e(t('dash.soon')) ?></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mes informations -->
+    <div class="panel">
+        <h2 class="panel-title"><?= e(t('dash.info_title')) ?></h2>
+        <dl class="meta">
+            <dt><?= e(t('field.full_name')) ?></dt><dd><?= $fullName !== '' ? e($fullName) : '—' ?></dd>
+            <dt><?= e(t('field.nickname')) ?></dt><dd><?= $nickname !== '' ? '@' . e($nickname) : '—' ?></dd>
+            <dt><?= e($hasEmail ? t('field.email') : t('field.phone')) ?></dt><dd><?= e($contact) ?></dd>
+            <dt><?= e(t('field.birthdate')) ?></dt><dd><?= e($birthdate) ?></dd>
+            <dt><?= e(t('field.gender')) ?></dt><dd><?= e($genderLbl) ?></dd>
+            <dt><?= e(t('field.country')) ?></dt><dd><?= $cc !== '' ? flag_emoji($cc) . ' ' . e(country_name($cc)) : '—' ?></dd>
+            <dt><?= e(t('field.city')) ?></dt><dd><?= !empty($user['city']) ? e($user['city']) : '—' ?></dd>
+            <dt><?= e(t('dashboard.member_since')) ?></dt><dd><?= e(substr((string) ($user['created_at'] ?? ''), 0, 10)) ?></dd>
+        </dl>
+    </div>
+
 </section>
