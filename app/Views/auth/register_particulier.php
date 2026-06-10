@@ -85,6 +85,7 @@ $lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
                         <?php endforeach; ?>
                     </select>
                     <input type="hidden" name="country_code" id="country_code_value" value="<?= e($selCountry) ?>">
+                    <button type="button" id="geo-unlock" class="link-button"><?= e(t('geo.unlock')) ?></button>
                 <?php else: ?>
                     <select id="country_code" name="country_code" required>
                         <option value=""><?= e(t('field.choose')) ?></option>

@@ -188,3 +188,7 @@ form input:focus, form select:focus { outline: 2px solid var(--brand); outline-o
     .grid-2 { grid-template-columns: 1fr; }
     .choice-grid { grid-template-columns: 1fr; }
 }
+
+/* Discreet unlock link under the geolocation-locked country */
+.link-button { background: none; border: 0; padding: 0; margin: 6px 0 0; color: var(--muted); font-size: .85rem; text-decoration: underline; cursor: pointer; font-family: inherit; }
+.link-button:hover { color: var(--brand); }

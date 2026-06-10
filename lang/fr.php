@@ -56,6 +56,7 @@ return [
     'field.dial_code'        => 'Indicatif',
     'field.phone_placeholder'=> 'Numéro sans l’indicatif',
     'field.phone_hint'       => 'Indicatif selon ta position.',
+    'geo.unlock'             => 'Ce n’est pas mon pays ?',
     'field.identifier'       => 'E-mail ou téléphone',
     'field.identifier_placeholder' => 'vous@exemple.com ou +221…',
 

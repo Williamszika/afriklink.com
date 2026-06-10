@@ -23,6 +23,34 @@
     }
 })();
 
+// Escape hatch for the geolocation-locked country/indicatif: the discreet
+// "Ce n'est pas mon pays ?" link re-enables both selects (and removes the hidden
+// inputs so the user's own choice is what gets submitted). Once unlocked, the
+// GPS refinement below stops touching the country.
+(function () {
+    'use strict';
+
+    var unlockBtn = document.getElementById('geo-unlock');
+    if (!unlockBtn) { return; }
+
+    unlockBtn.addEventListener('click', function () {
+        ['country_code', 'dial_country'].forEach(function (id) {
+            var sel = document.getElementById(id);
+            if (sel) {
+                sel.disabled = false;
+                sel.removeAttribute('tabindex');
+                sel.removeAttribute('aria-disabled');
+                sel.classList.remove('locked-field');
+                sel.name = id;                 // re-enabled select submits itself
+                sel.dataset.unlocked = '1';    // tells the GPS code to back off
+            }
+            var hidden = document.getElementById(id + '_value');
+            if (hidden && hidden.parentNode) { hidden.parentNode.removeChild(hidden); }
+        });
+        if (unlockBtn.parentNode) { unlockBtn.parentNode.removeChild(unlockBtn); }
+    });
+})();
+
 // Precise city detection on the registration form (target ≤100 m) — fully silent.
 // The server pre-fills from IP (approximate); the browser's Geolocation API (the
 // permission prompt IS the user's consent) refines until accuracy ≤100 m (12 s
@@ -56,6 +84,8 @@
     function applyCountry(iso) {
         iso = (iso || '').toUpperCase();
         if (!iso) { return; }
+        // The user chose their country manually after unlocking — respect it.
+        if (country.dataset.unlocked === '1') { return; }
         setLocked('country_code', iso);
         setLocked('dial_country', iso);
     }
