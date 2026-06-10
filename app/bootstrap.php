@@ -138,32 +138,41 @@ set_exception_handler(static function (Throwable $e) use ($debug): void {
 if (PHP_SAPI !== 'cli') {
     send_security_headers();
 
-    // Serverless (Vercel) has an ephemeral filesystem, so file-based sessions don't
-    // persist between invocations — store them in the database instead. Driven by
-    // SESSION_DRIVER (auto = 'database' on Vercel, 'file' elsewhere). See config/app.php.
-    if (config('app.session_driver', 'file') === 'database') {
-        session_set_save_handler(new \App\Support\DbSessionHandler(), true);
-    }
+    // Start the session, but never let a session-store problem 500 a public page.
+    $sessionDriver = config('app.session_driver', 'file');
+    try {
+        if ($sessionDriver === 'database') {
+            // Sessions in the DB (serverless filesystem is ephemeral). Needs the
+            // `sessions` table (database/install.sql). Only used once a DB is configured.
+            session_set_save_handler(new \App\Support\DbSessionHandler(), true);
+        } elseif (!empty($_ENV['VERCEL'])) {
+            // File sessions need a writable directory; only the temp dir is writable on Vercel.
+            $sessionPath = sys_get_temp_dir() . '/afrikalink-sessions';
+            @mkdir($sessionPath, 0700, true);
+            session_save_path($sessionPath);
+        }
 
-    // Env-aware session start. The skill's start_secure_session() forces a Secure
-    // cookie (correct for production behind HTTPS). Locally over plain HTTP we relax
-    // `secure` so dev sessions persist; everything else stays hardened.
-    $secureCookie = config('app.env', 'production') !== 'local' || request_is_https();
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path'     => '/',
-        'secure'   => $secureCookie,
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ]);
-    session_start();
+        // Env-aware cookie: Secure in production / over HTTPS; relaxed locally over HTTP.
+        $secureCookie = config('app.env', 'production') !== 'local' || request_is_https();
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path'     => '/',
+            'secure'   => $secureCookie,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        session_start();
 
-    // Periodically rotate the session id to limit fixation.
-    if (empty($_SESSION['__created'])) {
-        $_SESSION['__created'] = time();
-    } elseif (time() - (int) $_SESSION['__created'] > 1800) {
-        session_regenerate_id(true);
-        $_SESSION['__created'] = time();
+        // Periodically rotate the session id to limit fixation.
+        if (empty($_SESSION['__created'])) {
+            $_SESSION['__created'] = time();
+        } elseif (time() - (int) $_SESSION['__created'] > 1800) {
+            session_regenerate_id(true);
+            $_SESSION['__created'] = time();
+        }
+    } catch (\Throwable $sessionError) {
+        // e.g. DB session store unreachable — degrade gracefully so the page still loads.
+        log_message('warning', 'session unavailable (' . $sessionDriver . '): ' . $sessionError->getMessage());
     }
 
     // Resolve interface locale + display currency for this request.

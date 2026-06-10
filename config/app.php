@@ -6,9 +6,12 @@ declare(strict_types=1);
  * safe defaults. Access via config('app.<key>').
  */
 
-// Session storage: file by default, database on serverless (Vercel) where the
-// local filesystem is ephemeral. Override with SESSION_DRIVER=file|database.
-$sessionDriver = $_ENV['SESSION_DRIVER'] ?? (empty($_ENV['VERCEL']) ? 'file' : 'database');
+// Session storage. Default 'file'. On serverless (Vercel) we switch to 'database'
+// ONLY when a database is actually configured — otherwise the public pages (which
+// need no DB) would fail trying to open a DB-backed session. Force with SESSION_DRIVER.
+$dbConfigured = !empty($_ENV['DB_HOST']) && !empty($_ENV['DB_NAME']) && !empty($_ENV['DB_USER']);
+$onServerless = !empty($_ENV['VERCEL']);
+$sessionDriver = $_ENV['SESSION_DRIVER'] ?? (($onServerless && $dbConfigured) ? 'database' : 'file');
 
 return [
     'env'   => $_ENV['APP_ENV'] ?? 'production',
