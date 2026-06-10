@@ -109,6 +109,13 @@ set_error_handler(static function (int $severity, string $message, string $file,
     if (!(error_reporting() & $severity)) {
         return false; // respect the @ operator
     }
+    // Deprecations / notices must NEVER be fatal (e.g. a deprecated SDK constant on
+    // PHP 8.5) — log and continue instead of throwing.
+    if ($severity === E_DEPRECATED || $severity === E_USER_DEPRECATED
+        || $severity === E_NOTICE || $severity === E_USER_NOTICE || $severity === E_STRICT) {
+        log_message('notice', $message, ['at' => $file . ':' . $line]);
+        return true;
+    }
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 

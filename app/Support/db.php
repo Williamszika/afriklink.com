@@ -59,12 +59,22 @@ function pdo_ssl_options(): array
         FILTER_VALIDATE_BOOLEAN
     );
 
+    // PHP 8.5 moved these to Pdo\Mysql::ATTR_SSL_* (old PDO::MYSQL_ATTR_SSL_* are
+    // deprecated). Resolve to whichever exists so we never touch a deprecated one.
+    $sslCaKey = defined('Pdo\\Mysql::ATTR_SSL_CA')
+        ? \constant('Pdo\\Mysql::ATTR_SSL_CA')
+        : (defined('PDO::MYSQL_ATTR_SSL_CA') ? \constant('PDO::MYSQL_ATTR_SSL_CA') : null);
+    $sslVerifyKey = defined('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')
+        ? \constant('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')
+        : (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT') ? \constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT') : null);
+
     $options = [];
     if ($verify) {
         $ca = $_ENV['DB_SSL_CA'] ?? '';
         if ($ca === '' || !is_file($ca)) {
             $ca = '';
             foreach ([
+                BASE_PATH . '/config/cacert.pem',     // bundle CA embarqué (fiable partout)
                 '/etc/ssl/certs/ca-certificates.crt', // Debian/Ubuntu
                 '/etc/pki/tls/certs/ca-bundle.crt',   // RHEL/Amazon Linux
                 '/etc/ssl/ca-bundle.pem',             // openSUSE
@@ -76,16 +86,16 @@ function pdo_ssl_options(): array
                 }
             }
         }
-        if ($ca !== '') {
-            $options[PDO::MYSQL_ATTR_SSL_CA] = $ca;
+        if ($ca !== '' && $sslCaKey !== null) {
+            $options[$sslCaKey] = $ca;
         } else {
             $verify = false; // rien pour vérifier → on chiffre sans vérifier
         }
     }
-    // En mode non-vérifié on ne passe PAS de CA (évite que mysqlnd réactive la
-    // vérification) ; cette option seule suffit à activer le chiffrement TLS.
-    if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-        $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = $verify;
+    // En mode non-vérifié on ne passe PAS de CA ; cette option seule suffit à
+    // activer le chiffrement TLS.
+    if ($sslVerifyKey !== null) {
+        $options[$sslVerifyKey] = $verify;
     }
     return $options;
 }
