@@ -9,14 +9,30 @@ namespace App\Services;
  * Driver is chosen by MAIL_DRIVER (.env):
  *   - "log"  (default): writes the message to storage/logs/mail.log. Lets the whole
  *     auth flow (verification, password reset) be developed and tested with no SMTP.
+ *   - "api": sends over HTTPS via a transactional e-mail API (Brevo-compatible),
+ *     using native cURL — no Composer dependency, works on Vercel's serverless PHP.
+ *     Needs MAIL_API_KEY (and optionally MAIL_API_URL to point at another provider).
  *   - "smtp": sends via PHPMailer if installed (composer require phpmailer/phpmailer);
  *     otherwise it falls back to "log" and records a warning.
+ *
+ * A send failure never breaks the calling flow: drivers catch their own errors,
+ * log a warning and return false.
  */
 final class MailService
 {
+    private const DEFAULT_API_URL = 'https://api.brevo.com/v3/smtp/email';
+
     public static function send(string $toEmail, string $subject, string $htmlBody, ?string $textBody = null): bool
     {
         $driver = $_ENV['MAIL_DRIVER'] ?? 'log';
+
+        if ($driver === 'api') {
+            if (($_ENV['MAIL_API_KEY'] ?? '') !== '') {
+                return self::sendApi($toEmail, $subject, $htmlBody, $textBody);
+            }
+            log_message('warning', 'MAIL_DRIVER=api but MAIL_API_KEY is empty; falling back to log.');
+            return self::sendLog($toEmail, $subject, $htmlBody, $textBody);
+        }
 
         if ($driver === 'smtp' && class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
             return self::sendSmtp($toEmail, $subject, $htmlBody, $textBody);
@@ -27,6 +43,53 @@ final class MailService
         }
 
         return self::sendLog($toEmail, $subject, $htmlBody, $textBody);
+    }
+
+    /** Brevo-compatible JSON API over native cURL (serverless-safe, no Composer). */
+    private static function sendApi(string $to, string $subject, string $html, ?string $text): bool
+    {
+        try {
+            $payload = json_encode([
+                'sender' => [
+                    'email' => $_ENV['MAIL_FROM'] ?? 'no-reply@afriklink.com',
+                    'name'  => $_ENV['MAIL_FROM_NAME'] ?? 'Afriklink',
+                ],
+                'to'          => [['email' => $to]],
+                'subject'     => $subject,
+                'htmlContent' => $html,
+                'textContent' => $text ?? strip_tags($html),
+            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+            $ch = curl_init($_ENV['MAIL_API_URL'] ?? self::DEFAULT_API_URL);
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $payload,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_HTTPHEADER     => [
+                    'accept: application/json',
+                    'content-type: application/json',
+                    'api-key: ' . ($_ENV['MAIL_API_KEY'] ?? ''),
+                ],
+            ]);
+            $body   = curl_exec($ch);
+            $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $error  = curl_error($ch);
+            curl_close($ch);
+
+            if ($status >= 200 && $status < 300) {
+                return true;
+            }
+            log_message('error', 'mail api send failed', [
+                'status' => $status,
+                'error'  => $error !== '' ? $error : substr((string) $body, 0, 300),
+            ]);
+            return false;
+        } catch (\Throwable $e) {
+            log_message('error', 'mail api exception: ' . $e->getMessage());
+            return false;
+        }
     }
 
     private static function sendLog(string $to, string $subject, string $html, ?string $text): bool

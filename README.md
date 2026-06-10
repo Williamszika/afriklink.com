@@ -124,8 +124,25 @@ Steps:
 1. Push to GitHub and import the repo in Vercel.
 2. Set environment variables in the Vercel dashboard: `APP_ENV=production`, `APP_KEY`,
    the `DB_*` (+ `DB_SSL=true`) for your TiDB cluster. `VERCEL` is set by the platform.
-3. Apply migrations against TiDB (`php database/migrate.php` from your machine).
+3. Apply migrations against TiDB (`php database/migrate.php` from your machine,
+   or paste `database/install.sql` into TiDB's web SQL editor — no terminal needed).
 4. Deploy. The front controller, auth, i18n and DB sessions run on Vercel.
+
+### Verification e-mails on Vercel (free)
+
+The serverless filesystem can't store mail logs and PHPMailer/SMTP isn't available
+without Composer, so production e-mail uses an HTTPS API via native cURL
+(`MAIL_DRIVER=api`, Brevo-compatible). Free setup (~5 min, no terminal):
+
+1. Create a free account at brevo.com (300 e-mails/day included).
+2. Verify your sender address: Brevo → Senders & Domains → add + confirm an e-mail.
+3. Create an API key: Brevo → SMTP & API → API Keys.
+4. In Vercel → Settings → Environment Variables, add:
+   `MAIL_DRIVER=api`, `MAIL_API_KEY=xkeysib-…`, `MAIL_FROM=<verified sender>`,
+   `MAIL_FROM_NAME=Afriklink` — then redeploy.
+
+A mail failure never breaks registration: it is logged and the flow continues
+(the user can hit “resend the e-mail” later).
 
 > Hostinger remains the simplest production host for this stack (native PHP, `.htaccess`,
 > file sessions). The same codebase runs on both — only `SESSION_DRIVER` and the DB differ.
