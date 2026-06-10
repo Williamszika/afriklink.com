@@ -58,6 +58,19 @@ final class HomeController
                 : sprintf('%s… (%d caractères)', substr($key, 0, 8), strlen($key)),
             'from'    => $from === '' ? 'missing' : self::maskEmail($from),
         ];
+        // Catch the most common mistake immediately: the SMTP key (xsmtpsib-) pasted
+        // where the REST API key (xkeysib-) is required. Brevo answers 401 otherwise.
+        if ($key !== '') {
+            if (str_starts_with($key, 'xkeysib-')) {
+                $payload['mail']['key_check'] = 'ok_cle_api';
+            } elseif (str_starts_with($key, 'xsmtpsib-')) {
+                $payload['mail']['key_check'] =
+                    'mauvaise_cle — ceci est la clé SMTP. Il faut la clé API (onglet « Clés API », commence par xkeysib-).';
+            } else {
+                $payload['mail']['key_check'] =
+                    'format_inattendu — une clé API Brevo commence par xkeysib-.';
+            }
+        }
 
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.
