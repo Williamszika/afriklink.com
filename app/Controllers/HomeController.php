@@ -72,11 +72,8 @@ final class HomeController
             }
         }
 
-        // Hébergement médias (annonces) : Cloudinary configuré ou pas.
-        $payload['media'] = \App\Services\CloudinaryService::configured()
-            ? ['status' => 'ok', 'cloud' => \App\Services\CloudinaryService::cloudName()]
-            : ['status' => 'unconfigured',
-               'hint'   => 'CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET manquants'];
+        // Hébergement médias (annonces) : diagnostic Cloudinary (ok / unconfigured / misconfigured).
+        $payload['media'] = \App\Services\CloudinaryService::diagnostic();
 
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.

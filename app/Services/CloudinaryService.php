@@ -24,24 +24,125 @@ final class CloudinaryService
     /** Description secret-free de la dernière erreur (diagnostic /health). */
     public static ?string $lastError = null;
 
+    /** @var array{cloud:string,key:string,secret:string}|null cache par requête */
+    private static ?array $creds = null;
+
     public static function configured(): bool
     {
-        return self::cloudName() !== '' && self::apiKey() !== '' && self::apiSecret() !== '';
+        $c = self::creds();
+        return $c['cloud'] !== '' && $c['key'] !== '' && $c['secret'] !== ''
+            && !self::hasPlaceholder($c);
+    }
+
+    /**
+     * État lisible pour /health — ne révèle jamais de secret, mais explique
+     * précisément ce qui cloche (gabarit non remplacé, mauvaise variable…).
+     * @return array{status:string,cloud?:string,hint?:string}
+     */
+    public static function diagnostic(): array
+    {
+        $c = self::creds();
+        if ($c['cloud'] === '' && $c['key'] === '' && $c['secret'] === '') {
+            return [
+                'status' => 'unconfigured',
+                'hint'   => 'Définis CLOUDINARY_URL (forme cloudinary://API_KEY:API_SECRET@cloud_name) '
+                          . 'ou les trois variables CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET.',
+            ];
+        }
+        $problems = [];
+        if (self::hasPlaceholder($c)) {
+            $problems[] = 'valeurs encore à l’état de gabarit Cloudinary (<your_api_key> / <your_api_secret>) — '
+                        . 'révèle le secret puis recopie les VRAIES valeurs';
+        }
+        if ($c['cloud'] !== '' && (str_contains($c['cloud'], '=') || stripos($c['cloud'], 'cloudinary://') !== false)) {
+            $problems[] = 'CLOUDINARY_CLOUD_NAME doit être le nom court seul (ex. « daljbrmog »), pas l’URL complète';
+        }
+        if ($problems !== []) {
+            return ['status' => 'misconfigured', 'cloud' => $c['cloud'], 'hint' => implode(' ; ', $problems)];
+        }
+        return ['status' => 'ok', 'cloud' => $c['cloud']];
     }
 
     public static function cloudName(): string
     {
-        return trim((string) ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? ''));
+        return self::creds()['cloud'];
     }
 
     private static function apiKey(): string
     {
-        return trim((string) ($_ENV['CLOUDINARY_API_KEY'] ?? ''));
+        return self::creds()['key'];
     }
 
     private static function apiSecret(): string
     {
-        return trim((string) ($_ENV['CLOUDINARY_API_SECRET'] ?? ''));
+        return self::creds()['secret'];
+    }
+
+    /**
+     * Résout les identifiants depuis la forme canonique Cloudinary
+     * CLOUDINARY_URL = cloudinary://API_KEY:API_SECRET@cloud_name, OU depuis les
+     * trois variables séparées. Tolérances : préfixe « NOM=… » collé par erreur,
+     * guillemets parasites, et URL collée dans n’importe laquelle des variables.
+     * @return array{cloud:string,key:string,secret:string}
+     */
+    private static function creds(): array
+    {
+        if (self::$creds !== null) {
+            return self::$creds;
+        }
+        $cloud  = self::clean(self::env('CLOUDINARY_CLOUD_NAME'));
+        $key    = self::clean(self::env('CLOUDINARY_API_KEY'));
+        $secret = self::clean(self::env('CLOUDINARY_API_SECRET'));
+
+        // Une URL cloudinary:// valide (où qu'elle soit collée) a priorité.
+        foreach ([self::clean(self::env('CLOUDINARY_URL')), $cloud, $key, $secret] as $candidate) {
+            if (stripos($candidate, 'cloudinary://') === false) {
+                continue;
+            }
+            $parsed = self::parseUrl($candidate);
+            if ($parsed !== null) {
+                return self::$creds = $parsed;
+            }
+        }
+        return self::$creds = ['cloud' => $cloud, 'key' => $key, 'secret' => $secret];
+    }
+
+    private static function env(string $key): string
+    {
+        $v = $_ENV[$key] ?? getenv($key);
+        return is_string($v) ? $v : '';
+    }
+
+    /** Retire espaces/guillemets et un éventuel préfixe « VARNAME= » collé par erreur. */
+    private static function clean(string $v): string
+    {
+        $v = trim($v);
+        if (preg_match('/^\s*CLOUDINARY_[A-Z_]+\s*=\s*(.*)$/s', $v, $m) === 1) {
+            $v = trim($m[1]);
+        }
+        return trim($v, "\"' \t\n\r");
+    }
+
+    /**
+     * cloudinary://KEY:SECRET@CLOUD → identifiants, ou null si gabarit/invalide.
+     * @return array{cloud:string,key:string,secret:string}|null
+     */
+    private static function parseUrl(string $v): ?array
+    {
+        if (preg_match('#cloudinary://([^:@/\s]+):([^@/\s]+)@([^/\s]+)#i', $v, $m) !== 1) {
+            return null;
+        }
+        if (preg_match('/[<>]/', $m[1] . $m[2] . $m[3]) === 1) {
+            return null; // gabarit <your_api_key> non remplacé
+        }
+        return ['cloud' => $m[3], 'key' => $m[1], 'secret' => $m[2]];
+    }
+
+    /** Détecte les gabarits Cloudinary laissés tels quels. */
+    private static function hasPlaceholder(array $c): bool
+    {
+        $joined = ($c['cloud'] ?? '') . ($c['key'] ?? '') . ($c['secret'] ?? '');
+        return preg_match('/[<>]/', $joined) === 1 || stripos($joined, 'your_api') !== false;
     }
 
     /**
