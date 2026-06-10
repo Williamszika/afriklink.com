@@ -170,3 +170,40 @@ CREATE TABLE IF NOT EXISTS user_avatars (
   data       MEDIUMBLOB NOT NULL,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- ---------------------------------------------------------------
+-- Annonces entre particuliers. NOTE : créées AUTOMATIQUEMENT par
+-- l'application au premier dépôt (Listing::ensureTables) — ici à
+-- titre de documentation. Les médias vivent sur Cloudinary, seuls
+-- leurs identifiants sont stockés.
+CREATE TABLE IF NOT EXISTS listings (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  public_id       CHAR(36) NOT NULL UNIQUE,
+  user_id         BIGINT UNSIGNED NOT NULL,
+  title           VARCHAR(150) NOT NULL,
+  description     TEXT NOT NULL,
+  category        VARCHAR(32) NOT NULL,
+  price_cents     BIGINT UNSIGNED NOT NULL,
+  currency        CHAR(3) NOT NULL DEFAULT 'EUR',
+  item_condition  VARCHAR(16) NOT NULL,
+  country_code    CHAR(2) NULL,
+  city            VARCHAR(120) NULL,
+  whatsapp_optin  TINYINT(1) NOT NULL DEFAULT 0,
+  status          VARCHAR(16) NOT NULL DEFAULT 'active',
+  video_public_id VARCHAR(255) NULL,
+  video_duration  DECIMAL(6,2) NULL,
+  created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_listings_user (user_id, status),
+  KEY idx_listings_cat (category, status, created_at)
+);
+
+CREATE TABLE IF NOT EXISTS listing_photos (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  listing_id      BIGINT UNSIGNED NOT NULL,
+  cloud_public_id VARCHAR(255) NOT NULL,
+  width           INT UNSIGNED NULL,
+  height          INT UNSIGNED NULL,
+  position        TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  KEY idx_photos_listing (listing_id, position)
+);

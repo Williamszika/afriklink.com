@@ -183,3 +183,224 @@
         }).catch(function () { /* le serveur validera l'original */ });
     });
 })();
+
+/* ---- Confirmation générique (CSP interdit les onclick inline) ---- */
+document.addEventListener('click', function (ev) {
+    var el = ev.target && ev.target.closest ? ev.target.closest('[data-confirm]') : null;
+    if (el && !window.confirm(el.getAttribute('data-confirm'))) {
+        ev.preventDefault();
+        ev.stopPropagation();
+    }
+}, true);
+
+/* ---- Page annonce : clic sur une vignette = grande photo ---- */
+document.addEventListener('click', function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest('[data-gallery-full]') : null;
+    var main = document.getElementById('listing-main-photo');
+    if (btn && main) { main.src = btn.getAttribute('data-gallery-full'); }
+});
+
+/* ---- Dépôt d'annonce : envoi direct navigateur → Cloudinary ----
+   1. demande une signature au serveur (/api/media/sign) ;
+   2. envoie le fichier directement à Cloudinary (la limite Vercel ne s'applique pas) ;
+   3. range les identifiants retournés dans les champs cachés du formulaire.
+   Les photos lourdes sont réduites avant envoi ; la durée de la vidéo est
+   contrôlée ici ET re-vérifiée par le serveur après envoi. */
+(function () {
+    var form = document.getElementById('listing-form');
+    if (!form) { return; }
+
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    var photosJson = document.getElementById('photos_json');
+    var videoIdInput = document.getElementById('video_public_id');
+    var photoInput = document.getElementById('photo-input');
+    var videoInput = document.getElementById('video-input');
+    var photoPreviews = document.getElementById('photo-previews');
+    var videoPreview = document.getElementById('video-preview');
+    var photoError = document.getElementById('photo-error');
+    var videoError = document.getElementById('video-error');
+    var submitBtn = document.getElementById('listing-submit');
+    var statusLine = document.getElementById('upload-status');
+    var MAX_PHOTOS = 5;
+    var MAX_VIDEO_S = 60;
+    var photos = []; // {publicId, url}
+    var pending = 0;
+
+    function setError(node, msg) { node.textContent = msg || ''; node.hidden = !msg; }
+    function syncState() {
+        photosJson.value = JSON.stringify(photos.map(function (p) { return p.publicId; }));
+        var busy = pending > 0;
+        submitBtn.disabled = busy;
+        statusLine.hidden = !busy;
+        if (busy) { statusLine.textContent = statusLine.dataset.msg || 'Envoi en cours… ' + pending + ' fichier(s)'; }
+    }
+
+    function sign(resourceType) {
+        var body = new FormData();
+        body.append('resource_type', resourceType);
+        return fetch('/api/media/sign', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrf },
+            body: body
+        }).then(function (r) {
+            if (!r.ok) { throw new Error('sign ' + r.status); }
+            return r.json();
+        });
+    }
+
+    function uploadToCloudinary(file, params, onProgress) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(params.cloud_name) + '/' + params.resource_type + '/upload');
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable && onProgress) { onProgress(Math.round(e.loaded * 100 / e.total)); }
+            };
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(e); }
+                } else { reject(new Error('upload ' + xhr.status)); }
+            };
+            xhr.onerror = function () { reject(new Error('réseau')); };
+            var fd = new FormData();
+            fd.append('file', file);
+            fd.append('api_key', params.api_key);
+            fd.append('timestamp', params.timestamp);
+            fd.append('folder', params.folder);
+            fd.append('signature', params.signature);
+            xhr.send(fd);
+        });
+    }
+
+    /* réduit une photo à 1600 px max (JPEG) pour un envoi rapide */
+    function shrinkImage(file) {
+        if (file.size < 500 * 1024 || typeof window.createImageBitmap !== 'function') {
+            return Promise.resolve(file);
+        }
+        return createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+            var scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+            if (scale === 1) { return file; }
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.round(bmp.width * scale);
+            canvas.height = Math.round(bmp.height * scale);
+            canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+            return new Promise(function (resolve) {
+                canvas.toBlob(function (blob) {
+                    resolve(blob && blob.size < file.size ? new File([blob], 'photo.jpg', { type: 'image/jpeg' }) : file);
+                }, 'image/jpeg', 0.85);
+            });
+        }).catch(function () { return file; });
+    }
+
+    function addPhotoPreview(publicId, objectUrl) {
+        var wrap = document.createElement('div');
+        wrap.className = 'preview';
+        var img = document.createElement('img');
+        img.src = objectUrl;
+        img.alt = '';
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'preview-remove';
+        del.textContent = '✕';
+        del.addEventListener('click', function () {
+            photos = photos.filter(function (p) { return p.publicId !== publicId; });
+            wrap.remove();
+            syncState();
+        });
+        wrap.appendChild(img);
+        wrap.appendChild(del);
+        photoPreviews.appendChild(wrap);
+    }
+
+    if (photoInput) {
+        photoInput.addEventListener('change', function () {
+            setError(photoError, '');
+            var files = Array.prototype.slice.call(photoInput.files || []);
+            photoInput.value = '';
+            if (!files.length) { return; }
+            if (photos.length + files.length > MAX_PHOTOS) {
+                setError(photoError, photoError.dataset.max || ('Maximum ' + MAX_PHOTOS + ' photos.'));
+                files = files.slice(0, Math.max(0, MAX_PHOTOS - photos.length));
+            }
+            files.forEach(function (original) {
+                pending++; syncState();
+                shrinkImage(original).then(function (file) {
+                    return sign('image').then(function (params) { return uploadToCloudinary(file, params); });
+                }).then(function (res) {
+                    photos.push({ publicId: res.public_id });
+                    addPhotoPreview(res.public_id, URL.createObjectURL(original));
+                }).catch(function () {
+                    setError(photoError, photoError.dataset.fail || "Échec de l'envoi d'une photo — réessaie.");
+                }).finally(function () { pending--; syncState(); });
+            });
+        });
+    }
+
+    function videoDuration(file) {
+        return new Promise(function (resolve) {
+            var v = document.createElement('video');
+            v.preload = 'metadata';
+            v.onloadedmetadata = function () { var d = v.duration; URL.revokeObjectURL(v.src); resolve(d); };
+            v.onerror = function () { URL.revokeObjectURL(v.src); resolve(NaN); };
+            v.src = URL.createObjectURL(file);
+        });
+    }
+
+    if (videoInput) {
+        videoInput.addEventListener('change', function () {
+            setError(videoError, '');
+            var file = videoInput.files && videoInput.files[0];
+            videoInput.value = '';
+            if (!file) { return; }
+            if (file.size > 100 * 1024 * 1024) {
+                setError(videoError, videoError.dataset.big || 'Vidéo trop lourde (100 Mo max).');
+                return;
+            }
+            videoDuration(file).then(function (d) {
+                if (isNaN(d) || d > MAX_VIDEO_S + 1) {
+                    setError(videoError, videoError.dataset.long || ('Vidéo trop longue : ' + Math.round(d) + ' s (max ' + MAX_VIDEO_S + ' s).'));
+                    return;
+                }
+                pending++; syncState();
+                sign('video').then(function (params) {
+                    return uploadToCloudinary(file, params, function (pct) {
+                        statusLine.dataset.msg = 'Vidéo : ' + pct + ' %';
+                        statusLine.textContent = statusLine.dataset.msg;
+                    });
+                }).then(function (res) {
+                    videoIdInput.value = res.public_id;
+                    videoPreview.innerHTML = '';
+                    var wrap = document.createElement('div');
+                    wrap.className = 'preview preview-video';
+                    var v = document.createElement('video');
+                    v.controls = true;
+                    v.src = URL.createObjectURL(file);
+                    var del = document.createElement('button');
+                    del.type = 'button';
+                    del.className = 'preview-remove';
+                    del.textContent = '✕';
+                    del.addEventListener('click', function () {
+                        videoIdInput.value = '';
+                        videoPreview.innerHTML = '';
+                    });
+                    wrap.appendChild(v);
+                    wrap.appendChild(del);
+                    videoPreview.appendChild(wrap);
+                }).catch(function () {
+                    setError(videoError, videoError.dataset.fail || "Échec de l'envoi de la vidéo — réessaie.");
+                }).finally(function () {
+                    delete statusLine.dataset.msg;
+                    pending--; syncState();
+                });
+            });
+        });
+    }
+
+    form.addEventListener('submit', function (ev) {
+        if (pending > 0) { ev.preventDefault(); return; }
+        if (photos.length === 0) {
+            ev.preventDefault();
+            setError(photoError, photoError.dataset.need || 'Ajoute au moins une photo.');
+            photoError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+})();

@@ -4,6 +4,8 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\HomeController;
+use App\Controllers\ListingController;
+use App\Controllers\MediaController;
 use App\Controllers\ProfileController;
 
 /**
@@ -55,6 +57,18 @@ return [
     ['POST', '/profile/photo',         [ProfileController::class, 'updatePhoto'], ['auth', 'csrf', 'throttle:avatar,10,3600']],
     ['POST', '/profile/photo/delete',  [ProfileController::class, 'deletePhoto'], ['auth', 'csrf']],
     ['GET',  '/avatar/{pid}',          [ProfileController::class, 'avatar'],      []],
+
+    // Annonces entre particuliers (« Vendre un article »)
+    ['GET',  '/vendre',                  [ListingController::class, 'create'],    ['auth']],
+    ['POST', '/vendre',                  [ListingController::class, 'store'],     ['auth', 'csrf', 'throttle:listing,20,3600']],
+    ['GET',  '/annonces',                [ListingController::class, 'mine'],      ['auth']],
+    ['GET',  '/annonce/{pid}',           [ListingController::class, 'show'],      []],
+    ['GET',  '/annonce/{pid}/modifier',  [ListingController::class, 'edit'],      ['auth']],
+    ['POST', '/annonce/{pid}/modifier',  [ListingController::class, 'update'],    ['auth', 'csrf', 'throttle:listing,20,3600']],
+    ['POST', '/annonce/{pid}/statut',    [ListingController::class, 'setStatus'], ['auth', 'csrf']],
+
+    // Signature des envois médias directs navigateur → Cloudinary
+    ['POST', '/api/media/sign',          [MediaController::class, 'sign'],        ['auth', 'csrf', 'throttle:sign,60,3600']],
 
     // Roadmap interstitials for not-yet-built dashboard actions
     ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],

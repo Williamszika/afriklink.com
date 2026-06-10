@@ -1,0 +1,195 @@
+<?php
+declare(strict_types=1);
+
+namespace App\Services;
+
+/**
+ * Cloudinary — hébergement des photos et vidéos d'annonces (plan gratuit).
+ *
+ * Les fichiers partent DIRECTEMENT du navigateur vers Cloudinary (envoi signé) :
+ * ils ne transitent jamais par Vercel, dont la limite de requête (~4,5 Mo)
+ * interdirait les vidéos. Le serveur ne fait que :
+ *   1. signer les paramètres d'envoi (signUploadParams) ;
+ *   2. VÉRIFIER après coup, via l'API Admin, que chaque fichier annoncé par le
+ *      client existe vraiment sur notre compte, est du bon type, rangé dans
+ *      notre dossier — et que la vidéo ne dépasse pas la durée maximale.
+ *
+ * Aucune dépendance Composer : cURL natif. Clés dans les variables d'env :
+ * CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.
+ */
+final class CloudinaryService
+{
+    public const FOLDER = 'afriklink';
+
+    /** Description secret-free de la dernière erreur (diagnostic /health). */
+    public static ?string $lastError = null;
+
+    public static function configured(): bool
+    {
+        return self::cloudName() !== '' && self::apiKey() !== '' && self::apiSecret() !== '';
+    }
+
+    public static function cloudName(): string
+    {
+        return trim((string) ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? ''));
+    }
+
+    private static function apiKey(): string
+    {
+        return trim((string) ($_ENV['CLOUDINARY_API_KEY'] ?? ''));
+    }
+
+    private static function apiSecret(): string
+    {
+        return trim((string) ($_ENV['CLOUDINARY_API_SECRET'] ?? ''));
+    }
+
+    /**
+     * Paramètres signés pour un envoi direct navigateur → Cloudinary.
+     * @param 'image'|'video' $resourceType
+     * @return array{cloud_name:string,api_key:string,timestamp:int,folder:string,signature:string,resource_type:string}
+     */
+    public static function signUploadParams(string $resourceType): array
+    {
+        $timestamp = time();
+        $folder    = self::FOLDER . '/' . ($resourceType === 'video' ? 'videos' : 'photos');
+        // Signature Cloudinary : sha1 des paramètres triés (hors api_key/file) + secret.
+        $signature = sha1('folder=' . $folder . '&timestamp=' . $timestamp . self::apiSecret());
+
+        return [
+            'cloud_name'    => self::cloudName(),
+            'api_key'       => self::apiKey(),
+            'timestamp'     => $timestamp,
+            'folder'        => $folder,
+            'signature'     => $signature,
+            'resource_type' => $resourceType,
+        ];
+    }
+
+    /**
+     * Vérité serveur sur un fichier envoyé : interroge l'API Admin et retourne
+     * ses métadonnées, ou null si le fichier n'existe pas / n'est pas à nous.
+     * @param 'image'|'video' $resourceType
+     * @return array{width:?int,height:?int,bytes:int,duration:?float,format:string}|null
+     */
+    public static function verifyAsset(string $resourceType, string $publicId): ?array
+    {
+        self::$lastError = null;
+        $expectedPrefix = self::FOLDER . '/' . ($resourceType === 'video' ? 'videos' : 'photos') . '/';
+        if (!str_starts_with($publicId, $expectedPrefix)
+            || preg_match('#^[A-Za-z0-9_/\-]{1,255}$#', $publicId) !== 1) {
+            return null;
+        }
+
+        $url = sprintf(
+            'https://api.cloudinary.com/v1_1/%s/resources/%s/upload/%s',
+            rawurlencode(self::cloudName()),
+            $resourceType,
+            implode('/', array_map('rawurlencode', explode('/', $publicId)))
+        );
+        $body = self::request('GET', $url);
+        if ($body === null) {
+            return null;
+        }
+        $data = json_decode($body, true);
+        if (!is_array($data) || ($data['public_id'] ?? '') !== $publicId) {
+            return null;
+        }
+        return [
+            'width'    => isset($data['width']) ? (int) $data['width'] : null,
+            'height'   => isset($data['height']) ? (int) $data['height'] : null,
+            'bytes'    => (int) ($data['bytes'] ?? 0),
+            'duration' => isset($data['duration']) ? (float) $data['duration'] : null,
+            'format'   => (string) ($data['format'] ?? ''),
+        ];
+    }
+
+    /** Supprime un fichier (meilleur effort — jamais bloquant pour l'appelant). */
+    public static function destroy(string $resourceType, string $publicId): void
+    {
+        $timestamp = time();
+        $signature = sha1('public_id=' . $publicId . '&timestamp=' . $timestamp . self::apiSecret());
+        $url = sprintf(
+            'https://api.cloudinary.com/v1_1/%s/%s/destroy',
+            rawurlencode(self::cloudName()),
+            $resourceType
+        );
+        self::request('POST', $url, [
+            'public_id' => $publicId,
+            'timestamp' => $timestamp,
+            'api_key'   => self::apiKey(),
+            'signature' => $signature,
+        ]);
+    }
+
+    /* ---- URLs de diffusion (CDN) --------------------------------- */
+
+    /** Image recadrée/optimisée (q_auto + f_auto = compression automatique). */
+    public static function imageUrl(string $publicId, int $w, int $h): string
+    {
+        return sprintf(
+            'https://res.cloudinary.com/%s/image/upload/c_fill,w_%d,h_%d,q_auto,f_auto/%s',
+            rawurlencode(self::cloudName()),
+            $w,
+            $h,
+            $publicId
+        );
+    }
+
+    /** Vidéo MP4 H.264 en qualité automatique (compatible partout). */
+    public static function videoUrl(string $publicId): string
+    {
+        return sprintf(
+            'https://res.cloudinary.com/%s/video/upload/q_auto,f_mp4,vc_h264/%s.mp4',
+            rawurlencode(self::cloudName()),
+            $publicId
+        );
+    }
+
+    /** Miniature de la vidéo (première seconde). */
+    public static function videoPosterUrl(string $publicId, int $w = 640): string
+    {
+        return sprintf(
+            'https://res.cloudinary.com/%s/video/upload/so_0,c_fill,w_%d,h_%d,q_auto,f_jpg/%s.jpg',
+            rawurlencode(self::cloudName()),
+            $w,
+            (int) round($w * 3 / 4),
+            $publicId
+        );
+    }
+
+    /* ---- bas niveau ----------------------------------------------- */
+
+    private static function request(string $method, string $url, array $post = []): ?string
+    {
+        try {
+            $ch = curl_init($url);
+            $opts = [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_USERPWD        => self::apiKey() . ':' . self::apiSecret(),
+            ];
+            if ($method === 'POST') {
+                $opts[CURLOPT_POST] = true;
+                $opts[CURLOPT_POSTFIELDS] = http_build_query($post);
+            }
+            curl_setopt_array($ch, $opts);
+            $body   = curl_exec($ch);
+            $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $err    = curl_error($ch);
+            curl_close($ch);
+
+            if ($status >= 200 && $status < 300 && is_string($body)) {
+                return $body;
+            }
+            self::$lastError = 'HTTP ' . $status . ($err !== '' ? ' — ' . $err : '');
+            log_message('warning', 'cloudinary ' . $method . ' failed', ['status' => $status, 'url' => $url]);
+            return null;
+        } catch (\Throwable $e) {
+            self::$lastError = 'exception — ' . $e->getMessage();
+            log_message('error', 'cloudinary exception: ' . $e->getMessage());
+            return null;
+        }
+    }
+}

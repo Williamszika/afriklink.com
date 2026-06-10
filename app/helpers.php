@@ -297,6 +297,49 @@ function normalize_phone(string $raw): string
     return $digits === '' ? '' : '+' . $digits;
 }
 
+/* ------------------------------------------------------------------ */
+/* Prix (annonces)                                                     */
+/* ------------------------------------------------------------------ */
+
+/** Devises sans subdivision décimale en usage courant. */
+function currency_is_integer(string $currency): bool
+{
+    return in_array(strtoupper($currency), ['XOF', 'NGN'], true);
+}
+
+/**
+ * Parse un prix saisi ("12,50" ou "12.50" ou "15 000") vers des centimes.
+ * Retourne null si invalide. Les devises entières (XOF…) refusent les décimales.
+ */
+function parse_price_to_cents(string $raw, string $currency): ?int
+{
+    $raw = str_replace([' ', "\u{202F}", "\u{00A0}"], '', trim($raw));
+    $raw = str_replace(',', '.', $raw);
+    if ($raw === '' || !preg_match('/^\d+(\.\d{1,2})?$/', $raw)) {
+        return null;
+    }
+    if (currency_is_integer($currency) && str_contains($raw, '.')) {
+        return null;
+    }
+    return (int) round(((float) $raw) * 100);
+}
+
+/** Formate des centimes en prix lisible : « 12,50 € », « 15 000 F CFA ». */
+function format_price(int $cents, string $currency): string
+{
+    $currency = strtoupper($currency);
+    $symbols = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'];
+    $symbol = $symbols[$currency] ?? $currency;
+
+    if (currency_is_integer($currency)) {
+        $amount = number_format(intdiv($cents, 100), 0, ',', ' ');
+    } else {
+        $amount = number_format($cents / 100, 2, ',', ' ');
+        $amount = str_ends_with($amount, ',00') ? substr($amount, 0, -3) : $amount;
+    }
+    return $amount . ' ' . $symbol;
+}
+
 /** Send a redirect and stop execution. */
 function redirect(string $path, int $status = 302): never
 {

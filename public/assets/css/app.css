@@ -276,7 +276,65 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .soon-icon { font-size: 3rem; line-height: 1; margin-bottom: 8px; }
 .soon-card .hero-actions { margin-top: 22px; }
 
+/* Annonces : dépôt (upload) */
+.upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--card); }
+.upload-zone input[type="file"] { font-size: .9rem; color: var(--muted); max-width: 100%; }
+.upload-zone .hint { margin: 6px 0 0; }
+.upload-previews { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+.upload-previews .preview { position: relative; }
+.upload-previews img, .upload-previews video { width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; background: #000; }
+.preview-video video { width: 200px; height: 120px; }
+.preview-remove { position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: #fff; color: var(--danger); font-weight: 700; cursor: pointer; line-height: 1; }
+.check-row { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 2px; font-weight: 600; }
+.check-row input { margin-top: 3px; }
+
+/* Annonces : Mes annonces */
+.listing-rows { display: grid; gap: 12px; }
+.listing-row { display: flex; gap: 14px; align-items: flex-start; padding: 16px; }
+.listing-thumb img { border-radius: 8px; display: block; object-fit: cover; }
+.listing-thumb-empty { width: 96px; height: 72px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+.listing-row-body { display: grid; gap: 6px; min-width: 0; }
+.listing-row-title { margin: 0; font-weight: 700; }
+.listing-row-title a { color: var(--ink); }
+.listing-row-meta { margin: 0; color: var(--muted); font-size: .92rem; }
+.listing-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.listing-row-actions .inline-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-danger { color: var(--danger); border-color: #fecdca; }
+
+/* Annonce : page publique */
+.listing-page { display: grid; gap: 16px; }
+.listing-layout { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; align-items: start; }
+.listing-media { position: relative; display: grid; gap: 10px; }
+.listing-media > img { width: 100%; height: auto; border-radius: var(--radius); border: 1px solid var(--border); background: #fff; display: block; }
+.listing-thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+.listing-thumbs .thumb { padding: 0; border: 2px solid transparent; border-radius: 8px; background: none; cursor: pointer; }
+.listing-thumbs .thumb:hover { border-color: var(--brand); }
+.listing-thumbs img { display: block; border-radius: 6px; object-fit: cover; }
+.listing-video { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); background: #000; }
+.sold-ribbon { position: absolute; top: 12px; left: 12px; z-index: 2; background: var(--ink); color: #fff; padding: 4px 14px; border-radius: 999px; font-weight: 700; font-size: .85rem; }
+.listing-side { display: grid; gap: 16px; }
+.listing-title { margin: 0 0 6px; font-size: 1.35rem; line-height: 1.25; }
+.listing-price { margin: 0 0 10px; font-size: 1.6rem; font-weight: 800; color: var(--brand); }
+.listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
+.listing-tags .badge { margin-left: 0; }
+.btn-wa { background: #25d366; margin-top: 10px; }
+.btn-wa:hover { background: #1ebe5b; }
+.listing-owner-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.seller-row { display: flex; gap: 12px; align-items: center; }
+.seller-name { margin: 0; font-weight: 700; }
+.listing-description { white-space: pre-line; margin: 0; }
+
+/* Tableau de bord : mini-annonces */
+.mini-listings { display: grid; gap: 10px; }
+.mini-listing { display: flex; gap: 10px; align-items: center; color: var(--ink); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.mini-listing:hover { border-color: var(--brand); text-decoration: none; }
+.mini-listing img { border-radius: 6px; object-fit: cover; display: block; }
+.mini-listing-body { display: grid; min-width: 0; }
+.mini-listing-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 @media (max-width: 700px) {
     .stat-grid { grid-template-columns: 1fr 1fr; }
     .action-grid, .dash-cols { grid-template-columns: 1fr; }
+    .listing-layout { grid-template-columns: 1fr; }
+    .listing-row { flex-direction: column; }
 }

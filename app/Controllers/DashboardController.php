@@ -9,14 +9,19 @@ final class DashboardController
 {
     public function index(Request $request): void
     {
-        $user = current_user() ?? [];
+        $user   = current_user() ?? [];
+        $userId = (int) ($user['id'] ?? 0);
         [$completion, $missing] = $this->profileCompletion($user);
 
+        $listings = \App\Models\Listing::forUser($userId, 3);
         view('dashboard', [
             'user'           => $user,
             'completion'     => $completion,
             'missing'        => $missing,
-            'avatar_version' => \App\Models\Avatar::versionFor((int) ($user['id'] ?? 0)),
+            'avatar_version' => \App\Models\Avatar::versionFor($userId),
+            'counts'         => \App\Models\Listing::countsFor($userId),
+            'recent'         => $listings,
+            'recent_mains'   => \App\Models\Listing::mainPhotos(array_map(static fn (array $l): int => (int) $l['id'], $listings)),
         ]);
     }
 

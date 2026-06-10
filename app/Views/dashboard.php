@@ -1,5 +1,7 @@
 <?php
-/** @var array $user  @var int $completion  @var list<string> $missing  @var ?string $avatar_version */
+/** @var array $user  @var int $completion  @var list<string> $missing  @var ?string $avatar_version
+ *  @var array{listings:int,sold:int} $counts  @var list<array> $recent  @var array<int,string> $recent_mains */
+use App\Services\CloudinaryService;
 $hasEmail      = !empty($user['email']);
 $verifiedEmail = !empty($user['email_verified_at']);
 $contact       = $hasEmail ? (string) $user['email'] : (string) ($user['phone'] ?? '');
@@ -16,11 +18,13 @@ $birthdate = !empty($user['birthdate']) ? date('d/m/Y', strtotime((string) $user
 $genderLbl = !empty($user['gender']) ? t('gender.' . $user['gender']) : '—';
 $contactOk = !empty($user['phone']) || $verifiedEmail;
 
+$nListings = (int) ($counts['listings'] ?? 0);
+$nSold     = (int) ($counts['sold'] ?? 0);
 $stats = [
-    ['icon' => '🛒', 'key' => 'purchases', 'phase' => 3, 'href' => '#buys'],
-    ['icon' => '💼', 'key' => 'sales',     'phase' => 3, 'href' => '#sales'],
-    ['icon' => '🏷️', 'key' => 'listings',  'phase' => 2, 'href' => url('/bientot/vendre')],
-    ['icon' => '💬', 'key' => 'messages',  'phase' => 5, 'href' => url('/bientot/messages')],
+    ['icon' => '🛒', 'key' => 'purchases', 'value' => 0,          'note' => t('dash.phase', ['n' => 3]), 'href' => '#buys'],
+    ['icon' => '💼', 'key' => 'sales',     'value' => $nSold,     'note' => t('dash.stat.sold_note'),    'href' => url('/annonces')],
+    ['icon' => '🏷️', 'key' => 'listings',  'value' => $nListings, 'note' => t('dash.stat.listings_note'),'href' => url('/annonces')],
+    ['icon' => '💬', 'key' => 'messages',  'value' => 0,          'note' => t('dash.phase', ['n' => 5]), 'href' => url('/bientot/messages')],
 ];
 ?>
 <section class="dash">
@@ -82,18 +86,17 @@ $stats = [
     <div class="stat-grid">
         <?php foreach ($stats as $s): ?>
             <a class="stat-card" href="<?= e($s['href']) ?>">
-                <div class="num"><span aria-hidden="true"><?= $s['icon'] ?></span> 0</div>
+                <div class="num"><span aria-hidden="true"><?= $s['icon'] ?></span> <?= (int) $s['value'] ?></div>
                 <div class="lbl"><?= e(t('dash.stat.' . $s['key'])) ?></div>
-                <div class="phase"><?= e(t('dash.phase', ['n' => $s['phase']])) ?></div>
+                <div class="phase"><?= e($s['note']) ?></div>
             </a>
         <?php endforeach; ?>
     </div>
 
     <!-- Actions rapides -->
     <div class="action-grid">
-        <a class="action-card" href="<?= e(url('/bientot/vendre')) ?>">
-            <span class="action-head">🏷️ <strong><?= e(t('dash.action.sell_title')) ?></strong>
-                <span class="chip-soon"><?= e(t('dash.soon')) ?></span></span>
+        <a class="action-card" href="<?= e(url('/vendre')) ?>">
+            <span class="action-head">🏷️ <strong><?= e(t('dash.action.sell_title')) ?></strong></span>
             <span class="muted"><?= e(t('dash.action.sell_desc')) ?></span>
         </a>
         <a class="action-card" href="<?= e(url('/profile')) ?>">
@@ -116,11 +119,36 @@ $stats = [
             </div>
         </div>
         <div class="panel" id="sales">
-            <h2 class="panel-title">💼 <?= e(t('dash.sales_title')) ?></h2>
-            <div class="empty-state">
-                <p><?= e(t('dash.sales_empty')) ?></p>
-                <a class="btn btn-ghost" href="<?= e(url('/bientot/vendre')) ?>"><?= e(t('dash.action.sell_title')) ?> · <?= e(t('dash.soon')) ?></a>
+            <div class="panel-title-row">
+                <h2 class="panel-title">💼 <?= e(t('dash.sales_title')) ?></h2>
+                <?php if ($recent !== []): ?>
+                    <a class="btn btn-ghost btn-sm" href="<?= e(url('/annonces')) ?>"><?= e(t('dash.all_listings')) ?></a>
+                <?php endif; ?>
             </div>
+            <?php if ($recent === []): ?>
+                <div class="empty-state">
+                    <p><?= e(t('dash.sales_empty')) ?></p>
+                    <a class="btn btn-ghost" href="<?= e(url('/vendre')) ?>"><?= e(t('dash.action.sell_title')) ?></a>
+                </div>
+            <?php else: ?>
+                <div class="mini-listings">
+                    <?php foreach ($recent as $l): ?>
+                        <a class="mini-listing" href="<?= e(url('/annonce/' . $l['public_id'])) ?>">
+                            <?php $main = $recent_mains[(int) $l['id']] ?? null; ?>
+                            <?php if ($main !== null): ?>
+                                <img src="<?= e(CloudinaryService::imageUrl($main, 96, 72)) ?>" alt="" loading="lazy" width="96" height="72">
+                            <?php else: ?>
+                                <span class="listing-thumb-empty" aria-hidden="true">🏷️</span>
+                            <?php endif; ?>
+                            <span class="mini-listing-body">
+                                <span class="mini-listing-title"><?= e((string) $l['title']) ?></span>
+                                <span class="muted"><?= e(format_price((int) $l['price_cents'], (string) $l['currency'])) ?>
+                                    · <?= e(t('listing.status.' . $l['status'])) ?></span>
+                            </span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 

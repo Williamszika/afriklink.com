@@ -28,12 +28,16 @@ function send_security_headers(): void
     // CSP — à AFFINER selon tes scripts. Éviter 'unsafe-inline' à terme (utiliser des nonces).
     $csp = implode('; ', [
         "default-src 'self'",
-        "img-src 'self' data: https:",
+        // blob: : aperçus locaux avant envoi (photos/vidéo d'annonce)
+        "img-src 'self' data: blob: https:",
         "style-src 'self' 'unsafe-inline'",
         "script-src 'self' https://js.stripe.com",
         "frame-src https://js.stripe.com https://hooks.stripe.com",
         // api.bigdatacloud.net : géocodage inverse (ville depuis la position GPS)
-        "connect-src 'self' https://api.stripe.com https://api.bigdatacloud.net",
+        // api.cloudinary.com : envoi direct navigateur → Cloudinary (photos/vidéos d'annonces)
+        "connect-src 'self' https://api.stripe.com https://api.bigdatacloud.net https://api.cloudinary.com",
+        // res.cloudinary.com : lecture des vidéos d'annonces ; blob: : aperçu avant envoi
+        "media-src 'self' blob: https://res.cloudinary.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",
