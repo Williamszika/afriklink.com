@@ -36,28 +36,23 @@ function db(): PDO
 }
 
 /**
- * Options TLS pour un MySQL managé (TiDB Cloud Serverless exige TLS).
- * Activées si DB_SSL est vrai.
+ * Options TLS pour un MySQL managé (TiDB Cloud Serverless exige TLS et REFUSE les
+ * connexions non chiffrées). Activées si DB_SSL est vrai.
  *
- * Vérification du certificat (DB_SSL_VERIFY) :
- *  - hors serverless (Hostinger…) : vérifiée par défaut, via DB_SSL_CA ou le bundle
- *    CA système auto-détecté ;
- *  - sur serverless (Vercel) : NON vérifiée par défaut — le bundle CA du runtime ne
- *    contient pas forcément la chaîne du certificat de la base managée, ce qui ferait
- *    échouer la connexion. On chiffre quand même (TLS), on ne vérifie juste pas le
- *    certificat. Forcer la vérification : DB_SSL_VERIFY=true + DB_SSL_CA=<bundle>.
+ * Point clé : fournir un bundle CA (MYSQL_ATTR_SSL_CA) est ce qui *active* réellement
+ * le TLS côté PDO/mysqlnd. On utilise donc toujours un CA :
+ *   1. DB_SSL_CA si fourni, sinon
+ *   2. le bundle embarqué config/cacert.pem (Mozilla — fiable partout, contient l'AC
+ *      de TiDB), sinon
+ *   3. un bundle système.
+ * DB_SSL_VERIFY (défaut true) contrôle la vérification du certificat ; le mettre à
+ * false chiffre sans vérifier (dépannage), mais garde le TLS actif.
  */
 function pdo_ssl_options(): array
 {
     if (!filter_var($_ENV['DB_SSL'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
         return [];
     }
-
-    $onServerless = !empty($_ENV['VERCEL']);
-    $verify = filter_var(
-        $_ENV['DB_SSL_VERIFY'] ?? ($onServerless ? 'false' : 'true'),
-        FILTER_VALIDATE_BOOLEAN
-    );
 
     // PHP 8.5 moved these to Pdo\Mysql::ATTR_SSL_* (old PDO::MYSQL_ATTR_SSL_* are
     // deprecated). Resolve to whichever exists so we never touch a deprecated one.
@@ -68,32 +63,30 @@ function pdo_ssl_options(): array
         ? \constant('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')
         : (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT') ? \constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT') : null);
 
-    $options = [];
-    if ($verify) {
-        $ca = $_ENV['DB_SSL_CA'] ?? '';
-        if ($ca === '' || !is_file($ca)) {
-            $ca = '';
-            foreach ([
-                BASE_PATH . '/config/cacert.pem',     // bundle CA embarqué (fiable partout)
-                '/etc/ssl/certs/ca-certificates.crt', // Debian/Ubuntu
-                '/etc/pki/tls/certs/ca-bundle.crt',   // RHEL/Amazon Linux
-                '/etc/ssl/ca-bundle.pem',             // openSUSE
-                '/etc/ssl/cert.pem',                  // Alpine/macOS
-            ] as $candidate) {
-                if (is_file($candidate)) {
-                    $ca = $candidate;
-                    break;
-                }
+    // A CA path is required to turn TLS on — find one.
+    $ca = $_ENV['DB_SSL_CA'] ?? '';
+    if ($ca === '' || !is_file($ca)) {
+        $ca = '';
+        foreach ([
+            BASE_PATH . '/config/cacert.pem',     // bundle CA embarqué (fiable partout)
+            '/etc/ssl/certs/ca-certificates.crt', // Debian/Ubuntu
+            '/etc/pki/tls/certs/ca-bundle.crt',   // RHEL/Amazon Linux
+            '/etc/ssl/ca-bundle.pem',             // openSUSE
+            '/etc/ssl/cert.pem',                  // Alpine/macOS
+        ] as $candidate) {
+            if (is_file($candidate)) {
+                $ca = $candidate;
+                break;
             }
         }
-        if ($ca !== '' && $sslCaKey !== null) {
-            $options[$sslCaKey] = $ca;
-        } else {
-            $verify = false; // rien pour vérifier → on chiffre sans vérifier
-        }
     }
-    // En mode non-vérifié on ne passe PAS de CA ; cette option seule suffit à
-    // activer le chiffrement TLS.
+
+    $verify = filter_var($_ENV['DB_SSL_VERIFY'] ?? true, FILTER_VALIDATE_BOOLEAN);
+
+    $options = [];
+    if ($ca !== '' && $sslCaKey !== null) {
+        $options[$sslCaKey] = $ca; // active le TLS + ancre de confiance
+    }
     if ($sslVerifyKey !== null) {
         $options[$sslVerifyKey] = $verify;
     }
