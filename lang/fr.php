@@ -73,8 +73,6 @@ return [
     'register.pro_desc'          => 'Boutique, restaurant, salon ou métier — vends en tant qu’entreprise.',
     'register.pro_soon'          => 'L’inscription professionnelle arrive bientôt. Commence en Particulier en attendant.',
     'register.choose'            => 'Continuer',
-    // Géolocalisation précise (navigateur) — seule la confirmation s'affiche
-    'geo.detected'  => '📍 Position détectée à ±:acc m — ville : :city (modifiable).',
     'register.particulier_submit'=> 'Créer mon compte',
     'register.back_choice'       => 'Changer de type de compte',
     'register.by_email'          => 'Par e-mail',

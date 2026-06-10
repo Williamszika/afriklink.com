@@ -130,8 +130,6 @@ a:hover { text-decoration: underline; }
 .choice-card h2 { margin: 4px 0 0; font-size: 1.15rem; }
 .choice-card p { margin: 0; color: var(--muted); font-size: .92rem; }
 .choice-cta { margin-top: 8px; color: var(--brand); font-weight: 700; font-size: .9rem; }
-#geo-status:empty { display: none; }
-#geo-status.geo-ok { color: var(--success); font-weight: 600; }
 
 /* Contact-method switch (email / phone) — CSS-only tabs, no JS */
 .contact-radio { position: absolute; opacity: 0; pointer-events: none; }

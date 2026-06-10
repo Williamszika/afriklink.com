@@ -88,8 +88,6 @@ $g          = old('gender');
                 <input type="text" id="city" name="city" value="<?= old('city', $detected_city) ?>" autocomplete="address-level2">
             </div>
         </div>
-        <p id="geo-status" class="hint" aria-live="polite"
-           data-detected="<?= e(t('geo.detected')) ?>"></p>
 
         <label for="password"><?= e(t('field.password')) ?></label>
         <input type="password" id="password" name="password" required autocomplete="new-password"

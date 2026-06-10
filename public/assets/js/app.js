@@ -23,29 +23,26 @@
     }
 })();
 
-// Precise city detection on the registration form (target ≤100 m) — silent UX.
+// Precise city detection on the registration form (target ≤100 m) — fully silent.
 // The server pre-fills from IP (approximate); the browser's Geolocation API (the
 // permission prompt IS the user's consent) refines until accuracy ≤100 m (12 s
 // budget), then a free key-less reverse-geocoding API (BigDataCloud, in our CSP)
 // turns coordinates into city + country.
 // Quality gate: a fix coarser than 2 km is almost certainly an IP/WiFi fallback —
-// the city is then left untouched. By design NOTHING is shown while detecting or
-// on denial/failure; the only visible feedback is the green confirmation once a
-// precise position has been found. Fields always stay editable.
+// the city is then left untouched. By design NOTHING is ever displayed: the
+// fields just get corrected quietly and always stay editable.
 (function () {
     'use strict';
 
     var city = document.getElementById('city');
     var country = document.getElementById('country_code');
-    var status = document.getElementById('geo-status');
-    if (!city || !country || !status || !('geolocation' in navigator) || !window.fetch) {
+    if (!city || !country || !('geolocation' in navigator) || !window.fetch) {
         return;
     }
 
-    var GOOD_M = 100;      // requested precision: green confirmation
+    var GOOD_M = 100;      // requested precision
     var MAX_M = 2000;      // beyond this the fix is IP/WiFi-grade: don't trust it
     var REFINE_MS = 12000; // GPS refinement budget
-    var detectedMsg = status.getAttribute('data-detected') || '';
 
     function conclude(best) {
         if (!best) { return; } // silent failure
@@ -62,10 +59,6 @@
                 if (name) { city.value = name; }
                 if (d.countryCode && country.querySelector('option[value="' + d.countryCode + '"]')) {
                     country.value = d.countryCode;
-                }
-                if (acc <= GOOD_M && name) {
-                    status.textContent = detectedMsg.replace(':city', name).replace(':acc', String(acc));
-                    status.className = 'hint geo-ok';
                 }
             })
             .catch(function () { /* silent */ });
