@@ -74,6 +74,12 @@ return [
     'register.pro_soon'          => 'Professional sign-up is coming soon. Start as an Individual for now.',
     'register.choose'            => 'Continue',
     'register.auto_detected'     => 'Country and city detected automatically (editable).',
+
+    // Precise geolocation (browser)
+    'geo.detecting' => '📡 Detecting your precise position…',
+    'geo.detected'  => '📍 Position detected at ±:acc m — city: :city (editable).',
+    'geo.denied'    => 'Location denied — country/city estimated from your connection (editable).',
+    'geo.error'     => 'Precise location unavailable — estimated values (editable).',
     'register.particulier_submit'=> 'Create my account',
     'register.back_choice'       => 'Change account type',
     'register.by_email'          => 'By email',

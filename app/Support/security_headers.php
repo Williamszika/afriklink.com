@@ -21,8 +21,9 @@ function send_security_headers(): void
     // Fuite de referer limitée
     header('Referrer-Policy: strict-origin-when-cross-origin');
 
-    // Permissions minimales
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    // Permissions minimales — geolocation=(self) : la page d'inscription utilise la
+    // géolocalisation du navigateur (avec consentement) pour pré-remplir la ville.
+    header('Permissions-Policy: geolocation=(self), microphone=(), camera=()');
 
     // CSP — à AFFINER selon tes scripts. Éviter 'unsafe-inline' à terme (utiliser des nonces).
     $csp = implode('; ', [
@@ -31,7 +32,8 @@ function send_security_headers(): void
         "style-src 'self' 'unsafe-inline'",
         "script-src 'self' https://js.stripe.com",
         "frame-src https://js.stripe.com https://hooks.stripe.com",
-        "connect-src 'self' https://api.stripe.com",
+        // api.bigdatacloud.net : géocodage inverse (ville depuis la position GPS)
+        "connect-src 'self' https://api.stripe.com https://api.bigdatacloud.net",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",

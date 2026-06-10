@@ -92,6 +92,11 @@ $detectedNote = ($detected_country !== '' || $detected_city !== '');
         <?php if ($detectedNote): ?>
             <p class="detected-badge">📍 <?= e(t('register.auto_detected')) ?></p>
         <?php endif; ?>
+        <p id="geo-status" class="hint" aria-live="polite"
+           data-detecting="<?= e(t('geo.detecting')) ?>"
+           data-detected="<?= e(t('geo.detected')) ?>"
+           data-denied="<?= e(t('geo.denied')) ?>"
+           data-error="<?= e(t('geo.error')) ?>"></p>
 
         <label for="password"><?= e(t('field.password')) ?></label>
         <input type="password" id="password" name="password" required autocomplete="new-password"

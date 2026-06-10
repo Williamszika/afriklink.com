@@ -74,6 +74,12 @@ return [
     'register.pro_soon'          => 'L’inscription professionnelle arrive bientôt. Commence en Particulier en attendant.',
     'register.choose'            => 'Continuer',
     'register.auto_detected'     => 'Pays et ville détectés automatiquement (modifiable).',
+
+    // Géolocalisation précise (navigateur)
+    'geo.detecting' => '📡 Détection précise de ta position…',
+    'geo.detected'  => '📍 Position détectée à ±:acc m — ville : :city (modifiable).',
+    'geo.denied'    => 'Localisation refusée — pays/ville estimés depuis ta connexion (modifiables).',
+    'geo.error'     => 'Localisation précise indisponible — valeurs estimées (modifiables).',
     'register.particulier_submit'=> 'Créer mon compte',
     'register.back_choice'       => 'Changer de type de compte',
     'register.by_email'          => 'Par e-mail',
