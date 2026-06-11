@@ -41,4 +41,11 @@ return [
 
     // Password policy (see security.md §4).
     'password_min_length' => 12,
+
+    // Relecteurs KYC (modérateurs/admins) par e-mail, en plus du rôle 'admin'.
+    // Définir ADMIN_EMAILS="a@x.com,b@y.com" dans l'environnement (Vercel).
+    'admin_emails' => array_values(array_filter(array_map(
+        static fn (string $e): string => strtolower(trim($e)),
+        explode(',', (string) ($_ENV['ADMIN_EMAILS'] ?? ''))
+    ))),
 ];

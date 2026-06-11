@@ -496,6 +496,20 @@ function auth_check(): bool
     return current_user_id() !== null;
 }
 
+/** Relecteur KYC : rôle 'admin'/'moderator' OU e-mail listé dans ADMIN_EMAILS. */
+function is_staff(?array $user = null): bool
+{
+    $user ??= current_user();
+    if ($user === null) {
+        return false;
+    }
+    if (in_array($user['role'] ?? '', ['admin', 'moderator'], true)) {
+        return true;
+    }
+    $email = strtolower(trim((string) ($user['email'] ?? '')));
+    return $email !== '' && in_array($email, config('app.admin_emails', []), true);
+}
+
 /** Establish an authenticated session for a user id (regenerates session id). */
 function login_user(int $userId): void
 {

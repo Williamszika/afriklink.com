@@ -21,4 +21,13 @@ final class MediaController
         $type = whitelist((string) input_string('resource_type', 'image'), ['image', 'video'], 'image');
         json_response(CloudinaryService::signUploadParams($type));
     }
+
+    /** Signature d'un envoi PRIVÉ (pièce KYC) dans le dossier de l'utilisateur. */
+    public function signKyc(Request $request): void
+    {
+        if (!CloudinaryService::configured()) {
+            json_response(['error' => 'media_unconfigured'], 503);
+        }
+        json_response(CloudinaryService::signKycUpload((int) current_user_id()));
+    }
 }

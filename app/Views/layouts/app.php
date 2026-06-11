@@ -35,6 +35,9 @@ $user = current_user();
             </span>
 
             <?php if ($user !== null): ?>
+                <?php if (is_staff($user)): ?>
+                    <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>">🛡️ <?= e(t('nav.moderation')) ?></a>
+                <?php endif; ?>
                 <a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
                 <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form">
                     <?= csrf_field() ?>

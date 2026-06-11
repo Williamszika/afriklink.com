@@ -611,3 +611,90 @@ document.addEventListener('click', function (ev) {
         }
     });
 })();
+
+/* ---- Vérification KYC : envoi PRIVÉ des pièces vers Cloudinary ----
+   Chaque champ fichier d'un niveau est envoyé en « authenticated » (jamais
+   d'URL publique). On range {slot, public_id, version, format} dans le champ
+   caché docs_json du formulaire du niveau. */
+(function () {
+    var forms = document.querySelectorAll('.kyc-form');
+    if (!forms.length) { return; }
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+
+    function signKyc() {
+        return fetch('/api/kyc/sign', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: new FormData() })
+            .then(function (r) { if (!r.ok) { throw new Error('sign ' + r.status); } return r.json(); });
+    }
+
+    function uploadAuth(file, params) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(params.cloud_name) + '/image/upload');
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(e); }
+                } else { reject(new Error('upload ' + xhr.status)); }
+            };
+            xhr.onerror = function () { reject(new Error('réseau')); };
+            var fd = new FormData();
+            fd.append('file', file);
+            fd.append('api_key', params.api_key);
+            fd.append('timestamp', params.timestamp);
+            fd.append('folder', params.folder);
+            fd.append('type', params.type);
+            fd.append('signature', params.signature);
+            xhr.send(fd);
+        });
+    }
+
+    Array.prototype.forEach.call(forms, function (form) {
+        var hidden = form.querySelector('.kyc-docs');
+        var submit = form.querySelector('button[type=submit]');
+        var docs = {};   // slot -> {public_id, version, format}
+        var pending = 0;
+
+        function sync() {
+            hidden.value = JSON.stringify(Object.keys(docs).map(function (slot) {
+                return {
+                    slot: slot,
+                    public_id: docs[slot].public_id,
+                    version: docs[slot].version,
+                    format: docs[slot].format
+                };
+            }));
+            submit.disabled = pending > 0;
+        }
+
+        Array.prototype.forEach.call(form.querySelectorAll('.kyc-slot'), function (wrap) {
+            var slot = wrap.getAttribute('data-slot');
+            var input = wrap.querySelector('.kyc-input');
+            var state = wrap.querySelector('.kyc-slot-state');
+            input.addEventListener('change', function () {
+                var file = input.files && input.files[0];
+                if (!file) { return; }
+                if (file.size > 10 * 1024 * 1024) { state.textContent = '⚠️ 10 Mo max'; return; }
+                pending++; sync();
+                state.textContent = form.getAttribute('data-uploading') || '…';
+                signKyc().then(function (params) { return uploadAuth(file, params); })
+                    .then(function (res) {
+                        docs[slot] = { public_id: res.public_id, version: res.version, format: res.format };
+                        state.textContent = '✅';
+                    })
+                    .catch(function () { state.textContent = '❌'; })
+                    .finally(function () { pending--; sync(); });
+            });
+        });
+
+        form.addEventListener('submit', function (ev) {
+            if (pending > 0) { ev.preventDefault(); return; }
+            var missing = false;
+            Array.prototype.forEach.call(form.querySelectorAll('.kyc-slot'), function (wrap) {
+                if (wrap.getAttribute('data-required') === '1' && !docs[wrap.getAttribute('data-slot')]) {
+                    missing = true;
+                    wrap.querySelector('.kyc-slot-state').textContent = '⚠️';
+                }
+            });
+            if (missing) { ev.preventDefault(); }
+        });
+    });
+})();

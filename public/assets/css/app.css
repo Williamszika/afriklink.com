@@ -352,6 +352,33 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .checklist li.done a { text-decoration: line-through; }
 .check-ico { flex: none; }
 
+/* Vérification KYC : niveaux successifs */
+.kyc-levels { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: kyc; }
+.kyc-level { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; background: var(--card); }
+.kyc-level.kyc-locked { opacity: .6; }
+.kyc-level.kyc-approved { border-color: #abefc6; background: #f6fef9; }
+.kyc-level-head { display: flex; gap: 12px; align-items: center; }
+.kyc-level-head h2 { margin: 0; font-size: 1.05rem; }
+.kyc-level-head .muted { margin: 2px 0 0; font-size: .9rem; }
+.kyc-level-head .badge { margin-left: auto; }
+.kyc-level-num { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+.kyc-approved .kyc-level-num { background: var(--success-bg); border-color: #abefc6; color: var(--success); }
+.kyc-form { margin-top: 12px; display: grid; gap: 10px; }
+.kyc-slots { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.kyc-slot { border: 1px dashed var(--border); border-radius: 10px; padding: 12px; }
+.kyc-slot-label { display: block; font-weight: 600; margin-bottom: 6px; font-size: .9rem; }
+.kyc-slot input[type="file"] { font-size: .82rem; max-width: 100%; }
+.kyc-slot-state { display: inline-block; margin-top: 6px; font-weight: 700; }
+
+/* Modération KYC (admin) */
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th, .admin-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: .92rem; }
+.admin-table th { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.kyc-doc-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.kyc-doc { margin: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
+.kyc-doc img { width: 100%; height: 200px; object-fit: contain; display: block; background: #111; }
+.kyc-doc figcaption { padding: 8px 10px; font-size: .85rem; font-weight: 600; }
+
 /* Annonces : dépôt (upload) */
 .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--card); transition: border-color .15s, background .15s; }
 .upload-zone.dragover { border-color: var(--brand); background: #ecfdf3; }

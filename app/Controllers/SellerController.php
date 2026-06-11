@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Models\Avatar;
 use App\Models\ProProfile;
 use App\Request;
+use App\Services\CloudinaryService;
 
 /**
  * Espace vendeur — tableau de bord à menu latéral. Chaque entrée du menu est
@@ -84,7 +85,14 @@ final class SellerController
 
     public function verification(Request $request): void
     {
-        $this->soon('verification', '🪪', 'seller.kyc');
+        $userId = (int) current_user_id();
+        \App\Models\Kyc::ensureTables();
+        view('vendeur/verification', [
+            'active'        => 'verification',
+            'submissions'   => \App\Models\Kyc::submissionsByLevel($userId),
+            'approvedLevel' => \App\Models\Kyc::approvedLevel($userId),
+            'mediaReady'    => CloudinaryService::configured(),
+        ] + self::commonData(current_user() ?? []));
     }
 
     /** Rend la vue de section générique avec ses libellés. */

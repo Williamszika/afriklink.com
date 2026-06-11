@@ -8,6 +8,7 @@ use App\Middleware\CsrfMiddleware;
 use App\Middleware\GuestMiddleware;
 use App\Middleware\Middleware;
 use App\Middleware\RateLimitMiddleware;
+use App\Middleware\StaffMiddleware;
 
 /**
  * Minimal routing table: method + path -> [Controller, action] with per-route middleware.
@@ -111,6 +112,7 @@ final class Router
 
         return match ($alias) {
             'auth'     => new AuthMiddleware($args[0] ?? null),
+            'staff'    => new StaffMiddleware(),
             'guest'    => new GuestMiddleware(),
             'csrf'     => new CsrfMiddleware(),
             'throttle' => new RateLimitMiddleware(

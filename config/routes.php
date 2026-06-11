@@ -3,7 +3,9 @@ declare(strict_types=1);
 
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\AdminKycController;
 use App\Controllers\HomeController;
+use App\Controllers\KycController;
 use App\Controllers\ListingController;
 use App\Controllers\MediaController;
 use App\Controllers\ProfileController;
@@ -71,6 +73,14 @@ return [
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],
     ['GET',  '/vendeur/affiliation', [SellerController::class, 'affiliation'],  ['auth']],
     ['GET',  '/vendeur/verification',[SellerController::class, 'verification'], ['auth']],
+    ['POST', '/vendeur/verification/{level}', [KycController::class, 'submit'], ['auth', 'csrf', 'throttle:kyc,20,3600']],
+    ['POST', '/api/kyc/sign',        [MediaController::class, 'signKyc'],      ['auth', 'csrf', 'throttle:sign,60,3600']],
+
+    // Espace de modération KYC (admins / modérateurs)
+    ['GET',  '/admin/kyc',           [AdminKycController::class, 'index'],     ['staff']],
+    ['GET',  '/admin/kyc/doc/{id}',  [AdminKycController::class, 'document'],  ['staff']],
+    ['GET',  '/admin/kyc/{id}',      [AdminKycController::class, 'show'],      ['staff']],
+    ['POST', '/admin/kyc/{id}/review', [AdminKycController::class, 'review'],  ['staff', 'csrf']],
     ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
     ['POST', '/vendeur/profil',    [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],

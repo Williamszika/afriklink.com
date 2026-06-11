@@ -87,6 +87,16 @@ final class ProProfile
         ]);
     }
 
+    public static function setVerificationStatus(int $userId, string $status): void
+    {
+        try {
+            $stmt = db()->prepare('UPDATE pro_profiles SET verification_status = :s WHERE user_id = :uid');
+            $stmt->execute(['s' => $status, 'uid' => $userId]);
+        } catch (\Throwable) {
+            // table absente : sans effet
+        }
+    }
+
     public static function findByUserId(int $userId): ?array
     {
         try {

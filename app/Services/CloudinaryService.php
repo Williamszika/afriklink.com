@@ -204,6 +204,83 @@ final class CloudinaryService
     }
 
     /**
+     * Envoi PRIVÉ (type=authenticated) pour les pièces KYC : jamais d'URL
+     * publique, consultable seulement via une URL signée (voir signedKycUrl).
+     * Dossier par utilisateur : afriklink/kyc/<userId>.
+     * @return array{cloud_name:string,api_key:string,timestamp:int,folder:string,type:string,signature:string,resource_type:string}
+     */
+    public static function signKycUpload(int $userId): array
+    {
+        $timestamp = time();
+        $folder    = self::FOLDER . '/kyc/' . $userId;
+        // Paramètres signés triés alphabétiquement : folder, timestamp, type.
+        $signature = sha1('folder=' . $folder . '&timestamp=' . $timestamp . '&type=authenticated' . self::apiSecret());
+
+        return [
+            'cloud_name'    => self::cloudName(),
+            'api_key'       => self::apiKey(),
+            'timestamp'     => $timestamp,
+            'folder'        => $folder,
+            'type'          => 'authenticated',
+            'signature'     => $signature,
+            'resource_type' => 'image',
+        ];
+    }
+
+    /**
+     * Vérifie qu'une pièce KYC existe bien sur notre compte, dans le dossier de
+     * CET utilisateur, et en mode authenticated (privé).
+     * @return array{bytes:int,format:string,version:int}|null
+     */
+    public static function verifyKycAsset(int $userId, string $publicId): ?array
+    {
+        self::$lastError = null;
+        $expectedPrefix = self::FOLDER . '/kyc/' . $userId . '/';
+        if (!str_starts_with($publicId, $expectedPrefix)
+            || preg_match('#^[A-Za-z0-9_/\-]{1,255}$#', $publicId) !== 1) {
+            return null;
+        }
+        $url = sprintf(
+            'https://api.cloudinary.com/v1_1/%s/resources/image/authenticated/%s',
+            rawurlencode(self::cloudName()),
+            implode('/', array_map('rawurlencode', explode('/', $publicId)))
+        );
+        $body = self::request('GET', $url);
+        if ($body === null) {
+            return null;
+        }
+        $data = json_decode($body, true);
+        if (!is_array($data) || ($data['public_id'] ?? '') !== $publicId) {
+            return null;
+        }
+        return [
+            'bytes'   => (int) ($data['bytes'] ?? 0),
+            'format'  => (string) ($data['format'] ?? ''),
+            'version' => (int) ($data['version'] ?? 0),
+        ];
+    }
+
+    /**
+     * URL de diffusion SIGNÉE d'une pièce authenticated (privée). Le serveur
+     * (relecteur) l'utilise pour récupérer l'image ; sans signature valide,
+     * Cloudinary refuse l'accès. Inclut la version pour cibler la bonne image.
+     */
+    public static function signedKycUrl(string $publicId, int $version, string $format): string
+    {
+        $toSign = $publicId . '.' . $format;
+        // Signature courte Cloudinary : base64url(sha1_raw(toSign + secret)), 8 car.
+        $sig = substr(strtr(base64_encode(sha1($toSign . self::apiSecret(), true)), '+/', '-_'), 0, 8);
+        return sprintf(
+            'https://res.cloudinary.com/%s/image/authenticated/s--%s--/v%d/%s.%s',
+            rawurlencode(self::cloudName()),
+            $sig,
+            $version,
+            $publicId,
+            $format
+        );
+    }
+
+    /**
      * Vérité serveur sur un fichier envoyé : interroge l'API Admin et retourne
      * ses métadonnées, ou null si le fichier n'existe pas / n'est pas à nous.
      * @param 'image'|'video' $resourceType
@@ -257,6 +334,47 @@ final class CloudinaryService
             'api_key'   => self::apiKey(),
             'signature' => $signature,
         ]);
+    }
+
+    /** Supprime une pièce KYC privée (type=authenticated). Meilleur effort. */
+    public static function destroyKyc(string $publicId): void
+    {
+        $timestamp = time();
+        $signature = sha1('public_id=' . $publicId . '&timestamp=' . $timestamp . '&type=authenticated' . self::apiSecret());
+        $url = sprintf('https://api.cloudinary.com/v1_1/%s/image/destroy', rawurlencode(self::cloudName()));
+        self::request('POST', $url, [
+            'public_id' => $publicId,
+            'type'      => 'authenticated',
+            'timestamp' => $timestamp,
+            'api_key'   => self::apiKey(),
+            'signature' => $signature,
+        ]);
+    }
+
+    /** Récupère les octets bruts d'une pièce KYC via son URL signée (relecteur). */
+    public static function fetchKycBytes(string $publicId, int $version, string $format): ?array
+    {
+        $url = self::signedKycUrl($publicId, $version, $format);
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT        => 20,
+            ]);
+            $body   = curl_exec($ch);
+            $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            $ctype  = (string) curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+            curl_close($ch);
+            if ($status === 200 && is_string($body) && $body !== '') {
+                return ['bytes' => $body, 'content_type' => $ctype ?: 'application/octet-stream'];
+            }
+            self::$lastError = 'HTTP ' . $status;
+            return null;
+        } catch (\Throwable $e) {
+            self::$lastError = 'exception — ' . $e->getMessage();
+            return null;
+        }
     }
 
     /* ---- URLs de diffusion (CDN) --------------------------------- */
