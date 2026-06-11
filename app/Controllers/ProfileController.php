@@ -159,7 +159,7 @@ final class ProfileController
         Avatar::save($userId, $processed[0], $processed[1]);
         AuditLog::record($userId, 'user.avatar_updated', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.avatar_updated'));
-        redirect('/profile');
+        redirect($this->photoReturnPath());
     }
 
     public function deletePhoto(Request $request): void
@@ -168,13 +168,22 @@ final class ProfileController
         Avatar::delete($userId);
         AuditLog::record($userId, 'user.avatar_deleted', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.avatar_deleted'));
-        redirect('/profile');
+        redirect($this->photoReturnPath());
     }
 
     private function photoFail(string $messageKey): never
     {
         set_errors(['photo' => t($messageKey)]);
-        redirect('/profile');
+        redirect($this->photoReturnPath());
+    }
+
+    /**
+     * Les vendeurs gèrent leur logo depuis le tableau de bord ; les
+     * particuliers gèrent leur photo depuis la page profil.
+     */
+    private function photoReturnPath(): string
+    {
+        return ((current_user()['account_type'] ?? '') === 'professionnel') ? '/dashboard' : '/profile';
     }
 
     /**
