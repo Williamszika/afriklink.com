@@ -8,6 +8,7 @@ use App\Controllers\ListingController;
 use App\Controllers\MediaController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
+use App\Controllers\SellerProfileController;
 
 /**
  * Route table: [HTTP method, path, [Controller, action], [middleware...]].
@@ -31,8 +32,8 @@ return [
     ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],
     ['GET',  '/register/particulier',   [AuthController::class, 'showRegisterParticulier'],['guest']],
     ['POST', '/register/particulier',   [AuthController::class, 'registerParticulier'],    ['guest', 'csrf', 'throttle:register,10,3600']],
-    ['GET',  '/register/professionnel', [ProRegistrationController::class, 'show'],         ['guest']],
-    ['POST', '/register/professionnel', [ProRegistrationController::class, 'submit'],       ['guest', 'csrf', 'throttle:register,10,3600']],
+    ['GET',  '/register/vendeur', [ProRegistrationController::class, 'show'],   ['guest']],
+    ['POST', '/register/vendeur', [ProRegistrationController::class, 'submit'], ['guest', 'csrf', 'throttle:register,10,3600']],
 
     ['GET',  '/login',             [AuthController::class, 'showLogin'],      ['guest']],
     ['POST', '/login',             [AuthController::class, 'login'],          ['guest', 'csrf', 'throttle:login,10,900']],
@@ -59,6 +60,10 @@ return [
     ['POST', '/profile/photo',         [ProfileController::class, 'updatePhoto'], ['auth', 'csrf', 'throttle:avatar,10,3600']],
     ['POST', '/profile/photo/delete',  [ProfileController::class, 'deletePhoto'], ['auth', 'csrf']],
     ['GET',  '/avatar/{pid}',          [ProfileController::class, 'avatar'],      []],
+
+    // Profil vendeur (le reste des infos entreprise, complété après l'inscription)
+    ['GET',  '/vendeur/profil', [SellerProfileController::class, 'edit'],   ['auth']],
+    ['POST', '/vendeur/profil', [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],
 
     // Annonces entre particuliers (« Vendre un article »)
     ['GET',  '/vendre',                  [ListingController::class, 'create'],    ['auth']],

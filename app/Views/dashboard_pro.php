@@ -63,6 +63,9 @@ $legalLabel = t('pro.legal.' . ($profile['legal_form'] ?? 'autre'));
             <li class="<?= $hasReg ? 'done' : '' ?>">
                 <span class="check-ico"><?= $hasReg ? '✅' : '⬜' ?></span>
                 <?= e(t('pro.dash.check_reg')) ?>
+                <?php if (!$hasReg): ?>
+                    — <a href="<?= e(url('/vendeur/profil')) ?>"><?= e(t('pro.dash.complete')) ?></a>
+                <?php endif; ?>
             </li>
             <li>
                 <span class="check-ico">⬜</span>
@@ -88,7 +91,12 @@ $legalLabel = t('pro.legal.' . ($profile['legal_form'] ?? 'autre'));
 
     <!-- Informations entreprise -->
     <div class="panel">
-        <h2 class="panel-title">🏢 <?= e(t('pro.dash.info_title')) ?></h2>
+        <div class="panel-title-row">
+            <h2 class="panel-title">🏢 <?= e(t('pro.dash.info_title')) ?></h2>
+            <a class="btn btn-ghost btn-sm" href="<?= e(url('/vendeur/profil')) ?>">
+                <?= $hasReg ? e(t('profile.edit')) : e(t('pro.dash.complete')) ?>
+            </a>
+        </div>
         <dl class="meta">
             <dt><?= e(t('pro.field.company_name')) ?></dt><dd><?= e($companyName) ?></dd>
             <?php if (!empty($profile['legal_name'])): ?>

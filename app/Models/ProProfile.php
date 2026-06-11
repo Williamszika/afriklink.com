@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace App\Models;
 
 /**
- * pro_profiles — la fiche entreprise d'un compte professionnel (1 par compte).
- * Les vitrines (boutique, restaurant, salon, service) seront des entités
- * séparées rattachées au même compte ; ici on ne stocke que l'identité légale
- * et le contact de l'entreprise. Table auto-créée (comme listings/avatars).
+ * pro_profiles — la fiche entreprise d'un compte vendeur (1 par compte).
+ * L'inscription ne demande que le nom commercial ; tout le reste (statut
+ * juridique, n° d'enregistrement, adresse, site, langues…) se complète depuis
+ * le tableau de bord (/vendeur/profil). Table auto-créée.
  */
 final class ProProfile
 {
@@ -19,7 +19,7 @@ final class ProProfile
                 user_id             BIGINT UNSIGNED NOT NULL UNIQUE,
                 company_name        VARCHAR(150) NOT NULL,
                 legal_name          VARCHAR(150) NULL,
-                legal_form          VARCHAR(24) NOT NULL,
+                legal_form          VARCHAR(24) NULL,
                 reg_number          VARCHAR(64) NULL,
                 vat_number          VARCHAR(32) NULL,
                 description         VARCHAR(600) NULL,
@@ -48,6 +48,33 @@ final class ProProfile
         $stmt->execute([
             'user_id'        => $userId,
             'company_name'   => $data['company_name'],
+            'legal_name'     => $data['legal_name'] ?? null,
+            'legal_form'     => $data['legal_form'] ?? null,
+            'reg_number'     => $data['reg_number'] ?? null,
+            'vat_number'     => $data['vat_number'] ?? null,
+            'description'    => $data['description'] ?? null,
+            'address'        => $data['address'] ?? null,
+            'website'        => $data['website'] ?? null,
+            'languages'      => $data['languages'] ?? null,
+            'whatsapp_optin' => !empty($data['whatsapp_optin']) ? 1 : 0,
+        ]);
+    }
+
+    /** Mise à jour depuis « Profil vendeur » (tableau de bord). */
+    public static function update(int $userId, array $data): void
+    {
+        $stmt = db()->prepare(
+            'UPDATE pro_profiles SET
+                company_name = :company_name, legal_name = :legal_name,
+                legal_form = :legal_form, reg_number = :reg_number,
+                vat_number = :vat_number, description = :description,
+                address = :address, website = :website, languages = :languages,
+                whatsapp_optin = :whatsapp_optin
+             WHERE user_id = :user_id'
+        );
+        $stmt->execute([
+            'user_id'        => $userId,
+            'company_name'   => $data['company_name'],
             'legal_name'     => $data['legal_name'],
             'legal_form'     => $data['legal_form'],
             'reg_number'     => $data['reg_number'],
@@ -56,7 +83,7 @@ final class ProProfile
             'address'        => $data['address'],
             'website'        => $data['website'],
             'languages'      => $data['languages'],
-            'whatsapp_optin' => $data['whatsapp_optin'] ? 1 : 0,
+            'whatsapp_optin' => !empty($data['whatsapp_optin']) ? 1 : 0,
         ]);
     }
 
