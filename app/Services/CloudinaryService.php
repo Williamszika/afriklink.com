@@ -21,6 +21,13 @@ final class CloudinaryService
 {
     public const FOLDER = 'afriklink';
 
+    /**
+     * Nom du cloud Cloudinary du projet. PAS un secret : il figure dans toutes
+     * les URLs publiques de diffusion (res.cloudinary.com/<cloud>/…). Servi en
+     * secours si CLOUDINARY_CLOUD_NAME / CLOUDINARY_URL ne le fournissent pas.
+     */
+    private const DEFAULT_CLOUD = 'daljbrmog';
+
     /** Description secret-free de la dernière erreur (diagnostic /health). */
     public static ?string $lastError = null;
 
@@ -44,7 +51,17 @@ final class CloudinaryService
     {
         $c = self::creds();
         if (self::configured()) {
-            return ['status' => 'ok', 'cloud' => $c['cloud']];
+            // Ping réel de l'API (authentifié) : prouve que la clé + le secret marchent.
+            $ping = self::request('GET', sprintf(
+                'https://api.cloudinary.com/v1_1/%s/ping',
+                rawurlencode($c['cloud'])
+            ));
+            return [
+                'status' => $ping !== null ? 'ok' : 'auth_failed',
+                'cloud'  => $c['cloud'],
+                'api'    => $ping !== null ? 'ok' : ('erreur — ' . (self::$lastError ?? 'inconnue')
+                    . ' (clé ou secret invalide, ou cloud name erroné)'),
+            ];
         }
 
         $rawUrl = self::clean(self::env('CLOUDINARY_URL'));
@@ -119,6 +136,9 @@ final class CloudinaryService
             if ($parsed !== null) {
                 return self::$creds = $parsed;
             }
+        }
+        if ($cloud === '' && $key !== '' && $secret !== '') {
+            $cloud = self::DEFAULT_CLOUD; // identifiant public du projet
         }
         return self::$creds = ['cloud' => $cloud, 'key' => $key, 'secret' => $secret];
     }
