@@ -17,10 +17,7 @@ final class SellerProfileController
     public function edit(Request $request): void
     {
         $user = $this->sellerOrRedirect();
-        view('vendeur_profil', [
-            'user'    => $user,
-            'profile' => ProProfile::findByUserId((int) $user['id']) ?? [],
-        ]);
+        view('vendeur/profil', ['active' => 'profil'] + SellerController::commonData($user));
     }
 
     public function update(Request $request): void

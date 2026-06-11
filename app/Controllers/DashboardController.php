@@ -12,16 +12,9 @@ final class DashboardController
         $user   = current_user() ?? [];
         $userId = (int) ($user['id'] ?? 0);
 
-        // Espace vendeur : tableau de bord dédié (statut, vitrines, complétion).
+        // Espace vendeur : tableau de bord à menu latéral (section « Vue d'ensemble »).
         if (($user['account_type'] ?? '') === 'professionnel') {
-            $profile       = \App\Models\ProProfile::findByUserId($userId) ?? [];
-            $avatarVersion = \App\Models\Avatar::versionFor($userId);
-            view('dashboard_pro', [
-                'user'           => $user,
-                'profile'        => $profile,
-                'avatar_version' => $avatarVersion,
-                'completion'     => $this->sellerCompletion($profile, $avatarVersion !== null),
-            ]);
+            view('vendeur/overview', ['active' => 'overview'] + SellerController::commonData($user));
             return;
         }
 
@@ -63,21 +56,6 @@ final class DashboardController
      *
      * @return array{0:int,1:list<string>}
      */
-    /**
-     * % de complétion du profil vendeur : logo + 6 champs entreprise.
-     * Sert la barre de progression et nourrit la checklist du tableau de bord.
-     */
-    private function sellerCompletion(array $profile, bool $hasLogo): int
-    {
-        $done = $hasLogo ? 1 : 0;
-        foreach (['description', 'legal_form', 'reg_number', 'address', 'website', 'languages'] as $field) {
-            if (!empty($profile[$field])) {
-                $done++;
-            }
-        }
-        return (int) round($done * 100 / 7);
-    }
-
     private function profileCompletion(array $u): array
     {
         $contactOk = !empty($u['phone']) || !empty($u['email_verified_at']);

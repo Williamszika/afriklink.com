@@ -183,7 +183,7 @@ final class ProfileController
      */
     private function photoReturnPath(): string
     {
-        return ((current_user()['account_type'] ?? '') === 'professionnel') ? '/dashboard' : '/profile';
+        return ((current_user()['account_type'] ?? '') === 'professionnel') ? '/vendeur/profil' : '/profile';
     }
 
     /**

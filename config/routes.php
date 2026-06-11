@@ -8,6 +8,7 @@ use App\Controllers\ListingController;
 use App\Controllers\MediaController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
+use App\Controllers\SellerController;
 use App\Controllers\SellerProfileController;
 
 /**
@@ -61,9 +62,12 @@ return [
     ['POST', '/profile/photo/delete',  [ProfileController::class, 'deletePhoto'], ['auth', 'csrf']],
     ['GET',  '/avatar/{pid}',          [ProfileController::class, 'avatar'],      []],
 
-    // Profil vendeur (le reste des infos entreprise, complété après l'inscription)
-    ['GET',  '/vendeur/profil', [SellerProfileController::class, 'edit'],   ['auth']],
-    ['POST', '/vendeur/profil', [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],
+    // Espace vendeur (tableau de bord à menu latéral). « Vue d'ensemble » = /dashboard.
+    ['GET',  '/vendeur/vitrines',  [SellerController::class, 'storefronts'],  ['auth']],
+    ['GET',  '/vendeur/commandes', [SellerController::class, 'orders'],       ['auth']],
+    ['GET',  '/vendeur/messages',  [SellerController::class, 'messages'],     ['auth']],
+    ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
+    ['POST', '/vendeur/profil',    [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],
 
     // Annonces entre particuliers (« Vendre un article »)
     ['GET',  '/vendre',                  [ListingController::class, 'create'],    ['auth']],
