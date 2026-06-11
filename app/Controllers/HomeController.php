@@ -37,7 +37,6 @@ final class HomeController
 
         $payload = [
             'app'            => 'ok',
-            'rev'            => 'kyc-diag-2',
             'db'             => $db,
             'session_driver' => config('app.session_driver'),
         ];

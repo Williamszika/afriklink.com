@@ -24,7 +24,7 @@ final class AdminKycController
 
     public function show(Request $request): void
     {
-        $sub = Kyc::findSubmission((int) $request->param('id', 0));
+        $sub = Kyc::findSubmission((int) $request->param('id', '0'));
         if ($sub === null) {
             abort(404);
         }
@@ -37,7 +37,7 @@ final class AdminKycController
     /** Flux binaire d'une pièce — accès relecteur uniquement (StaffMiddleware). */
     public function document(Request $request): void
     {
-        $doc = Kyc::findDocument((int) $request->param('id', 0));
+        $doc = Kyc::findDocument((int) $request->param('id', '0'));
         if ($doc === null) {
             abort(404);
         }
@@ -61,7 +61,7 @@ final class AdminKycController
 
     public function review(Request $request): void
     {
-        $sub = Kyc::findSubmission((int) $request->param('id', 0));
+        $sub = Kyc::findSubmission((int) $request->param('id', '0'));
         if ($sub === null) {
             abort(404);
         }

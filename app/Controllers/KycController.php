@@ -17,20 +17,8 @@ final class KycController
 {
     public function submit(Request $request): void
     {
-        try {
-            $this->doSubmit($request);
-        } catch (\Throwable $e) {
-            // Diagnostic temporaire : remonte la cause exacte au lieu d'un 500 muet.
-            flash('error', 'KYCDEBUG ' . get_class($e) . ': ' . $e->getMessage()
-                . ' @ ' . basename($e->getFile()) . ':' . $e->getLine());
-            redirect('/vendeur/verification');
-        }
-    }
-
-    private function doSubmit(Request $request): void
-    {
         $userId = (int) current_user_id();
-        $level  = (int) $request->param('level', 0);
+        $level  = (int) $request->param('level', '0');
         $levels = config('kyc.levels', []);
 
         if (!isset($levels[$level])) {
@@ -96,12 +84,7 @@ final class KycController
             redirect('/vendeur/verification');
         }
 
-        try {
-            Kyc::submit($userId, $level, $docType, $docs);
-        } catch (\Throwable $e) {
-            flash('error', 'KYCDEBUG: ' . $e->getMessage());
-            redirect('/vendeur/verification');
-        }
+        Kyc::submit($userId, $level, $docType, $docs);
         AuditLog::record($userId, 'kyc.submitted', 'kyc', $level, ['level' => $level], $request->ipBinary());
         flash('success', t('kyc.submitted_flash'));
         redirect('/vendeur/verification');
