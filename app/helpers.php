@@ -482,13 +482,24 @@ function current_user(): ?array
     if ($id === null) {
         return $user = null;
     }
-    return $user = \App\Models\User::findById((int) $id);
+    $found = \App\Models\User::findById((int) $id);
+    if ($found === null) {
+        // La session pointe vers un compte qui n'existe plus (supprimé) : on la
+        // nettoie pour que toute la requête soit cohérente (= déconnecté). Sinon
+        // l'utilisateur reste « à moitié connecté » : boutons invités affichés,
+        // mais redirigé vers le tableau de bord (middleware guest).
+        unset($_SESSION['user_id']);
+        return $user = null;
+    }
+    return $user = $found;
 }
 
 function current_user_id(): ?int
 {
-    $id = $_SESSION['user_id'] ?? null;
-    return $id === null ? null : (int) $id;
+    // Source de vérité = current_user() (vérifie l'existence en base) pour que
+    // auth_check() et les vues ne se contredisent jamais.
+    $user = current_user();
+    return $user === null ? null : (int) ($user['id'] ?? 0);
 }
 
 function auth_check(): bool
