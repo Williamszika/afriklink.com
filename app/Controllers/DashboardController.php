@@ -13,7 +13,7 @@ final class DashboardController
         $userId = (int) ($user['id'] ?? 0);
 
         // Espace professionnel : tableau de bord dédié (statut, vitrines à créer).
-        if (($user['account_type'] ?? '') === 'pro') {
+        if (($user['account_type'] ?? '') === 'professionnel') {
             view('dashboard_pro', [
                 'user'           => $user,
                 'profile'        => \App\Models\ProProfile::findByUserId($userId) ?? [],

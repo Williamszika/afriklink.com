@@ -244,7 +244,7 @@ final class ProRegistrationController
             'phone'              => $s2['phone'],
             'password_hash'      => password_hash($step3['password'], PASSWORD_DEFAULT),
             'role'               => 'vendor',
-            'account_type'       => 'pro',
+            'account_type'       => 'professionnel', // valeur exacte de l'ENUM users.account_type
             'full_name'          => $step3['full_name'],
             'nickname'           => null,
             'birthdate'          => null,
