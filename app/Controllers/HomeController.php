@@ -77,7 +77,6 @@ final class HomeController
 
         // Relecteurs KYC configurés (nombre seulement, jamais les adresses).
         $payload['staff_emails'] = count(config('app.admin_emails', []));
-        $payload['kyc_name'] = !empty(config('kyc.levels')[1]['has_name']); // marqueur de déploiement
 
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.
