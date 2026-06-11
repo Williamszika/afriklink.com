@@ -41,11 +41,6 @@ final class AuthController
         ]);
     }
 
-    public function showRegisterPro(Request $request): void
-    {
-        view('auth/register_pro');
-    }
-
     public function registerParticulier(Request $request): void
     {
         $password  = (string) ($_POST['password'] ?? '');

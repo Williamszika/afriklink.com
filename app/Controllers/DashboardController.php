@@ -11,6 +11,17 @@ final class DashboardController
     {
         $user   = current_user() ?? [];
         $userId = (int) ($user['id'] ?? 0);
+
+        // Espace professionnel : tableau de bord dédié (statut, vitrines à créer).
+        if (($user['account_type'] ?? '') === 'pro') {
+            view('dashboard_pro', [
+                'user'           => $user,
+                'profile'        => \App\Models\ProProfile::findByUserId($userId) ?? [],
+                'avatar_version' => \App\Models\Avatar::versionFor($userId),
+            ]);
+            return;
+        }
+
         [$completion, $missing] = $this->profileCompletion($user);
 
         $listings = \App\Models\Listing::forUser($userId, 3);
@@ -32,7 +43,11 @@ final class DashboardController
      */
     public function comingSoon(Request $request): void
     {
-        $feature = whitelist((string) $request->param('feature', ''), ['messages'], null);
+        $feature = whitelist(
+            (string) $request->param('feature', ''),
+            ['messages', 'boutique', 'restaurant', 'salon', 'service'],
+            null
+        );
         if ($feature === null) {
             abort(404);
         }

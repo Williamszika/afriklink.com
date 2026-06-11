@@ -207,3 +207,28 @@ CREATE TABLE IF NOT EXISTS listing_photos (
   position        TINYINT UNSIGNED NOT NULL DEFAULT 0,
   KEY idx_photos_listing (listing_id, position)
 );
+
+-- ---------------------------------------------------------------
+-- Comptes professionnels : fiche entreprise (1 par compte pro).
+-- NOTE : créée AUTOMATIQUEMENT par l'application à la première
+-- inscription pro (ProProfile::ensureTable) — ici à titre de doc.
+-- Les vitrines (boutique, restaurant, salon, service) seront des
+-- entités séparées rattachées au même user_id, créées plus tard
+-- depuis le tableau de bord pro.
+CREATE TABLE IF NOT EXISTS pro_profiles (
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id             BIGINT UNSIGNED NOT NULL UNIQUE,
+  company_name        VARCHAR(150) NOT NULL,
+  legal_name          VARCHAR(150) NULL,
+  legal_form          VARCHAR(24) NOT NULL,
+  reg_number          VARCHAR(64) NULL,
+  vat_number          VARCHAR(32) NULL,
+  description         VARCHAR(600) NULL,
+  address             VARCHAR(220) NULL,
+  website             VARCHAR(200) NULL,
+  languages           VARCHAR(60) NULL,
+  whatsapp_optin      TINYINT(1) NOT NULL DEFAULT 0,
+  verification_status VARCHAR(16) NOT NULL DEFAULT 'pending',
+  created_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

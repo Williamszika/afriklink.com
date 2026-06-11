@@ -7,6 +7,7 @@ use App\Controllers\HomeController;
 use App\Controllers\ListingController;
 use App\Controllers\MediaController;
 use App\Controllers\ProfileController;
+use App\Controllers\ProRegistrationController;
 
 /**
  * Route table: [HTTP method, path, [Controller, action], [middleware...]].
@@ -30,7 +31,8 @@ return [
     ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],
     ['GET',  '/register/particulier',   [AuthController::class, 'showRegisterParticulier'],['guest']],
     ['POST', '/register/particulier',   [AuthController::class, 'registerParticulier'],    ['guest', 'csrf', 'throttle:register,10,3600']],
-    ['GET',  '/register/professionnel', [AuthController::class, 'showRegisterPro'],         ['guest']],
+    ['GET',  '/register/professionnel', [ProRegistrationController::class, 'show'],         ['guest']],
+    ['POST', '/register/professionnel', [ProRegistrationController::class, 'submit'],       ['guest', 'csrf', 'throttle:register,10,3600']],
 
     ['GET',  '/login',             [AuthController::class, 'showLogin'],      ['guest']],
     ['POST', '/login',             [AuthController::class, 'login'],          ['guest', 'csrf', 'throttle:login,10,900']],
