@@ -1,0 +1,178 @@
+<?php
+/** @var int $step  @var array $draft  @var array $user  @var bool $media_ready  @var string $suggestSlug */
+$s1 = $draft['step1'] ?? [];
+$s2 = $draft['step2'] ?? [];
+$cats = config('listings.categories', []);
+$zones = config('shop.delivery_zones', []);
+$methods = config('shop.delivery_methods', []);
+$preps = config('shop.prep_options', []);
+$currencies = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
+$val = static fn (string $k, array $d): string => old($k) !== '' ? old($k) : e((string) ($d[$k] ?? ''));
+$steps = [1 => t('shop.step1'), 2 => t('shop.step2'), 3 => t('shop.step3')];
+$baseUrl = rtrim((string) (config('app.url') ?: 'afriklink.com'), '/');
+$baseUrl = preg_replace('#^https?://#', '', $baseUrl);
+?>
+<section class="auth-card auth-card--wide">
+    <h1>🛍️ <?= e(t('shop.title')) ?></h1>
+    <p class="muted"><?= e(t('shop.subtitle')) ?></p>
+
+    <ol class="wizard-steps">
+        <?php foreach ($steps as $n => $label): ?>
+            <li class="<?= $n === $step ? 'is-current' : ($n < $step ? 'is-done' : '') ?>">
+                <span class="wizard-num"><?= $n < $step ? '✓' : $n ?></span>
+                <span class="wizard-label"><?= e($label) ?></span>
+            </li>
+        <?php endforeach; ?>
+    </ol>
+
+    <?php if (!$media_ready): ?>
+        <div class="notice notice-warning"><p><?= e(t('listing.media_unconfigured')) ?></p></div>
+    <?php endif; ?>
+
+    <form method="post" action="<?= e(url('/boutique/creer')) ?>" id="shop-form" novalidate
+          data-slug-url="<?= e(url('/api/boutique/slug')) ?>"
+          data-slug-ok="<?= e(t('shop.slug_ok')) ?>" data-slug-taken="<?= e(t('shop.slug_taken')) ?>"
+          data-slug-short="<?= e(t('shop.slug_short')) ?>" data-uploading="<?= e(t('kyc.uploading')) ?>">
+        <?= csrf_field() ?>
+        <input type="hidden" name="etape" value="<?= (int) $step ?>">
+
+        <?php if ($step === 1): ?>
+            <h2 class="wizard-h2"><?= e(t('shop.step1_title')) ?></h2>
+
+            <label for="shop-name"><?= e(t('shop.f.name')) ?></label>
+            <input type="text" id="shop-name" name="name" value="<?= old('name') ?: e((string) ($s1['name'] ?? ($user['full_name'] ?? ''))) ?>"
+                   required maxlength="<?= (int) config('shop.name_max', 80) ?>" placeholder="<?= e(t('shop.f.name_ph')) ?>">
+            <?php if (has_error('name')): ?><p class="field-error"><?= e(error('name')) ?></p><?php endif; ?>
+
+            <label for="shop-slug"><?= e(t('shop.f.slug')) ?></label>
+            <div class="slug-row">
+                <span class="slug-prefix"><?= e($baseUrl) ?>/boutique/</span>
+                <input type="text" id="shop-slug" name="slug" value="<?= old('slug') ?: e((string) ($s1['slug'] ?? $suggestSlug)) ?>"
+                       maxlength="<?= (int) config('shop.slug_max', 40) ?>" autocomplete="off" spellcheck="false">
+            </div>
+            <p class="hint" id="slug-status"><?= e(t('shop.f.slug_hint')) ?></p>
+            <?php if (has_error('slug')): ?><p class="field-error"><?= e(error('slug')) ?></p><?php endif; ?>
+
+            <div class="grid-2">
+                <div>
+                    <label><?= e(t('shop.f.logo')) ?></label>
+                    <div class="upload-zone" id="logo-zone">
+                        <label class="btn btn-ghost btn-sm" for="logo-input">🖼️ <?= e(t('shop.f.pick_logo')) ?></label>
+                        <input type="file" id="logo-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
+                        <input type="hidden" name="logo_public_id" id="logo-public-id" value="<?= e((string) ($s1['logo_public_id'] ?? '')) ?>">
+                        <span class="kyc-slot-state" id="logo-state"></span>
+                    </div>
+                </div>
+                <div>
+                    <label><?= e(t('shop.f.banner')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <div class="upload-zone" id="banner-zone">
+                        <label class="btn btn-ghost btn-sm" for="banner-input">🏞️ <?= e(t('shop.f.pick_banner')) ?></label>
+                        <input type="file" id="banner-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
+                        <input type="hidden" name="banner_public_id" id="banner-public-id" value="<?= e((string) ($s1['banner_public_id'] ?? '')) ?>">
+                        <span class="kyc-slot-state" id="banner-state"></span>
+                    </div>
+                </div>
+            </div>
+
+            <label for="shop-tagline"><?= e(t('shop.f.tagline')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <input type="text" id="shop-tagline" name="tagline" value="<?= $val('tagline', $s1) ?>"
+                   maxlength="<?= (int) config('shop.tagline_max', 120) ?>" placeholder="<?= e(t('shop.f.tagline_ph')) ?>">
+
+            <label for="shop-desc"><?= e(t('shop.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <textarea id="shop-desc" name="description" rows="3" maxlength="<?= (int) config('shop.desc_max', 1500) ?>"><?= $val('description', $s1) ?></textarea>
+            <?php if (has_error('description')): ?><p class="field-error"><?= e(error('description')) ?></p><?php endif; ?>
+
+            <label for="shop-cat"><?= e(t('shop.f.category')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <select id="shop-cat" name="category">
+                <option value=""><?= e(t('field.choose')) ?></option>
+                <?php $selCat = old('category') ?: (string) ($s1['category'] ?? ''); ?>
+                <?php foreach ($cats as $c): ?>
+                    <option value="<?= e($c) ?>" <?= $selCat === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-block"><?= e(t('pro.next')) ?> →</button>
+
+        <?php elseif ($step === 2): ?>
+            <h2 class="wizard-h2"><?= e(t('shop.step2_title')) ?></h2>
+
+            <label for="shop-cur"><?= e(t('shop.f.currency')) ?></label>
+            <select id="shop-cur" name="currency">
+                <?php $selCur = old('currency') ?: (string) ($s2['currency'] ?? ($user['preferred_currency'] ?? 'EUR')); ?>
+                <?php foreach ($currencies as $cur): ?>
+                    <option value="<?= e($cur) ?>" <?= $selCur === $cur ? 'selected' : '' ?>><?= e($cur) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><?= e(t('shop.f.zones')) ?></label>
+            <?php $selZones = old('zones') !== '' ? [] : explode(',', (string) ($s2['delivery_zones'] ?? '')); ?>
+            <div class="lang-checks">
+                <?php foreach ($zones as $z): ?>
+                    <label class="check-pill"><input type="checkbox" name="zones[]" value="<?= e($z) ?>" <?= in_array($z, $selZones, true) ? 'checked' : '' ?>>
+                        <span><?= e(t('shop.zone.' . $z)) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+
+            <label><?= e(t('shop.f.methods')) ?></label>
+            <?php $selMethods = old('methods') !== '' ? [] : explode(',', (string) ($s2['delivery_methods'] ?? '')); ?>
+            <div class="lang-checks">
+                <?php foreach ($methods as $m): ?>
+                    <label class="check-pill"><input type="checkbox" name="methods[]" value="<?= e($m) ?>" <?= in_array($m, $selMethods, true) ? 'checked' : '' ?>>
+                        <span><?= e(t('shop.method.' . $m)) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label for="shop-free"><?= e(t('shop.f.free_ship')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="shop-free" name="free_ship" value="<?= old('free_ship') ?>" inputmode="decimal" placeholder="0">
+                    <p class="hint"><?= e(t('shop.f.free_ship_hint')) ?></p>
+                    <?php if (has_error('free_ship')): ?><p class="field-error"><?= e(error('free_ship')) ?></p><?php endif; ?>
+                </div>
+                <div>
+                    <label for="shop-prep"><?= e(t('shop.f.prep')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <select id="shop-prep" name="prep_time">
+                        <option value=""><?= e(t('field.choose')) ?></option>
+                        <?php $selPrep = old('prep_time') ?: (string) ($s2['prep_time'] ?? ''); ?>
+                        <?php foreach ($preps as $pp): ?>
+                            <option value="<?= e($pp) ?>" <?= $selPrep === $pp ? 'selected' : '' ?>><?= e(t('shop.prep.' . $pp)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="wizard-nav">
+                <a class="btn btn-ghost" href="<?= e(url('/boutique/creer?etape=1')) ?>">← <?= e(t('pro.back')) ?></a>
+                <button type="submit" class="btn btn-primary"><?= e(t('pro.next')) ?> →</button>
+            </div>
+
+        <?php else: ?>
+            <h2 class="wizard-h2"><?= e(t('shop.step3_title')) ?></h2>
+
+            <div class="recap">
+                <p class="recap-head"><strong><?= e(t('pro.recap_title')) ?></strong></p>
+                <dl class="recap-list">
+                    <dt><?= e(t('shop.f.name')) ?></dt><dd><?= e((string) ($s1['name'] ?? '')) ?></dd>
+                    <dt><?= e(t('shop.f.slug')) ?></dt><dd><?= e($baseUrl) ?>/boutique/<?= e((string) ($s1['slug'] ?? '')) ?></dd>
+                    <dt><?= e(t('shop.f.currency')) ?></dt><dd><?= e((string) ($s2['currency'] ?? '')) ?></dd>
+                </dl>
+                <p class="hint"><a href="<?= e(url('/boutique/creer?etape=1')) ?>"><?= e(t('shop.edit1')) ?></a> · <a href="<?= e(url('/boutique/creer?etape=2')) ?>"><?= e(t('shop.edit2')) ?></a></p>
+            </div>
+
+            <h3 class="wizard-h2"><?= e(t('shop.f.payment')) ?></h3>
+            <label class="check-row">
+                <input type="checkbox" name="cod_enabled" value="1" <?= (old('cod_enabled') === '1' || old('cod_enabled') === '') ? 'checked' : '' ?>>
+                <span>💵 <?= e(t('shop.f.cod')) ?></span>
+            </label>
+            <div class="notice notice-info"><p>📱💳 <?= e(t('shop.f.payment_soon')) ?></p></div>
+
+            <p class="hint"><?= e(t('shop.draft_note')) ?></p>
+            <div class="wizard-nav">
+                <a class="btn btn-ghost" href="<?= e(url('/boutique/creer?etape=2')) ?>">← <?= e(t('pro.back')) ?></a>
+                <button type="submit" class="btn btn-primary"><?= e(t('shop.submit')) ?></button>
+            </div>
+        <?php endif; ?>
+    </form>
+
+    <p class="auth-alt"><a href="<?= e(url('/dashboard')) ?>">← <?= e(t('profile.back_dashboard')) ?></a></p>
+</section>

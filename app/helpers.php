@@ -297,6 +297,19 @@ function normalize_phone(string $raw): string
     return $digits === '' ? '' : '+' . $digits;
 }
 
+/** URL slug : minuscules, accents retirés, séparés par des tirets. */
+function slugify(string $text): string
+{
+    $map = [
+        'à'=>'a','á'=>'a','â'=>'a','ã'=>'a','ä'=>'a','å'=>'a','ç'=>'c','è'=>'e','é'=>'e','ê'=>'e','ë'=>'e',
+        'ì'=>'i','í'=>'i','î'=>'i','ï'=>'i','ñ'=>'n','ò'=>'o','ó'=>'o','ô'=>'o','õ'=>'o','ö'=>'o','ø'=>'o',
+        'ù'=>'u','ú'=>'u','û'=>'u','ü'=>'u','ý'=>'y','ÿ'=>'y','œ'=>'oe','æ'=>'ae','ß'=>'ss',
+    ];
+    $text = strtr(mb_strtolower(trim($text)), $map);
+    $text = preg_replace('/[^a-z0-9]+/', '-', $text) ?? '';
+    return trim($text, '-');
+}
+
 /* ------------------------------------------------------------------ */
 /* Prix (annonces)                                                     */
 /* ------------------------------------------------------------------ */

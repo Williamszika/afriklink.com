@@ -48,7 +48,11 @@ final class SellerController
 
     public function storefronts(Request $request): void
     {
-        view('vendeur/vitrines', ['active' => 'vitrines'] + self::commonData(current_user() ?? []));
+        $user = current_user() ?? [];
+        view('vendeur/vitrines', [
+            'active'   => 'vitrines',
+            'boutique' => \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0)),
+        ] + self::commonData($user));
     }
 
     public function orders(Request $request): void

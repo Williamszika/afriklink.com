@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminKycController;
+use App\Controllers\BoutiqueController;
 use App\Controllers\HomeController;
 use App\Controllers\KycController;
 use App\Controllers\ListingController;
@@ -96,6 +97,14 @@ return [
 
     // Signature des envois médias directs navigateur → Cloudinary
     ['POST', '/api/media/sign',          [MediaController::class, 'sign'],        ['auth', 'csrf', 'throttle:sign,60,3600']],
+
+    // Boutique en ligne (assistant de création + gestion + page publique)
+    ['GET',  '/boutique/creer',  [BoutiqueController::class, 'create'],  ['auth']],
+    ['POST', '/boutique/creer',  [BoutiqueController::class, 'submit'],  ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['GET',  '/api/boutique/slug', [BoutiqueController::class, 'checkSlug'], ['auth', 'throttle:slug,120,3600']],
+    ['GET',  '/boutique/gerer',  [BoutiqueController::class, 'manage'],  ['auth']],
+    ['POST', '/boutique/publier', [BoutiqueController::class, 'publish'], ['auth', 'csrf']],
+    ['GET',  '/boutique/{slug}', [BoutiqueController::class, 'show'],    []],
 
     // Roadmap interstitials for not-yet-built dashboard actions
     ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],

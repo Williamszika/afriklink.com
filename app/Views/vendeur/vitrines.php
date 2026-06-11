@@ -1,7 +1,6 @@
 <?php
-/** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url */
+/** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url  @var ?array $boutique */
 $verticals = [
-    ['key' => 'boutique',   'icon' => '🛍️'],
     ['key' => 'restaurant', 'icon' => '🍽️'],
     ['key' => 'salon',      'icon' => '💈'],
     ['key' => 'service',    'icon' => '🛠️'],
@@ -17,6 +16,14 @@ $verticals = [
         </div>
 
         <div class="action-grid">
+            <!-- Boutique en ligne : RÉELLE -->
+            <a class="action-card action-card--live" href="<?= e(url($boutique ? '/boutique/gerer' : '/boutique/creer')) ?>">
+                <span class="action-head">🛍️ <strong><?= e(t('pro.vertical.boutique')) ?></strong>
+                    <span class="chip-live"><?= e($boutique ? t('shop.cta_manage') : t('shop.cta_create')) ?></span></span>
+                <span class="muted"><?= e(t('pro.vertical.boutique_desc')) ?></span>
+            </a>
+
+            <!-- Les autres verticales : bientôt -->
             <?php foreach ($verticals as $v): ?>
                 <a class="action-card" href="<?= e(url('/bientot/' . $v['key'])) ?>">
                     <span class="action-head"><?= $v['icon'] ?> <strong><?= e(t('pro.vertical.' . $v['key'])) ?></strong>

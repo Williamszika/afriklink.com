@@ -698,3 +698,84 @@ document.addEventListener('click', function (ev) {
         });
     });
 })();
+
+/* ---- Création de boutique : slug en direct + logo/bannière ---- */
+(function () {
+    var form = document.getElementById('shop-form');
+    if (!form) { return; }
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+
+    // Disponibilité du slug (afriklink.com/boutique/<slug>)
+    var slug = document.getElementById('shop-slug');
+    var status = document.getElementById('slug-status');
+    if (slug && status) {
+        var url = form.getAttribute('data-slug-url');
+        var timer;
+        var check = function () {
+            var v = slug.value.trim();
+            if (v.length < 3) {
+                status.textContent = form.getAttribute('data-slug-short') || '';
+                status.className = 'hint';
+                return;
+            }
+            fetch(url + '?slug=' + encodeURIComponent(v))
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (typeof d.slug === 'string') { slug.value = d.slug; }
+                    if (d.available) {
+                        status.textContent = '✓ ' + (form.getAttribute('data-slug-ok') || '');
+                        status.className = 'hint slug-ok';
+                    } else {
+                        status.textContent = '✗ ' + (form.getAttribute('data-slug-taken') || '');
+                        status.className = 'hint slug-taken';
+                    }
+                })
+                .catch(function () {});
+        };
+        slug.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(check, 450); });
+        if (slug.value) { check(); }
+    }
+
+    // Envoi direct logo/bannière → Cloudinary (image publique)
+    function sign() {
+        var fd = new FormData();
+        fd.append('resource_type', 'image');
+        return fetch('/api/media/sign', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: fd })
+            .then(function (r) { if (!r.ok) { throw new Error('sign'); } return r.json(); });
+    }
+    function uploadImg(file, params) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(params.cloud_name) + '/image/upload');
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) { try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(e); } }
+                else { reject(new Error('upload ' + xhr.status)); }
+            };
+            xhr.onerror = function () { reject(new Error('réseau')); };
+            var fd = new FormData();
+            fd.append('file', file);
+            fd.append('api_key', params.api_key);
+            fd.append('timestamp', params.timestamp);
+            fd.append('folder', params.folder);
+            fd.append('signature', params.signature);
+            xhr.send(fd);
+        });
+    }
+    function wire(inputId, hiddenId, stateId) {
+        var input = document.getElementById(inputId);
+        var hidden = document.getElementById(hiddenId);
+        var state = document.getElementById(stateId);
+        if (!input) { return; }
+        input.addEventListener('change', function () {
+            var f = input.files && input.files[0];
+            if (!f) { return; }
+            if (f.size > 10 * 1024 * 1024) { state.textContent = '⚠️ 10 Mo max'; return; }
+            state.textContent = form.getAttribute('data-uploading') || '…';
+            sign().then(function (p) { return uploadImg(f, p); })
+                .then(function (res) { hidden.value = res.public_id; state.textContent = '✅'; })
+                .catch(function () { state.textContent = '❌'; });
+        });
+    }
+    wire('logo-input', 'logo-public-id', 'logo-state');
+    wire('banner-input', 'banner-public-id', 'banner-state');
+})();
