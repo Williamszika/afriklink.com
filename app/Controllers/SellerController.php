@@ -64,4 +64,36 @@ final class SellerController
     {
         view('vendeur/reglages', ['active' => 'reglages'] + self::commonData(current_user() ?? []));
     }
+
+    /* ---- Sections « bientôt » (KYC, publicité, affiliation, gains) ---- */
+
+    public function earnings(Request $request): void
+    {
+        $this->soon('gains', '💸', 'seller.earnings');
+    }
+
+    public function advertising(Request $request): void
+    {
+        $this->soon('publicite', '📣', 'seller.ads');
+    }
+
+    public function affiliation(Request $request): void
+    {
+        $this->soon('affiliation', '🤝', 'seller.affil');
+    }
+
+    public function verification(Request $request): void
+    {
+        $this->soon('verification', '🪪', 'seller.kyc');
+    }
+
+    /** Rend la vue de section générique avec ses libellés. */
+    private function soon(string $active, string $icon, string $prefix): void
+    {
+        view('vendeur/section_soon', [
+            'active' => $active,
+            'icon'   => $icon,
+            'prefix' => $prefix,
+        ] + self::commonData(current_user() ?? []));
+    }
 }

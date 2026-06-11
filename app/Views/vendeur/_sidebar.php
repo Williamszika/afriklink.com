@@ -2,15 +2,25 @@
 /** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url */
 $companyName = (string) ($profile['company_name'] ?? ($user['full_name'] ?? ''));
 $verified    = ($profile['verification_status'] ?? 'pending') === 'verified';
-$cc          = strtoupper((string) ($user['country_code'] ?? ''));
 
-$items = [
-    ['key' => 'overview',  'icon' => '🏠', 'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
-    ['key' => 'vitrines',  'icon' => '🏪', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
-    ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),      'chip' => t('dash.soon')],
-    ['key' => 'messages',  'icon' => '💬', 'href' => url('/vendeur/messages'),  'label' => t('seller.nav.messages'),    'chip' => t('dash.soon')],
-    ['key' => 'profil',    'icon' => '🏢', 'href' => url('/vendeur/profil'),    'label' => t('seller.nav.profile'),     'chip' => null],
-    ['key' => 'reglages',  'icon' => '⚙️', 'href' => url('/vendeur/reglages'),  'label' => t('seller.nav.settings'),    'chip' => null],
+$soon = t('dash.soon');
+$groups = [
+    ['label' => null, 'items' => [
+        ['key' => 'overview',  'icon' => '🏠', 'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
+        ['key' => 'vitrines',  'icon' => '🏪', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
+        ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),      'chip' => $soon],
+        ['key' => 'messages',  'icon' => '💬', 'href' => url('/vendeur/messages'),  'label' => t('seller.nav.messages'),    'chip' => $soon],
+    ]],
+    ['label' => t('seller.group.develop'), 'items' => [
+        ['key' => 'gains',       'icon' => '💸', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
+        ['key' => 'publicite',   'icon' => '📣', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => $soon],
+        ['key' => 'affiliation', 'icon' => '🤝', 'href' => url('/vendeur/affiliation'), 'label' => t('seller.nav.affiliation'),  'chip' => $soon],
+    ]],
+    ['label' => t('seller.group.account'), 'items' => [
+        ['key' => 'verification', 'icon' => '🪪', 'href' => url('/vendeur/verification'), 'label' => t('seller.nav.verification'), 'chip' => $soon],
+        ['key' => 'profil',       'icon' => '🏢', 'href' => url('/vendeur/profil'),       'label' => t('seller.nav.profile'),      'chip' => null],
+        ['key' => 'reglages',     'icon' => '⚙️', 'href' => url('/vendeur/reglages'),     'label' => t('seller.nav.settings'),     'chip' => null],
+    ]],
 ];
 ?>
 <aside class="seller-sidebar" aria-label="<?= e(t('seller.nav.aria')) ?>">
@@ -33,13 +43,18 @@ $items = [
     </div>
 
     <nav class="seller-nav">
-        <?php foreach ($items as $it): ?>
-            <a class="seller-nav-item<?= $active === $it['key'] ? ' is-active' : '' ?>"
-               href="<?= e($it['href']) ?>"<?= $active === $it['key'] ? ' aria-current="page"' : '' ?>>
-                <span class="seller-nav-ico" aria-hidden="true"><?= $it['icon'] ?></span>
-                <span class="seller-nav-label"><?= e($it['label']) ?></span>
-                <?php if ($it['chip'] !== null): ?><span class="chip-soon"><?= e($it['chip']) ?></span><?php endif; ?>
-            </a>
+        <?php foreach ($groups as $group): ?>
+            <?php if ($group['label'] !== null): ?>
+                <p class="seller-nav-group"><?= e($group['label']) ?></p>
+            <?php endif; ?>
+            <?php foreach ($group['items'] as $it): ?>
+                <a class="seller-nav-item<?= $active === $it['key'] ? ' is-active' : '' ?>"
+                   href="<?= e($it['href']) ?>"<?= $active === $it['key'] ? ' aria-current="page"' : '' ?>>
+                    <span class="seller-nav-ico" aria-hidden="true"><?= $it['icon'] ?></span>
+                    <span class="seller-nav-label"><?= e($it['label']) ?></span>
+                    <?php if ($it['chip'] !== null): ?><span class="chip-soon"><?= e($it['chip']) ?></span><?php endif; ?>
+                </a>
+            <?php endforeach; ?>
         <?php endforeach; ?>
     </nav>
 </aside>
