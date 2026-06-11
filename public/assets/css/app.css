@@ -299,6 +299,18 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .recap-list dt { color: var(--muted); }
 .recap-list dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
 
+/* Tableau de bord vendeur */
+.stat-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.dash-head-actions { margin-left: auto; display: grid; gap: 8px; justify-items: end; }
+.dash-head-actions .avatar-forms { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.dash-head-actions input[type="file"] { max-width: 200px; font-size: .8rem; color: var(--muted); }
+.tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.tips li { line-height: 1.45; }
+@media (max-width: 700px) {
+    .stat-grid.cols-4 { grid-template-columns: 1fr 1fr; }
+    .dash-head-actions { margin-left: 0; justify-items: start; }
+}
+
 /* Tableau de bord pro : checklist */
 .checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .checklist li { display: flex; align-items: flex-start; gap: 8px; }
