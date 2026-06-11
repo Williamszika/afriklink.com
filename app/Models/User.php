@@ -152,4 +152,14 @@ final class User
     {
         return !empty($user['email_verified_at']);
     }
+
+    /** Persist interface language + display currency (cookies drive the request). */
+    public static function updatePreferences(int $id, string $locale, string $currency): void
+    {
+        $stmt = db()->prepare(
+            'UPDATE users SET locale = :locale, preferred_currency = :currency
+             WHERE id = :id AND deleted_at IS NULL'
+        );
+        $stmt->execute(['locale' => $locale, 'currency' => $currency, 'id' => $id]);
+    }
 }

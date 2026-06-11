@@ -60,12 +60,14 @@ return [
     ['POST', '/profile/password',  [ProfileController::class, 'updatePassword'],  ['auth', 'csrf', 'throttle:pwd,10,3600']],
     ['POST', '/profile/photo',         [ProfileController::class, 'updatePhoto'], ['auth', 'csrf', 'throttle:avatar,10,3600']],
     ['POST', '/profile/photo/delete',  [ProfileController::class, 'deletePhoto'], ['auth', 'csrf']],
+    ['POST', '/profile/preferences',   [ProfileController::class, 'updatePreferences'], ['auth', 'csrf', 'throttle:profile,30,3600']],
     ['GET',  '/avatar/{pid}',          [ProfileController::class, 'avatar'],      []],
 
     // Espace vendeur (tableau de bord à menu latéral). « Vue d'ensemble » = /dashboard.
     ['GET',  '/vendeur/vitrines',  [SellerController::class, 'storefronts'],  ['auth']],
     ['GET',  '/vendeur/commandes', [SellerController::class, 'orders'],       ['auth']],
     ['GET',  '/vendeur/messages',  [SellerController::class, 'messages'],     ['auth']],
+    ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
     ['POST', '/vendeur/profil',    [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],
 

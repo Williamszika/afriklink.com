@@ -10,6 +10,7 @@ $items = [
     ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),      'chip' => t('dash.soon')],
     ['key' => 'messages',  'icon' => '💬', 'href' => url('/vendeur/messages'),  'label' => t('seller.nav.messages'),    'chip' => t('dash.soon')],
     ['key' => 'profil',    'icon' => '🏢', 'href' => url('/vendeur/profil'),    'label' => t('seller.nav.profile'),     'chip' => null],
+    ['key' => 'reglages',  'icon' => '⚙️', 'href' => url('/vendeur/reglages'),  'label' => t('seller.nav.settings'),    'chip' => null],
 ];
 ?>
 <aside class="seller-sidebar" aria-label="<?= e(t('seller.nav.aria')) ?>">

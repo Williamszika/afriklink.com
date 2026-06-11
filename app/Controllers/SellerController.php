@@ -59,4 +59,9 @@ final class SellerController
     {
         view('vendeur/messages', ['active' => 'messages'] + self::commonData(current_user() ?? []));
     }
+
+    public function settings(Request $request): void
+    {
+        view('vendeur/reglages', ['active' => 'reglages'] + self::commonData(current_user() ?? []));
+    }
 }

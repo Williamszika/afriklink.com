@@ -91,13 +91,46 @@ final class ProfileController
 
         if ($errors !== []) {
             set_errors($errors);
-            redirect('/profile#password-section');
+            redirect($this->accountReturnPath() . '#sec-password');
         }
 
         User::updatePassword($userId, password_hash($new, PASSWORD_DEFAULT));
         AuditLog::record($userId, 'auth.password_changed', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.password_changed'));
-        redirect('/profile');
+        redirect($this->accountReturnPath());
+    }
+
+    /**
+     * Langue d'interface + devise d'affichage. Les cookies pilotent la requête
+     * (voir bootstrap) ; on persiste aussi en base pour les futurs appareils.
+     */
+    public function updatePreferences(Request $request): void
+    {
+        $userId   = (int) current_user_id();
+        $locale   = (string) ($_POST['locale'] ?? '');
+        $currency = strtoupper((string) ($_POST['currency'] ?? ''));
+
+        if (!in_array($locale, config('app.locales', ['fr', 'en']), true)) {
+            $locale = current_locale();
+        }
+        if (!in_array($currency, config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']), true)) {
+            $currency = current_currency();
+        }
+
+        $opts = ['expires' => time() + 31536000, 'path' => '/', 'secure' => request_is_https(), 'httponly' => true, 'samesite' => 'Lax'];
+        setcookie('locale', $locale, $opts);
+        setcookie('currency', $currency, $opts);
+        User::updatePreferences($userId, $locale, $currency);
+
+        AuditLog::record($userId, 'user.preferences_updated', 'user', $userId, ['locale' => $locale, 'currency' => $currency], $request->ipBinary());
+        flash('success', t('flash.preferences_saved'));
+        redirect($this->accountReturnPath());
+    }
+
+    /** Les vendeurs gèrent compte/sécurité dans « Réglages » ; les particuliers dans « Profil ». */
+    private function accountReturnPath(): string
+    {
+        return ((current_user()['account_type'] ?? '') === 'professionnel') ? '/vendeur/reglages' : '/profile';
     }
 
     /* ---- Photo de profil ----------------------------------------- */
