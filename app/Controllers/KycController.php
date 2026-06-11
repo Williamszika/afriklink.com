@@ -84,7 +84,12 @@ final class KycController
             redirect('/vendeur/verification');
         }
 
-        Kyc::submit($userId, $level, $docType, $docs);
+        try {
+            Kyc::submit($userId, $level, $docType, $docs);
+        } catch (\Throwable $e) {
+            flash('error', 'KYCDEBUG: ' . $e->getMessage());
+            redirect('/vendeur/verification');
+        }
         AuditLog::record($userId, 'kyc.submitted', 'kyc', $level, ['level' => $level], $request->ipBinary());
         flash('success', t('kyc.submitted_flash'));
         redirect('/vendeur/verification');
