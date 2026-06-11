@@ -165,7 +165,7 @@ return [
     'pro.dash.pending_note'     => 'Ton entreprise est en cours de vérification. Tu peux déjà tout préparer — le badge « Vendeur vérifié » apparaîtra après contrôle de ton numéro d’enregistrement.',
     'pro.dash.checklist_title'  => 'Bien démarrer',
     'pro.dash.check_email'      => 'Vérifier ton adresse e-mail',
-    'pro.dash.check_reg'        => 'Fournir ton numéro d’enregistrement (badge Pro vérifié)',
+    'pro.dash.check_reg'        => 'Fournir ton numéro d’enregistrement (badge Vendeur vérifié)',
     'pro.dash.check_storefront' => 'Créer ta première vitrine ci-dessous',
     'pro.dash.create_title'     => 'Crée ta vitrine',
     'pro.dash.create_desc'      => 'Choisis ce que tu veux ouvrir sur Afriklink — tu pourras en ajouter d’autres ensuite.',
