@@ -12,6 +12,7 @@ return [
         1 => [
             'slots' => ['id_front' => true, 'id_back' => false],
             'has_doc_type' => true, // CNI / passeport
+            'has_name'     => true, // nom + prénom tels que sur la pièce
         ],
         2 => [
             'slots' => ['selfie' => true],

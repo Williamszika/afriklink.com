@@ -16,6 +16,11 @@ $status = (string) $sub['status'];
             <?php if (!empty($sub['country_code'])): ?>
                 <dt><?= e(t('field.country')) ?></dt><dd><?= flag_emoji((string) $sub['country_code']) ?> <?= e(country_name((string) $sub['country_code'])) ?><?php if (!empty($sub['city'])): ?> · <?= e((string) $sub['city']) ?><?php endif; ?></dd>
             <?php endif; ?>
+            <?php if (!empty($sub['id_first_name']) || !empty($sub['id_last_name'])): ?>
+                <dt><?= e(t('admin.declared_name')) ?></dt>
+                <dd><strong><?= e(trim((string) ($sub['id_first_name'] ?? '') . ' ' . (string) ($sub['id_last_name'] ?? ''))) ?></strong>
+                    <span class="hint"><?= e(t('admin.declared_name_hint')) ?></span></dd>
+            <?php endif; ?>
             <?php if (!empty($sub['doc_type'])): ?>
                 <dt><?= e(t('kyc.doc_type')) ?></dt><dd><?= e(t('kyc.idtype.' . $sub['doc_type'])) ?></dd>
             <?php endif; ?>

@@ -522,4 +522,10 @@ return [
     'admin.note_ph'   => 'E.g.: blurry photo, expired document…',
     'admin.approve'   => '✅ Approve',
     'admin.reject'    => '❌ Reject',
+    'kyc.first_name' => 'First name',
+    'kyc.last_name' => 'Last name',
+    'kyc.name_hint' => 'Enter your first and last name EXACTLY as they appear on your ID document.',
+    'kyc.name_required' => 'Enter your first and last name as written on the document.',
+    'admin.declared_name' => 'Declared name (on the document)',
+    'admin.declared_name_hint' => '— compare with the document below',
 ];

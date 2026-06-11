@@ -43,6 +43,20 @@ final class KycController
             }
         }
 
+        // Nom et prénom tels qu'écrits sur la pièce (niveau 1) — le modérateur
+        // les comparera avec le document.
+        $firstName = $lastName = null;
+        if (!empty($cfg['has_name'])) {
+            $firstName = input_string('id_first_name');
+            $lastName  = input_string('id_last_name');
+            if ($firstName === null || mb_strlen($firstName) < 1 || mb_strlen($firstName) > 100
+                || $lastName === null || mb_strlen($lastName) < 1 || mb_strlen($lastName) > 100) {
+                keep_old($_POST);
+                set_errors(['kyc' => t('kyc.name_required')]);
+                redirect('/vendeur/verification');
+            }
+        }
+
         // Pièces transmises par le JS : [{slot, public_id, version, format}, …]
         $raw = json_decode((string) ($_POST['docs_json'] ?? '[]'), true);
         $bySlot = [];
@@ -84,7 +98,7 @@ final class KycController
             redirect('/vendeur/verification');
         }
 
-        Kyc::submit($userId, $level, $docType, $docs);
+        Kyc::submit($userId, $level, $docType, $docs, $firstName, $lastName);
         AuditLog::record($userId, 'kyc.submitted', 'kyc', $level, ['level' => $level], $request->ipBinary());
         flash('success', t('kyc.submitted_flash'));
         redirect('/vendeur/verification');

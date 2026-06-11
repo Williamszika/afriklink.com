@@ -24,6 +24,8 @@ final class Kyc
                 level       TINYINT UNSIGNED NOT NULL,
                 status      VARCHAR(12) NOT NULL DEFAULT \'pending\',
                 doc_type    VARCHAR(16) NULL,
+                id_first_name VARCHAR(100) NULL,
+                id_last_name  VARCHAR(100) NULL,
                 review_note VARCHAR(500) NULL,
                 reviewer_id BIGINT UNSIGNED NULL,
                 submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -44,6 +46,23 @@ final class Kyc
                 KEY idx_doc_submission (submission_id)
             )'
         );
+        self::migrate();
+    }
+
+    /** Ajoute les colonnes nom/prénom à une table déjà créée (idempotent). */
+    private static function migrate(): void
+    {
+        try {
+            db()->query('SELECT id_first_name FROM kyc_submissions LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE kyc_submissions
+                    ADD COLUMN id_first_name VARCHAR(100) NULL,
+                    ADD COLUMN id_last_name  VARCHAR(100) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     /** @return array<int,array> statut par niveau (1..3), indexé par niveau */
@@ -87,18 +106,22 @@ final class Kyc
      * Crée/remplace la soumission d'un niveau (repasse en attente) et ses pièces.
      * @param list<array{slot:string,public_id:string,version:int,format:string}> $docs
      */
-    public static function submit(int $userId, int $level, ?string $docType, array $docs): void
+    public static function submit(int $userId, int $level, ?string $docType, array $docs, ?string $firstName = null, ?string $lastName = null): void
     {
         self::ensureTables();
         $pdo = db();
         $pdo->beginTransaction();
         try {
             $pdo->prepare(
-                'INSERT INTO kyc_submissions (user_id, level, status, doc_type, submitted_at)
-                 VALUES (:uid, :lvl, \'pending\', :dt, NOW())
+                'INSERT INTO kyc_submissions (user_id, level, status, doc_type, id_first_name, id_last_name, submitted_at)
+                 VALUES (:uid, :lvl, \'pending\', :dt, :fn, :ln, NOW())
                  ON DUPLICATE KEY UPDATE status = \'pending\', doc_type = :dt2,
+                     id_first_name = :fn2, id_last_name = :ln2,
                      review_note = NULL, reviewer_id = NULL, submitted_at = NOW(), reviewed_at = NULL'
-            )->execute(['uid' => $userId, 'lvl' => $level, 'dt' => $docType, 'dt2' => $docType]);
+            )->execute([
+                'uid' => $userId, 'lvl' => $level, 'dt' => $docType, 'dt2' => $docType,
+                'fn' => $firstName, 'fn2' => $firstName, 'ln' => $lastName, 'ln2' => $lastName,
+            ]);
 
             $sid = (int) $pdo->query(
                 'SELECT id FROM kyc_submissions WHERE user_id = ' . $userId . ' AND level = ' . $level

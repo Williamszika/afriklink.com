@@ -522,4 +522,10 @@ return [
     'admin.note_ph'   => 'Ex. : photo floue, document expiré…',
     'admin.approve'   => '✅ Approuver',
     'admin.reject'    => '❌ Refuser',
+    'kyc.first_name' => 'Prénom',
+    'kyc.last_name' => 'Nom',
+    'kyc.name_hint' => 'Saisis ton prénom et ton nom EXACTEMENT comme ils apparaissent sur ta pièce d’identité.',
+    'kyc.name_required' => 'Indique ton prénom et ton nom tels qu’écrits sur la pièce.',
+    'admin.declared_name' => 'Nom déclaré (sur la pièce)',
+    'admin.declared_name_hint' => '— à comparer avec le document ci-dessous',
 ];

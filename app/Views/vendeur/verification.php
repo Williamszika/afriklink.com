@@ -65,6 +65,25 @@ $idTypes = config('kyc.id_types', []);
                             <?= csrf_field() ?>
                             <input type="hidden" name="docs_json" class="kyc-docs" value="">
 
+                            <?php if (!empty($cfg['has_name'])): ?>
+                                <?php
+                                $acct = preg_split('/\s+/', trim((string) ($user['full_name'] ?? '')), 2);
+                                $preFirst = old('id_first_name') ?: (string) ($sub['id_first_name'] ?? ($acct[0] ?? ''));
+                                $preLast  = old('id_last_name')  ?: (string) ($sub['id_last_name'] ?? ($acct[1] ?? ''));
+                                ?>
+                                <p class="hint"><?= e(t('kyc.name_hint')) ?></p>
+                                <div class="grid-2">
+                                    <div>
+                                        <label for="kyc-fn-<?= $lvl ?>"><?= e(t('kyc.first_name')) ?> *</label>
+                                        <input type="text" id="kyc-fn-<?= $lvl ?>" name="id_first_name" value="<?= e($preFirst) ?>" maxlength="100" required autocomplete="given-name">
+                                    </div>
+                                    <div>
+                                        <label for="kyc-ln-<?= $lvl ?>"><?= e(t('kyc.last_name')) ?> *</label>
+                                        <input type="text" id="kyc-ln-<?= $lvl ?>" name="id_last_name" value="<?= e($preLast) ?>" maxlength="100" required autocomplete="family-name">
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                             <?php if (!empty($cfg['has_doc_type'])): ?>
                                 <label><?= e(t('kyc.doc_type')) ?></label>
                                 <select name="doc_type" required>
