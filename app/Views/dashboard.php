@@ -19,10 +19,8 @@ $genderLbl = !empty($user['gender']) ? t('gender.' . $user['gender']) : '—';
 $contactOk = !empty($user['phone']) || $verifiedEmail;
 
 $nListings = (int) ($counts['listings'] ?? 0);
-$nSold     = (int) ($counts['sold'] ?? 0);
 $stats = [
     ['icon' => '🛒', 'key' => 'purchases', 'value' => 0,          'note' => t('dash.phase', ['n' => 3]), 'href' => '#buys'],
-    ['icon' => '💼', 'key' => 'sales',     'value' => $nSold,     'note' => t('dash.stat.sold_note'),    'href' => url('/annonces')],
     ['icon' => '🏷️', 'key' => 'listings',  'value' => $nListings, 'note' => t('dash.stat.listings_note'),'href' => url('/annonces')],
     ['icon' => '💬', 'key' => 'messages',  'value' => 0,          'note' => t('dash.phase', ['n' => 5]), 'href' => url('/bientot/messages')],
 ];
@@ -120,7 +118,7 @@ $stats = [
         </div>
         <div class="panel" id="sales">
             <div class="panel-title-row">
-                <h2 class="panel-title">💼 <?= e(t('dash.sales_title')) ?></h2>
+                <h2 class="panel-title">🏷️ <?= e(t('dash.sales_title')) ?></h2>
                 <?php if ($recent !== []): ?>
                     <a class="btn btn-ghost btn-sm" href="<?= e(url('/annonces')) ?>"><?= e(t('dash.all_listings')) ?></a>
                 <?php endif; ?>

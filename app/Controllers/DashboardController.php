@@ -32,7 +32,7 @@ final class DashboardController
      */
     public function comingSoon(Request $request): void
     {
-        $feature = whitelist((string) $request->param('feature', ''), ['vendre', 'annonces', 'messages'], null);
+        $feature = whitelist((string) $request->param('feature', ''), ['messages'], null);
         if ($feature === null) {
             abort(404);
         }
