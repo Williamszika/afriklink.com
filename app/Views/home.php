@@ -12,8 +12,13 @@ $verticals = [
     <h1><?= e(t('home.hero_title')) ?></h1>
     <p class="lead"><?= e(t('home.hero_subtitle')) ?></p>
     <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="<?= e(url('/register')) ?>"><?= e(t('home.cta_register')) ?></a>
-        <a class="btn btn-ghost btn-lg" href="<?= e(url('/login')) ?>"><?= e(t('home.cta_login')) ?></a>
+        <?php if (current_user() !== null): ?>
+            <a class="btn btn-primary btn-lg" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
+            <a class="btn btn-ghost btn-lg" href="<?= e(url('/vendre')) ?>"><?= e(t('dash.action.sell_title')) ?></a>
+        <?php else: ?>
+            <a class="btn btn-primary btn-lg" href="<?= e(url('/register')) ?>"><?= e(t('home.cta_register')) ?></a>
+            <a class="btn btn-ghost btn-lg" href="<?= e(url('/login')) ?>"><?= e(t('home.cta_login')) ?></a>
+        <?php endif; ?>
     </div>
     <p class="hero-secondary"><a href="#verticals"><?= e(t('home.cta_explore')) ?></a></p>
 </section>
