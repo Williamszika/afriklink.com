@@ -779,3 +779,35 @@ document.addEventListener('click', function (ev) {
     wire('logo-input', 'logo-public-id', 'logo-state');
     wire('banner-input', 'banner-public-id', 'banner-state');
 })();
+
+/* ---- Création de boutique : physique vs 100 % en ligne ----
+   Physique → champ adresse affiché (obligatoire), retrait en main propre
+   disponible. En ligne → pas d'adresse, retrait masqué/décoché (tout en
+   livraison). Le serveur impose les mêmes règles. */
+(function () {
+    var form = document.getElementById('shop-form');
+    if (!form) { return; }
+    var radios = form.querySelectorAll('input[name=shop_type]');
+    if (!radios.length) { return; }
+    var addrWrap = document.getElementById('shop-address-wrap');
+    var addr = document.getElementById('shop-address');
+    var pickupPill = form.querySelector('[data-pickup-pill]');
+    var onlineHint = document.getElementById('online-methods-hint');
+
+    function apply() {
+        var type = (form.querySelector('input[name=shop_type]:checked') || {}).value;
+        var physical = type === 'physical';
+        if (addrWrap) { addrWrap.hidden = !physical; }
+        if (addr) { addr.required = physical; if (!physical) { addr.value = addr.value; } }
+        if (pickupPill) {
+            pickupPill.hidden = !physical;
+            if (!physical) {
+                var cb = pickupPill.querySelector('input');
+                if (cb) { cb.checked = false; }
+            }
+        }
+        if (onlineHint) { onlineHint.hidden = physical || !type; }
+    }
+    Array.prototype.forEach.call(radios, function (r) { r.addEventListener('change', apply); });
+    apply();
+})();

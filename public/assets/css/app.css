@@ -383,6 +383,14 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .shop-aside { display: grid; gap: 16px; }
 @media (max-width: 800px) { .shop-body { grid-template-columns: 1fr; } }
 
+/* Type de boutique : physique vs en ligne */
+.shop-type-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+.type-card { display: flex; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; gap: 10px; align-items: flex-start; background: #fff; }
+.type-card:has(input:checked) { border-color: var(--brand); background: #ecfdf3; }
+.type-card input { width: auto; margin-top: 3px; }
+.type-card-body { display: grid; gap: 2px; font-size: .92rem; }
+@media (max-width: 700px) { .shop-type-choice { grid-template-columns: 1fr; } }
+
 /* Vérification KYC : niveaux successifs */
 .kyc-levels { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: kyc; }
 .kyc-level { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; background: var(--card); }

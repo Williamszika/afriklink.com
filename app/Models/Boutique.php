@@ -25,6 +25,8 @@ final class Boutique
                 logo_public_id   VARCHAR(255) NULL,
                 banner_public_id VARCHAR(255) NULL,
                 currency         CHAR(3) NOT NULL DEFAULT \'EUR\',
+                shop_type        VARCHAR(12) NOT NULL DEFAULT \'online\',
+                address          VARCHAR(220) NULL,
                 delivery_zones   VARCHAR(80) NULL,
                 delivery_methods VARCHAR(80) NULL,
                 free_ship_cents  BIGINT UNSIGNED NULL,
@@ -36,6 +38,23 @@ final class Boutique
                 KEY idx_boutiques_user (user_id)
             )'
         );
+        self::migrate();
+    }
+
+    /** Ajoute shop_type/address à une table déjà créée (idempotent). */
+    private static function migrate(): void
+    {
+        try {
+            db()->query('SELECT shop_type FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN shop_type VARCHAR(12) NOT NULL DEFAULT \'online\',
+                    ADD COLUMN address VARCHAR(220) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     /** Le slug est-il libre ? (hors la boutique de $exceptUserId, pour l'édition) */
@@ -79,11 +98,12 @@ final class Boutique
         $stmt = db()->prepare(
             'INSERT INTO boutiques
                 (public_id, user_id, slug, name, tagline, description, category,
-                 logo_public_id, banner_public_id, currency, delivery_zones,
-                 delivery_methods, free_ship_cents, prep_time, cod_enabled, status)
+                 logo_public_id, banner_public_id, currency, shop_type, address,
+                 delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled, status)
              VALUES
                 (:public_id, :user_id, :slug, :name, :tagline, :description, :category,
-                 :logo, :banner, :currency, :zones, :methods, :free, :prep, :cod, \'draft\')'
+                 :logo, :banner, :currency, :shop_type, :address,
+                 :zones, :methods, :free, :prep, :cod, \'draft\')'
         );
         $stmt->execute([
             'public_id'  => $publicId,
@@ -96,6 +116,8 @@ final class Boutique
             'logo'       => $d['logo_public_id'],
             'banner'     => $d['banner_public_id'],
             'currency'   => $d['currency'],
+            'shop_type'  => $d['shop_type'],
+            'address'    => $d['address'],
             'zones'      => $d['delivery_zones'],
             'methods'    => $d['delivery_methods'],
             'free'       => $d['free_ship_cents'],

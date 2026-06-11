@@ -175,8 +175,34 @@ final class BoutiqueController
             $errors['currency'] = t('validation.required');
             $currency = 'EUR';
         }
+
+        // Boutique physique (avec adresse, retrait possible) ou 100 % en ligne
+        // (pas d'adresse, tout en livraison).
+        $shopType = whitelist((string) input_string('shop_type', ''), ['physical', 'online'], null);
+        if ($shopType === null) {
+            $errors['shop_type'] = t('validation.required');
+            $shopType = 'online';
+        }
+
+        $address = null;
+        if ($shopType === 'physical') {
+            $address = input_string('address');
+            if ($address === null || mb_strlen($address) < 5 || mb_strlen($address) > 220) {
+                $errors['address'] = t('validation.shop_address');
+            }
+        }
+
         $zones   = array_values(array_intersect((array) ($_POST['zones'] ?? []), config('shop.delivery_zones', [])));
         $methods = array_values(array_intersect((array) ($_POST['methods'] ?? []), config('shop.delivery_methods', [])));
+
+        if ($shopType === 'online') {
+            // 100 % en ligne : pas de retrait en main propre, livraison obligatoire.
+            $methods = array_values(array_diff($methods, ['pickup']));
+            if ($methods === []) {
+                $errors['methods'] = t('validation.shop_methods_online');
+            }
+        }
+
         $prep    = whitelist((string) input_string('prep_time', ''), config('shop.prep_options', []), null);
 
         $freeRaw = trim((string) input_string('free_ship', ''));
@@ -189,7 +215,8 @@ final class BoutiqueController
         }
 
         return [[
-            'currency' => $currency, 'delivery_zones' => implode(',', $zones),
+            'currency' => $currency, 'shop_type' => $shopType, 'address' => $address,
+            'delivery_zones' => implode(',', $zones),
             'delivery_methods' => implode(',', $methods), 'prep_time' => $prep,
             'free_ship_cents' => $freeCents,
         ], $errors];
@@ -230,6 +257,8 @@ final class BoutiqueController
             'logo_public_id'   => $logo,
             'banner_public_id' => $banner,
             'currency'         => $s2['currency'],
+            'shop_type'        => $s2['shop_type'] ?? 'online',
+            'address'          => $s2['address'] ?? null,
             'delivery_zones'   => $s2['delivery_zones'],
             'delivery_methods' => $s2['delivery_methods'],
             'free_ship_cents'  => $s2['free_ship_cents'],

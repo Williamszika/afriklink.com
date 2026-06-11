@@ -96,6 +96,35 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
         <?php elseif ($step === 2): ?>
             <h2 class="wizard-h2"><?= e(t('shop.step2_title')) ?></h2>
 
+            <?php $selType = old('shop_type') ?: (string) ($s2['shop_type'] ?? ''); ?>
+            <label><?= e(t('shop.f.type')) ?></label>
+            <div class="shop-type-choice">
+                <label class="type-card">
+                    <input type="radio" name="shop_type" value="physical" <?= $selType === 'physical' ? 'checked' : '' ?> required>
+                    <span class="type-card-body">
+                        <strong>🏬 <?= e(t('shop.type.physical')) ?></strong>
+                        <span class="muted"><?= e(t('shop.type.physical_desc')) ?></span>
+                    </span>
+                </label>
+                <label class="type-card">
+                    <input type="radio" name="shop_type" value="online" <?= $selType === 'online' ? 'checked' : '' ?> required>
+                    <span class="type-card-body">
+                        <strong>🌐 <?= e(t('shop.type.online')) ?></strong>
+                        <span class="muted"><?= e(t('shop.type.online_desc')) ?></span>
+                    </span>
+                </label>
+            </div>
+            <?php if (has_error('shop_type')): ?><p class="field-error"><?= e(error('shop_type')) ?></p><?php endif; ?>
+
+            <div id="shop-address-wrap" <?= $selType === 'physical' ? '' : 'hidden' ?>>
+                <label for="shop-address"><?= e(t('shop.f.address')) ?></label>
+                <input type="text" id="shop-address" name="address"
+                       value="<?= old('address') ?: e((string) ($s2['address'] ?? '')) ?>" maxlength="220"
+                       placeholder="<?= e(t('pro.field.address_ph')) ?>" autocomplete="street-address">
+                <p class="hint"><?= e(t('shop.f.address_hint')) ?></p>
+                <?php if (has_error('address')): ?><p class="field-error"><?= e(error('address')) ?></p><?php endif; ?>
+            </div>
+
             <label for="shop-cur"><?= e(t('shop.f.currency')) ?></label>
             <select id="shop-cur" name="currency">
                 <?php $selCur = old('currency') ?: (string) ($s2['currency'] ?? ($user['preferred_currency'] ?? 'EUR')); ?>
@@ -117,10 +146,13 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
             <?php $selMethods = old('methods') !== '' ? [] : explode(',', (string) ($s2['delivery_methods'] ?? '')); ?>
             <div class="lang-checks">
                 <?php foreach ($methods as $m): ?>
-                    <label class="check-pill"><input type="checkbox" name="methods[]" value="<?= e($m) ?>" <?= in_array($m, $selMethods, true) ? 'checked' : '' ?>>
+                    <label class="check-pill" <?= $m === 'pickup' ? 'data-pickup-pill' : '' ?> <?= ($m === 'pickup' && $selType === 'online') ? 'hidden' : '' ?>>
+                        <input type="checkbox" name="methods[]" value="<?= e($m) ?>" <?= in_array($m, $selMethods, true) ? 'checked' : '' ?>>
                         <span><?= e(t('shop.method.' . $m)) ?></span></label>
                 <?php endforeach; ?>
             </div>
+            <p class="hint" id="online-methods-hint" <?= $selType === 'online' ? '' : 'hidden' ?>><?= e(t('shop.online_delivery_note')) ?></p>
+            <?php if (has_error('methods')): ?><p class="field-error"><?= e(error('methods')) ?></p><?php endif; ?>
 
             <div class="grid-2">
                 <div>
@@ -154,6 +186,11 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
                 <dl class="recap-list">
                     <dt><?= e(t('shop.f.name')) ?></dt><dd><?= e((string) ($s1['name'] ?? '')) ?></dd>
                     <dt><?= e(t('shop.f.slug')) ?></dt><dd><?= e($baseUrl) ?>/boutique/<?= e((string) ($s1['slug'] ?? '')) ?></dd>
+                    <dt><?= e(t('shop.f.type')) ?></dt>
+                    <dd><?= ($s2['shop_type'] ?? 'online') === 'physical' ? '🏬 ' . e(t('shop.type.physical')) : '🌐 ' . e(t('shop.type.online')) ?></dd>
+                    <?php if (!empty($s2['address'])): ?>
+                        <dt><?= e(t('shop.f.address')) ?></dt><dd><?= e((string) $s2['address']) ?></dd>
+                    <?php endif; ?>
                     <dt><?= e(t('shop.f.currency')) ?></dt><dd><?= e((string) ($s2['currency'] ?? '')) ?></dd>
                 </dl>
                 <p class="hint"><a href="<?= e(url('/boutique/creer?etape=1')) ?>"><?= e(t('shop.edit1')) ?></a> · <a href="<?= e(url('/boutique/creer?etape=2')) ?>"><?= e(t('shop.edit2')) ?></a></p>

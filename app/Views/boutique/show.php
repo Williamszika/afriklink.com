@@ -53,6 +53,11 @@ $methods = array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? 
             <div class="panel">
                 <h2 class="panel-title"><?= e(t('shop.infos')) ?></h2>
                 <dl class="meta">
+                    <dt><?= e(t('shop.f.type')) ?></dt>
+                    <dd><?= ($boutique['shop_type'] ?? 'online') === 'physical' ? '🏬 ' . e(t('shop.type.physical')) : '🌐 ' . e(t('shop.type.online')) ?></dd>
+                    <?php if (($boutique['shop_type'] ?? '') === 'physical' && !empty($boutique['address'])): ?>
+                        <dt><?= e(t('shop.f.address')) ?></dt><dd>📍 <?= e((string) $boutique['address']) ?></dd>
+                    <?php endif; ?>
                     <?php if ($zones): ?>
                         <dt><?= e(t('shop.f.zones')) ?></dt>
                         <dd><?= e(implode(' · ', array_map(static fn ($z) => t('shop.zone.' . $z), $zones))) ?></dd>
