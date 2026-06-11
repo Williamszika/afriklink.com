@@ -162,7 +162,7 @@ return [
     'soon.messages.desc'    => 'Messaging will let you chat with buyers and sellers directly on Afriklink.',
 
     // Listings (“Sell an item”)
-    'listing.create_title'        => 'Sell an item',
+    'listing.create_title'        => 'Create your listing',
     'listing.create_desc'         => 'Describe your item, add photos (and a short video if you like) — let’s go.',
     'listing.media_unconfigured'  => 'Photo hosting is not configured yet.',
     'listing.media_unconfigured_hint' => 'The free Cloudinary account needs to be connected: paste the 3 keys into Vercel and this page will activate itself.',

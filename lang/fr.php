@@ -162,7 +162,7 @@ return [
     'soon.messages.desc'    => 'La messagerie te permettra d’échanger avec les acheteurs et les vendeurs directement sur Afriklink.',
 
     // Annonces (« Vendre un article »)
-    'listing.create_title'        => 'Vendre un article',
+    'listing.create_title'        => 'Fais ton annonce',
     'listing.create_desc'         => 'Décris ton article, ajoute des photos (et une courte vidéo si tu veux) — c’est parti.',
     'listing.media_unconfigured'  => 'L’hébergement des photos n’est pas encore configuré.',
     'listing.media_unconfigured_hint' => 'Le compte Cloudinary (gratuit) doit être relié : colle les 3 clés dans Vercel et cette page s’activera toute seule.',
