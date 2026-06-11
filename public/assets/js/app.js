@@ -451,6 +451,157 @@ document.addEventListener('click', function (ev) {
         if (files && files.length) { handleIncomingFiles(files); }
     });
 
+    /* ---- Caméra intégrée (getUserMedia) ----------------------------
+       Clic sur « Prendre une photo » / « Filmer maintenant » : le navigateur
+       demande la permission caméra (+ micro pour la vidéo), un aperçu en
+       direct s'affiche, puis la capture rejoint le même tuyau d'envoi que
+       les fichiers. Si la caméra est refusée/indisponible, on retombe sur
+       l'input natif (qui ouvre l'app caméra sur la plupart des téléphones). */
+    var camTxt = {
+        capture: form.dataset.camCapture || 'Capturer la photo',
+        done:    form.dataset.camDone || 'Terminer',
+        start:   form.dataset.camStart || 'Démarrer la vidéo',
+        stop:    form.dataset.camStop || 'Arrêter',
+        flip:    form.dataset.camFlip || 'Changer de caméra',
+        added:   form.dataset.camAdded || 'Photo ajoutée ✓',
+        error:   form.dataset.camError || 'Caméra inaccessible — utilise « Choisir un fichier ».',
+        maxS:    form.dataset.camMax || '60 s maximum'
+    };
+
+    function cameraSupported() {
+        return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    }
+
+    function openCamera(mode) { // 'photo' | 'video'
+        var facing = 'environment';
+        var stream = null;
+        var recorder = null;
+        var chunks = [];
+        var timerId = null;
+
+        var overlay = document.createElement('div');
+        overlay.className = 'cam-overlay';
+        overlay.innerHTML =
+            '<div class="cam-box">' +
+            '  <video class="cam-preview" autoplay playsinline muted></video>' +
+            '  <p class="cam-status">' + (mode === 'video' ? camTxt.maxS : '') + '</p>' +
+            '  <div class="cam-controls">' +
+            '    <button type="button" class="btn btn-ghost btn-sm cam-flip">🔄 ' + camTxt.flip + '</button>' +
+            '    <button type="button" class="btn btn-primary cam-main">' +
+                     (mode === 'photo' ? '📸 ' + camTxt.capture : '⏺ ' + camTxt.start) + '</button>' +
+            '    <button type="button" class="btn btn-ghost btn-sm cam-close">✕ ' + camTxt.done + '</button>' +
+            '  </div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+
+        var vid = overlay.querySelector('.cam-preview');
+        var status = overlay.querySelector('.cam-status');
+        var btnMain = overlay.querySelector('.cam-main');
+        var btnFlip = overlay.querySelector('.cam-flip');
+        var btnClose = overlay.querySelector('.cam-close');
+
+        function stopTracks() {
+            if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+        }
+        function close() {
+            if (timerId) { clearInterval(timerId); timerId = null; }
+            if (recorder && recorder.state === 'recording') { try { recorder.stop(); } catch (e) {} }
+            stopTracks();
+            overlay.remove();
+        }
+        function fallbackNative() {
+            close();
+            setError(mode === 'photo' ? photoError : videoError, camTxt.error);
+            var native = mode === 'photo' ? photoCamera : videoCamera;
+            if (native) { try { native.click(); } catch (e) {} }
+        }
+        function start() {
+            stopTracks();
+            var constraints = { video: { facingMode: facing }, audio: mode === 'video' };
+            navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
+                stream = s;
+                vid.srcObject = s;
+                vid.play().catch(function () {});
+            }).catch(fallbackNative);
+        }
+
+        btnFlip.addEventListener('click', function () {
+            if (recorder && recorder.state === 'recording') { return; }
+            facing = facing === 'environment' ? 'user' : 'environment';
+            start();
+        });
+        btnClose.addEventListener('click', close);
+
+        if (mode === 'photo') {
+            btnMain.addEventListener('click', function () {
+                if (!stream) { return; }
+                if (photos.length + inflightPhotos >= MAX_PHOTOS) {
+                    setError(photoError, photoError.dataset.max || ('Maximum ' + MAX_PHOTOS + ' photos.'));
+                    close();
+                    return;
+                }
+                var canvas = document.createElement('canvas');
+                canvas.width = vid.videoWidth || 1280;
+                canvas.height = vid.videoHeight || 720;
+                canvas.getContext('2d').drawImage(vid, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(function (blob) {
+                    if (!blob) { return; }
+                    addPhotoFiles([new File([blob], 'camera-' + Date.now() + '.jpg', { type: 'image/jpeg' })]);
+                    status.textContent = camTxt.added + ' (' + (photos.length + inflightPhotos) + '/' + MAX_PHOTOS + ')';
+                }, 'image/jpeg', 0.9);
+            });
+        } else {
+            btnMain.addEventListener('click', function () {
+                if (!stream) { return; }
+                if (recorder && recorder.state === 'recording') {
+                    recorder.stop();
+                    return;
+                }
+                var mime = ['video/mp4', 'video/webm;codecs=vp8,opus', 'video/webm'].filter(function (m) {
+                    return window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m);
+                })[0];
+                if (!window.MediaRecorder) { fallbackNative(); return; }
+                chunks = [];
+                try {
+                    recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+                } catch (e) { fallbackNative(); return; }
+                recorder.ondataavailable = function (ev) { if (ev.data && ev.data.size) { chunks.push(ev.data); } };
+                recorder.onstop = function () {
+                    if (timerId) { clearInterval(timerId); timerId = null; }
+                    var type = (recorder.mimeType || mime || 'video/webm').split(';')[0];
+                    var ext = type.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+                    var file = new File([new Blob(chunks, { type: type })], 'camera-video.' + ext, { type: type });
+                    close();
+                    setVideoFile(file);
+                };
+                recorder.start();
+                btnMain.textContent = '⏹ ' + camTxt.stop;
+                btnMain.classList.add('recording');
+                var startedAt = Date.now();
+                timerId = setInterval(function () {
+                    var s = Math.floor((Date.now() - startedAt) / 1000);
+                    status.textContent = s + ' s / ' + MAX_VIDEO_S + ' s';
+                    if (s >= MAX_VIDEO_S && recorder.state === 'recording') { recorder.stop(); }
+                }, 250);
+            });
+        }
+
+        start();
+    }
+
+    var openPhotoCam = document.getElementById('open-photo-camera');
+    var openVideoCam = document.getElementById('open-video-camera');
+    if (openPhotoCam) {
+        openPhotoCam.addEventListener('click', function () {
+            if (cameraSupported()) { openCamera('photo'); } else if (photoCamera) { photoCamera.click(); }
+        });
+    }
+    if (openVideoCam) {
+        openVideoCam.addEventListener('click', function () {
+            if (cameraSupported()) { openCamera('video'); } else if (videoCamera) { videoCamera.click(); }
+        });
+    }
+
     form.addEventListener('submit', function (ev) {
         if (pending > 0) { ev.preventDefault(); return; }
         if (photos.length === 0) {

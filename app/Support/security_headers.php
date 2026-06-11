@@ -21,9 +21,11 @@ function send_security_headers(): void
     // Fuite de referer limitée
     header('Referrer-Policy: strict-origin-when-cross-origin');
 
-    // Permissions minimales — geolocation=(self) : la page d'inscription utilise la
-    // géolocalisation du navigateur (avec consentement) pour pré-remplir la ville.
-    header('Permissions-Policy: geolocation=(self), microphone=(), camera=()');
+    // Permissions minimales, accordées à NOTRE origine uniquement (self) :
+    // - geolocation : pré-remplissage de la ville à l'inscription (avec consentement)
+    // - camera/microphone : prise de photo et vidéo dans le formulaire d'annonce
+    //   (getUserMedia — le navigateur affiche sa demande de permission)
+    header('Permissions-Policy: geolocation=(self), microphone=(self), camera=(self)');
 
     // CSP — à AFFINER selon tes scripts. Éviter 'unsafe-inline' à terme (utiliser des nonces).
     $csp = implode('; ', [

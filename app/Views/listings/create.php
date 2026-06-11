@@ -21,7 +21,15 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
             <p class="hint"><?= e(t('listing.media_unconfigured_hint')) ?></p>
         </div>
     <?php else: ?>
-    <form method="post" action="<?= e(url('/vendre')) ?>" id="listing-form" novalidate>
+    <form method="post" action="<?= e(url('/vendre')) ?>" id="listing-form" novalidate
+          data-cam-capture="<?= e(t('cam.capture')) ?>"
+          data-cam-done="<?= e(t('cam.done')) ?>"
+          data-cam-start="<?= e(t('cam.start')) ?>"
+          data-cam-stop="<?= e(t('cam.stop')) ?>"
+          data-cam-flip="<?= e(t('cam.flip')) ?>"
+          data-cam-added="<?= e(t('cam.added')) ?>"
+          data-cam-error="<?= e(t('cam.error')) ?>"
+          data-cam-max="<?= e(t('cam.max_s', ['max' => $maxVideoS])) ?>">
         <?= csrf_field() ?>
         <input type="hidden" name="photos_json" id="photos_json" value="">
         <input type="hidden" name="video_public_id" id="video_public_id" value="">
@@ -84,7 +92,7 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
         <div class="upload-zone" id="photo-zone">
             <div class="upload-actions">
                 <label class="btn btn-ghost btn-sm" for="photo-input">📁 <?= e(t('listing.btn.choose_files')) ?></label>
-                <label class="btn btn-ghost btn-sm" for="photo-camera">📷 <?= e(t('listing.btn.take_photo')) ?></label>
+                <button type="button" class="btn btn-ghost btn-sm" id="open-photo-camera">📷 <?= e(t('listing.btn.take_photo')) ?></button>
             </div>
             <p class="hint"><?= e(t('listing.field.photos_hint')) ?></p>
             <input type="file" id="photo-input" class="file-hidden" accept="image/*" multiple>
@@ -99,7 +107,7 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
         <div class="upload-zone" id="video-zone">
             <div class="upload-actions">
                 <label class="btn btn-ghost btn-sm" for="video-input">📁 <?= e(t('listing.btn.choose_video')) ?></label>
-                <label class="btn btn-ghost btn-sm" for="video-camera">🎥 <?= e(t('listing.btn.record_video')) ?></label>
+                <button type="button" class="btn btn-ghost btn-sm" id="open-video-camera">🎥 <?= e(t('listing.btn.record_video')) ?></button>
             </div>
             <p class="hint"><?= e(t('listing.field.video_hint', ['max' => $maxVideoS])) ?></p>
             <input type="file" id="video-input" class="file-hidden" accept="video/mp4,video/quicktime,video/webm">
