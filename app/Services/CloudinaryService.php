@@ -36,31 +36,47 @@ final class CloudinaryService
 
     /**
      * État lisible pour /health — ne révèle jamais de secret, mais explique
-     * précisément ce qui cloche (gabarit non remplacé, mauvaise variable…).
+     * précisément ce qui cloche (gabarit non remplacé, variable manquante,
+     * CLOUDINARY_URL illisible…).
      * @return array{status:string,cloud?:string,hint?:string}
      */
     public static function diagnostic(): array
     {
         $c = self::creds();
-        if ($c['cloud'] === '' && $c['key'] === '' && $c['secret'] === '') {
-            return [
-                'status' => 'unconfigured',
-                'hint'   => 'Définis CLOUDINARY_URL (forme cloudinary://API_KEY:API_SECRET@cloud_name) '
-                          . 'ou les trois variables CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET.',
-            ];
+        if (self::configured()) {
+            return ['status' => 'ok', 'cloud' => $c['cloud']];
         }
+
+        $rawUrl = self::clean(self::env('CLOUDINARY_URL'));
+        $empty  = $c['cloud'] === '' && $c['key'] === '' && $c['secret'] === '' && $rawUrl === '';
+
         $problems = [];
         if (self::hasPlaceholder($c)) {
-            $problems[] = 'valeurs encore à l’état de gabarit Cloudinary (<your_api_key> / <your_api_secret>) — '
-                        . 'révèle le secret puis recopie les VRAIES valeurs';
+            $problems[] = 'valeurs encore à l’état de gabarit (<your_api_key>/<your_api_secret>) — révèle le secret sur le Dashboard Cloudinary puis recopie';
+        }
+        if ($rawUrl !== '' && self::parseUrl($rawUrl) === null) {
+            $problems[] = 'CLOUDINARY_URL illisible — forme attendue : cloudinary://API_KEY:API_SECRET@cloud_name';
         }
         if ($c['cloud'] !== '' && (str_contains($c['cloud'], '=') || stripos($c['cloud'], 'cloudinary://') !== false)) {
-            $problems[] = 'CLOUDINARY_CLOUD_NAME doit être le nom court seul (ex. « daljbrmog »), pas l’URL complète';
+            $problems[] = 'CLOUDINARY_CLOUD_NAME doit être le nom court seul (ex. « daljbrmog »)';
         }
-        if ($problems !== []) {
-            return ['status' => 'misconfigured', 'cloud' => $c['cloud'], 'hint' => implode(' ; ', $problems)];
+        if (!$empty) {
+            foreach (['CLOUDINARY_CLOUD_NAME' => 'cloud', 'CLOUDINARY_API_KEY' => 'key', 'CLOUDINARY_API_SECRET' => 'secret'] as $name => $k) {
+                if ($c[$k] === '') {
+                    $problems[] = $name . ' manquante';
+                }
+            }
         }
-        return ['status' => 'ok', 'cloud' => $c['cloud']];
+
+        return [
+            'status'         => $empty ? 'unconfigured' : 'misconfigured',
+            'has_cloud_name' => $c['cloud'] !== '',
+            'has_api_key'    => $c['key'] !== '',
+            'has_api_secret' => $c['secret'] !== '',
+            'hint'           => $problems !== []
+                ? implode(' ; ', $problems)
+                : 'Définis CLOUDINARY_URL (cloudinary://API_KEY:API_SECRET@cloud_name) ou les trois variables séparées.',
+        ];
     }
 
     public static function cloudName(): string
