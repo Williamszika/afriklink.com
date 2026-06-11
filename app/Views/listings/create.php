@@ -79,21 +79,31 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
         <label for="city"><?= e(t('field.city')) ?></label>
         <input type="text" id="city" name="city" value="<?= e($city) ?>" maxlength="120">
 
-        <!-- Photos -->
+        <!-- Photos : fichiers, appareil photo, glisser-déposer ou coller -->
         <label><?= e(t('listing.field.photos', ['max' => $maxPhotos])) ?></label>
         <div class="upload-zone" id="photo-zone">
-            <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" multiple>
+            <div class="upload-actions">
+                <label class="btn btn-ghost btn-sm" for="photo-input">📁 <?= e(t('listing.btn.choose_files')) ?></label>
+                <label class="btn btn-ghost btn-sm" for="photo-camera">📷 <?= e(t('listing.btn.take_photo')) ?></label>
+            </div>
             <p class="hint"><?= e(t('listing.field.photos_hint')) ?></p>
+            <input type="file" id="photo-input" class="file-hidden" accept="image/*" multiple>
+            <input type="file" id="photo-camera" class="file-hidden" accept="image/*" capture="environment">
         </div>
         <div class="upload-previews" id="photo-previews"></div>
         <?php if (has_error('photos')): ?><p class="field-error"><?= e(error('photos')) ?></p><?php endif; ?>
         <p class="field-error" id="photo-error" hidden></p>
 
-        <!-- Vidéo -->
+        <!-- Vidéo : fichier, caméra ou glisser-déposer -->
         <label><?= e(t('listing.field.video', ['max' => $maxVideoS])) ?></label>
         <div class="upload-zone" id="video-zone">
-            <input type="file" id="video-input" accept="video/mp4,video/quicktime,video/webm">
+            <div class="upload-actions">
+                <label class="btn btn-ghost btn-sm" for="video-input">📁 <?= e(t('listing.btn.choose_video')) ?></label>
+                <label class="btn btn-ghost btn-sm" for="video-camera">🎥 <?= e(t('listing.btn.record_video')) ?></label>
+            </div>
             <p class="hint"><?= e(t('listing.field.video_hint', ['max' => $maxVideoS])) ?></p>
+            <input type="file" id="video-input" class="file-hidden" accept="video/mp4,video/quicktime,video/webm">
+            <input type="file" id="video-camera" class="file-hidden" accept="video/*" capture="environment">
         </div>
         <div class="upload-previews" id="video-preview"></div>
         <?php if (has_error('video')): ?><p class="field-error"><?= e(error('video')) ?></p><?php endif; ?>

@@ -277,9 +277,13 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .soon-card .hero-actions { margin-top: 22px; }
 
 /* Annonces : dépôt (upload) */
-.upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--card); }
-.upload-zone input[type="file"] { font-size: .9rem; color: var(--muted); max-width: 100%; }
+.upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--card); transition: border-color .15s, background .15s; }
+.upload-zone.dragover { border-color: var(--brand); background: #ecfdf3; }
 .upload-zone .hint { margin: 6px 0 0; }
+.upload-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.upload-actions .btn { cursor: pointer; margin: 0; }
+/* input masqué mais focusable/cliquable via son label (accessible) */
+.file-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .upload-previews { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
 .upload-previews .preview { position: relative; }
 .upload-previews img, .upload-previews video { width: 120px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; background: #000; }

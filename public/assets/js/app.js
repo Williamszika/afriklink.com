@@ -214,7 +214,11 @@ document.addEventListener('click', function (ev) {
     var photosJson = document.getElementById('photos_json');
     var videoIdInput = document.getElementById('video_public_id');
     var photoInput = document.getElementById('photo-input');
+    var photoCamera = document.getElementById('photo-camera');
     var videoInput = document.getElementById('video-input');
+    var videoCamera = document.getElementById('video-camera');
+    var photoZone = document.getElementById('photo-zone');
+    var videoZone = document.getElementById('video-zone');
     var photoPreviews = document.getElementById('photo-previews');
     var videoPreview = document.getElementById('video-preview');
     var photoError = document.getElementById('photo-error');
@@ -225,6 +229,7 @@ document.addEventListener('click', function (ev) {
     var MAX_VIDEO_S = 60;
     var photos = []; // {publicId, url}
     var pending = 0;
+    var inflightPhotos = 0; // envois photo en cours (pour la limite de 5)
 
     function setError(node, msg) { node.textContent = msg || ''; node.hidden = !msg; }
     function syncState() {
@@ -311,29 +316,39 @@ document.addEventListener('click', function (ev) {
         photoPreviews.appendChild(wrap);
     }
 
-    if (photoInput) {
-        photoInput.addEventListener('change', function () {
-            setError(photoError, '');
-            var files = Array.prototype.slice.call(photoInput.files || []);
-            photoInput.value = '';
-            if (!files.length) { return; }
-            if (photos.length + files.length > MAX_PHOTOS) {
-                setError(photoError, photoError.dataset.max || ('Maximum ' + MAX_PHOTOS + ' photos.'));
-                files = files.slice(0, Math.max(0, MAX_PHOTOS - photos.length));
-            }
-            files.forEach(function (original) {
-                pending++; syncState();
-                shrinkImage(original).then(function (file) {
-                    return sign('image').then(function (params) { return uploadToCloudinary(file, params); });
-                }).then(function (res) {
-                    photos.push({ publicId: res.public_id });
-                    addPhotoPreview(res.public_id, URL.createObjectURL(original));
-                }).catch(function () {
-                    setError(photoError, photoError.dataset.fail || "Échec de l'envoi d'une photo — réessaie.");
-                }).finally(function () { pending--; syncState(); });
-            });
+    /* Accepte des photos venant de N'IMPORTE QUELLE source :
+       sélecteur de fichiers, appareil photo, glisser-déposer, collage. */
+    function addPhotoFiles(fileList) {
+        setError(photoError, '');
+        var files = Array.prototype.filter.call(fileList || [], function (f) {
+            return f && f.type.indexOf('image/') === 0;
+        });
+        if (!files.length) { return; }
+        var room = MAX_PHOTOS - photos.length - inflightPhotos;
+        if (files.length > room) {
+            setError(photoError, photoError.dataset.max || ('Maximum ' + MAX_PHOTOS + ' photos.'));
+            files = files.slice(0, Math.max(0, room));
+        }
+        files.forEach(function (original) {
+            pending++; inflightPhotos++; syncState();
+            shrinkImage(original).then(function (file) {
+                return sign('image').then(function (params) { return uploadToCloudinary(file, params); });
+            }).then(function (res) {
+                photos.push({ publicId: res.public_id });
+                addPhotoPreview(res.public_id, URL.createObjectURL(original));
+            }).catch(function () {
+                setError(photoError, photoError.dataset.fail || "Échec de l'envoi d'une photo — réessaie.");
+            }).finally(function () { pending--; inflightPhotos--; syncState(); });
         });
     }
+
+    [photoInput, photoCamera].forEach(function (input) {
+        if (!input) { return; }
+        input.addEventListener('change', function () {
+            addPhotoFiles(input.files);
+            input.value = '';
+        });
+    });
 
     function videoDuration(file) {
         return new Promise(function (resolve) {
@@ -345,17 +360,15 @@ document.addEventListener('click', function (ev) {
         });
     }
 
-    if (videoInput) {
-        videoInput.addEventListener('change', function () {
-            setError(videoError, '');
-            var file = videoInput.files && videoInput.files[0];
-            videoInput.value = '';
-            if (!file) { return; }
-            if (file.size > 100 * 1024 * 1024) {
-                setError(videoError, videoError.dataset.big || 'Vidéo trop lourde (100 Mo max).');
-                return;
-            }
-            videoDuration(file).then(function (d) {
+    /* Accepte une vidéo venant du sélecteur, de la caméra ou d'un dépôt. */
+    function setVideoFile(file) {
+        setError(videoError, '');
+        if (!file) { return; }
+        if (file.size > 100 * 1024 * 1024) {
+            setError(videoError, videoError.dataset.big || 'Vidéo trop lourde (100 Mo max).');
+            return;
+        }
+        videoDuration(file).then(function (d) {
                 if (isNaN(d) || d > MAX_VIDEO_S + 1) {
                     setError(videoError, videoError.dataset.long || ('Vidéo trop longue : ' + Math.round(d) + ' s (max ' + MAX_VIDEO_S + ' s).'));
                     return;
@@ -391,9 +404,52 @@ document.addEventListener('click', function (ev) {
                     delete statusLine.dataset.msg;
                     pending--; syncState();
                 });
-            });
         });
     }
+
+    [videoInput, videoCamera].forEach(function (input) {
+        if (!input) { return; }
+        input.addEventListener('change', function () {
+            setVideoFile(input.files && input.files[0]);
+            input.value = '';
+        });
+    });
+
+    /* Route un lot de fichiers (déposés ou collés) : images → photos,
+       première vidéo → vidéo de l'annonce. */
+    function handleIncomingFiles(fileList) {
+        var files = Array.prototype.slice.call(fileList || []);
+        if (!files.length) { return; }
+        addPhotoFiles(files);
+        var vid = files.filter(function (f) { return f.type.indexOf('video/') === 0; })[0];
+        if (vid) { setVideoFile(vid); }
+    }
+
+    /* Glisser-déposer sur les deux zones */
+    [photoZone, videoZone].forEach(function (zone) {
+        if (!zone) { return; }
+        ['dragover', 'dragenter'].forEach(function (evName) {
+            zone.addEventListener(evName, function (ev) {
+                ev.preventDefault();
+                zone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'dragend'].forEach(function (evName) {
+            zone.addEventListener(evName, function () { zone.classList.remove('dragover'); });
+        });
+        zone.addEventListener('drop', function (ev) {
+            ev.preventDefault();
+            zone.classList.remove('dragover');
+            handleIncomingFiles(ev.dataTransfer && ev.dataTransfer.files);
+        });
+    });
+
+    /* Collage (Ctrl+V / Cmd+V) d'images ou de vidéos n'importe où sur la page.
+       Le collage de texte dans les champs reste intact (files vide). */
+    document.addEventListener('paste', function (ev) {
+        var files = ev.clipboardData && ev.clipboardData.files;
+        if (files && files.length) { handleIncomingFiles(files); }
+    });
 
     form.addEventListener('submit', function (ev) {
         if (pending > 0) { ev.preventDefault(); return; }
