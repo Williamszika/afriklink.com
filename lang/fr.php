@@ -94,7 +94,7 @@ return [
     'seller.nav.storefronts'  => 'Mes vitrines',
     'seller.nav.orders'       => 'Commandes',
     'seller.nav.messages'     => 'Messages',
-    'seller.nav.profile'      => 'Profil & entreprise',
+    'seller.nav.profile'      => 'Profil',
     'seller.overview_sub'     => 'Ton activité en un coup d’œil.',
     'seller.orders_sub'       => 'Suis et traite tes commandes ici.',
     'seller.messages_sub'     => 'Échange avec tes clients.',

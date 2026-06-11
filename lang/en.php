@@ -94,7 +94,7 @@ return [
     'seller.nav.storefronts'  => 'My storefronts',
     'seller.nav.orders'       => 'Orders',
     'seller.nav.messages'     => 'Messages',
-    'seller.nav.profile'      => 'Profile & business',
+    'seller.nav.profile'      => 'Profile',
     'seller.overview_sub'     => 'Your business at a glance.',
     'seller.orders_sub'       => 'Track and process your orders here.',
     'seller.messages_sub'     => 'Chat with your customers.',
