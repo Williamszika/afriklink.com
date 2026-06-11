@@ -75,6 +75,9 @@ final class HomeController
         // Hébergement médias (annonces) : diagnostic Cloudinary (ok / unconfigured / misconfigured).
         $payload['media'] = \App\Services\CloudinaryService::diagnostic();
 
+        // Relecteurs KYC configurés (nombre seulement, jamais les adresses).
+        $payload['staff_emails'] = count(config('app.admin_emails', []));
+
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.
         if (($_GET['mail_test'] ?? '') === '1') {
