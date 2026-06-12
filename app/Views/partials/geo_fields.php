@@ -13,7 +13,9 @@ $countries = config('countries', []);
 $locked = ($lat ?? '') !== '' && ($lng ?? '') !== '';
 ?>
 <div class="geo-row">
-    <button type="button" class="btn btn-ghost btn-sm" data-geolocate data-geo-lock="1" data-geo-auto="1"
+    <?php /* Bouton masqué : la géolocalisation est automatique. Il reste dans le
+       DOM car il porte la configuration et déclenche la capture précise silencieuse. */ ?>
+    <button type="button" class="btn btn-ghost btn-sm" data-geolocate data-geo-lock="1" data-geo-auto="1" hidden
             data-geo-url="<?= e(url('/api/geo/reverse')) ?>"
             data-geo-city="#shop-city" data-geo-country="#shop-country"
             data-geo-continent="#shop-continent" data-geo-status="#geo-status"
@@ -22,6 +24,7 @@ $locked = ($lat ?? '') !== '' && ($lng ?? '') !== '';
             data-msg-error="<?= e(t('geo.error')) ?>" data-msg-unsupported="<?= e(t('geo.unsupported')) ?>">
         📍 <?= e(t('geo.btn')) ?>
     </button>
+    <span class="geo-auto-hint">📍 <?= e(t('geo.auto')) ?></span>
     <span class="geo-status hint" id="geo-status" role="status" aria-live="polite"></span>
 </div>
 <div class="grid-2">

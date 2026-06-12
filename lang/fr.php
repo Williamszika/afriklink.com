@@ -641,7 +641,8 @@ return [
     'geo.error' => 'Position introuvable pour le moment. Tu peux remplir les champs à la main.',
     'geo.unsupported' => 'Ton navigateur ne permet pas la géolocalisation.',
     'geo.continent_label' => 'Continent :',
-    'geo.locked' => 'Position vérifiée par géolocalisation — ville et pays verrouillés. Clique « 📍 Utiliser ma position » pour les actualiser.',
+    'geo.locked' => 'Position détectée automatiquement — ville et pays verrouillés.',
+    'geo.auto' => 'Localisation détectée automatiquement',
     'geo.chip_title' => 'Ta position détectée — clique pour l’actualiser précisément',
 
     // Explorer (page d'attente)

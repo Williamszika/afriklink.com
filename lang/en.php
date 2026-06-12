@@ -641,7 +641,8 @@ return [
     'geo.error' => 'Could not find your position right now. You can fill the fields manually.',
     'geo.unsupported' => 'Your browser does not support geolocation.',
     'geo.continent_label' => 'Continent:',
-    'geo.locked' => 'Location verified by geolocation — city and country are locked. Click “📍 Use my position” to refresh them.',
+    'geo.locked' => 'Location detected automatically — city and country are locked.',
+    'geo.auto' => 'Location detected automatically',
     'geo.chip_title' => 'Your detected location — click to refresh it precisely',
 
     // Explore (waiting page)

@@ -312,6 +312,7 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 
 /* Géolocalisation (bouton « Utiliser ma position » + statut) */
 .geo-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 4px; }
+.geo-auto-hint { display: inline-flex; align-items: center; gap: 4px; font-size: .82rem; font-weight: 600; color: #1f6f54; }
 .geo-status { min-height: 1.2em; }
 .geo-status.is-error { color: #b42318; }
 .geo-continent { font-weight: 600; }
