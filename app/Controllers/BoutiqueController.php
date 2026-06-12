@@ -307,7 +307,14 @@ final class BoutiqueController
                 $contacts[$ch] = $val;
             }
         }
-        $primary = whitelist((string) input_string('contact_primary', ''), \App\Services\ContactChannels::CHANNELS, '');
+        // Canaux principaux : plusieurs possibles (cases à cocher), gardés dans
+        // l'ordre d'affichage et limités à ceux réellement renseignés.
+        $rawPrimary = $_POST['contact_primary'] ?? [];
+        $rawPrimary = is_array($rawPrimary) ? array_map('strval', $rawPrimary) : [(string) $rawPrimary];
+        $primary = array_values(array_filter(
+            array_intersect(\App\Services\ContactChannels::CHANNELS, $rawPrimary),
+            static fn ($ch): bool => isset($contacts[$ch])
+        ));
 
         return [[
             'name' => $name, 'slug' => $slug, 'logo_public_id' => $logo, 'banner_ids' => $bannerIds,

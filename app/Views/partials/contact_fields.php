@@ -40,12 +40,15 @@ $ctDialPrefix = $ctDial !== '' ? '+' . $ctDial . ' ' : '';
         <?php endforeach; ?>
     </div>
 
-    <label for="contact-primary"><?= e(t('contact.primary')) ?></label>
-    <select id="contact-primary" name="contact_primary">
-        <?php $selP = old('contact_primary') ?: $primary; ?>
+    <label><?= e(t('contact.primary')) ?></label>
+    <?php $selP = old_array('contact_primary') !== [] ? old_array('contact_primary') : (array) $primary; ?>
+    <div class="lang-checks">
         <?php foreach (ContactChannels::CHANNELS as $ch): $m = ContactChannels::meta($ch); ?>
-            <option value="<?= e($ch) ?>" <?= $selP === $ch ? 'selected' : '' ?>><?= $m['icon'] ?> <?= e($m['label']) ?></option>
+            <label class="check-pill">
+                <input type="checkbox" name="contact_primary[]" value="<?= e($ch) ?>" <?= in_array($ch, $selP, true) ? 'checked' : '' ?>>
+                <span><?= $m['icon'] ?> <?= e($m['label']) ?></span>
+            </label>
         <?php endforeach; ?>
-    </select>
+    </div>
     <p class="hint"><?= e(t('contact.primary_hint')) ?></p>
 </fieldset>

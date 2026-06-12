@@ -647,8 +647,8 @@ return [
     // Canaux de contact de la boutique
     'contact.legend' => 'Comment te contacter',
     'contact.intro' => 'Ajoute les moyens que tu utilises — laisse vide ceux que tu n’as pas. Ils apparaîtront sur ta boutique.',
-    'contact.primary' => 'Canal de contact principal',
-    'contact.primary_hint' => 'Le bouton mis en avant sur ta boutique. Les autres apparaissent en petites icônes.',
+    'contact.primary' => 'Canaux de contact principaux',
+    'contact.primary_hint' => 'Coche un ou plusieurs canaux à mettre en avant (gros boutons) sur ta boutique. Les autres apparaissent en petites icônes.',
     'contact.reach' => 'Contacter sur :channel',
     'contact.ph.whatsapp' => 'Numéro WhatsApp, ex. +221 77 123 45 67',
     'contact.ph.sms' => 'Numéro SMS, ex. +33 6 12 34 56 78',

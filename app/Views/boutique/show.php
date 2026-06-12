@@ -115,17 +115,17 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                     <?php endif; ?>
                 </dl>
                 <?php
-                [$ctSet, $ctPrimary] = \App\Services\ContactChannels::forBoutique($boutique);
+                [$ctSet, $ctPrimaries] = \App\Services\ContactChannels::forBoutique($boutique);
                 ?>
                 <?php if ($ctSet !== []): ?>
                     <div class="contact-buttons">
-                        <?php if ($ctPrimary !== ''): $pm = \App\Services\ContactChannels::meta($ctPrimary); ?>
+                        <?php foreach ($ctPrimaries as $ch): $pm = \App\Services\ContactChannels::meta($ch); ?>
                             <a class="btn btn-primary btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
-                               href="<?= e(\App\Services\ContactChannels::url($ctPrimary, $ctSet[$ctPrimary])) ?>">
+                               href="<?= e(\App\Services\ContactChannels::url($ch, $ctSet[$ch])) ?>">
                                 <span aria-hidden="true"><?= $pm['icon'] ?></span> <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
                             </a>
-                        <?php endif; ?>
-                        <?php $others = array_filter($ctSet, static fn ($k) => $k !== $ctPrimary, ARRAY_FILTER_USE_KEY); ?>
+                        <?php endforeach; ?>
+                        <?php $others = array_filter($ctSet, static fn ($k) => !in_array($k, $ctPrimaries, true), ARRAY_FILTER_USE_KEY); ?>
                         <?php if ($others !== []): ?>
                             <div class="contact-secondary">
                                 <?php foreach ($others as $ch => $val): $m = \App\Services\ContactChannels::meta($ch); ?>

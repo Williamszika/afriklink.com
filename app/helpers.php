@@ -513,6 +513,13 @@ function old(string $key, string $default = ''): string
     return e(is_string($value) ? $value : $default);
 }
 
+/** Previously submitted array value (e.g. checkboxes). @return list<string> */
+function old_array(string $key): array
+{
+    $value = $_SESSION['_old'][$key] ?? null;
+    return is_array($value) ? array_values(array_filter($value, 'is_string')) : [];
+}
+
 function clear_old(): void
 {
     unset($_SESSION['_old']);

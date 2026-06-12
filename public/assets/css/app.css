@@ -323,7 +323,7 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 @media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
 .contact-field label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 2px; }
 /* Canaux de contact — vitrine publique */
-.contact-buttons { margin-top: 12px; }
+.contact-buttons { margin-top: 12px; display: grid; gap: 8px; }
 .contact-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .contact-secondary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
 .contact-ico { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid var(--border); border-radius: 50%; background: var(--card); transition: border-color .15s, transform .15s; }

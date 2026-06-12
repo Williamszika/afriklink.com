@@ -99,7 +99,7 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
 
             <?= render_partial('partials/contact_fields', [
                 'values'  => $s1['contacts'] ?? [],
-                'primary' => (string) ($s1['contact_primary'] ?? ''),
+                'primary' => (array) ($s1['contact_primary'] ?? []),
             ]) ?>
 
             <button type="submit" class="btn btn-primary btn-block"><?= e(t('pro.next')) ?> →</button>

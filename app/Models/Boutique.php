@@ -43,7 +43,7 @@ final class Boutique
                 contact_facebook  VARCHAR(160) NULL,
                 contact_instagram VARCHAR(120) NULL,
                 contact_tiktok    VARCHAR(120) NULL,
-                contact_primary   VARCHAR(12) NULL,
+                contact_primary   VARCHAR(80) NULL,
                 status           VARCHAR(12) NOT NULL DEFAULT \'draft\',
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -129,10 +129,23 @@ final class Boutique
                     ADD COLUMN contact_facebook  VARCHAR(160) NULL,
                     ADD COLUMN contact_instagram VARCHAR(120) NULL,
                     ADD COLUMN contact_tiktok    VARCHAR(120) NULL,
-                    ADD COLUMN contact_primary   VARCHAR(12) NULL');
+                    ADD COLUMN contact_primary   VARCHAR(80) NULL');
             } catch (\Throwable) {
                 // course entre instances : une autre a déjà migré
             }
+        }
+        // Élargit contact_primary (liste de canaux principaux) si encore en VARCHAR(12).
+        try {
+            $len = (int) db()->query(
+                "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'boutiques'
+                    AND COLUMN_NAME = 'contact_primary'"
+            )->fetchColumn();
+            if ($len > 0 && $len < 80) {
+                db()->exec('ALTER TABLE boutiques MODIFY contact_primary VARCHAR(80) NULL');
+            }
+        } catch (\Throwable) {
+            // information_schema indisponible : on tentera plus tard
         }
     }
 
@@ -148,8 +161,17 @@ final class Boutique
         foreach (\App\Services\ContactChannels::CHANNELS as $ch) {
             $out['c_' . $ch] = $contacts[$ch] ?? null;
         }
-        $primary = (string) ($d['contact_primary'] ?? '');
-        $out['c_primary'] = isset($contacts[$primary]) ? $primary : null;
+        // Canaux principaux : liste (array ou chaîne), gardés dans l'ordre
+        // d'affichage et limités aux canaux réellement renseignés.
+        $primary = $d['contact_primary'] ?? [];
+        if (is_string($primary)) {
+            $primary = array_filter(array_map('trim', explode(',', $primary)));
+        }
+        $primary = array_values(array_intersect(
+            \App\Services\ContactChannels::CHANNELS,
+            array_filter((array) $primary, static fn ($ch): bool => isset($contacts[$ch]))
+        ));
+        $out['c_primary'] = $primary !== [] ? implode(',', $primary) : null;
         return $out;
     }
 

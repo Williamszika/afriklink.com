@@ -96,8 +96,9 @@ final class ContactChannels
     }
 
     /**
-     * Canaux renseignés d'une boutique + canal principal effectif.
-     * @return array{0: array<string,string>, 1: string} [canaux=>valeur, principal]
+     * Canaux renseignés d'une boutique + canaux principaux (plusieurs possibles).
+     * Les principaux sont limités aux canaux renseignés ; au moins un par défaut.
+     * @return array{0: array<string,string>, 1: list<string>} [canaux=>valeur, principaux]
      */
     public static function forBoutique(array $boutique): array
     {
@@ -108,10 +109,11 @@ final class ContactChannels
                 $set[$ch] = $v;
             }
         }
-        $primary = (string) ($boutique['contact_primary'] ?? '');
-        if (!isset($set[$primary])) {
-            $primary = (string) (array_key_first($set) ?? '');
+        $raw = array_filter(array_map('trim', explode(',', (string) ($boutique['contact_primary'] ?? ''))));
+        $primaries = array_values(array_filter($raw, static fn ($ch): bool => isset($set[$ch])));
+        if ($primaries === [] && $set !== []) {
+            $primaries = [(string) array_key_first($set)]; // au moins un canal mis en avant
         }
-        return [$set, $primary];
+        return [$set, $primaries];
     }
 }

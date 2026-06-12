@@ -647,8 +647,8 @@ return [
     // Shop contact channels
     'contact.legend' => 'How to reach you',
     'contact.intro' => 'Add the channels you use — leave the others empty. They will appear on your shop.',
-    'contact.primary' => 'Primary contact channel',
-    'contact.primary_hint' => 'The highlighted button on your shop. The others appear as small icons.',
+    'contact.primary' => 'Primary contact channels',
+    'contact.primary_hint' => 'Tick one or more channels to highlight (large buttons) on your shop. The others appear as small icons.',
     'contact.reach' => 'Contact on :channel',
     'contact.ph.whatsapp' => 'WhatsApp number, e.g. +221 77 123 45 67',
     'contact.ph.sms' => 'SMS number, e.g. +33 6 12 34 56 78',
