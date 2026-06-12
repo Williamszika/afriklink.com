@@ -639,6 +639,7 @@ return [
     'resto.f.tagline' => 'Tagline',
     'resto.f.tagline_ph' => 'e.g. Real Senegalese cuisine',
     'resto.f.cuisine' => 'Cuisine type',
+    'resto.f.cuisine_hint' => 'several choices possible',
     'resto.f.services' => 'Service',
     'resto.f.hours' => 'Opening hours',
     'resto.f.hours_ph' => 'e.g. Mon–Sat 11am–11pm',

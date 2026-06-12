@@ -23,7 +23,7 @@ final class Restaurant
                 name             VARCHAR(80) NOT NULL,
                 tagline          VARCHAR(140) NULL,
                 description      TEXT NULL,
-                cuisine          VARCHAR(20) NULL,
+                cuisine          VARCHAR(120) NULL,
                 logo_public_id   VARCHAR(255) NULL,
                 banner_public_id VARCHAR(255) NULL,
                 currency         CHAR(3) NOT NULL DEFAULT \'XOF\',
@@ -49,6 +49,19 @@ final class Restaurant
                 KEY idx_restaurants_user (user_id)
             )'
         );
+        // Élargit cuisine (liste multi-choix) si encore en VARCHAR(20).
+        try {
+            $len = (int) db()->query(
+                "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'restaurants'
+                    AND COLUMN_NAME = 'cuisine'"
+            )->fetchColumn();
+            if ($len > 0 && $len < 120) {
+                db()->exec('ALTER TABLE restaurants MODIFY cuisine VARCHAR(120) NULL');
+            }
+        } catch (\Throwable) {
+            // information_schema indisponible : on réessaiera
+        }
     }
 
     public static function create(int $userId, array $d): string

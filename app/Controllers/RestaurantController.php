@@ -186,7 +186,8 @@ final class RestaurantController
         if (mb_strlen($slug) < (int) config('restaurant.slug_min', 3) || !Restaurant::slugAvailable($slug, $userId)) {
             $slug = Restaurant::uniqueSlug($name !== '' ? $name : 'resto', $userId);
         }
-        $cuisine = whitelist((string) input_string('cuisine', ''), config('restaurant.cuisines', []), null);
+        $cuisineList = array_values(array_intersect(config('restaurant.cuisines', []), (array) ($_POST['cuisine'] ?? [])));
+        $cuisine = $cuisineList !== [] ? implode(',', array_slice($cuisineList, 0, 6)) : null;
         $currency = input_currency('currency', config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP'])) ?? 'XOF';
         $services = array_values(array_intersect(config('restaurant.services', []), (array) ($_POST['services'] ?? [])));
 

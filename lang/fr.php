@@ -639,6 +639,7 @@ return [
     'resto.f.tagline' => 'Slogan',
     'resto.f.tagline_ph' => 'ex. La vraie cuisine sénégalaise',
     'resto.f.cuisine' => 'Type de cuisine',
+    'resto.f.cuisine_hint' => 'plusieurs choix possibles',
     'resto.f.services' => 'Service',
     'resto.f.hours' => 'Horaires',
     'resto.f.hours_ph' => 'ex. Lun–Sam 11h–23h',

@@ -20,21 +20,16 @@ $autoGeo = detected_geo();
         <label for="r-tagline"><?= e(t('resto.f.tagline')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <input type="text" id="r-tagline" name="tagline" value="<?= old('tagline') ?>" maxlength="140" placeholder="<?= e(t('resto.f.tagline_ph')) ?>">
 
-        <div class="grid-2">
-            <div>
-                <label for="r-cuisine"><?= e(t('resto.f.cuisine')) ?></label>
-                <select id="r-cuisine" name="cuisine">
-                    <option value=""><?= e(t('field.choose')) ?></option>
-                    <?php foreach ($cuisines as $c): ?>
-                        <option value="<?= e($c) ?>" <?= old('cuisine') === $c ? 'selected' : '' ?>><?= e(t('resto.cuisine.' . $c)) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div>
-                <label for="r-cur"><?= e(t('shop.f.currency')) ?></label>
-                <select id="r-cur" name="currency"><?php foreach ($currencies as $c): ?><option value="<?= e($c) ?>" <?= $selCur === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select>
-            </div>
+        <label><?= e(t('resto.f.cuisine')) ?> <span class="muted">(<?= e(t('resto.f.cuisine_hint')) ?>)</span></label>
+        <?php $selCuis = old_array('cuisine'); ?>
+        <div class="lang-checks">
+            <?php foreach ($cuisines as $c): ?>
+                <label class="check-pill"><input type="checkbox" name="cuisine[]" value="<?= e($c) ?>" <?= in_array($c, $selCuis, true) ? 'checked' : '' ?>><span><?= e(t('resto.cuisine.' . $c)) ?></span></label>
+            <?php endforeach; ?>
         </div>
+
+        <label for="r-cur"><?= e(t('shop.f.currency')) ?></label>
+        <select id="r-cur" name="currency"><?php foreach ($currencies as $c): ?><option value="<?= e($c) ?>" <?= $selCur === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select>
 
         <label><?= e(t('resto.f.services')) ?></label>
         <div class="lang-checks">
