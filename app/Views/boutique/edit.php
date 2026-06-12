@@ -80,7 +80,7 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 </select>
 
                 <?php [$ctVals, $ctPrimary] = \App\Services\ContactChannels::forBoutique($boutique); ?>
-                <?= render_partial('partials/contact_fields', ['values' => $ctVals, 'primary' => $ctPrimary]) ?>
+                <?= render_partial('partials/contact_fields', ['values' => $ctVals, 'primary' => $ctPrimary, 'country' => (string) ($boutique['country_code'] ?? '')]) ?>
             </div>
 
             <div class="panel">

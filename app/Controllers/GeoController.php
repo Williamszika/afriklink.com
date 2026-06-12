@@ -28,6 +28,7 @@ final class GeoController
         }
 
         $continentLabel = $geo['continent'] !== null ? t('geo.continent.' . $geo['continent']) : null;
+        $dial = $geo['country_code'] !== null ? dial_code($geo['country_code']) : '';
         json_response([
             'city'            => $geo['city'],
             'country'         => $geo['country'],
@@ -35,6 +36,7 @@ final class GeoController
             'continent'       => $geo['continent'],
             'continent_label' => $continentLabel,
             'formatted'       => $geo['formatted'],
+            'dial'            => $dial !== '' ? '+' . $dial : '',
             'label'           => trim(implode(', ', array_filter([$geo['city'], $geo['country']])))
                 . ($continentLabel !== null ? ' (' . $continentLabel . ')' : ''),
         ]);

@@ -10,6 +10,10 @@ use App\Services\ContactChannels;
 
 $values = $values ?? [];
 $primary = $primary ?? '';
+// Indicatif du pays déjà géolocalisé : pré-remplit WhatsApp/SMS (ex. +39 ).
+$ctCountry = (isset($country) && $country !== '') ? $country : (string) (detected_geo()['country_code'] ?? '');
+$ctDial = $ctCountry !== '' ? dial_code($ctCountry) : '';
+$ctDialPrefix = $ctDial !== '' ? '+' . $ctDial . ' ' : '';
 ?>
 <fieldset class="contact-fields">
     <legend><?= e(t('contact.legend')) ?></legend>
@@ -17,11 +21,20 @@ $primary = $primary ?? '';
 
     <div class="contact-grid">
         <?php foreach (ContactChannels::CHANNELS as $ch): ?>
-            <?php $m = ContactChannels::meta($ch); $v = old('contact_' . $ch) !== '' ? old('contact_' . $ch) : (string) ($values[$ch] ?? ''); ?>
+            <?php
+            $m = ContactChannels::meta($ch);
+            $isPhone = ($m['type'] ?? '') === 'phone';
+            $v = old('contact_' . $ch) !== '' ? old('contact_' . $ch) : (string) ($values[$ch] ?? '');
+            // Champ téléphone vide → on amorce avec l'indicatif du pays détecté.
+            if ($v === '' && $isPhone && $ctDialPrefix !== '') {
+                $v = $ctDialPrefix;
+            }
+            ?>
             <div class="contact-field">
                 <label for="contact-<?= e($ch) ?>"><span aria-hidden="true"><?= $m['icon'] ?></span> <?= e($m['label']) ?></label>
                 <input type="text" id="contact-<?= e($ch) ?>" name="contact_<?= e($ch) ?>"
                        value="<?= e($v) ?>" maxlength="120" autocomplete="off"
+                       <?= $isPhone ? 'inputmode="tel" data-dialcode="1"' : '' ?>
                        placeholder="<?= e(t('contact.ph.' . $ch)) ?>">
             </div>
         <?php endforeach; ?>

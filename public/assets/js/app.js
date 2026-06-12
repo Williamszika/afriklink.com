@@ -320,6 +320,17 @@ function runGeolocate(btn, silent) {
             var addr = el('data-geo-address');
             if (addr && geo.formatted) { addr.value = geo.formatted; }
 
+            // Indicatif téléphonique : on amorce WhatsApp/SMS avec l'indicatif du
+            // pays détecté, tant que le champ est vide ou ne contient que l'indicatif.
+            if (geo.dial) {
+                document.querySelectorAll('[data-dialcode]').forEach(function (inp) {
+                    var v = (inp.value || '').trim();
+                    if (v === '' || /^\+?\d{1,4}$/.test(v.replace(/\s/g, ''))) {
+                        inp.value = geo.dial + ' ';
+                    }
+                });
+            }
+
             // Cases « Zones desservies » : libellés personnalisés en direct
             // (« 🏠 Dakar », « 🌍 Sénégal ») dès que la position est connue.
             var zoneCity = document.querySelector('[data-zone-label="city"]');
