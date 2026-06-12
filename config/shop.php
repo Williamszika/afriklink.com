@@ -14,6 +14,11 @@ return [
     // Mots réservés : ne peuvent pas servir de slug (collisions de routes/URL).
     'slug_reserved' => ['creer', 'gerer', 'api', 'admin', 'boutique', 'login', 'register', 'dashboard'],
 
+    'product_name_max'  => 150,
+    'product_desc_max'  => 3000,
+    'product_max_photos' => 6,
+    'product_max_video_seconds' => 120, // 2 minutes
+
     'delivery_zones'   => ['city', 'country', 'international'],
     'delivery_methods' => ['pickup', 'local', 'international'],
     'prep_options'     => ['same_day', '1_3', '3_7', 'over_7'],

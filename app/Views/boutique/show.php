@@ -40,7 +40,24 @@ $methods = array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? 
     <div class="shop-body">
         <div class="panel">
             <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?></h2>
-            <div class="empty-state"><p><?= e(t('shop.no_products_public')) ?></p></div>
+            <?php if (empty($products)): ?>
+                <div class="empty-state"><p><?= e(t('shop.no_products_public')) ?></p></div>
+            <?php else: ?>
+                <div class="product-grid">
+                    <?php foreach ($products as $pr): ?>
+                        <?php $m = $mains[(int) $pr['id']] ?? null; ?>
+                        <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $pr['public_id'])) ?>">
+                            <span class="product-card-img">
+                                <?php if ($m !== null): ?>
+                                    <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
+                                <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                            </span>
+                            <span class="product-card-name"><?= e((string) $pr['name']) ?></span>
+                            <span class="product-card-price"><?= e(format_price((int) $pr['price_cents'], (string) $boutique['currency'])) ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
 
         <aside class="shop-aside">

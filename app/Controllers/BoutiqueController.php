@@ -87,8 +87,60 @@ final class BoutiqueController
         if ($boutique === null) {
             redirect('/boutique/creer');
         }
-        view('boutique/manage', ['active' => 'vitrines', 'boutique' => $boutique]
-            + SellerController::commonData($user));
+        $products = \App\Models\Product::forBoutique((int) $boutique['id']);
+        view('boutique/manage', [
+            'active'   => 'vitrines',
+            'boutique' => $boutique,
+            'products' => $products,
+            'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'counts'   => \App\Models\Product::countFor((int) $boutique['id']),
+        ] + SellerController::commonData($user));
+    }
+
+    /* ---- Édition de la boutique ------------------------------------ */
+
+    public function edit(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        view('boutique/edit', ['active' => 'vitrines', 'boutique' => $boutique, 'user' => $user,
+            'media_ready' => CloudinaryService::configured()] + SellerController::commonData($user));
+    }
+
+    public function updateShop(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        [$d1, $e1] = $this->validateStep1((int) $user['id']);
+        [$d2, $e2] = $this->validateStep2();
+        [$d3, $e3] = $this->validateStep3();
+        $errors = $e1 + $e2 + $e3;
+        if ($errors !== []) {
+            keep_old($_POST);
+            set_errors($errors);
+            redirect('/boutique/modifier');
+        }
+
+        Boutique::update((int) $boutique['id'], [
+            'name' => $d1['name'], 'tagline' => $d1['tagline'], 'description' => $d1['description'],
+            'category' => $d1['category'],
+            'logo_public_id'   => $this->resolveImage($d1['logo_public_id'] ?? null, $boutique['logo_public_id'] ?? null),
+            'banner_public_id' => $this->resolveImage($d1['banner_public_id'] ?? null, $boutique['banner_public_id'] ?? null),
+            'currency' => $d2['currency'], 'shop_type' => $d2['shop_type'], 'address' => $d2['address'],
+            'delivery_zones' => $d2['delivery_zones'], 'delivery_methods' => $d2['delivery_methods'],
+            'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
+            'cod_enabled' => $d3['cod_enabled'],
+        ]);
+        AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
+        clear_old();
+        flash('success', t('shop.updated_flash'));
+        redirect('/boutique/gerer');
     }
 
     public function publish(Request $request): void
@@ -119,8 +171,35 @@ final class BoutiqueController
         if ($boutique['status'] !== 'published' && !$isOwner) {
             abort(404); // brouillon : visible seulement par le propriétaire
         }
+        $products = \App\Models\Product::forBoutique((int) $boutique['id'], true);
         view('boutique/show', [
             'boutique' => $boutique,
+            'seller'   => User::findById((int) $boutique['user_id']) ?? [],
+            'is_owner' => $isOwner,
+            'products' => $products,
+            'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+        ]);
+    }
+
+    /** Page produit publique : /boutique/{slug}/p/{pid} */
+    public function product(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null) {
+            abort(404);
+        }
+        $product = \App\Models\Product::findByPublicId((string) $request->param('pid', ''));
+        if ($product === null || (int) $product['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        $isOwner = (int) $boutique['user_id'] === (int) (current_user_id() ?? 0);
+        if (!$isOwner && ($boutique['status'] !== 'published' || $product['status'] !== 'active')) {
+            abort(404);
+        }
+        view('boutique/product', [
+            'boutique' => $boutique,
+            'product'  => $product,
+            'photos'   => \App\Models\Product::photos((int) $product['id']),
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
             'is_owner' => $isOwner,
         ]);
@@ -281,6 +360,18 @@ final class BoutiqueController
             return null;
         }
         return CloudinaryService::verifyAsset('image', $publicId) !== null ? $publicId : null;
+    }
+
+    /** À l'édition : conserve l'image existante si inchangée ou si la vérif échoue. */
+    private function resolveImage(?string $submitted, ?string $existing): ?string
+    {
+        if ($submitted === null || $submitted === '') {
+            return null;
+        }
+        if ($submitted === $existing) {
+            return $existing;
+        }
+        return $this->verifiedImage($submitted) ?? $existing;
     }
 
     private function sellerOrRedirect(): array

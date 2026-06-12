@@ -811,3 +811,120 @@ document.addEventListener('click', function (ev) {
     Array.prototype.forEach.call(radios, function (r) { r.addEventListener('change', apply); });
     apply();
 })();
+
+/* ---- Catalogue : formulaire produit (photos + vidéo 2 min) ---- */
+(function () {
+    var form = document.getElementById('product-form');
+    if (!form) { return; }
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    var isEdit = /\/modifier(\?|$)/.test(form.getAttribute('action') || '');
+    var maxPhotos = parseInt(form.getAttribute('data-max'), 10) || 6;
+
+    function sign(type) {
+        var fd = new FormData(); fd.append('resource_type', type);
+        return fetch('/api/media/sign', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: fd })
+            .then(function (r) { if (!r.ok) { throw new Error('sign'); } return r.json(); });
+    }
+    function upload(file, params, onProgress) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(params.cloud_name) + '/' + params.resource_type + '/upload');
+            if (onProgress) { xhr.upload.onprogress = function (e) { if (e.lengthComputable) { onProgress(Math.round(e.loaded * 100 / e.total)); } }; }
+            xhr.onload = function () { if (xhr.status >= 200 && xhr.status < 300) { try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(e); } } else { reject(new Error('up')); } };
+            xhr.onerror = function () { reject(new Error('net')); };
+            var fd = new FormData();
+            fd.append('file', file); fd.append('api_key', params.api_key); fd.append('timestamp', params.timestamp);
+            fd.append('folder', params.folder); fd.append('signature', params.signature);
+            xhr.send(fd);
+        });
+    }
+
+    /* Photos */
+    var photosJson = document.getElementById('product-photos-json');
+    var touched = document.getElementById('product-photos-touched');
+    var previews = document.getElementById('product-previews');
+    var photoInput = document.getElementById('product-photo-input');
+    var photoErr = document.getElementById('product-photo-error');
+    var submit = document.getElementById('product-submit');
+    var photos = [];
+    var pending = 0;
+
+    // graine : photos existantes (édition)
+    Array.prototype.forEach.call(previews.querySelectorAll('.preview[data-public-id]'), function (el) {
+        var id = el.getAttribute('data-public-id');
+        photos.push(id);
+        wireRemove(el, id);
+    });
+    function syncPhotos(markTouched) {
+        photosJson.value = JSON.stringify(photos);
+        if (markTouched) { touched.value = '1'; }
+        submit.disabled = pending > 0;
+    }
+    function wireRemove(el, id) {
+        var btn = el.querySelector('.preview-remove');
+        if (btn) { btn.addEventListener('click', function () { photos = photos.filter(function (x) { return x !== id; }); el.remove(); syncPhotos(true); }); }
+    }
+    function addPreview(id, src) {
+        var wrap = document.createElement('div'); wrap.className = 'preview'; wrap.setAttribute('data-public-id', id);
+        var img = document.createElement('img'); img.src = src; img.alt = '';
+        var del = document.createElement('button'); del.type = 'button'; del.className = 'preview-remove'; del.textContent = '✕';
+        wrap.appendChild(img); wrap.appendChild(del); previews.appendChild(wrap); wireRemove(wrap, id);
+    }
+    photoInput.addEventListener('change', function () {
+        photoErr.hidden = true;
+        var files = Array.prototype.slice.call(photoInput.files || []);
+        photoInput.value = '';
+        var room = maxPhotos - photos.length - pending;
+        if (files.length > room) { photoErr.textContent = 'Maximum ' + maxPhotos + ' photos.'; photoErr.hidden = false; files = files.slice(0, Math.max(0, room)); }
+        files.forEach(function (file) {
+            pending++; syncPhotos(true);
+            sign('image').then(function (p) { return upload(file, p); }).then(function (res) {
+                photos.push(res.public_id); addPreview(res.public_id, URL.createObjectURL(file));
+            }).catch(function () { photoErr.textContent = '❌'; photoErr.hidden = false; }).finally(function () { pending--; syncPhotos(true); });
+        });
+    });
+
+    /* Vidéo (2 min max) */
+    var vZone = document.getElementById('product-video-zone');
+    var vInput = document.getElementById('product-video-input');
+    var vId = document.getElementById('product-video-id');
+    var vPrev = document.getElementById('product-video-preview');
+    var vErr = document.getElementById('product-video-error');
+    var maxSec = parseInt(vZone.getAttribute('data-max-seconds'), 10) || 120;
+    function vClear() { vId.value = ''; vPrev.innerHTML = ''; }
+    var existingRemove = document.getElementById('product-video-remove');
+    if (existingRemove) { existingRemove.addEventListener('click', vClear); }
+    function videoDuration(file) {
+        return new Promise(function (resolve) {
+            var v = document.createElement('video'); v.preload = 'metadata';
+            v.onloadedmetadata = function () { var d = v.duration; URL.revokeObjectURL(v.src); resolve(d); };
+            v.onerror = function () { URL.revokeObjectURL(v.src); resolve(NaN); };
+            v.src = URL.createObjectURL(file);
+        });
+    }
+    vInput.addEventListener('change', function () {
+        vErr.hidden = true;
+        var file = vInput.files && vInput.files[0]; vInput.value = '';
+        if (!file) { return; }
+        if (file.size > 200 * 1024 * 1024) { vErr.textContent = vZone.getAttribute('data-big'); vErr.hidden = false; return; }
+        videoDuration(file).then(function (d) {
+            if (isNaN(d) || d > maxSec + 1) { vErr.textContent = vZone.getAttribute('data-long'); vErr.hidden = false; return; }
+            pending++; submit.disabled = true;
+            sign('video').then(function (p) { return upload(file, p, function () {}); }).then(function (res) {
+                vId.value = res.public_id;
+                vPrev.innerHTML = '';
+                var wrap = document.createElement('div'); wrap.className = 'preview preview-video';
+                var v = document.createElement('video'); v.controls = true; v.src = URL.createObjectURL(file);
+                var del = document.createElement('button'); del.type = 'button'; del.className = 'preview-remove'; del.textContent = '✕';
+                del.addEventListener('click', vClear);
+                wrap.appendChild(v); wrap.appendChild(del); vPrev.appendChild(wrap);
+            }).catch(function () { vErr.textContent = vZone.getAttribute('data-fail'); vErr.hidden = false; })
+              .finally(function () { pending--; submit.disabled = pending > 0; });
+        });
+    });
+
+    form.addEventListener('submit', function (ev) {
+        if (pending > 0) { ev.preventDefault(); return; }
+        if (!isEdit && photos.length === 0) { ev.preventDefault(); photoErr.textContent = form.getAttribute('data-need') || 'Ajoute au moins une photo.'; photoErr.hidden = false; }
+    });
+})();

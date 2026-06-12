@@ -156,4 +156,23 @@ final class Boutique
         $stmt = db()->prepare('UPDATE boutiques SET status = :s WHERE id = :id');
         $stmt->execute(['s' => $status, 'id' => $id]);
     }
+
+    public static function update(int $id, array $d): void
+    {
+        $stmt = db()->prepare(
+            'UPDATE boutiques SET
+                name = :name, tagline = :tagline, description = :description, category = :category,
+                logo_public_id = :logo, banner_public_id = :banner, currency = :currency,
+                shop_type = :shop_type, address = :address, delivery_zones = :zones,
+                delivery_methods = :methods, free_ship_cents = :free, prep_time = :prep, cod_enabled = :cod
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'name' => $d['name'], 'tagline' => $d['tagline'], 'description' => $d['description'],
+            'category' => $d['category'], 'logo' => $d['logo_public_id'], 'banner' => $d['banner_public_id'],
+            'currency' => $d['currency'], 'shop_type' => $d['shop_type'], 'address' => $d['address'],
+            'zones' => $d['delivery_zones'], 'methods' => $d['delivery_methods'], 'free' => $d['free_ship_cents'],
+            'prep' => $d['prep_time'], 'cod' => $d['cod_enabled'] ? 1 : 0, 'id' => $id,
+        ]);
+    }
 }

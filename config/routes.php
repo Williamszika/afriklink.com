@@ -9,6 +9,7 @@ use App\Controllers\HomeController;
 use App\Controllers\KycController;
 use App\Controllers\ListingController;
 use App\Controllers\MediaController;
+use App\Controllers\ProductController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
 use App\Controllers\SellerController;
@@ -104,7 +105,17 @@ return [
     ['GET',  '/api/boutique/slug', [BoutiqueController::class, 'checkSlug'], ['auth', 'throttle:slug,120,3600']],
     ['GET',  '/boutique/gerer',  [BoutiqueController::class, 'manage'],  ['auth']],
     ['POST', '/boutique/publier', [BoutiqueController::class, 'publish'], ['auth', 'csrf']],
-    ['GET',  '/boutique/{slug}', [BoutiqueController::class, 'show'],    []],
+    ['GET',  '/boutique/modifier', [BoutiqueController::class, 'edit'],       ['auth']],
+    ['POST', '/boutique/modifier', [BoutiqueController::class, 'updateShop'], ['auth', 'csrf', 'throttle:shop,40,3600']],
+    // Produits du catalogue
+    ['GET',  '/boutique/produits/nouveau',        [ProductController::class, 'create'],    ['auth']],
+    ['POST', '/boutique/produits',                [ProductController::class, 'store'],     ['auth', 'csrf', 'throttle:product,60,3600']],
+    ['GET',  '/boutique/produits/{pid}/modifier', [ProductController::class, 'edit'],      ['auth']],
+    ['POST', '/boutique/produits/{pid}/modifier', [ProductController::class, 'update'],    ['auth', 'csrf', 'throttle:product,60,3600']],
+    ['POST', '/boutique/produits/{pid}/statut',   [ProductController::class, 'setStatus'], ['auth', 'csrf']],
+    // Vitrine publique
+    ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
+    ['GET',  '/boutique/{slug}',         [BoutiqueController::class, 'show'],    []],
 
     // Roadmap interstitials for not-yet-built dashboard actions
     ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],

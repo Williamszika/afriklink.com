@@ -383,6 +383,31 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .shop-aside { display: grid; gap: 16px; }
 @media (max-width: 800px) { .shop-body { grid-template-columns: 1fr; } }
 
+/* Catalogue produits : gestion + vitrine */
+.shop-admin-head { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+.shop-admin-id { min-width:0; flex:1; }
+.shop-admin-id h1 { margin:0; font-size:1.25rem; }
+.shop-admin-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.product-rows { display:grid; gap:10px; }
+.product-row { display:flex; gap:14px; align-items:flex-start; padding:12px; }
+.product-thumb img { border-radius:8px; object-fit:cover; display:block; }
+.product-row-body { display:grid; gap:5px; min-width:0; flex:1; }
+.product-row-title { margin:0; font-weight:700; }
+.product-row-meta { margin:0; color:var(--muted); font-size:.92rem; }
+.product-row-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.product-row-actions .inline-form { display:flex; gap:8px; flex-wrap:wrap; }
+.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
+.product-card { display:grid; gap:6px; color:var(--ink); }
+.product-card:hover { text-decoration:none; }
+.product-card-img { display:block; border:1px solid var(--border); border-radius:12px; overflow:hidden; aspect-ratio:1/1; background:var(--bg); }
+.product-card-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.product-card-img .listing-thumb-empty { width:100%; height:100%; border:0; border-radius:0; font-size:2rem; }
+.product-card-name { font-weight:600; line-height:1.25; }
+.product-card-price { font-weight:800; color:var(--brand); }
+@media (max-width:700px){ .product-row { flex-direction:column; } }
+
+/* Catalogue produits : gestion + vitrine — fin */
+
 /* Type de boutique : physique vs en ligne */
 .shop-type-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
 .type-card { display: flex; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; gap: 10px; align-items: flex-start; background: #fff; }
