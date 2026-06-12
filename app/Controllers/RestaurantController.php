@@ -53,6 +53,13 @@ final class RestaurantController
             }
         }
         AuditLog::record((int) $user['id'], 'restaurant.created', 'restaurant', null, ['public_id' => $publicId], $request->ipBinary());
+        try {
+            if (\App\Services\StorefrontAlert::send($user, 'restaurant', $data['name'], url('/restaurant/gerer'))) {
+                flash('info', t('vitrine.mail_sent_flash'));
+            }
+        } catch (\Throwable) {
+            // l'e-mail d'alerte ne doit jamais empêcher la création
+        }
         flash('success', t('resto.created_flash'));
         redirect('/restaurant/gerer');
     }

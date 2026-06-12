@@ -11,6 +11,7 @@ use App\Controllers\ListingController;
 use App\Controllers\GeoController;
 use App\Controllers\MediaController;
 use App\Controllers\ProductController;
+use App\Controllers\ReportController;
 use App\Controllers\RestaurantController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
@@ -146,6 +147,9 @@ return [
     ['POST', '/restaurant/plat',                 [RestaurantController::class, 'storeItem'],      ['auth', 'csrf', 'throttle:product,120,3600']],
     ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
     ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
+
+    // Signalement « ce n'était pas moi » (lien reçu par e-mail, sans connexion)
+    ['GET',  '/signaler-vitrine', [ReportController::class, 'storefront'], ['throttle:report,20,3600']],
 
     // Roadmap interstitials for not-yet-built dashboard actions
     ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],

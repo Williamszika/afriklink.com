@@ -468,6 +468,13 @@ final class BoutiqueController
         ]);
 
         AuditLog::record($userId, 'shop.created', 'boutique', null, ['public_id' => $publicId], $request->ipBinary());
+        try {
+            if (\App\Services\StorefrontAlert::send($user, 'boutique', (string) $s1['name'], url('/boutique/gerer'))) {
+                flash('info', t('vitrine.mail_sent_flash'));
+            }
+        } catch (\Throwable) {
+            // l'e-mail d'alerte ne doit jamais empêcher la création
+        }
         unset($_SESSION[self::DRAFT]);
         clear_old();
         flash('success', t('shop.created_flash'));
