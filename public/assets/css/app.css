@@ -354,6 +354,9 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .pay-accepted-label { margin: 0 0 6px; font-size: .82rem; font-weight: 700; color: var(--muted); }
 .pay-logos { display: flex; flex-wrap: wrap; gap: 7px; }
 .pay-logos .pay-logo { width: 44px; height: 28px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.pay-terms-list { display: grid; gap: 5px; }
+.pay-term-item { display: inline-flex; align-items: center; gap: 7px; }
+.pay-term-item img { border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.12); flex: none; }
 .geo-status { min-height: 1.2em; }
 .geo-status.is-error { color: #b42318; }
 .geo-continent { font-weight: 600; }

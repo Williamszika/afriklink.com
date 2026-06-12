@@ -12,11 +12,12 @@ $methodsSel = old_array('payment_methods') !== [] ? old_array('payment_methods')
 ?>
 <label><?= e(t('shop.f.payment_terms')) ?></label>
 <p class="hint"><?= e(t('shop.f.payment_terms_hint')) ?></p>
-<div class="lang-checks">
+<div class="pay-checks">
     <?php foreach ($terms as $tk): ?>
-        <label class="check-pill">
+        <label class="pay-pill">
             <input type="checkbox" name="payment_terms[]" value="<?= e($tk) ?>" <?= in_array($tk, $termsSel, true) ? 'checked' : '' ?>>
-            <span><?= e(t('shop.payterm.' . $tk)) ?></span>
+            <img class="pay-logo" src="<?= e(asset('img/pay/' . $tk . '.svg')) ?>" alt="" width="40" height="26">
+            <span class="pay-name"><?= e(t('shop.payterm.' . $tk)) ?></span>
         </label>
     <?php endforeach; ?>
 </div>

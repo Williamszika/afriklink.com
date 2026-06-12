@@ -113,7 +113,11 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                     <?php $payTerms = array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))); ?>
                     <?php if ($payTerms): ?>
                         <dt><?= e(t('shop.f.payment_terms')) ?></dt>
-                        <dd><?= e(implode(' · ', array_map(static fn ($x) => t('shop.payterm.' . $x), $payTerms))) ?></dd>
+                        <dd class="pay-terms-list">
+                            <?php foreach ($payTerms as $x): ?>
+                                <span class="pay-term-item"><img src="<?= e(asset('img/pay/' . $x . '.svg')) ?>" alt="" width="34" height="22"> <?= e(t('shop.payterm.' . $x)) ?></span>
+                            <?php endforeach; ?>
+                        </dd>
                     <?php elseif (!empty($boutique['cod_enabled'])): ?>
                         <dt><?= e(t('shop.f.payment')) ?></dt><dd>💵 <?= e(t('shop.f.cod')) ?></dd>
                     <?php endif; ?>
