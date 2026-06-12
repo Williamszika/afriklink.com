@@ -165,8 +165,25 @@
     if (!input || typeof window.createImageBitmap !== 'function' || typeof DataTransfer === 'undefined') {
         return;
     }
+    // Éditeur (cadrage carré verrouillé) avant envoi ; remplace le fichier de
+    // l'input par la version retouchée. ✕ = on vide l'input (envoi annulé).
     input.addEventListener('change', function () {
         var file = input.files && input.files[0];
+        if (!file || input.dataset.edited === '1') { delete input.dataset.edited; return; }
+        if (typeof window.alEditPhoto !== 'function') { return legacyShrink(file); }
+        window.alEditPhoto(file, { aspect: 1, lockAspect: true, maxOut: 1024 }).then(function (res) {
+            if (res === false) { input.value = ''; return; }
+            if (res) {
+                var dt = new DataTransfer();
+                dt.items.add(res);
+                input.dataset.edited = '1';
+                input.files = dt.files;
+            } else if (file.size >= 600 * 1024) {
+                legacyShrink(file);
+            }
+        });
+    });
+    function legacyShrink(file) {
         if (!file || file.size < 600 * 1024) { return; } // déjà léger
         createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
             var scale = Math.min(1, 1024 / Math.max(bmp.width, bmp.height));
@@ -181,7 +198,7 @@
                 input.files = dt.files;
             }, 'image/jpeg', 0.85);
         }).catch(function () { /* le serveur validera l'original */ });
-    });
+    }
 })();
 
 /* ---- Confirmation générique (CSP interdit les onclick inline) ---- */
@@ -329,7 +346,7 @@ document.addEventListener('click', function (ev) {
             setError(photoError, photoError.dataset.max || ('Maximum ' + MAX_PHOTOS + ' photos.'));
             files = files.slice(0, Math.max(0, room));
         }
-        files.forEach(function (original) {
+        function uploadOne(original) {
             pending++; inflightPhotos++; syncState();
             shrinkImage(original).then(function (file) {
                 return sign('image').then(function (params) { return uploadToCloudinary(file, params); });
@@ -339,7 +356,16 @@ document.addEventListener('click', function (ev) {
             }).catch(function () {
                 setError(photoError, photoError.dataset.fail || "Échec de l'envoi d'une photo — réessaie.");
             }).finally(function () { pending--; inflightPhotos--; syncState(); });
-        });
+        }
+        // Éditeur avant publication, photo par photo (Valider / Sans retouche / ✕).
+        (function next(i) {
+            if (i >= files.length) { return; }
+            if (typeof window.alEditPhoto !== 'function') { uploadOne(files[i]); next(i + 1); return; }
+            window.alEditPhoto(files[i], { watermark: true }).then(function (res) {
+                if (res !== false) { uploadOne(res || files[i]); }
+                next(i + 1);
+            });
+        })(0);
     }
 
     [photoInput, photoCamera].forEach(function (input) {
@@ -768,12 +794,20 @@ document.addEventListener('click', function (ev) {
         if (!input) { return; }
         input.addEventListener('change', function () {
             var f = input.files && input.files[0];
+            input.value = '';
             if (!f) { return; }
             if (f.size > 10 * 1024 * 1024) { state.textContent = '⚠️ 10 Mo max'; return; }
-            state.textContent = form.getAttribute('data-uploading') || '…';
-            sign().then(function (p) { return uploadImg(f, p); })
-                .then(function (res) { hidden.value = res.public_id; state.textContent = '✅'; })
-                .catch(function () { state.textContent = '❌'; });
+            var edit = typeof window.alEditPhoto === 'function'
+                ? window.alEditPhoto(f, { aspect: 1, lockAspect: true })   // logo : carré
+                : Promise.resolve(null);
+            edit.then(function (res) {
+                if (res === false) { return; }
+                var file = res || f;
+                state.textContent = form.getAttribute('data-uploading') || '…';
+                sign().then(function (p) { return uploadImg(file, p); })
+                    .then(function (r) { hidden.value = r.public_id; state.textContent = '✅'; })
+                    .catch(function () { state.textContent = '❌'; });
+            });
         });
     }
     wire('logo-input', 'logo-public-id', 'logo-state');
@@ -813,14 +847,24 @@ document.addEventListener('click', function (ev) {
             var files = Array.prototype.slice.call(input.files || []); input.value = '';
             var room = max - ids.length - pending;
             files = files.slice(0, Math.max(0, room));
-            files.forEach(function (file) {
-                if (file.size > 10 * 1024 * 1024) { return; }
+            function uploadOne(file) {
                 pending++; sync();
                 sign().then(function (p) { return uploadImg(file, p); })
                     .then(function (res) { ids.push(res.public_id); addPreview(res.public_id, URL.createObjectURL(file)); })
                     .catch(function () {})
                     .finally(function () { pending--; sync(); });
-            });
+            }
+            (function next(i) {
+                if (i >= files.length) { return; }
+                var file = files[i];
+                if (file.size > 10 * 1024 * 1024) { next(i + 1); return; }
+                if (typeof window.alEditPhoto !== 'function') { uploadOne(file); next(i + 1); return; }
+                // bannière : format large verrouillé (même cadre que la vitrine)
+                window.alEditPhoto(file, { aspect: 1100 / 300, lockAspect: true }).then(function (res) {
+                    if (res !== false) { uploadOne(res || file); }
+                    next(i + 1);
+                });
+            })(0);
         });
         form.addEventListener('submit', function (ev) { if (pending > 0) { ev.preventDefault(); } });
     })();
@@ -941,12 +985,20 @@ document.addEventListener('click', function (ev) {
         photoInput.value = '';
         var room = maxPhotos - photos.length - pending;
         if (files.length > room) { photoErr.textContent = 'Maximum ' + maxPhotos + ' photos.'; photoErr.hidden = false; files = files.slice(0, Math.max(0, room)); }
-        files.forEach(function (file) {
+        function uploadOne(file) {
             pending++; syncPhotos(true);
             sign('image').then(function (p) { return upload(file, p); }).then(function (res) {
                 photos.push(res.public_id); addPreview(res.public_id, URL.createObjectURL(file));
             }).catch(function () { photoErr.textContent = '❌'; photoErr.hidden = false; }).finally(function () { pending--; syncPhotos(true); });
-        });
+        }
+        (function next(i) {
+            if (i >= files.length) { return; }
+            if (typeof window.alEditPhoto !== 'function') { uploadOne(files[i]); next(i + 1); return; }
+            window.alEditPhoto(files[i], { watermark: true }).then(function (res) {
+                if (res !== false) { uploadOne(res || files[i]); }
+                next(i + 1);
+            });
+        })(0);
     });
 
     /* Vidéo (2 min max) */
@@ -992,4 +1044,280 @@ document.addEventListener('click', function (ev) {
         if (pending > 0) { ev.preventDefault(); return; }
         if (!isEdit && photos.length === 0) { ev.preventDefault(); photoErr.textContent = form.getAttribute('data-need') || 'Ajoute au moins une photo.'; photoErr.hidden = false; }
     });
+})();
+
+/* ================================================================
+   Éditeur de photo avant publication (maison, zéro dépendance).
+   - Le CADRE est fixe (au format choisi) ; l'image se déplace/zoome
+     dessous (doigt ou souris, molette/pincement pour zoomer).
+   - Rotation 90°, miroir, curseurs luminosité/contraste/saturation,
+   - ✨ amélioration auto (étirement d'histogramme local, hors ligne),
+   - 🏷️ filigrane « afriklink.com » optionnel.
+   Aperçu via filtres CSS (fluide) ; export par passe pixels (fidèle
+   partout, même sans ctx.filter). Renvoie un nouveau File JPEG.
+   window.alEditPhoto(file, opts) -> Promise<File|null|false>
+     File  = photo retouchée  ·  null = « sans retouche »
+     false = annulé (ne pas ajouter la photo)
+   opts: { aspect: 'free'|number, lockAspect: bool,
+           watermark: bool (toggle visible), maxOut: px } */
+(function () {
+    'use strict';
+
+    var FR = document.documentElement.lang !== 'en';
+    var T = {
+        title:  FR ? 'Retoucher la photo' : 'Edit photo',
+        free:   FR ? 'Libre' : 'Free',
+        square: FR ? 'Carré' : 'Square',
+        wide:   FR ? 'Paysage' : 'Wide',
+        tall:   FR ? 'Portrait' : 'Tall',
+        rotate: FR ? 'Pivoter' : 'Rotate',
+        flip:   FR ? 'Miroir' : 'Flip',
+        bright: FR ? 'Luminosité' : 'Brightness',
+        contrast: FR ? 'Contraste' : 'Contrast',
+        satur:  FR ? 'Saturation' : 'Saturation',
+        improve: FR ? '✨ Améliorer' : '✨ Enhance',
+        watermark: FR ? '🏷️ Filigrane Afriklink' : '🏷️ Afriklink watermark',
+        cancel: FR ? 'Annuler' : 'Cancel',
+        raw:    FR ? 'Sans retouche' : 'Use original',
+        apply:  FR ? '✓ Valider' : '✓ Apply',
+        hint:   FR ? 'Déplace et zoome la photo dans le cadre' : 'Drag and zoom the photo inside the frame'
+    };
+
+    window.alEditPhoto = function (file, opts) {
+        opts = opts || {};
+        return new Promise(function (resolve) {
+            if (!window.createImageBitmap || !file || file.type.indexOf('image/') !== 0) {
+                resolve(null); return; // pas d'éditeur possible : utiliser telle quelle
+            }
+            createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+                open(bmp, file, opts, resolve);
+            }).catch(function () { resolve(null); });
+        });
+    };
+
+    function open(bmp, file, opts, resolve) {
+        var rot = 0, flip = 1, zoom = 1, ox = 0, oy = 0;
+        var b = 0, c = 0, s = 100, improve = false, wm = false;
+        var aspect = (typeof opts.aspect === 'number') ? opts.aspect : 0; // 0 = libre (ratio image)
+        var lock = !!opts.lockAspect;
+        var improveLut = null;
+
+        var ov = document.createElement('div');
+        ov.className = 'pe-overlay';
+        ov.innerHTML =
+            '<div class="pe-box">' +
+            '<p class="pe-title">' + T.title + '<span class="pe-hint">' + T.hint + '</span></p>' +
+            '<div class="pe-stage"><canvas class="pe-canvas"></canvas></div>' +
+            (lock ? '' :
+            '<div class="pe-row pe-aspects">' +
+              '<button type="button" data-a="0" class="btn btn-ghost btn-sm is-on">' + T.free + '</button>' +
+              '<button type="button" data-a="1" class="btn btn-ghost btn-sm">' + T.square + ' 1:1</button>' +
+              '<button type="button" data-a="1.7778" class="btn btn-ghost btn-sm">' + T.wide + ' 16:9</button>' +
+              '<button type="button" data-a="0.8" class="btn btn-ghost btn-sm">' + T.tall + ' 4:5</button>' +
+            '</div>') +
+            '<div class="pe-row">' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-rot">🔄 ' + T.rotate + '</button>' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-flip">↔️ ' + T.flip + '</button>' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-improve">' + T.improve + '</button>' +
+              (opts.watermark ? '<button type="button" class="btn btn-ghost btn-sm pe-wm">' + T.watermark + '</button>' : '') +
+            '</div>' +
+            '<div class="pe-sliders">' +
+              '<label>☀️ ' + T.bright + '<input type="range" class="pe-b" min="-50" max="50" value="0"></label>' +
+              '<label>◐ ' + T.contrast + '<input type="range" class="pe-c" min="-50" max="50" value="0"></label>' +
+              '<label>🎨 ' + T.satur + '<input type="range" class="pe-s" min="0" max="200" value="100"></label>' +
+            '</div>' +
+            '<div class="pe-row pe-actions">' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-cancel">✕ ' + T.cancel + '</button>' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-raw">' + T.raw + '</button>' +
+              '<button type="button" class="btn btn-primary pe-apply">' + T.apply + '</button>' +
+            '</div></div>';
+        document.body.appendChild(ov);
+
+        var canvas = ov.querySelector('.pe-canvas');
+        var ctx = canvas.getContext('2d');
+
+        function imgW() { return (rot % 180 === 0) ? bmp.width : bmp.height; }
+        function imgH() { return (rot % 180 === 0) ? bmp.height : bmp.width; }
+        function ratio() { return aspect > 0 ? aspect : imgW() / imgH(); }
+
+        function sizeCanvas() {
+            var stage = ov.querySelector('.pe-stage');
+            var maxW = Math.min(stage.clientWidth, 560);
+            var maxH = Math.min(window.innerHeight * 0.45, 420);
+            var r = ratio();
+            var w = maxW, h = w / r;
+            if (h > maxH) { h = maxH; w = h * r; }
+            canvas.width = Math.round(w * 2);   // x2 : netteté écrans denses
+            canvas.height = Math.round(h * 2);
+            canvas.style.width = Math.round(w) + 'px';
+            canvas.style.height = Math.round(h) + 'px';
+        }
+
+        // échelle de base : l'image COUVRE le cadre à zoom=1
+        function baseScale() {
+            return Math.max(canvas.width / imgW(), canvas.height / imgH());
+        }
+        function clampOffsets() {
+            var sc = baseScale() * zoom;
+            var mx = Math.max(0, (imgW() * sc - canvas.width) / 2);
+            var my = Math.max(0, (imgH() * sc - canvas.height) / 2);
+            ox = Math.min(mx, Math.max(-mx, ox));
+            oy = Math.min(my, Math.max(-my, oy));
+        }
+        function draw() {
+            clampOffsets();
+            var sc = baseScale() * zoom;
+            ctx.save();
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.translate(canvas.width / 2 + ox, canvas.height / 2 + oy);
+            ctx.rotate(rot * Math.PI / 180);
+            ctx.scale(flip * sc, sc);
+            ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
+            ctx.restore();
+            canvas.style.filter = cssFilter();
+        }
+        function cssFilter() {
+            var f = 'brightness(' + (1 + b / 100) + ') contrast(' + (1 + c / 100) + ') saturate(' + (s / 100) + ')';
+            if (improve && improveLut) { f += ' brightness(' + improveLut.css.b + ') contrast(' + improveLut.css.c + ') saturate(1.08)'; }
+            return f;
+        }
+
+        /* ✨ auto-niveaux : percentiles 2/98 de luminance sur une vignette */
+        function computeImprove() {
+            var t = document.createElement('canvas');
+            var n = 64; t.width = n; t.height = n;
+            var tc = t.getContext('2d');
+            tc.drawImage(bmp, 0, 0, n, n);
+            var d = tc.getImageData(0, 0, n, n).data;
+            var hist = new Array(256).fill(0);
+            for (var i = 0; i < d.length; i += 4) {
+                hist[Math.round(0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2])]++;
+            }
+            var total = n * n, lo = 0, hi = 255, acc = 0;
+            for (var j = 0; j < 256; j++) { acc += hist[j]; if (acc >= total * 0.02) { lo = j; break; } }
+            acc = 0;
+            for (var k = 255; k >= 0; k--) { acc += hist[k]; if (acc >= total * 0.02) { hi = k; break; } }
+            if (hi - lo < 20) { lo = 0; hi = 255; }
+            var gain = 255 / (hi - lo);
+            improveLut = { lo: lo, gain: gain,
+                css: { b: (1 + (128 - (lo + hi) / 2) / 600).toFixed(3), c: Math.min(1.35, gain).toFixed(3) } };
+        }
+
+        /* interactions : glisser + molette + pincement */
+        var pts = {};
+        var lastDist = 0;
+        canvas.addEventListener('pointerdown', function (e) { pts[e.pointerId] = e; canvas.setPointerCapture(e.pointerId); });
+        canvas.addEventListener('pointermove', function (e) {
+            if (!pts[e.pointerId]) { return; }
+            var keys = Object.keys(pts);
+            if (keys.length === 1) {
+                ox += (e.clientX - pts[e.pointerId].clientX) * 2;
+                oy += (e.clientY - pts[e.pointerId].clientY) * 2;
+                draw();
+            } else if (keys.length === 2) {
+                pts[e.pointerId] = e;
+                var a = pts[keys[0]], z = pts[keys[1]];
+                var dist = Math.hypot(a.clientX - z.clientX, a.clientY - z.clientY);
+                if (lastDist) { zoom = Math.min(5, Math.max(1, zoom * dist / lastDist)); draw(); }
+                lastDist = dist;
+                return;
+            }
+            pts[e.pointerId] = e;
+        });
+        function up(e) { delete pts[e.pointerId]; lastDist = 0; }
+        canvas.addEventListener('pointerup', up);
+        canvas.addEventListener('pointercancel', up);
+        canvas.addEventListener('wheel', function (e) {
+            e.preventDefault();
+            zoom = Math.min(5, Math.max(1, zoom * (e.deltaY < 0 ? 1.08 : 0.93)));
+            draw();
+        }, { passive: false });
+
+        /* contrôles */
+        Array.prototype.forEach.call(ov.querySelectorAll('.pe-aspects button'), function (btn) {
+            btn.addEventListener('click', function () {
+                Array.prototype.forEach.call(ov.querySelectorAll('.pe-aspects button'), function (x) { x.classList.remove('is-on'); });
+                btn.classList.add('is-on');
+                aspect = parseFloat(btn.getAttribute('data-a')) || 0;
+                zoom = 1; ox = oy = 0; sizeCanvas(); draw();
+            });
+        });
+        ov.querySelector('.pe-rot').addEventListener('click', function () { rot = (rot + 90) % 360; zoom = 1; ox = oy = 0; sizeCanvas(); draw(); });
+        ov.querySelector('.pe-flip').addEventListener('click', function () { flip *= -1; draw(); });
+        ov.querySelector('.pe-improve').addEventListener('click', function () {
+            improve = !improve;
+            if (improve && !improveLut) { computeImprove(); }
+            this.classList.toggle('is-on', improve); draw();
+        });
+        var wmBtn = ov.querySelector('.pe-wm');
+        if (wmBtn) { wmBtn.addEventListener('click', function () { wm = !wm; this.classList.toggle('is-on', wm); }); }
+        ov.querySelector('.pe-b').addEventListener('input', function () { b = +this.value; draw(); });
+        ov.querySelector('.pe-c').addEventListener('input', function () { c = +this.value; draw(); });
+        ov.querySelector('.pe-s').addEventListener('input', function () { s = +this.value; draw(); });
+
+        function close(result) { ov.remove(); resolve(result); }
+        ov.querySelector('.pe-cancel').addEventListener('click', function () { close(false); });
+        ov.querySelector('.pe-raw').addEventListener('click', function () { close(null); });
+        ov.querySelector('.pe-apply').addEventListener('click', function () {
+            var out = exportImage();
+            out.toBlob(function (blob) {
+                close(blob ? new File([blob], 'photo.jpg', { type: 'image/jpeg' }) : null);
+            }, 'image/jpeg', 0.88);
+        });
+
+        /* export fidèle : géométrie + passe pixels (B/C/S + auto-niveaux) + filigrane */
+        function exportImage() {
+            var maxOut = opts.maxOut || 1600;
+            var sc = baseScale() * zoom;
+            var srcW = canvas.width / sc, srcH = canvas.height / sc;        // zone visible, en px image
+            var scale = Math.min(1, maxOut / Math.max(srcW, srcH));
+            var w = Math.round(srcW * scale), h = Math.round(srcH * scale);
+            var out = document.createElement('canvas');
+            out.width = w; out.height = h;
+            var octx = out.getContext('2d');
+            octx.translate(w / 2 + (ox / sc) * scale, h / 2 + (oy / sc) * scale);
+            octx.rotate(rot * Math.PI / 180);
+            octx.scale(flip * scale, scale);
+            octx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
+            octx.setTransform(1, 0, 0, 1, 0, 0);
+
+            // passe pixels
+            var imgd = octx.getImageData(0, 0, w, h), d = imgd.data;
+            var bb = b * 2.55, cc = (1 + c / 100), ss = s / 100;
+            var lo = improve && improveLut ? improveLut.lo : 0;
+            var gain = improve && improveLut ? improveLut.gain : 1;
+            for (var i = 0; i < d.length; i += 4) {
+                var r = d[i], g = d[i + 1], bl = d[i + 2];
+                if (improve) { r = (r - lo) * gain; g = (g - lo) * gain; bl = (bl - lo) * gain; }
+                r = (r - 128) * cc + 128 + bb; g = (g - 128) * cc + 128 + bb; bl = (bl - 128) * cc + 128 + bb;
+                if (ss !== 1) {
+                    var gray = 0.2989 * r + 0.587 * g + 0.114 * bl;
+                    r = gray + (r - gray) * ss; g = gray + (g - gray) * ss; bl = gray + (bl - gray) * ss;
+                }
+                d[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+                d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+                d[i + 2] = bl < 0 ? 0 : bl > 255 ? 255 : bl;
+            }
+            octx.putImageData(imgd, 0, 0);
+
+            if (wm) {
+                var fs = Math.max(14, Math.round(w * 0.035));
+                octx.font = '700 ' + fs + 'px system-ui, sans-serif';
+                octx.textAlign = 'right'; octx.textBaseline = 'bottom';
+                octx.fillStyle = 'rgba(0,0,0,.35)';
+                octx.fillText('afriklink.com', w - fs * 0.6 + 1, h - fs * 0.5 + 1);
+                octx.fillStyle = 'rgba(255,255,255,.85)';
+                octx.fillText('afriklink.com', w - fs * 0.6, h - fs * 0.5);
+            }
+            return out;
+        }
+
+        sizeCanvas();
+        draw();
+        window.addEventListener('resize', function onR() {
+            if (!document.body.contains(ov)) { window.removeEventListener('resize', onR); return; }
+            sizeCanvas(); draw();
+        });
+    }
 })();
