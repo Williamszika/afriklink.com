@@ -118,6 +118,13 @@ $publicPath = '/boutique/' . $boutique['slug'];
                                         <button class="btn btn-ghost btn-sm btn-danger" name="action" value="delete"
                                                 data-confirm="<?= e(t('product.delete_confirm')) ?>"><?= e(t('product.delete')) ?></button>
                                     </form>
+                                    <?php if ($published && $active2): ?>
+                                        <?= render_partial('partials/share_row', [
+                                            'share_url'  => url($publicPath . '/p/' . $p['public_id']),
+                                            'share_text' => t('share.product_text', ['name' => (string) $p['name']]),
+                                            'compact'    => true,
+                                        ]) ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

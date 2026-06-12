@@ -406,6 +406,8 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .share-btn--tt { color:#111; border-color:#cfd2d8; background:#f4f5f7; }
 .share-btn--tt:hover { background:#e8eaee; border-color:#b3b8c2; }
 .share-btn--tt.is-copied { color:#0f7a3c; background:#d2f5dd; border-color:#8fe0a8; }
+.share-row--compact { margin-top:0; gap:6px; }
+.share-row--compact .share-btn { padding:4px 9px; font-size:.92rem; line-height:1; }
 .share-btn.is-copied { color:#0f7a3c; background:#d2f5dd; border-color:#8fe0a8; }
 .badge-verified { background:#eafaf2; color:#0f7a3c; border:1px solid #9fdcbe; font-size:.62em; vertical-align:middle; }
 .verified-line { margin:8px 0 0; font-size:.85rem; font-weight:600; color:#0f7a3c; }
