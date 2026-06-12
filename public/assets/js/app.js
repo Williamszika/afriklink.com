@@ -212,12 +212,17 @@ document.addEventListener('click', function (ev) {
 
 /* ---- Copie générique dans le presse-papiers (boutons [data-copy]) ----
    Copie le texte de l'attribut data-copy ; fallback execCommand pour les
-   navigateurs sans Clipboard API. Affiche un retour bref « ✓ Copié ! ». */
+   navigateurs sans Clipboard API. Affiche un retour bref « ✓ Copié ! ».
+   data-open : ouvre en plus cette adresse dans un nouvel onglet (ex. TikTok,
+   qui n'a pas d'URL de partage : on copie le lien puis on ouvre la page de
+   publication). Ouverture synchrone pour rester dans le geste utilisateur. */
 document.addEventListener('click', function (ev) {
     var el = ev.target && ev.target.closest ? ev.target.closest('[data-copy]') : null;
     if (!el) { return; }
     ev.preventDefault();
     var text = el.getAttribute('data-copy') || '';
+    var openUrl = el.getAttribute('data-open');
+    if (openUrl) { window.open(openUrl, '_blank', 'noopener'); }
 
     function feedback() {
         var done = el.getAttribute('data-copied');

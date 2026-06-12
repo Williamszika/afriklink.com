@@ -591,6 +591,7 @@ return [
     'shop.verified_hint' => 'Identité du vendeur vérifiée par Afriklink (pièce d’identité, selfie et justificatif de domicile)',
     'share.label' => 'Partager :',
     'share.copy' => 'Copier le lien',
+    'share.tiktok_hint' => 'TikTok n’accepte pas le partage direct de liens : le lien est copié automatiquement — colle-le dans la description de ta vidéo ou dans ta bio TikTok.',
     'share.shop_text' => 'Découvre la boutique « :name » sur Afriklink :',
     'share.product_text' => 'Regarde « :name » sur Afriklink :',
     'shop.view_public' => 'Voir la boutique',
