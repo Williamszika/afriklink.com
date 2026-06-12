@@ -109,7 +109,8 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                             <?php foreach ($preps as $pp): ?><option value="<?= e($pp) ?>" <?= $selPrep === $pp ? 'selected' : '' ?>><?= e(t('shop.prep.' . $pp)) ?></option><?php endforeach; ?></select></div>
                 </div>
                 <label><?= e(t('shop.f.zones')) ?></label>
-                <div class="lang-checks"><?php foreach ($zones as $z): ?><label class="check-pill"><input type="checkbox" name="zones[]" value="<?= e($z) ?>" <?= in_array($z, $selZones, true) ? 'checked' : '' ?>><span><?= e(t('shop.zone.' . $z)) ?></span></label><?php endforeach; ?></div>
+                <?php $zCity = old('city') !== '' ? old('city') : (string) ($boutique['city'] ?? ''); $zCc = old('country_code') !== '' ? old('country_code') : (string) ($boutique['country_code'] ?? ''); ?>
+                <div class="lang-checks"><?php foreach ($zones as $z): ?><label class="check-pill"><input type="checkbox" name="zones[]" value="<?= e($z) ?>" <?= in_array($z, $selZones, true) ? 'checked' : '' ?>><span data-zone-label="<?= e($z) ?>"><?= e(shop_zone_label($z, $zCity, $zCc)) ?></span></label><?php endforeach; ?></div>
                 <label><?= e(t('shop.f.methods')) ?></label>
                 <div class="lang-checks"><?php foreach ($methods as $m): ?><label class="check-pill" <?= $m === 'pickup' ? 'data-pickup-pill' : '' ?> <?= ($m === 'pickup' && $selType === 'online') ? 'hidden' : '' ?>><input type="checkbox" name="methods[]" value="<?= e($m) ?>" <?= in_array($m, $selMethods, true) ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $m)) ?></span></label><?php endforeach; ?></div>
                 <p class="hint" id="online-methods-hint" <?= $selType === 'online' ? '' : 'hidden' ?>><?= e(t('shop.online_delivery_note')) ?></p>

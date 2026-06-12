@@ -148,10 +148,11 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
 
             <label><?= e(t('shop.f.zones')) ?></label>
             <?php $selZones = old('zones') !== '' ? [] : explode(',', (string) ($s2['delivery_zones'] ?? '')); ?>
+            <?php $zCity = old('city') !== '' ? old('city') : (string) ($s2['city'] ?? ''); $zCc = old('country_code') !== '' ? old('country_code') : (string) ($s2['country_code'] ?? ''); ?>
             <div class="lang-checks">
                 <?php foreach ($zones as $z): ?>
                     <label class="check-pill"><input type="checkbox" name="zones[]" value="<?= e($z) ?>" <?= in_array($z, $selZones, true) ? 'checked' : '' ?>>
-                        <span><?= e(t('shop.zone.' . $z)) ?></span></label>
+                        <span data-zone-label="<?= e($z) ?>"><?= e(shop_zone_label($z, $zCity, $zCc)) ?></span></label>
                 <?php endforeach; ?>
             </div>
 

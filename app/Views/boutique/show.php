@@ -97,12 +97,7 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                             // pays du vendeur, sinon le libellé générique).
                             $zoneCc = (string) ($boutique['country_code'] ?? '') ?: $cc;
                             foreach ($zones as $z) {
-                                $label = match ($z) {
-                                    'city'    => !empty($boutique['city']) ? '🏠 ' . $boutique['city'] : t('shop.zone.city'),
-                                    'country' => $zoneCc !== '' ? '🌍 ' . country_name($zoneCc) : t('shop.zone.country'),
-                                    default   => t('shop.zone.' . $z),
-                                };
-                                echo '<span>' . e($label) . '</span>';
+                                echo '<span>' . e(shop_zone_label($z, (string) ($boutique['city'] ?? ''), $zoneCc)) . '</span>';
                             }
                             ?>
                         </dd>

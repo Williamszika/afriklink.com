@@ -230,6 +230,21 @@ function country_name(string $code): string
 }
 
 /**
+ * Label of a delivery zone, personalised with the shop's geolocated city /
+ * country when known ("🏠 Dakar", "🌍 Sénégal"), generic otherwise.
+ */
+function shop_zone_label(string $zone, ?string $city = null, ?string $countryCode = null): string
+{
+    if ($zone === 'city' && $city !== null && $city !== '') {
+        return '🏠 ' . $city;
+    }
+    if ($zone === 'country' && $countryCode !== null && $countryCode !== '') {
+        return '🌍 ' . country_name($countryCode);
+    }
+    return t('shop.zone.' . $zone);
+}
+
+/**
  * Parse a French birthdate "jj/mm/aaaa" into a Y-m-d string, or null if invalid.
  * Must be a real calendar date, in the past, and after 1900.
  */

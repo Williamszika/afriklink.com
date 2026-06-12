@@ -315,6 +315,13 @@ document.addEventListener('click', function (ev) {
             var addr = el('data-geo-address');
             if (addr && geo.formatted) { addr.value = geo.formatted; }
 
+            // Cases « Zones desservies » : libellés personnalisés en direct
+            // (« 🏠 Dakar », « 🌍 Sénégal ») dès que la position est connue.
+            var zoneCity = document.querySelector('[data-zone-label="city"]');
+            if (zoneCity && geo.city) { zoneCity.textContent = '🏠 ' + geo.city; }
+            var zoneCountry = document.querySelector('[data-zone-label="country"]');
+            if (zoneCountry && geo.country) { zoneCountry.textContent = '🌍 ' + geo.country; }
+
             // Position fournie → ville/pays verrouillés (📍 reste le seul
             // moyen de les actualiser). Le select désactivé n'envoie rien :
             // un champ caché porte le pays à sa place.
