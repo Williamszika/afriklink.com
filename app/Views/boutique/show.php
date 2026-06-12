@@ -90,7 +90,22 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                     <?php endif; ?>
                     <?php if ($zones): ?>
                         <dt><?= e(t('shop.f.zones')) ?></dt>
-                        <dd><?= e(implode(' · ', array_map(static fn ($z) => t('shop.zone.' . $z), $zones))) ?></dd>
+                        <dd class="zones-list">
+                            <?php
+                            // « Ma ville » / « Mon pays » deviennent les noms réellement
+                            // détectés par la géolocalisation de la boutique (sinon le
+                            // pays du vendeur, sinon le libellé générique).
+                            $zoneCc = (string) ($boutique['country_code'] ?? '') ?: $cc;
+                            foreach ($zones as $z) {
+                                $label = match ($z) {
+                                    'city'    => !empty($boutique['city']) ? '🏠 ' . $boutique['city'] : t('shop.zone.city'),
+                                    'country' => $zoneCc !== '' ? '🌍 ' . country_name($zoneCc) : t('shop.zone.country'),
+                                    default   => t('shop.zone.' . $z),
+                                };
+                                echo '<span>' . e($label) . '</span>';
+                            }
+                            ?>
+                        </dd>
                     <?php endif; ?>
                     <?php if ($methods): ?>
                         <dt><?= e(t('shop.f.methods')) ?></dt>

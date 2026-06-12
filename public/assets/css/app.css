@@ -303,6 +303,7 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .geo-continent { font-weight: 600; }
 form input.is-locked, form select.is-locked { background: #f3f4f6; color: #374151; cursor: not-allowed; }
 .geo-lock-note { color: #0f7a3c; font-weight: 600; }
+.zones-list span { display: block; line-height: 1.7; }
 
 /* Catalogue : onglets de filtre + état vide par filtre */
 .catalogue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
