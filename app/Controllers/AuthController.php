@@ -164,7 +164,9 @@ final class AuthController
         $_SESSION['geo_autoprompt'] = true; // active la position précise après connexion
         AuditLog::record((int) $user['id'], 'auth.login_success', 'user', (int) $user['id'], [], $request->ipBinary());
         clear_old();
-        flash('success', t('flash.logged_in'));
+        // Genre passé explicitement : current_user() a été mémoïsé « invité »
+        // par le middleware avant la connexion.
+        flash('success', t('flash.logged_in', ['fe' => ($user['gender'] ?? '') === 'femme' ? 'e' : '']));
         redirect('/dashboard');
     }
 

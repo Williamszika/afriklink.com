@@ -120,9 +120,12 @@ function t(string $key, array $replace = []): string
     $text = $translations[$key] ?? $key;
 
     // Accord en genre : « :fe » devient « e » pour une utilisatrice, rien sinon
-    // (ex. « Connecté:fe » → « Connectée » / « Connecté »).
+    // (ex. « Connecté:fe » → « Connectée » / « Connecté »). Le genre peut être
+    // forcé via $replace['fe'] quand la session n'est pas encore en place (login).
     if (str_contains($text, ':fe')) {
-        $text = str_replace(':fe', user_gender_suffix(), $text);
+        $fe = array_key_exists('fe', $replace) ? (string) $replace['fe'] : user_gender_suffix();
+        $text = str_replace(':fe', $fe, $text);
+        unset($replace['fe']);
     }
 
     foreach ($replace as $name => $value) {
