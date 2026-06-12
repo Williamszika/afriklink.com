@@ -107,6 +107,7 @@ final class BoutiqueController
             redirect('/boutique/creer');
         }
         view('boutique/edit', ['active' => 'vitrines', 'boutique' => $boutique, 'user' => $user,
+            'banners' => Boutique::banners((int) $boutique['id']),
             'media_ready' => CloudinaryService::configured()] + SellerController::commonData($user));
     }
 
@@ -130,8 +131,8 @@ final class BoutiqueController
         Boutique::update((int) $boutique['id'], [
             'name' => $d1['name'], 'tagline' => $d1['tagline'], 'description' => $d1['description'],
             'category' => $d1['category'],
-            'logo_public_id'   => $this->resolveImage($d1['logo_public_id'] ?? null, $boutique['logo_public_id'] ?? null),
-            'banner_public_id' => $this->resolveImage($d1['banner_public_id'] ?? null, $boutique['banner_public_id'] ?? null),
+            'logo_public_id' => $this->resolveImage($d1['logo_public_id'] ?? null, $boutique['logo_public_id'] ?? null),
+            'banners' => $this->verifiedBanners($d1['banner_ids'] ?? [], Boutique::banners((int) $boutique['id'])),
             'currency' => $d2['currency'], 'shop_type' => $d2['shop_type'], 'address' => $d2['address'],
             'delivery_zones' => $d2['delivery_zones'], 'delivery_methods' => $d2['delivery_methods'],
             'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
@@ -174,6 +175,7 @@ final class BoutiqueController
         $products = \App\Models\Product::forBoutique((int) $boutique['id'], true);
         view('boutique/show', [
             'boutique' => $boutique,
+            'banners'  => Boutique::banners((int) $boutique['id']),
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
             'is_owner' => $isOwner,
             'products' => $products,
@@ -227,8 +229,12 @@ final class BoutiqueController
             $errors['slug'] = t('validation.shop_slug_taken');
         }
 
-        $logo   = input_string('logo_public_id');
-        $banner = input_string('banner_public_id');
+        $logo = input_string('logo_public_id');
+
+        // Bannière = diaporama : jusqu'à 10 identifiants Cloudinary (banners_json).
+        $rawBanners = json_decode((string) ($_POST['banners_json'] ?? '[]'), true);
+        $bannerIds  = is_array($rawBanners) ? array_values(array_unique(array_filter($rawBanners, 'is_string'))) : [];
+        $bannerIds  = array_slice($bannerIds, 0, (int) config('shop.banner_max', 10));
 
         $tagline = input_string('tagline');
         if ($tagline !== null && mb_strlen($tagline) > (int) config('shop.tagline_max', 120)) {
@@ -241,7 +247,7 @@ final class BoutiqueController
         $category = whitelist((string) input_string('category', ''), config('listings.categories', []), null);
 
         return [[
-            'name' => $name, 'slug' => $slug, 'logo_public_id' => $logo, 'banner_public_id' => $banner,
+            'name' => $name, 'slug' => $slug, 'logo_public_id' => $logo, 'banner_ids' => $bannerIds,
             'tagline' => $tagline, 'description' => $description, 'category' => $category,
         ], $errors];
     }
@@ -323,9 +329,9 @@ final class BoutiqueController
             $s1['slug'] = Boutique::uniqueSlug($s1['slug'], $userId);
         }
 
-        // Vérité serveur sur le logo/bannière (s'ils existent sur notre compte).
-        $logo   = $this->verifiedImage($s1['logo_public_id'] ?? null);
-        $banner = $this->verifiedImage($s1['banner_public_id'] ?? null);
+        // Vérité serveur sur le logo et les bannières (existent sur notre compte).
+        $logo    = $this->verifiedImage($s1['logo_public_id'] ?? null);
+        $banners = $this->verifiedBanners($s1['banner_ids'] ?? [], []);
 
         $publicId = Boutique::create($userId, [
             'slug'             => $s1['slug'],
@@ -334,7 +340,7 @@ final class BoutiqueController
             'description'      => $s1['description'],
             'category'         => $s1['category'],
             'logo_public_id'   => $logo,
-            'banner_public_id' => $banner,
+            'banners'          => $banners,
             'currency'         => $s2['currency'],
             'shop_type'        => $s2['shop_type'] ?? 'online',
             'address'          => $s2['address'] ?? null,
@@ -360,6 +366,24 @@ final class BoutiqueController
             return null;
         }
         return CloudinaryService::verifyAsset('image', $publicId) !== null ? $publicId : null;
+    }
+
+    /**
+     * Vérifie une liste de bannières. Une image déjà connue (présente dans
+     * $existing) est gardée sans re-vérifier ; une nouvelle est vérifiée auprès
+     * de Cloudinary. @param list<string> $ids @param list<string> $existing
+     * @return list<string>
+     */
+    private function verifiedBanners(array $ids, array $existing): array
+    {
+        $out = [];
+        foreach (array_slice($ids, 0, (int) config('shop.banner_max', 10)) as $id) {
+            if (!is_string($id) || $id === '') { continue; }
+            if (in_array($id, $existing, true) || $this->verifiedImage($id) !== null) {
+                $out[] = $id;
+            }
+        }
+        return $out;
     }
 
     /** À l'édition : conserve l'image existante si inchangée ou si la vérif échoue. */

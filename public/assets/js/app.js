@@ -777,7 +777,72 @@ document.addEventListener('click', function (ev) {
         });
     }
     wire('logo-input', 'logo-public-id', 'logo-state');
-    wire('banner-input', 'banner-public-id', 'banner-state');
+
+    /* Bannière = diaporama : plusieurs images (jusqu'à data-max), aperçus
+       réordonnables par suppression, identifiants dans #banners-json. */
+    (function () {
+        var zone = document.getElementById('banner-zone');
+        var input = document.getElementById('banner-input');
+        var hidden = document.getElementById('banners-json');
+        var previews = document.getElementById('banner-previews');
+        var state = document.getElementById('banner-state');
+        if (!zone || !input || !hidden || !previews) { return; }
+        var max = parseInt(zone.getAttribute('data-max'), 10) || 10;
+        var ids = [];
+        var pending = 0;
+
+        function sync() {
+            hidden.value = JSON.stringify(ids);
+            if (state) { state.textContent = pending > 0 ? (form.getAttribute('data-uploading') || '…') : (ids.length ? ids.length + ' ✅' : ''); }
+        }
+        function wireRemove(el, id) {
+            var btn = el.querySelector('.preview-remove');
+            if (btn) { btn.addEventListener('click', function () { ids = ids.filter(function (x) { return x !== id; }); el.remove(); sync(); }); }
+        }
+        function addPreview(id, src) {
+            var wrap = document.createElement('div'); wrap.className = 'preview'; wrap.setAttribute('data-public-id', id);
+            var img = document.createElement('img'); img.src = src; img.alt = '';
+            var del = document.createElement('button'); del.type = 'button'; del.className = 'preview-remove'; del.textContent = '✕';
+            wrap.appendChild(img); wrap.appendChild(del); previews.appendChild(wrap); wireRemove(wrap, id);
+        }
+        // graine : aperçus déjà rendus côté serveur
+        Array.prototype.forEach.call(previews.querySelectorAll('.preview[data-public-id]'), function (el) {
+            var id = el.getAttribute('data-public-id'); ids.push(id); wireRemove(el, id);
+        });
+        input.addEventListener('change', function () {
+            var files = Array.prototype.slice.call(input.files || []); input.value = '';
+            var room = max - ids.length - pending;
+            files = files.slice(0, Math.max(0, room));
+            files.forEach(function (file) {
+                if (file.size > 10 * 1024 * 1024) { return; }
+                pending++; sync();
+                sign().then(function (p) { return uploadImg(file, p); })
+                    .then(function (res) { ids.push(res.public_id); addPreview(res.public_id, URL.createObjectURL(file)); })
+                    .catch(function () {})
+                    .finally(function () { pending--; sync(); });
+            });
+        });
+        form.addEventListener('submit', function (ev) { if (pending > 0) { ev.preventDefault(); } });
+    })();
+})();
+
+/* ---- Diaporama de bannière (vitrine publique) : fondu automatique ---- */
+(function () {
+    var shows = document.querySelectorAll('[data-banner-slideshow]');
+    if (!shows.length) { return; }
+    Array.prototype.forEach.call(shows, function (box) {
+        var imgs = box.querySelectorAll('img');
+        var dots = box.querySelectorAll('.shop-banner-dots i');
+        if (imgs.length < 2) { return; }
+        var i = 0;
+        setInterval(function () {
+            imgs[i].classList.remove('is-active');
+            if (dots[i]) { dots[i].classList.remove('is-active'); }
+            i = (i + 1) % imgs.length;
+            imgs[i].classList.add('is-active');
+            if (dots[i]) { dots[i].classList.add('is-active'); }
+        }, 4000);
+    });
 })();
 
 /* ---- Création de boutique : physique vs 100 % en ligne ----

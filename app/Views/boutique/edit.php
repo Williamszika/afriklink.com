@@ -1,5 +1,5 @@
 <?php
-/** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url  @var array $boutique  @var bool $media_ready */
+/** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url  @var array $boutique  @var bool $media_ready  @var list<string> $banners */
 use App\Services\CloudinaryService;
 
 $cats = config('listings.categories', []);
@@ -42,25 +42,29 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <p class="hint" id="slug-status"></p>
                 <?php if (has_error('slug')): ?><p class="field-error"><?= e(error('slug')) ?></p><?php endif; ?>
 
-                <div class="grid-2">
-                    <div>
-                        <label><?= e(t('shop.f.logo')) ?></label>
-                        <div class="upload-zone" id="logo-zone">
-                            <div class="upload-actions"><label class="btn btn-ghost btn-sm" for="logo-input">🖼️ <?= e(t('shop.f.pick_logo')) ?></label></div>
-                            <input type="file" id="logo-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
-                            <input type="hidden" name="logo_public_id" id="logo-public-id" value="<?= e((string) ($boutique['logo_public_id'] ?? '')) ?>">
-                            <span class="kyc-slot-state" id="logo-state"><?= !empty($boutique['logo_public_id']) ? '✅' : '' ?></span>
+                <label><?= e(t('shop.f.logo')) ?></label>
+                <div class="upload-zone" id="logo-zone">
+                    <div class="upload-actions"><label class="btn btn-ghost btn-sm" for="logo-input">🖼️ <?= e(t('shop.f.pick_logo')) ?></label></div>
+                    <input type="file" id="logo-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
+                    <input type="hidden" name="logo_public_id" id="logo-public-id" value="<?= e((string) ($boutique['logo_public_id'] ?? '')) ?>">
+                    <span class="kyc-slot-state" id="logo-state"><?= !empty($boutique['logo_public_id']) ? '✅' : '' ?></span>
+                </div>
+
+                <label><?= e(t('shop.f.banner', ['max' => (int) config('shop.banner_max', 10)])) ?></label>
+                <div class="upload-zone" id="banner-zone" data-max="<?= (int) config('shop.banner_max', 10) ?>">
+                    <div class="upload-actions"><label class="btn btn-ghost btn-sm" for="banner-input">🏞️ <?= e(t('shop.f.pick_banner')) ?></label></div>
+                    <p class="hint"><?= e(t('shop.f.banner_hint')) ?></p>
+                    <input type="file" id="banner-input" class="file-hidden" accept="image/jpeg,image/png,image/webp" multiple>
+                    <input type="hidden" name="banners_json" id="banners-json" value="<?= e(json_encode($banners ?? [])) ?>">
+                    <span class="kyc-slot-state" id="banner-state"></span>
+                </div>
+                <div class="upload-previews" id="banner-previews">
+                    <?php foreach (($banners ?? []) as $bid): ?>
+                        <div class="preview" data-public-id="<?= e((string) $bid) ?>">
+                            <img src="<?= e(CloudinaryService::imageUrl((string) $bid, 200, 112)) ?>" alt="">
+                            <button type="button" class="preview-remove">✕</button>
                         </div>
-                    </div>
-                    <div>
-                        <label><?= e(t('shop.f.banner')) ?></label>
-                        <div class="upload-zone" id="banner-zone">
-                            <div class="upload-actions"><label class="btn btn-ghost btn-sm" for="banner-input">🏞️ <?= e(t('shop.f.pick_banner')) ?></label></div>
-                            <input type="file" id="banner-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
-                            <input type="hidden" name="banner_public_id" id="banner-public-id" value="<?= e((string) ($boutique['banner_public_id'] ?? '')) ?>">
-                            <span class="kyc-slot-state" id="banner-state"><?= !empty($boutique['banner_public_id']) ? '✅' : '' ?></span>
-                        </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <label for="shop-tagline"><?= e(t('shop.f.tagline')) ?></label>

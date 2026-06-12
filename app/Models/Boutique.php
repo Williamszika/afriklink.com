@@ -38,7 +38,44 @@ final class Boutique
                 KEY idx_boutiques_user (user_id)
             )'
         );
+        // Bannière = diaporama : jusqu'à 10 images (identifiants Cloudinary).
+        db()->exec(
+            'CREATE TABLE IF NOT EXISTS boutique_banners (
+                id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                boutique_id     BIGINT UNSIGNED NOT NULL,
+                cloud_public_id VARCHAR(255) NOT NULL,
+                position        TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                KEY idx_banners_boutique (boutique_id, position)
+            )'
+        );
         self::migrate();
+    }
+
+    /** Remplace les bannières (diaporama) d'une boutique. @param list<string> $ids */
+    public static function setBanners(int $boutiqueId, array $ids): void
+    {
+        $pdo = db();
+        $pdo->prepare('DELETE FROM boutique_banners WHERE boutique_id = :b')->execute(['b' => $boutiqueId]);
+        $ins = $pdo->prepare('INSERT INTO boutique_banners (boutique_id, cloud_public_id, position) VALUES (:b, :c, :p)');
+        foreach (array_values($ids) as $i => $id) {
+            if ($i >= (int) config('shop.banner_max', 10)) { break; }
+            $ins->execute(['b' => $boutiqueId, 'c' => $id, 'p' => $i]);
+        }
+        // banner_public_id (colonne) = 1ʳᵉ image, pour les aperçus et le fallback.
+        $pdo->prepare('UPDATE boutiques SET banner_public_id = :c WHERE id = :id')
+            ->execute(['c' => $ids[0] ?? null, 'id' => $boutiqueId]);
+    }
+
+    /** @return list<string> identifiants des bannières, ordonnés */
+    public static function banners(int $boutiqueId): array
+    {
+        try {
+            $stmt = db()->prepare('SELECT cloud_public_id FROM boutique_banners WHERE boutique_id = :b ORDER BY position');
+            $stmt->execute(['b' => $boutiqueId]);
+            return array_map(static fn (array $r): string => (string) $r['cloud_public_id'], $stmt->fetchAll() ?: []);
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /** Ajoute shop_type/address à une table déjà créée (idempotent). */
@@ -95,35 +132,50 @@ final class Boutique
     {
         self::ensureTable();
         $publicId = uuid();
-        $stmt = db()->prepare(
-            'INSERT INTO boutiques
-                (public_id, user_id, slug, name, tagline, description, category,
-                 logo_public_id, banner_public_id, currency, shop_type, address,
-                 delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled, status)
-             VALUES
-                (:public_id, :user_id, :slug, :name, :tagline, :description, :category,
-                 :logo, :banner, :currency, :shop_type, :address,
-                 :zones, :methods, :free, :prep, :cod, \'draft\')'
-        );
-        $stmt->execute([
-            'public_id'  => $publicId,
-            'user_id'    => $userId,
-            'slug'       => $d['slug'],
-            'name'       => $d['name'],
-            'tagline'    => $d['tagline'],
-            'description'=> $d['description'],
-            'category'   => $d['category'],
-            'logo'       => $d['logo_public_id'],
-            'banner'     => $d['banner_public_id'],
-            'currency'   => $d['currency'],
-            'shop_type'  => $d['shop_type'],
-            'address'    => $d['address'],
-            'zones'      => $d['delivery_zones'],
-            'methods'    => $d['delivery_methods'],
-            'free'       => $d['free_ship_cents'],
-            'prep'       => $d['prep_time'],
-            'cod'        => $d['cod_enabled'] ? 1 : 0,
-        ]);
+        $banners  = array_values($d['banners'] ?? []);
+        $pdo = db();
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'INSERT INTO boutiques
+                    (public_id, user_id, slug, name, tagline, description, category,
+                     logo_public_id, banner_public_id, currency, shop_type, address,
+                     delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled, status)
+                 VALUES
+                    (:public_id, :user_id, :slug, :name, :tagline, :description, :category,
+                     :logo, :banner, :currency, :shop_type, :address,
+                     :zones, :methods, :free, :prep, :cod, \'draft\')'
+            );
+            $stmt->execute([
+                'public_id'  => $publicId,
+                'user_id'    => $userId,
+                'slug'       => $d['slug'],
+                'name'       => $d['name'],
+                'tagline'    => $d['tagline'],
+                'description'=> $d['description'],
+                'category'   => $d['category'],
+                'logo'       => $d['logo_public_id'],
+                'banner'     => $banners[0] ?? null,
+                'currency'   => $d['currency'],
+                'shop_type'  => $d['shop_type'],
+                'address'    => $d['address'],
+                'zones'      => $d['delivery_zones'],
+                'methods'    => $d['delivery_methods'],
+                'free'       => $d['free_ship_cents'],
+                'prep'       => $d['prep_time'],
+                'cod'        => $d['cod_enabled'] ? 1 : 0,
+            ]);
+            $id = (int) $pdo->lastInsertId();
+            $ins = $pdo->prepare('INSERT INTO boutique_banners (boutique_id, cloud_public_id, position) VALUES (:b, :c, :p)');
+            foreach ($banners as $i => $bid) {
+                if ($i >= (int) config('shop.banner_max', 10)) { break; }
+                $ins->execute(['b' => $id, 'c' => $bid, 'p' => $i]);
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
         return $publicId;
     }
 
@@ -159,6 +211,7 @@ final class Boutique
 
     public static function update(int $id, array $d): void
     {
+        $banners = array_values($d['banners'] ?? []);
         $stmt = db()->prepare(
             'UPDATE boutiques SET
                 name = :name, tagline = :tagline, description = :description, category = :category,
@@ -169,10 +222,11 @@ final class Boutique
         );
         $stmt->execute([
             'name' => $d['name'], 'tagline' => $d['tagline'], 'description' => $d['description'],
-            'category' => $d['category'], 'logo' => $d['logo_public_id'], 'banner' => $d['banner_public_id'],
+            'category' => $d['category'], 'logo' => $d['logo_public_id'], 'banner' => $banners[0] ?? null,
             'currency' => $d['currency'], 'shop_type' => $d['shop_type'], 'address' => $d['address'],
             'zones' => $d['delivery_zones'], 'methods' => $d['delivery_methods'], 'free' => $d['free_ship_cents'],
             'prep' => $d['prep_time'], 'cod' => $d['cod_enabled'] ? 1 : 0, 'id' => $id,
         ]);
+        self::setBanners($id, $banners);
     }
 }

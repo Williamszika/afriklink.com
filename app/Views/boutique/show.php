@@ -1,9 +1,9 @@
 <?php
-/** @var array $boutique  @var array $seller  @var bool $is_owner */
+/** @var array $boutique  @var array $seller  @var bool $is_owner  @var list<string> $banners */
 use App\Services\CloudinaryService;
 
 $logo   = $boutique['logo_public_id'] ?? null;
-$banner = $boutique['banner_public_id'] ?? null;
+$banners = $banners ?? array_filter([$boutique['banner_public_id'] ?? null]);
 $cc     = strtoupper((string) ($seller['country_code'] ?? ''));
 $waPhone = preg_replace('/\D+/', '', (string) ($seller['phone'] ?? ''));
 $zones = array_filter(explode(',', (string) ($boutique['delivery_zones'] ?? '')));
@@ -15,11 +15,7 @@ $methods = array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? 
     <?php endif; ?>
 
     <div class="shop-hero">
-        <?php if ($banner !== null): ?>
-            <img class="shop-hero-banner" src="<?= e(CloudinaryService::imageUrl($banner, 1100, 300)) ?>" alt="">
-        <?php else: ?>
-            <div class="shop-hero-banner shop-banner--empty"></div>
-        <?php endif; ?>
+        <?= render_partial('partials/shop_banner', ['images' => $banners, 'w' => 1100, 'h' => 300]) ?>
         <div class="shop-hero-id">
             <?php if ($logo !== null): ?>
                 <img class="shop-logo" src="<?= e(CloudinaryService::imageUrl($logo, 160, 160)) ?>" alt="" width="80" height="80">

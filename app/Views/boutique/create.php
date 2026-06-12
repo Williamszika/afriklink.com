@@ -1,5 +1,7 @@
 <?php
 /** @var int $step  @var array $draft  @var array $user  @var bool $media_ready  @var string $suggestSlug */
+use App\Services\CloudinaryService;
+
 $s1 = $draft['step1'] ?? [];
 $s2 = $draft['step2'] ?? [];
 $cats = config('listings.categories', []);
@@ -53,25 +55,29 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
             <p class="hint" id="slug-status"><?= e(t('shop.f.slug_hint')) ?></p>
             <?php if (has_error('slug')): ?><p class="field-error"><?= e(error('slug')) ?></p><?php endif; ?>
 
-            <div class="grid-2">
-                <div>
-                    <label><?= e(t('shop.f.logo')) ?></label>
-                    <div class="upload-zone" id="logo-zone">
-                        <label class="btn btn-ghost btn-sm" for="logo-input">🖼️ <?= e(t('shop.f.pick_logo')) ?></label>
-                        <input type="file" id="logo-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
-                        <input type="hidden" name="logo_public_id" id="logo-public-id" value="<?= e((string) ($s1['logo_public_id'] ?? '')) ?>">
-                        <span class="kyc-slot-state" id="logo-state"></span>
+            <label><?= e(t('shop.f.logo')) ?></label>
+            <div class="upload-zone" id="logo-zone">
+                <label class="btn btn-ghost btn-sm" for="logo-input">🖼️ <?= e(t('shop.f.pick_logo')) ?></label>
+                <input type="file" id="logo-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
+                <input type="hidden" name="logo_public_id" id="logo-public-id" value="<?= e((string) ($s1['logo_public_id'] ?? '')) ?>">
+                <span class="kyc-slot-state" id="logo-state"></span>
+            </div>
+
+            <label><?= e(t('shop.f.banner', ['max' => (int) config('shop.banner_max', 10)])) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="upload-zone" id="banner-zone" data-max="<?= (int) config('shop.banner_max', 10) ?>">
+                <div class="upload-actions"><label class="btn btn-ghost btn-sm" for="banner-input">🏞️ <?= e(t('shop.f.pick_banner')) ?></label></div>
+                <p class="hint"><?= e(t('shop.f.banner_hint')) ?></p>
+                <input type="file" id="banner-input" class="file-hidden" accept="image/jpeg,image/png,image/webp" multiple>
+                <input type="hidden" name="banners_json" id="banners-json" value="<?= e(json_encode($s1['banner_ids'] ?? [])) ?>">
+                <span class="kyc-slot-state" id="banner-state"></span>
+            </div>
+            <div class="upload-previews" id="banner-previews">
+                <?php foreach (($s1['banner_ids'] ?? []) as $bid): ?>
+                    <div class="preview" data-public-id="<?= e((string) $bid) ?>">
+                        <img src="<?= e(CloudinaryService::imageUrl((string) $bid, 200, 112)) ?>" alt="">
+                        <button type="button" class="preview-remove">✕</button>
                     </div>
-                </div>
-                <div>
-                    <label><?= e(t('shop.f.banner')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                    <div class="upload-zone" id="banner-zone">
-                        <label class="btn btn-ghost btn-sm" for="banner-input">🏞️ <?= e(t('shop.f.pick_banner')) ?></label>
-                        <input type="file" id="banner-input" class="file-hidden" accept="image/jpeg,image/png,image/webp">
-                        <input type="hidden" name="banner_public_id" id="banner-public-id" value="<?= e((string) ($s1['banner_public_id'] ?? '')) ?>">
-                        <span class="kyc-slot-state" id="banner-state"></span>
-                    </div>
-                </div>
+                <?php endforeach; ?>
             </div>
 
             <label for="shop-tagline"><?= e(t('shop.f.tagline')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

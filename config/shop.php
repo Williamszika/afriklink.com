@@ -16,8 +16,9 @@ return [
 
     'product_name_max'  => 150,
     'product_desc_max'  => 3000,
-    'product_max_photos' => 6,
+    'product_max_photos' => 5,
     'product_max_video_seconds' => 120, // 2 minutes
+    'banner_max' => 10, // bannière = diaporama animé, jusqu'à 10 images
 
     'delivery_zones'   => ['city', 'country', 'international'],
     'delivery_methods' => ['pickup', 'local', 'international'],
