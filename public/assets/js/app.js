@@ -257,6 +257,37 @@ document.addEventListener('click', function (ev) {
     }
 });
 
+/* ---- « Autre » → champ libre (générique, tout le site) ----
+   Un bloc [data-other-for="#controle"] s'affiche quand le contrôle visé est
+   sur « autre » : <select> dont la valeur == data-other-value (défaut
+   « autre »), ou case/radio cochée. Le bloc rendu côté serveur reste visible
+   sans JavaScript si la valeur enregistrée est déjà « autre ». */
+(function () {
+    function refreshOtherBoxes() {
+        document.querySelectorAll('[data-other-for]').forEach(function (box) {
+            var ctrl = document.querySelector(box.getAttribute('data-other-for'));
+            if (!ctrl) { return; }
+            var on;
+            if (ctrl.tagName === 'SELECT') {
+                on = ctrl.value === (box.getAttribute('data-other-value') || 'autre');
+            } else {
+                on = !!ctrl.checked;
+            }
+            box.hidden = !on;
+        });
+    }
+    document.addEventListener('change', function (ev) {
+        if (ev.target && (ev.target.tagName === 'SELECT' || ev.target.type === 'checkbox' || ev.target.type === 'radio')) {
+            refreshOtherBoxes();
+        }
+    });
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', refreshOtherBoxes);
+    } else {
+        refreshOtherBoxes();
+    }
+})();
+
 /* ---- Géolocalisation générique (boutons [data-geolocate]) ----
    Méthode standard : navigator.geolocation demande la permission, fournit
    latitude/longitude ; notre serveur (/api/geo/reverse) convertit en ville,

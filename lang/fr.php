@@ -67,6 +67,8 @@ return [
     'gender.homme' => 'Homme',
     'gender.femme' => 'Femme',
     'gender.autre' => 'Autre',
+    'field.other_specify' => 'Précise « Autre »',
+    'field.other_specify_ph' => 'Écris ici…',
 
     // Inscription — choix du type de compte
     'register.choice_title'      => 'Créer un compte',
@@ -640,6 +642,7 @@ return [
     'resto.f.tagline_ph' => 'ex. La vraie cuisine sénégalaise',
     'resto.f.cuisine' => 'Type de cuisine',
     'resto.f.cuisine_hint' => 'plusieurs choix possibles',
+    'resto.cuisine_other_ph' => 'ex. Camerounaise, Fusion…',
     'resto.f.services' => 'Service',
     'resto.f.hours' => 'Horaires',
     'resto.f.hours_ph' => 'ex. Lun–Sam 11h–23h',

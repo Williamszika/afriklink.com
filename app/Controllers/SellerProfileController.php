@@ -34,6 +34,13 @@ final class SellerProfileController
 
         $legalForm = input_string('legal_form');
         $legalForm = $legalForm === null ? null : whitelist($legalForm, config('pro.legal_forms', []), null);
+        // « Autre » + précision → on stocke directement le texte saisi.
+        if ($legalForm === 'autre') {
+            $custom = mb_substr(trim((string) input_string('legal_form_other', '')), 0, 60);
+            if ($custom !== '') {
+                $legalForm = $custom;
+            }
+        }
 
         $legalName = input_string('legal_name');
         if ($legalName !== null && mb_strlen($legalName) > $max) {

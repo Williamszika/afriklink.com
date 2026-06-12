@@ -188,6 +188,9 @@ final class RestaurantController
         }
         $cuisineList = array_values(array_intersect(config('restaurant.cuisines', []), (array) ($_POST['cuisine'] ?? [])));
         $cuisine = $cuisineList !== [] ? implode(',', array_slice($cuisineList, 0, 6)) : null;
+        $cuisineOther = in_array('autre', $cuisineList, true)
+            ? (mb_substr(trim((string) input_string('cuisine_other', '')), 0, 60) ?: null)
+            : null;
         $currency = input_currency('currency', config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP'])) ?? 'XOF';
         $services = array_values(array_intersect(config('restaurant.services', []), (array) ($_POST['services'] ?? [])));
 
@@ -213,7 +216,7 @@ final class RestaurantController
             'slug' => $slug, 'name' => mb_substr($name, 0, 80),
             'tagline' => (string) input_string('tagline', '') ?: null,
             'description' => (string) input_string('description', '') ?: null,
-            'cuisine' => $cuisine, 'currency' => $currency,
+            'cuisine' => $cuisine, 'cuisine_other' => $cuisineOther, 'currency' => $currency,
             'services' => $services !== [] ? implode(',', $services) : null,
             'hours' => resto_hours_label($openDaysCsv, $openTime, $closeTime) ?: null,
             'open_days' => $openDaysCsv, 'open_time' => $openTime, 'close_time' => $closeTime,

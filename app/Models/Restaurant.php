@@ -24,6 +24,7 @@ final class Restaurant
                 tagline          VARCHAR(140) NULL,
                 description      TEXT NULL,
                 cuisine          VARCHAR(120) NULL,
+                cuisine_other    VARCHAR(60) NULL,
                 logo_public_id   VARCHAR(255) NULL,
                 banner_public_id VARCHAR(255) NULL,
                 currency         CHAR(3) NOT NULL DEFAULT \'XOF\',
@@ -78,6 +79,16 @@ final class Restaurant
                 // course entre instances : une autre a déjà migré
             }
         }
+        // Cuisine « Autre » précisée librement.
+        try {
+            db()->query('SELECT cuisine_other FROM restaurants LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE restaurants ADD COLUMN cuisine_other VARCHAR(60) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     public static function create(int $userId, array $d): string
@@ -86,13 +97,13 @@ final class Restaurant
         $publicId = uuid();
         $stmt = db()->prepare(
             'INSERT INTO restaurants
-                (public_id, user_id, slug, name, tagline, description, cuisine, currency,
+                (public_id, user_id, slug, name, tagline, description, cuisine, cuisine_other, currency,
                  services, hours, open_days, open_time, close_time,
                  address, city, country_code, continent, geo_lat, geo_lng,
                  delivery_fee_cents, delivery_min_cents, prep_minutes,
                  contact_whatsapp, contact_phone, status)
              VALUES
-                (:pid, :uid, :slug, :name, :tagline, :desc, :cuisine, :cur,
+                (:pid, :uid, :slug, :name, :tagline, :desc, :cuisine, :cuisine_other, :cur,
                  :services, :hours, :odays, :otime, :ctime,
                  :address, :city, :cc, :continent, :lat, :lng,
                  :dfee, :dmin, :prep, :wa, :phone, \'draft\')'
@@ -100,7 +111,7 @@ final class Restaurant
         $stmt->execute([
             'pid' => $publicId, 'uid' => $userId, 'slug' => $d['slug'], 'name' => $d['name'],
             'tagline' => $d['tagline'] ?? null, 'desc' => $d['description'] ?? null,
-            'cuisine' => $d['cuisine'] ?? null, 'cur' => $d['currency'],
+            'cuisine' => $d['cuisine'] ?? null, 'cuisine_other' => $d['cuisine_other'] ?? null, 'cur' => $d['currency'],
             'services' => $d['services'] ?? null, 'hours' => $d['hours'] ?? null,
             'odays' => $d['open_days'] ?? null, 'otime' => $d['open_time'] ?? null, 'ctime' => $d['close_time'] ?? null,
             'address' => $d['address'] ?? null, 'city' => $d['city'] ?? null,
@@ -118,7 +129,7 @@ final class Restaurant
         self::ensureTable();
         $stmt = db()->prepare(
             'UPDATE restaurants SET name = :name, tagline = :tagline, description = :desc,
-                cuisine = :cuisine, currency = :cur, services = :services, hours = :hours,
+                cuisine = :cuisine, cuisine_other = :cuisine_other, currency = :cur, services = :services, hours = :hours,
                 open_days = :odays, open_time = :otime, close_time = :ctime,
                 address = :address, city = :city, country_code = :cc, continent = :continent,
                 geo_lat = :lat, geo_lng = :lng, delivery_fee_cents = :dfee,
@@ -129,7 +140,7 @@ final class Restaurant
         );
         $stmt->execute([
             'name' => $d['name'], 'tagline' => $d['tagline'] ?? null, 'desc' => $d['description'] ?? null,
-            'cuisine' => $d['cuisine'] ?? null, 'cur' => $d['currency'],
+            'cuisine' => $d['cuisine'] ?? null, 'cuisine_other' => $d['cuisine_other'] ?? null, 'cur' => $d['currency'],
             'services' => $d['services'] ?? null, 'hours' => $d['hours'] ?? null,
             'odays' => $d['open_days'] ?? null, 'otime' => $d['open_time'] ?? null, 'ctime' => $d['close_time'] ?? null,
             'address' => $d['address'] ?? null, 'city' => $d['city'] ?? null,

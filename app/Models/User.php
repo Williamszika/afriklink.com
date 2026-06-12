@@ -79,13 +79,14 @@ final class User
      */
     public static function create(array $data): int
     {
+        self::ensureGenderOther();
         $stmt = db()->prepare(
             'INSERT INTO users
                 (public_id, email, phone, password_hash, role, account_type, full_name, nickname,
-                 birthdate, gender, locale, country_code, city, preferred_currency, status)
+                 birthdate, gender, gender_other, locale, country_code, city, preferred_currency, status)
              VALUES
                 (:public_id, :email, :phone, :password_hash, :role, :account_type, :full_name, :nickname,
-                 :birthdate, :gender, :locale, :country_code, :city, :preferred_currency, :status)'
+                 :birthdate, :gender, :gender_other, :locale, :country_code, :city, :preferred_currency, :status)'
         );
         $stmt->execute([
             'public_id'          => uuid(),
@@ -98,6 +99,7 @@ final class User
             'nickname'           => $data['nickname'] ?? null,
             'birthdate'          => $data['birthdate'] ?? null,
             'gender'             => $data['gender'] ?? null,
+            'gender_other'       => $data['gender_other'] ?? null,
             'locale'             => $data['locale'] ?? 'fr',
             'country_code'       => $data['country_code'] ?? null,
             'city'               => $data['city'] ?? null,
@@ -105,6 +107,20 @@ final class User
             'status'             => $data['status'] ?? 'active',
         ]);
         return (int) db()->lastInsertId();
+    }
+
+    /** Précision libre quand le genre choisi est « autre » (colonne à la volée). */
+    private static function ensureGenderOther(): void
+    {
+        try {
+            db()->query('SELECT gender_other FROM users LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE users ADD COLUMN gender_other VARCHAR(40) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre requête a déjà migré
+            }
+        }
     }
 
     public static function markEmailVerified(int $id): void
@@ -127,12 +143,14 @@ final class User
      */
     public static function updateProfile(int $id, array $data): void
     {
+        self::ensureGenderOther();
         $stmt = db()->prepare(
             'UPDATE users SET
                 full_name    = :full_name,
                 nickname     = :nickname,
                 birthdate    = :birthdate,
                 gender       = :gender,
+                gender_other = :gender_other,
                 country_code = :country_code,
                 city         = :city
              WHERE id = :id AND deleted_at IS NULL'
@@ -142,6 +160,7 @@ final class User
             'nickname'     => $data['nickname'] ?? null,
             'birthdate'    => $data['birthdate'] ?? null,
             'gender'       => $data['gender'] ?? null,
+            'gender_other' => $data['gender_other'] ?? null,
             'country_code' => $data['country_code'] ?? null,
             'city'         => $data['city'] ?? null,
             'id'           => $id,

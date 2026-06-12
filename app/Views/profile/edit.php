@@ -74,6 +74,12 @@ $avatarUrl = avatar_url($user, $avatar_version ?? null);
                         <option value="autre" <?= $g === 'autre' ? 'selected' : '' ?>><?= e(t('gender.autre')) ?></option>
                     </select>
                     <?php if (has_error('gender')): ?><p class="field-error"><?= e(error('gender')) ?></p><?php endif; ?>
+                    <div class="other-box" data-other-for="#gender" data-other-value="autre" <?= $g === 'autre' ? '' : 'hidden' ?>>
+                        <label for="gender_other"><?= e(t('field.other_specify')) ?></label>
+                        <input type="text" id="gender_other" name="gender_other" maxlength="40"
+                               value="<?= old('gender_other') ?: e((string) ($user['gender_other'] ?? '')) ?>"
+                               placeholder="<?= e(t('field.other_specify_ph')) ?>">
+                    </div>
                 </div>
             </div>
 

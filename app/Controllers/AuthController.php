@@ -49,6 +49,7 @@ final class AuthController
         $nickname  = input_string('nickname');
         $birthdate = parse_birthdate_fr((string) input_string('birthdate', ''));
         $gender    = whitelist(strtolower((string) input_string('gender', '')), ['homme', 'femme', 'autre'], null);
+        $genderOther = $gender === 'autre' ? (mb_substr(trim((string) input_string('gender_other', '')), 0, 40) ?: null) : null;
         $city      = input_string('city');
 
         $countries = config('countries', []);
@@ -100,6 +101,7 @@ final class AuthController
             'nickname'           => $nickname,
             'birthdate'          => $birthdate,
             'gender'             => $gender,
+            'gender_other'       => $genderOther,
             'country_code'       => $country,
             'city'               => $city,
             'locale'             => current_locale(),

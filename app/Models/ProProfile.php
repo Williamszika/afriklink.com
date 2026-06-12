@@ -19,7 +19,7 @@ final class ProProfile
                 user_id             BIGINT UNSIGNED NOT NULL UNIQUE,
                 company_name        VARCHAR(150) NOT NULL,
                 legal_name          VARCHAR(150) NULL,
-                legal_form          VARCHAR(24) NULL,
+                legal_form          VARCHAR(60) NULL,
                 reg_number          VARCHAR(64) NULL,
                 vat_number          VARCHAR(32) NULL,
                 description         VARCHAR(600) NULL,
@@ -32,6 +32,19 @@ final class ProProfile
                 updated_at          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )'
         );
+        // Élargit legal_form (texte libre quand « Autre ») si encore en VARCHAR(24).
+        try {
+            $len = (int) db()->query(
+                "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pro_profiles'
+                    AND COLUMN_NAME = 'legal_form'"
+            )->fetchColumn();
+            if ($len > 0 && $len < 60) {
+                db()->exec('ALTER TABLE pro_profiles MODIFY legal_form VARCHAR(60) NULL');
+            }
+        } catch (\Throwable) {
+            // information_schema indisponible : on réessaiera
+        }
     }
 
     public static function create(int $userId, array $data): void

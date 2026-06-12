@@ -24,8 +24,13 @@ $autoGeo = detected_geo();
         <?php $selCuis = old_array('cuisine'); ?>
         <div class="lang-checks">
             <?php foreach ($cuisines as $c): ?>
-                <label class="check-pill"><input type="checkbox" name="cuisine[]" value="<?= e($c) ?>" <?= in_array($c, $selCuis, true) ? 'checked' : '' ?>><span><?= e(t('resto.cuisine.' . $c)) ?></span></label>
+                <label class="check-pill"><input type="checkbox" <?= $c === 'autre' ? 'id="cuisine-autre"' : '' ?> name="cuisine[]" value="<?= e($c) ?>" <?= in_array($c, $selCuis, true) ? 'checked' : '' ?>><span><?= e(t('resto.cuisine.' . $c)) ?></span></label>
             <?php endforeach; ?>
+        </div>
+        <div class="other-box" data-other-for="#cuisine-autre" <?= in_array('autre', $selCuis, true) ? '' : 'hidden' ?>>
+            <label for="cuisine_other"><?= e(t('field.other_specify')) ?></label>
+            <input type="text" id="cuisine_other" name="cuisine_other" maxlength="60"
+                   value="<?= old('cuisine_other') ?>" placeholder="<?= e(t('resto.cuisine_other_ph')) ?>">
         </div>
 
         <label for="r-cur"><?= e(t('shop.f.currency')) ?></label>

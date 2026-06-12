@@ -62,12 +62,22 @@ $verified = ($profile['verification_status'] ?? 'pending') === 'verified';
             <div class="grid-2">
                 <div>
                     <label for="legal_form"><?= e(t('pro.field.legal_form')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <?php
+                    // Valeur enregistrée hors liste = forme saisie via « Autre ».
+                    $isCustomForm = $selForm !== '' && !in_array($selForm, $legalForms, true);
+                    ?>
                     <select id="legal_form" name="legal_form">
                         <option value=""><?= e(t('field.choose')) ?></option>
                         <?php foreach ($legalForms as $lf): ?>
-                            <option value="<?= e($lf) ?>" <?= $selForm === $lf ? 'selected' : '' ?>><?= e(t('pro.legal.' . $lf)) ?></option>
+                            <option value="<?= e($lf) ?>" <?= ($isCustomForm ? $lf === 'autre' : $selForm === $lf) ? 'selected' : '' ?>><?= e(t('pro.legal.' . $lf)) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <div class="other-box" data-other-for="#legal_form" data-other-value="autre" <?= ($isCustomForm || $selForm === 'autre') ? '' : 'hidden' ?>>
+                        <label for="legal_form_other"><?= e(t('field.other_specify')) ?></label>
+                        <input type="text" id="legal_form_other" name="legal_form_other" maxlength="60"
+                               value="<?= old('legal_form_other') ?: ($isCustomForm ? e($selForm) : '') ?>"
+                               placeholder="<?= e(t('field.other_specify_ph')) ?>">
+                    </div>
                 </div>
                 <div>
                     <label for="legal_name"><?= e(t('pro.field.legal_name')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

@@ -20,7 +20,9 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                 <h1><?= e((string) $resto['name']) ?></h1>
                 <?php if (!empty($resto['tagline'])): ?><p class="lead"><?= e((string) $resto['tagline']) ?></p><?php endif; ?>
                 <p class="muted">
-                    <?php foreach (array_filter(explode(',', (string) ($resto['cuisine'] ?? ''))) as $cui): ?><span class="badge badge-neutral"><?= e(t('resto.cuisine.' . $cui)) ?></span> <?php endforeach; ?>
+                    <?php foreach (array_filter(explode(',', (string) ($resto['cuisine'] ?? ''))) as $cui): ?>
+                        <span class="badge badge-neutral"><?= $cui === 'autre' && !empty($resto['cuisine_other']) ? e((string) $resto['cuisine_other']) : e(t('resto.cuisine.' . $cui)) ?></span>
+                    <?php endforeach; ?>
                     <?php if (!empty($resto['city']) || $cc !== ''): ?> 🌍 <?= e(trim(($resto['city'] ?? '') . ' ' . ($cc !== '' ? flag_emoji($cc) : ''))) ?><?php endif; ?>
                 </p>
                 <?= render_partial('partials/share_row', ['share_url' => $shopUrl, 'share_text' => t('resto.share_text', ['name' => (string) $resto['name']])]) ?>
