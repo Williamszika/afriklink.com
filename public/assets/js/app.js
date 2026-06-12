@@ -1208,7 +1208,7 @@ document.addEventListener('click', function (ev) {
             ctx.scale(flip * sc, sc);
             ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
             ctx.restore();
-            canvas.style.filter = cut ? 'none' : cssFilter(); // après détourage, réglages déjà cuits
+            canvas.style.filter = cssFilter(); // curseurs actifs aussi après détourage
         }
         function cssFilter() {
             var f = 'brightness(' + (1 + b / 100) + ') contrast(' + (1 + c / 100) + ') saturate(' + (s / 100) + ')';
@@ -1357,9 +1357,11 @@ document.addEventListener('click', function (ev) {
                     })
                     .then(function (img) { return createImageBitmap(img); })
                     .then(function (newbmp) {
-                        snap = { bmp: bmp, rot: rot, flip: flip, zoom: zoom, ox: ox, oy: oy, b: b, c: c, s: s, improve: improve };
+                        snap = { bmp: bmp, rot: rot, flip: flip, zoom: zoom, ox: ox, oy: oy, b: b, c: c, s: s, improve: improve, lut: improveLut };
                         bmp = newbmp; cut = true; bg = { type: 'transparent' };
-                        rot = 0; flip = 1; zoom = 1; ox = 0; oy = 0; b = 0; c = 0; s = 100; improve = false;
+                        rot = 0; flip = 1; zoom = 1; ox = 0; oy = 0; b = 0; c = 0; s = 100;
+                        improve = false; improveLut = null; // base neuve : LUT à recalculer
+                        ov.querySelector('.pe-improve').classList.remove('is-on');
                         ov.querySelector('.pe-b').value = 0; ov.querySelector('.pe-c').value = 0; ov.querySelector('.pe-s').value = 100;
                         palette.hidden = false; restoreBtn.hidden = false;
                         sizeCanvas(); draw();
@@ -1372,7 +1374,8 @@ document.addEventListener('click', function (ev) {
         restoreBtn.addEventListener('click', function () {
             if (!snap) { return; }
             bmp = snap.bmp; rot = snap.rot; flip = snap.flip; zoom = snap.zoom; ox = snap.ox; oy = snap.oy;
-            b = snap.b; c = snap.c; s = snap.s; improve = snap.improve;
+            b = snap.b; c = snap.c; s = snap.s; improve = snap.improve; improveLut = snap.lut || null;
+            ov.querySelector('.pe-improve').classList.toggle('is-on', improve);
             ov.querySelector('.pe-b').value = b; ov.querySelector('.pe-c').value = c; ov.querySelector('.pe-s').value = s;
             cut = false; snap = null; palette.hidden = true; restoreBtn.hidden = true; bgErr.hidden = true;
             sizeCanvas(); draw();
@@ -1425,9 +1428,9 @@ document.addEventListener('click', function (ev) {
             octx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
             octx.setTransform(1, 0, 0, 1, 0, 0);
 
-            // Passe pixels (B/C/S + auto-niveaux). Sautée après détourage : les
-            // réglages y sont déjà cuits, et on préserve la transparence.
-            if (!cut) {
+            // Passe pixels (B/C/S + auto-niveaux), fidèle à l'aperçu. Le canal
+            // alpha n'est jamais touché : la transparence du détourage survit.
+            if (b !== 0 || c !== 0 || s !== 100 || improve) {
                 var imgd = octx.getImageData(0, 0, w, h), d = imgd.data;
                 var bb = b * 2.55, cc = (1 + c / 100), ss = s / 100;
                 var lo = improve && improveLut ? improveLut.lo : 0;
