@@ -1077,6 +1077,12 @@ document.addEventListener('click', function (ev) {
         satur:  FR ? 'Saturation' : 'Saturation',
         improve: FR ? '✨ Améliorer' : '✨ Enhance',
         watermark: FR ? '🏷️ Filigrane Afriklink' : '🏷️ Afriklink watermark',
+        bgRemove: FR ? '🪄 Retirer le fond' : '🪄 Remove background',
+        bgWorking: FR ? 'Détourage en cours…' : 'Removing background…',
+        bgRestore: FR ? '↩︎ Fond d’origine' : '↩︎ Original background',
+        bgChoose: FR ? 'Nouveau fond :' : 'New background:',
+        bgTransparent: FR ? 'Transparent' : 'Transparent',
+        bgError: FR ? 'Détourage indisponible — active l’add-on « Cloudinary AI Background Removal » (gratuit) dans ton compte Cloudinary.' : 'Background removal unavailable — enable the free “Cloudinary AI Background Removal” add-on in your Cloudinary account.',
         cancel: FR ? 'Annuler' : 'Cancel',
         raw:    FR ? 'Sans retouche' : 'Use original',
         apply:  FR ? '✓ Valider' : '✓ Apply',
@@ -1101,6 +1107,9 @@ document.addEventListener('click', function (ev) {
         var aspect = (typeof opts.aspect === 'number') ? opts.aspect : 0; // 0 = libre (ratio image)
         var lock = !!opts.lockAspect;
         var improveLut = null;
+        var cut = false;                    // un détourage a été appliqué
+        var bg = { type: 'transparent' };   // fond après détourage
+        var snap = null;                    // instantané d'avant détourage (rétablir)
 
         var ov = document.createElement('div');
         ov.className = 'pe-overlay';
@@ -1121,6 +1130,12 @@ document.addEventListener('click', function (ev) {
               '<button type="button" class="btn btn-ghost btn-sm pe-improve">' + T.improve + '</button>' +
               (opts.watermark ? '<button type="button" class="btn btn-ghost btn-sm pe-wm">' + T.watermark + '</button>' : '') +
             '</div>' +
+            '<div class="pe-row pe-bgrow">' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-bgrm">' + T.bgRemove + '</button>' +
+              '<button type="button" class="btn btn-ghost btn-sm pe-bgrestore" hidden>' + T.bgRestore + '</button>' +
+            '</div>' +
+            '<div class="pe-bgpalette" hidden><span class="pe-bglabel">' + T.bgChoose + '</span><span class="pe-swatches"></span></div>' +
+            '<p class="pe-bgerror field-error" hidden></p>' +
             '<div class="pe-sliders">' +
               '<label>☀️ ' + T.bright + '<input type="range" class="pe-b" min="-50" max="50" value="0"></label>' +
               '<label>◐ ' + T.contrast + '<input type="range" class="pe-c" min="-50" max="50" value="0"></label>' +
@@ -1164,18 +1179,36 @@ document.addEventListener('click', function (ev) {
             ox = Math.min(mx, Math.max(-mx, ox));
             oy = Math.min(my, Math.max(-my, oy));
         }
+        function paintBg(c2, w, h, forExport) {
+            if (!cut) { c2.fillStyle = '#111'; c2.fillRect(0, 0, w, h); return; }
+            if (bg.type === 'transparent') {
+                if (forExport) { return; } // export PNG : on laisse transparent
+                var sq = Math.max(10, Math.round(w / 22)); // damier d'aperçu
+                for (var y = 0; y < h; y += sq) {
+                    for (var x = 0; x < w; x += sq) {
+                        c2.fillStyle = (((x / sq) + (y / sq)) % 2 === 0) ? '#e9eaec' : '#cfd2d6';
+                        c2.fillRect(x, y, sq, sq);
+                    }
+                }
+            } else if (bg.type === 'color') {
+                c2.fillStyle = bg.value; c2.fillRect(0, 0, w, h);
+            } else if (bg.type === 'gradient') {
+                var g = c2.createLinearGradient(0, 0, w, h);
+                g.addColorStop(0, bg.value[0]); g.addColorStop(1, bg.value[1]);
+                c2.fillStyle = g; c2.fillRect(0, 0, w, h);
+            }
+        }
         function draw() {
             clampOffsets();
             var sc = baseScale() * zoom;
             ctx.save();
-            ctx.fillStyle = '#111';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            paintBg(ctx, canvas.width, canvas.height, false);
             ctx.translate(canvas.width / 2 + ox, canvas.height / 2 + oy);
             ctx.rotate(rot * Math.PI / 180);
             ctx.scale(flip * sc, sc);
             ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
             ctx.restore();
-            canvas.style.filter = cssFilter();
+            canvas.style.filter = cut ? 'none' : cssFilter(); // après détourage, réglages déjà cuits
         }
         function cssFilter() {
             var f = 'brightness(' + (1 + b / 100) + ') contrast(' + (1 + c / 100) + ') saturate(' + (s / 100) + ')';
@@ -1260,11 +1293,120 @@ document.addEventListener('click', function (ev) {
         ov.querySelector('.pe-cancel').addEventListener('click', function () { close(false); });
         ov.querySelector('.pe-raw').addEventListener('click', function () { close(null); });
         ov.querySelector('.pe-apply').addEventListener('click', function () {
+            var transparent = cut && bg.type === 'transparent';
             var out = exportImage();
             out.toBlob(function (blob) {
-                close(blob ? new File([blob], 'photo.jpg', { type: 'image/jpeg' }) : null);
-            }, 'image/jpeg', 0.88);
+                if (!blob) { close(null); return; }
+                close(new File([blob], transparent ? 'photo.png' : 'photo.jpg', { type: transparent ? 'image/png' : 'image/jpeg' }));
+            }, transparent ? 'image/png' : 'image/jpeg', 0.9);
         });
+
+        /* ---- Détourage (Cloudinary AI) + nouveau fond ---- */
+        var bgErr = ov.querySelector('.pe-bgerror');
+        var palette = ov.querySelector('.pe-bgpalette');
+        var restoreBtn = ov.querySelector('.pe-bgrestore');
+        var rmBtn = ov.querySelector('.pe-bgrm');
+
+        function signImage() {
+            var fd = new FormData(); fd.append('resource_type', 'image');
+            // window.fetch est wrappé : il ajoute X-CSRF-Token automatiquement.
+            return fetch('/api/media/sign', { method: 'POST', body: fd })
+                .then(function (r) { if (!r.ok) { throw new Error('sign'); } return r.json(); });
+        }
+        function uploadTo(blob, params) {
+            return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + encodeURIComponent(params.cloud_name) + '/image/upload');
+                xhr.onload = function () { if (xhr.status >= 200 && xhr.status < 300) { try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(e); } } else { reject(new Error('up')); } };
+                xhr.onerror = function () { reject(new Error('net')); };
+                var fd = new FormData();
+                fd.append('file', blob); fd.append('api_key', params.api_key); fd.append('timestamp', params.timestamp);
+                fd.append('folder', params.folder); fd.append('signature', params.signature);
+                xhr.send(fd);
+            });
+        }
+        // Charge l'image détourée, avec relances (Cloudinary traite la 1ʳᵉ fois).
+        function loadCutout(url, tries) {
+            return new Promise(function (resolve, reject) {
+                var attempt = function (left) {
+                    var img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function () { resolve(img); };
+                    img.onerror = function () {
+                        if (left <= 0) { reject(new Error('bg')); return; }
+                        setTimeout(function () { attempt(left - 1); }, 1800);
+                    };
+                    img.src = url + (url.indexOf('?') < 0 ? '?t=' : '&t=') + Date.now();
+                };
+                attempt(tries);
+            });
+        }
+
+        rmBtn.addEventListener('click', function () {
+            bgErr.hidden = true;
+            rmBtn.disabled = true;
+            var prev = rmBtn.textContent;
+            rmBtn.textContent = T.bgWorking;
+            var src = exportImage(); // vue actuelle (recadrée + réglée)
+            src.toBlob(function (blob) {
+                signImage()
+                    .then(function (p) { return uploadTo(blob, p); })
+                    .then(function (res) {
+                        var url = (res.secure_url || '').replace('/upload/', '/upload/e_background_removal/q_auto/').replace(/\.[a-z0-9]+$/i, '.png');
+                        return loadCutout(url, 14);
+                    })
+                    .then(function (img) { return createImageBitmap(img); })
+                    .then(function (newbmp) {
+                        snap = { bmp: bmp, rot: rot, flip: flip, zoom: zoom, ox: ox, oy: oy, b: b, c: c, s: s, improve: improve };
+                        bmp = newbmp; cut = true; bg = { type: 'transparent' };
+                        rot = 0; flip = 1; zoom = 1; ox = 0; oy = 0; b = 0; c = 0; s = 100; improve = false;
+                        ov.querySelector('.pe-b').value = 0; ov.querySelector('.pe-c').value = 0; ov.querySelector('.pe-s').value = 100;
+                        palette.hidden = false; restoreBtn.hidden = false;
+                        sizeCanvas(); draw();
+                    })
+                    .catch(function () { bgErr.textContent = T.bgError; bgErr.hidden = false; })
+                    .finally(function () { rmBtn.disabled = false; rmBtn.textContent = prev; });
+            }, 'image/jpeg', 0.92);
+        });
+
+        restoreBtn.addEventListener('click', function () {
+            if (!snap) { return; }
+            bmp = snap.bmp; rot = snap.rot; flip = snap.flip; zoom = snap.zoom; ox = snap.ox; oy = snap.oy;
+            b = snap.b; c = snap.c; s = snap.s; improve = snap.improve;
+            ov.querySelector('.pe-b').value = b; ov.querySelector('.pe-c').value = c; ov.querySelector('.pe-s').value = s;
+            cut = false; snap = null; palette.hidden = true; restoreBtn.hidden = true; bgErr.hidden = true;
+            sizeCanvas(); draw();
+        });
+
+        // Nuancier des fonds (après détourage)
+        (function buildSwatches() {
+            var sw = ov.querySelector('.pe-swatches');
+            var items = [
+                { label: T.bgTransparent, css: 'repeating-conic-gradient(#cfd2d6 0% 25%, #fff 0% 50%) 0/14px 14px', set: { type: 'transparent' } },
+                { css: '#ffffff', set: { type: 'color', value: '#ffffff' } },
+                { css: '#f3f4f6', set: { type: 'color', value: '#f3f4f6' } },
+                { css: '#111827', set: { type: 'color', value: '#111827' } },
+                { css: '#0b7a4b', set: { type: 'color', value: '#0b7a4b' } },
+                { css: '#f5a623', set: { type: 'color', value: '#f5a623' } },
+                { css: 'linear-gradient(135deg,#fde68a,#fb7185)', set: { type: 'gradient', value: ['#fde68a', '#fb7185'] } },
+                { css: 'linear-gradient(135deg,#a7f3d0,#60a5fa)', set: { type: 'gradient', value: ['#a7f3d0', '#60a5fa'] } },
+                { css: 'linear-gradient(135deg,#e5e7eb,#9ca3af)', set: { type: 'gradient', value: ['#e5e7eb', '#9ca3af'] } }
+            ];
+            items.forEach(function (it) {
+                var btn = document.createElement('button');
+                btn.type = 'button'; btn.className = 'pe-swatch';
+                btn.style.background = it.css;
+                if (it.label) { btn.title = it.label; btn.classList.add('pe-swatch--transp'); }
+                btn.addEventListener('click', function () {
+                    bg = it.set;
+                    Array.prototype.forEach.call(sw.children, function (x) { x.classList.remove('is-on'); });
+                    btn.classList.add('is-on');
+                    draw();
+                });
+                sw.appendChild(btn);
+            });
+            sw.firstChild.classList.add('is-on');
+        })();
 
         /* export fidèle : géométrie + passe pixels (B/C/S + auto-niveaux) + filigrane */
         function exportImage() {
@@ -1276,30 +1418,34 @@ document.addEventListener('click', function (ev) {
             var out = document.createElement('canvas');
             out.width = w; out.height = h;
             var octx = out.getContext('2d');
+            paintBg(octx, w, h, true);           // fond choisi (rien si transparent)
             octx.translate(w / 2 + (ox / sc) * scale, h / 2 + (oy / sc) * scale);
             octx.rotate(rot * Math.PI / 180);
             octx.scale(flip * scale, scale);
             octx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
             octx.setTransform(1, 0, 0, 1, 0, 0);
 
-            // passe pixels
-            var imgd = octx.getImageData(0, 0, w, h), d = imgd.data;
-            var bb = b * 2.55, cc = (1 + c / 100), ss = s / 100;
-            var lo = improve && improveLut ? improveLut.lo : 0;
-            var gain = improve && improveLut ? improveLut.gain : 1;
-            for (var i = 0; i < d.length; i += 4) {
-                var r = d[i], g = d[i + 1], bl = d[i + 2];
-                if (improve) { r = (r - lo) * gain; g = (g - lo) * gain; bl = (bl - lo) * gain; }
-                r = (r - 128) * cc + 128 + bb; g = (g - 128) * cc + 128 + bb; bl = (bl - 128) * cc + 128 + bb;
-                if (ss !== 1) {
-                    var gray = 0.2989 * r + 0.587 * g + 0.114 * bl;
-                    r = gray + (r - gray) * ss; g = gray + (g - gray) * ss; bl = gray + (bl - gray) * ss;
+            // Passe pixels (B/C/S + auto-niveaux). Sautée après détourage : les
+            // réglages y sont déjà cuits, et on préserve la transparence.
+            if (!cut) {
+                var imgd = octx.getImageData(0, 0, w, h), d = imgd.data;
+                var bb = b * 2.55, cc = (1 + c / 100), ss = s / 100;
+                var lo = improve && improveLut ? improveLut.lo : 0;
+                var gain = improve && improveLut ? improveLut.gain : 1;
+                for (var i = 0; i < d.length; i += 4) {
+                    var r = d[i], g = d[i + 1], bl = d[i + 2];
+                    if (improve) { r = (r - lo) * gain; g = (g - lo) * gain; bl = (bl - lo) * gain; }
+                    r = (r - 128) * cc + 128 + bb; g = (g - 128) * cc + 128 + bb; bl = (bl - 128) * cc + 128 + bb;
+                    if (ss !== 1) {
+                        var gray = 0.2989 * r + 0.587 * g + 0.114 * bl;
+                        r = gray + (r - gray) * ss; g = gray + (g - gray) * ss; bl = gray + (bl - gray) * ss;
+                    }
+                    d[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+                    d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+                    d[i + 2] = bl < 0 ? 0 : bl > 255 ? 255 : bl;
                 }
-                d[i] = r < 0 ? 0 : r > 255 ? 255 : r;
-                d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-                d[i + 2] = bl < 0 ? 0 : bl > 255 ? 255 : bl;
+                octx.putImageData(imgd, 0, 0);
             }
-            octx.putImageData(imgd, 0, 0);
 
             if (wm) {
                 var fs = Math.max(14, Math.round(w * 0.035));

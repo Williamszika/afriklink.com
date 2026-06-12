@@ -542,3 +542,12 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .pe-sliders label { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 10px; font-size: .85rem; font-weight: 600; }
 .pe-sliders input[type=range] { width: 100%; }
 .pe-actions { justify-content: space-between; margin-top: 2px; }
+
+/* Éditeur : détourage + nouveau fond */
+.pe-bgpalette { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pe-bglabel { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.pe-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.pe-swatch { width: 28px; height: 28px; border-radius: 7px; border: 2px solid var(--border); cursor: pointer; padding: 0; background-size: cover; background-position: center; }
+.pe-swatch.is-on { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(11, 122, 75, .25); }
+.pe-bgerror { margin: 2px 0 0; }
+.pe-bgrm[disabled] { opacity: .7; cursor: progress; }
