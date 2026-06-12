@@ -33,6 +33,22 @@ return [
     // Catégories de carte proposées par défaut à la création.
     'default_categories' => ['entrees', 'plats', 'desserts', 'boissons'],
 
+    // Catégories standard sélectionnables (déroulant) : clé => type.
+    'standard_categories' => [
+        'entrees'         => 'dish',
+        'plats'           => 'dish',
+        'accompagnements' => 'dish',
+        'grillades'       => 'dish',
+        'salades'         => 'dish',
+        'pizzas'          => 'dish',
+        'sandwichs'       => 'dish',
+        'desserts'        => 'dish',
+        'menus'           => 'dish',
+        'petit_dej'       => 'dish',
+        'boissons'        => 'drink',
+        'jus'             => 'drink',
+    ],
+
     // Type d'une catégorie : pilote le formulaire d'ajout.
     //  - 'dish'  : plat standard (nom, prix, description, étiquettes)
     //  - 'drink' : boisson (nom + contenances cochables avec prix)

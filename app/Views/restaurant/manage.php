@@ -46,14 +46,27 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
         <!-- Ajouter une catégorie -->
         <div class="panel">
             <h2 class="panel-title">🗂️ <?= e(t('resto.categories_title')) ?></h2>
-            <form method="post" action="<?= e(url('/restaurant/categorie')) ?>" class="inline-add">
+            <form method="post" action="<?= e(url('/restaurant/categorie')) ?>" class="cat-add-form">
                 <?= csrf_field() ?>
-                <input type="text" name="name" maxlength="60" placeholder="<?= e(t('resto.cat_ph')) ?>" required>
-                <select name="kind" aria-label="<?= e(t('resto.cat_kind')) ?>">
-                    <option value="dish"><?= e(t('resto.kind.dish')) ?></option>
-                    <option value="drink"><?= e(t('resto.kind.drink')) ?></option>
-                </select>
-                <button class="btn btn-ghost btn-sm">+ <?= e(t('resto.cat_add')) ?></button>
+                <div class="inline-add">
+                    <select id="cat-choice" name="choice" aria-label="<?= e(t('resto.cat_choice')) ?>">
+                        <?php foreach (config('restaurant.standard_categories', []) as $key => $kKind): ?>
+                            <option value="<?= e($key) ?>"><?= $kKind === 'drink' ? '🥤' : '🍽️' ?> <?= e(t('resto.cat.' . $key)) ?></option>
+                        <?php endforeach; ?>
+                        <option value="autre">✍️ <?= e(t('resto.cat.autre')) ?></option>
+                    </select>
+                    <button class="btn btn-ghost btn-sm">+ <?= e(t('resto.cat_add')) ?></button>
+                </div>
+                <div class="other-box" data-other-for="#cat-choice" data-other-value="autre" hidden>
+                    <label for="cat-name"><?= e(t('field.other_specify')) ?></label>
+                    <div class="inline-add">
+                        <input type="text" id="cat-name" name="name" maxlength="60" placeholder="<?= e(t('resto.cat_ph')) ?>">
+                        <select name="kind" aria-label="<?= e(t('resto.cat_kind')) ?>">
+                            <option value="dish"><?= e(t('resto.kind.dish')) ?></option>
+                            <option value="drink"><?= e(t('resto.kind.drink')) ?></option>
+                        </select>
+                    </div>
+                </div>
             </form>
             <?php if ($categories === []): ?>
                 <p class="muted"><?= e(t('resto.no_categories')) ?></p>

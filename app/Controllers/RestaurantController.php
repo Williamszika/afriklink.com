@@ -100,9 +100,20 @@ final class RestaurantController
     public function storeCategory(Request $request): void
     {
         $resto = $this->ownRestaurant();
-        $name = trim((string) input_string('name', ''));
-        $kind = whitelist((string) input_string('kind', ''), config('restaurant.category_kinds', []), null)
-            ?? (preg_match('/boisson|drink|breuvage/i', $name) ? 'drink' : 'dish');
+        $std = (array) config('restaurant.standard_categories', []);
+        $choice = whitelist((string) input_string('choice', ''), array_merge(array_keys($std), ['autre']), 'autre');
+
+        if ($choice !== 'autre') {
+            // Catégorie standard sélectionnée dans le déroulant : nom traduit + type déduit.
+            $name = t('resto.cat.' . $choice);
+            $kind = (string) $std[$choice];
+        } else {
+            // « Autre… » : nom libre + type choisi (sinon auto-détection boisson).
+            $name = trim((string) input_string('name', ''));
+            $kind = whitelist((string) input_string('kind', ''), config('restaurant.category_kinds', []), null)
+                ?? (preg_match('/boisson|drink|breuvage|jus/i', $name) ? 'drink' : 'dish');
+        }
+
         if (mb_strlen($name) < 2 || mb_strlen($name) > 60) {
             flash('error', t('resto.cat_invalid'));
         } elseif (MenuItem::categoryNameExists((int) $resto['id'], $name)) {
