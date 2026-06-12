@@ -1,5 +1,5 @@
 <?php
-/** @var array $boutique  @var array $product  @var list<array> $photos  @var array $seller  @var bool $is_owner */
+/** @var array $boutique  @var array $product  @var list<array> $photos  @var array $seller  @var bool $is_owner  @var bool $seller_verified */
 use App\Services\CloudinaryService;
 
 $cur     = (string) $boutique['currency'];
@@ -7,7 +7,8 @@ $main    = $photos[0]['cloud_public_id'] ?? null;
 $hasVideo = !empty($product['video_public_id']);
 $waPhone = preg_replace('/\D+/', '', (string) ($seller['phone'] ?? ''));
 $inStock = $product['stock'] === null || (int) $product['stock'] > 0;
-$waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name']]) . ' ' . url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']));
+$productUrl = url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']);
+$waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name']]) . ' ' . $productUrl);
 ?>
 <section class="listing-page">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
@@ -48,6 +49,13 @@ $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name'
                     <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
                        href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>">💬 <?= e(t('product.order_whatsapp')) ?></a>
                 <?php endif; ?>
+                <?php if (!empty($seller_verified)): ?>
+                    <p class="verified-line" title="<?= e(t('shop.verified_hint')) ?>">✅ <?= e(t('shop.verified_seller')) ?></p>
+                <?php endif; ?>
+                <?= render_partial('partials/share_row', [
+                    'share_url'  => $productUrl,
+                    'share_text' => t('share.product_text', ['name' => (string) $product['name']]),
+                ]) ?>
                 <?php if ($is_owner): ?>
                     <div class="listing-owner-actions">
                         <a class="btn btn-ghost btn-sm" href="<?= e(url('/boutique/produits/' . $product['public_id'] . '/modifier')) ?>"><?= e(t('profile.edit')) ?></a>

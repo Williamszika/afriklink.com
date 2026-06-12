@@ -59,6 +59,22 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <div class="lbl"><?= e(t('seller.stat.views')) ?></div><div class="phase"><?= e(t('dash.phase', ['n' => 4])) ?></div></div>
         </div>
 
+        <!-- Partage & QR code -->
+        <div class="panel">
+            <h2 class="panel-title">📣 <?= e(t('shop.share_title')) ?></h2>
+            <?= render_partial('partials/share_row', [
+                'share_url'  => url($publicPath),
+                'share_text' => t('share.shop_text', ['name' => (string) $boutique['name']]),
+            ]) ?>
+            <div class="qr-block">
+                <img class="qr-img" src="<?= e(url('/boutique/qr')) ?>" alt="<?= e(t('shop.qr_alt')) ?>" width="140" height="140">
+                <div class="qr-side">
+                    <p class="muted"><?= e(t('shop.qr_hint')) ?></p>
+                    <a class="btn btn-ghost btn-sm" href="<?= e(url('/boutique/qr?download=1')) ?>">⬇️ <?= e(t('shop.qr_download')) ?></a>
+                </div>
+            </div>
+        </div>
+
         <!-- Catalogue -->
         <div class="panel">
             <div class="panel-title-row">

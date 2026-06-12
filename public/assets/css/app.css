@@ -392,7 +392,23 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .btn-copy { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-size:.8rem; font-weight:600; line-height:1.4; color:#1f6f54; background:#eafaf2; border:1px solid #bfe8d4; border-radius:999px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
 .btn-copy:hover { background:#d9f4e7; border-color:#9fdcbe; }
 .btn-copy.is-copied { color:#0f7a3c; background:#d2f5dd; border-color:#8fe0a8; }
-.btn-copy .ico-copy { font-size:1.05em; line-height:1; font-weight:700; }
+.btn-copy .ico-copy, .share-btn .ico-copy { font-size:1.05em; line-height:1; font-weight:700; }
+
+/* Partage (WhatsApp / Facebook / copier) + QR code + badge vérifié */
+.share-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.share-label { font-size:.82rem; font-weight:600; color:var(--muted, #6b7280); }
+.share-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; font-size:.82rem; font-weight:600; line-height:1.4; color:#374151; background:#fff; border:1px solid #d9dee5; border-radius:999px; cursor:pointer; text-decoration:none; transition:background .15s, border-color .15s; }
+.share-btn:hover { background:#f3f5f8; border-color:#b9c2cf; text-decoration:none; }
+.share-btn--wa { color:#0f7a3c; border-color:#bfe8d4; background:#eafaf2; }
+.share-btn--wa:hover { background:#d9f4e7; border-color:#9fdcbe; }
+.share-btn--fb { color:#1d4ed8; border-color:#c5d4f6; background:#eef3fe; }
+.share-btn--fb:hover { background:#dde8fc; border-color:#a9c0f0; }
+.share-btn.is-copied { color:#0f7a3c; background:#d2f5dd; border-color:#8fe0a8; }
+.badge-verified { background:#eafaf2; color:#0f7a3c; border:1px solid #9fdcbe; font-size:.62em; vertical-align:middle; }
+.verified-line { margin:8px 0 0; font-size:.85rem; font-weight:600; color:#0f7a3c; }
+.qr-block { display:flex; gap:16px; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid #eceff3; }
+.qr-img { width:140px; height:140px; border:1px solid #e3e7ec; border-radius:10px; background:#fff; flex:none; }
+.qr-side { display:grid; gap:8px; justify-items:start; }
 .product-rows { display:grid; gap:10px; }
 .product-row { display:flex; gap:14px; align-items:flex-start; padding:12px; }
 .product-thumb img { border-radius:8px; object-fit:cover; display:block; }

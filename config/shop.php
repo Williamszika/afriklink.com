@@ -12,7 +12,7 @@ return [
     'slug_min'    => 3,
     'slug_max'    => 40,
     // Mots réservés : ne peuvent pas servir de slug (collisions de routes/URL).
-    'slug_reserved' => ['creer', 'gerer', 'api', 'admin', 'boutique', 'login', 'register', 'dashboard'],
+    'slug_reserved' => ['creer', 'gerer', 'modifier', 'publier', 'produits', 'qr', 'api', 'admin', 'boutique', 'login', 'register', 'dashboard'],
 
     'product_name_max'  => 150,
     'product_desc_max'  => 3000,

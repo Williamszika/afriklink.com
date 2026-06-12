@@ -1,5 +1,5 @@
 <?php
-/** @var array $boutique  @var array $seller  @var bool $is_owner  @var list<string> $banners */
+/** @var array $boutique  @var array $seller  @var bool $is_owner  @var bool $seller_verified  @var list<string> $banners */
 use App\Services\CloudinaryService;
 
 $logo   = $boutique['logo_public_id'] ?? null;
@@ -8,6 +8,7 @@ $cc     = strtoupper((string) ($seller['country_code'] ?? ''));
 $waPhone = preg_replace('/\D+/', '', (string) ($seller['phone'] ?? ''));
 $zones = array_filter(explode(',', (string) ($boutique['delivery_zones'] ?? '')));
 $methods = array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? '')));
+$shopUrl = url('/boutique/' . $boutique['slug']);
 ?>
 <section class="shop-page">
     <?php if ($is_owner && ($boutique['status'] ?? '') !== 'published'): ?>
@@ -23,12 +24,20 @@ $methods = array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? 
                 <div class="shop-logo shop-logo--empty" aria-hidden="true">🛍️</div>
             <?php endif; ?>
             <div>
-                <h1><?= e((string) $boutique['name']) ?></h1>
+                <h1><?= e((string) $boutique['name']) ?>
+                    <?php if (!empty($seller_verified)): ?>
+                        <span class="badge badge-verified" title="<?= e(t('shop.verified_hint')) ?>">✅ <?= e(t('shop.verified_seller')) ?></span>
+                    <?php endif; ?>
+                </h1>
                 <?php if (!empty($boutique['tagline'])): ?><p class="lead"><?= e((string) $boutique['tagline']) ?></p><?php endif; ?>
                 <p class="muted">
                     <?php if (!empty($boutique['category'])): ?><span class="badge badge-neutral"><?= e(t('listing.cat.' . $boutique['category'])) ?></span><?php endif; ?>
                     <?php if ($cc !== ''): ?> <?= flag_emoji($cc) ?> <?= e(country_name($cc)) ?><?php endif; ?>
                 </p>
+                <?= render_partial('partials/share_row', [
+                    'share_url'  => $shopUrl,
+                    'share_text' => t('share.shop_text', ['name' => (string) $boutique['name']]),
+                ]) ?>
             </div>
         </div>
     </div>

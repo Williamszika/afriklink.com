@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Boutique;
+use App\Models\ProProfile;
 use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
 use App\Services\CloudinaryService;
+use App\Services\QrCode;
 
 /**
  * Boutique en ligne — assistant de création en 3 étapes (côté serveur, marche
@@ -160,6 +162,25 @@ final class BoutiqueController
         redirect('/boutique/gerer');
     }
 
+    /** QR code SVG de l'adresse publique (aperçu, ou téléchargement si ?download=1). */
+    public function qr(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $svg = QrCode::svg(url('/boutique/' . $boutique['slug']));
+        header('Content-Type: image/svg+xml; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, max-age=3600');
+        if (input_string('download', '') === '1') {
+            header('Content-Disposition: attachment; filename="afriklink-qr-' . $boutique['slug'] . '.svg"');
+        }
+        echo $svg;
+        exit;
+    }
+
     /* ---- Page publique --------------------------------------------- */
 
     public function show(Request $request): void
@@ -173,13 +194,22 @@ final class BoutiqueController
             abort(404); // brouillon : visible seulement par le propriétaire
         }
         $products = \App\Models\Product::forBoutique((int) $boutique['id'], true);
+        $banners  = Boutique::banners((int) $boutique['id']);
+        $ogImage  = $banners[0] ?? ($boutique['logo_public_id'] ?? null);
         view('boutique/show', [
             'boutique' => $boutique,
-            'banners'  => Boutique::banners((int) $boutique['id']),
+            'banners'  => $banners,
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
+            'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
             'is_owner' => $isOwner,
             'products' => $products,
             'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'page_title' => (string) $boutique['name'],
+            'meta' => [
+                'description' => $this->ogDescription((string) ($boutique['tagline'] ?: $boutique['description'] ?? '')),
+                'image'       => $ogImage !== null && $ogImage !== '' ? CloudinaryService::imageUrl($ogImage, 1200, 630) : null,
+                'url'         => url('/boutique/' . $boutique['slug']),
+            ],
         ]);
     }
 
@@ -198,12 +228,24 @@ final class BoutiqueController
         if (!$isOwner && ($boutique['status'] !== 'published' || $product['status'] !== 'active')) {
             abort(404);
         }
+        $photos = \App\Models\Product::photos((int) $product['id']);
+        $main   = $photos[0]['cloud_public_id'] ?? null;
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
-            'photos'   => \App\Models\Product::photos((int) $product['id']),
+            'photos'   => $photos,
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
+            'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
             'is_owner' => $isOwner,
+            'page_title' => (string) $product['name'],
+            'meta' => [
+                'description' => $this->ogDescription(
+                    format_price((int) $product['price_cents'], (string) $boutique['currency'])
+                    . ' — ' . ($product['description'] ?: $boutique['name'])
+                ),
+                'image' => $main !== null ? CloudinaryService::imageUrl((string) $main, 1200, 630) : null,
+                'url'   => url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']),
+            ],
         ]);
     }
 
@@ -396,6 +438,22 @@ final class BoutiqueController
             return $existing;
         }
         return $this->verifiedImage($submitted) ?? $existing;
+    }
+
+    /** Le vendeur a-t-il terminé la vérification d'identité (KYC niveau 3) ? */
+    private function sellerVerified(int $userId): bool
+    {
+        return (ProProfile::findByUserId($userId)['verification_status'] ?? '') === 'verified';
+    }
+
+    /** Description pour l'aperçu de partage : une ligne, 160 caractères max. */
+    private function ogDescription(string $raw): ?string
+    {
+        $clean = trim((string) preg_replace('/\s+/u', ' ', $raw));
+        if ($clean === '' || $clean === '—') {
+            return null;
+        }
+        return mb_strlen($clean) > 160 ? mb_substr($clean, 0, 157) . '…' : $clean;
     }
 
     private function sellerOrRedirect(): array

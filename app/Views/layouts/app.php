@@ -1,6 +1,14 @@
 <?php
-/** @var string $content */
+/** @var string $content  @var ?string $page_title  @var ?array $meta */
 $user = current_user();
+// Titre + balises de partage (Open Graph) par page : les pages publiques
+// (boutique, produit) passent page_title/meta pour un bel aperçu quand le
+// lien est partagé sur WhatsApp ou Facebook.
+$appName  = (string) config('app.name', 'Afriklink');
+$pageTitle = isset($page_title) && $page_title !== '' ? $page_title . ' — ' . $appName : $appName;
+$metaDesc  = (string) (($meta['description'] ?? '') !== '' ? $meta['description'] : t('home.hero_subtitle'));
+$metaUrl   = (string) ($meta['url'] ?? '');
+$metaImage = (string) ($meta['image'] ?? '');
 ?>
 <!doctype html>
 <html lang="<?= e(current_locale()) ?>">
@@ -8,8 +16,24 @@ $user = current_user();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
-    <meta name="description" content="<?= e(t('home.hero_subtitle')) ?>">
-    <title><?= e(config('app.name', 'Afriklink')) ?></title>
+    <meta name="description" content="<?= e($metaDesc) ?>">
+    <title><?= e($pageTitle) ?></title>
+    <meta property="og:site_name" content="<?= e($appName) ?>">
+    <meta property="og:title" content="<?= e($page_title ?? $appName) ?>">
+    <meta property="og:description" content="<?= e($metaDesc) ?>">
+    <meta property="og:type" content="<?= e((string) ($meta['type'] ?? 'website')) ?>">
+    <meta property="og:locale" content="<?= e(current_locale() === 'fr' ? 'fr_FR' : 'en_GB') ?>">
+    <?php if ($metaUrl !== ''): ?>
+        <meta property="og:url" content="<?= e($metaUrl) ?>">
+        <link rel="canonical" href="<?= e($metaUrl) ?>">
+    <?php endif; ?>
+    <?php if ($metaImage !== ''): ?>
+        <meta property="og:image" content="<?= e($metaImage) ?>">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="<?= e($metaImage) ?>">
+    <?php else: ?>
+        <meta name="twitter:card" content="summary">
+    <?php endif; ?>
     <link rel="icon" type="image/svg+xml" href="<?= e(asset('img/logo-cauri.svg')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 </head>
