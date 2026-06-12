@@ -13,7 +13,7 @@ $countries = config('countries', []);
 $locked = ($lat ?? '') !== '' && ($lng ?? '') !== '';
 ?>
 <div class="geo-row">
-    <button type="button" class="btn btn-ghost btn-sm" data-geolocate data-geo-lock="1"
+    <button type="button" class="btn btn-ghost btn-sm" data-geolocate data-geo-lock="1" data-geo-auto="1"
             data-geo-url="<?= e(url('/api/geo/reverse')) ?>"
             data-geo-city="#shop-city" data-geo-country="#shop-country"
             data-geo-continent="#shop-continent" data-geo-status="#geo-status"

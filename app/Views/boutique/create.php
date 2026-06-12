@@ -134,8 +134,8 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
                     'city'      => old('city') !== '' ? old('city') : ((string) ($s2['city'] ?? '') ?: (string) ($autoGeo['city'] ?? '')),
                     'cc'        => old('country_code') !== '' ? old('country_code') : ((string) ($s2['country_code'] ?? '') ?: (string) ($autoGeo['country_code'] ?? '')),
                     'continent' => $s2['continent'] ?? ($autoGeo['continent'] ?? null),
-                    'lat'       => old('geo_lat') !== '' ? old('geo_lat') : (string) ($s2['geo_lat'] ?? ''),
-                    'lng'       => old('geo_lng') !== '' ? old('geo_lng') : (string) ($s2['geo_lng'] ?? ''),
+                    'lat'       => old('geo_lat') !== '' ? old('geo_lat') : ((string) ($s2['geo_lat'] ?? '') ?: (string) ($autoGeo['lat'] ?? '')),
+                    'lng'       => old('geo_lng') !== '' ? old('geo_lng') : ((string) ($s2['geo_lng'] ?? '') ?: (string) ($autoGeo['lng'] ?? '')),
                 ]) ?>
             </div>
 

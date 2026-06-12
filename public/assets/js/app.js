@@ -267,25 +267,30 @@ document.addEventListener('click', function (ev) {
     var btn = ev.target && ev.target.closest ? ev.target.closest('[data-geolocate]') : null;
     if (!btn) { return; }
     ev.preventDefault();
+    runGeolocate(btn, false);
+});
 
+/* Relève la position et remplit les champs. silent = activation automatique
+   (aucune invite, aucun message d'attente/erreur — utilisé au chargement quand
+   la permission est déjà accordée). */
+function runGeolocate(btn, silent) {
     function el(attr) {
         var sel = btn.getAttribute(attr);
         return sel ? document.querySelector(sel) : null;
     }
     var status = el('data-geo-status');
     function say(msg, isError) {
-        if (status) {
+        if (status && !(silent && isError)) {
             status.textContent = msg || '';
             status.classList.toggle('is-error', !!isError);
         }
     }
 
     if (!navigator.geolocation) {
-        say(btn.getAttribute('data-msg-unsupported'), true);
+        if (!silent) { say(btn.getAttribute('data-msg-unsupported'), true); }
         return;
     }
-    btn.disabled = true;
-    say(btn.getAttribute('data-msg-asking'), false);
+    if (!silent) { btn.disabled = true; say(btn.getAttribute('data-msg-asking'), false); }
 
     navigator.geolocation.getCurrentPosition(function (position) {
         var lat = position.coords.latitude.toFixed(6);
@@ -347,14 +352,28 @@ document.addEventListener('click', function (ev) {
             say('✓ ' + (geo.label || ''), false);
             btn.disabled = false;
         }).catch(function () {
-            say(btn.getAttribute('data-msg-error'), true);
+            if (!silent) { say(btn.getAttribute('data-msg-error'), true); }
             btn.disabled = false;
         });
     }, function (err) {
-        say(btn.getAttribute(err && err.code === 1 ? 'data-msg-denied' : 'data-msg-error'), true);
+        if (!silent) { say(btn.getAttribute(err && err.code === 1 ? 'data-msg-denied' : 'data-msg-error'), true); }
         btn.disabled = false;
-    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
-});
+    }, silent
+        ? { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
+        : { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+}
+
+/* Auto-remplissage du formulaire SANS clic : si la permission est déjà
+   accordée, on relève la position en silence dès le chargement. */
+(function () {
+    var autos = document.querySelectorAll('[data-geolocate][data-geo-auto]');
+    if (!autos.length || !navigator.permissions || !navigator.permissions.query) { return; }
+    navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+        if (p.state === 'granted') {
+            autos.forEach(function (btn) { runGeolocate(btn, true); });
+        }
+    }).catch(function () { /* indisponible : le pré-remplissage serveur a déjà eu lieu */ });
+})();
 
 /* ---- Géolocalisation automatique du site ----
    1. La localisation par IP (sans permission) est déjà fournie par le serveur.
