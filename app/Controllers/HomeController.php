@@ -80,6 +80,7 @@ final class HomeController
 
         // Hébergement médias (annonces) : diagnostic Cloudinary (ok / unconfigured / misconfigured).
         $payload['media'] = \App\Services\CloudinaryService::diagnostic();
+        $payload['payment'] = \App\Services\Payment\PaymentProviders::diagnostic();
 
         // Relecteurs KYC configurés (nombre seulement, jamais les adresses).
         $payload['staff_emails'] = count(config('app.admin_emails', []));

@@ -9,6 +9,7 @@ $terms   = config('shop.payment_terms', []);
 $methods = config('shop.payment_methods', []);
 $termsSel   = old_array('payment_terms')   !== [] ? old_array('payment_terms')   : (array) ($terms_sel ?? []);
 $methodsSel = old_array('payment_methods') !== [] ? old_array('payment_methods') : (array) ($methods_sel ?? []);
+$provSel = old('payment_provider') !== '' ? old('payment_provider') : (string) ($provider ?? '');
 ?>
 <label><?= e(t('shop.f.payment_terms')) ?></label>
 <p class="hint"><?= e(t('shop.f.payment_terms_hint')) ?></p>
@@ -34,3 +35,15 @@ $methodsSel = old_array('payment_methods') !== [] ? old_array('payment_methods')
     <?php endforeach; ?>
 </div>
 <p class="hint">🔒 <?= e(t('shop.f.payment_soon')) ?></p>
+
+<label for="pay-provider"><?= e(t('pay.provider_label')) ?></label>
+<p class="hint"><?= e(t('pay.provider_hint')) ?></p>
+<select id="pay-provider" name="payment_provider">
+    <option value=""><?= e(t('pay.provider_none')) ?></option>
+    <?php foreach (\App\Services\Payment\PaymentProviders::all() as $pkey => $pp): ?>
+        <option value="<?= e($pkey) ?>" <?= $provSel === $pkey ? 'selected' : '' ?>>
+            <?= e($pp->label()) ?> — <?= $pp->isConfigured() ? '✅ ' . e(t('pay.ready')) : '⏳ ' . e(t('pay.to_configure')) ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+<p class="hint"><a href="<?= e(url('/paiement/tester')) ?>">🧪 <?= e(t('pay.test_link')) ?></a></p>

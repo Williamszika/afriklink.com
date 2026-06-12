@@ -217,7 +217,7 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
             </div>
 
             <h3 class="wizard-h2"><?= e(t('shop.f.payment')) ?></h3>
-            <?= render_partial('partials/payment_fields', ['terms_sel' => ['on_delivery'], 'methods_sel' => ['cash']]) ?>
+            <?= render_partial('partials/payment_fields', ['terms_sel' => ['on_delivery'], 'methods_sel' => ['cash'], 'provider' => (string) config('payment.default', 'simulation')]) ?>
 
             <p class="hint"><?= e(t('shop.draft_note')) ?></p>
             <div class="wizard-nav">

@@ -148,6 +148,7 @@ final class BoutiqueController
             'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
             'cod_enabled' => $d3['cod_enabled'],
             'payment_terms' => $d3['payment_terms'] ?? [], 'payment_methods' => $d3['payment_methods'] ?? [],
+            'payment_provider' => $d3['payment_provider'] ?? null,
             'contacts' => $d1['contacts'] ?? [], 'contact_primary' => $d1['contact_primary'] ?? '',
         ]);
         AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
@@ -399,10 +400,12 @@ final class BoutiqueController
         // vendeur accepte : cases à cocher, gardées dans l'ordre du config.
         $terms = $this->checkedList('payment_terms', (array) config('shop.payment_terms', []));
         $methods = $this->checkedList('payment_methods', (array) config('shop.payment_methods', []));
+        $provider = whitelist((string) input_string('payment_provider', ''), array_keys((array) config('payment.providers', [])), null);
         return [[
-            'cod_enabled'     => in_array('on_delivery', $terms, true) || in_array('cash', $methods, true),
-            'payment_terms'   => $terms,
-            'payment_methods' => $methods,
+            'cod_enabled'      => in_array('on_delivery', $terms, true) || in_array('cash', $methods, true),
+            'payment_terms'    => $terms,
+            'payment_methods'  => $methods,
+            'payment_provider' => $provider,
         ], []];
     }
 
@@ -459,6 +462,7 @@ final class BoutiqueController
             'cod_enabled'      => $step3['cod_enabled'],
             'payment_terms'    => $step3['payment_terms'] ?? [],
             'payment_methods'  => $step3['payment_methods'] ?? [],
+            'payment_provider' => $step3['payment_provider'] ?? null,
             'contacts'         => $s1['contacts'] ?? [],
             'contact_primary'  => $s1['contact_primary'] ?? '',
         ]);

@@ -129,6 +129,7 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <?= render_partial('partials/payment_fields', [
                     'terms_sel'   => array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))),
                     'methods_sel' => array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))),
+                    'provider'    => (string) ($boutique['payment_provider'] ?? ''),
                 ]) ?>
             </div>
 

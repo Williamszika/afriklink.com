@@ -357,6 +357,22 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .pay-terms-list { display: grid; gap: 5px; }
 .pay-term-item { display: inline-flex; align-items: center; gap: 7px; }
 .pay-term-item img { border-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.12); flex: none; }
+
+/* Ossature paiement : test, simulation, résultat */
+.prov-list { display: grid; gap: 8px; }
+.prov-row { display: grid; grid-template-columns: minmax(120px, 1fr) 2fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; }
+.prov-name { font-weight: 700; }
+.prov-desc { font-size: .84rem; }
+@media (max-width: 640px) { .prov-row { grid-template-columns: 1fr auto; } .prov-desc { grid-column: 1 / -1; } }
+.pay-test-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.pay-test-form input { max-width: 160px; }
+.pay-sim { text-align: center; }
+.pay-sim-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; background: #fff4e5; color: #b45309; font-weight: 700; font-size: .82rem; margin-bottom: 8px; }
+.pay-sim-amount { font-size: 2rem; font-weight: 800; color: var(--brand); margin: 6px 0; }
+.pay-sim-actions { display: grid; gap: 10px; max-width: 320px; margin: 16px auto 0; }
+.pay-result { text-align: center; }
+.pay-result-icon { font-size: 3rem; line-height: 1; margin-bottom: 4px; }
+.pay-result .recap-list { max-width: 320px; margin: 14px auto; text-align: left; }
 .geo-status { min-height: 1.2em; }
 .geo-status.is-error { color: #b42318; }
 .geo-continent { font-weight: 600; }

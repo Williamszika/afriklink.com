@@ -14,6 +14,7 @@ use App\Controllers\ProductController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
 use App\Controllers\OrderController;
+use App\Controllers\PaymentController;
 use App\Controllers\SellerController;
 use App\Controllers\SellerProfileController;
 
@@ -76,6 +77,14 @@ return [
     ['POST', '/vendeur/commandes',                [OrderController::class, 'store'],     ['auth', 'csrf', 'throttle:order,80,3600']],
     ['POST', '/vendeur/commandes/{oid}/statut',   [OrderController::class, 'setStatus'], ['auth', 'csrf']],
     ['GET',  '/vendeur/messages',  [SellerController::class, 'messages'],     ['auth']],
+
+    // Encaissement en ligne (ossature multi-fournisseurs + simulation testable)
+    ['GET',  '/paiement/tester',              [PaymentController::class, 'tester'],           ['auth']],
+    ['POST', '/paiement/demarrer',            [PaymentController::class, 'start'],            ['auth', 'csrf', 'throttle:pay,30,3600']],
+    ['GET',  '/paiement/simulation/{ref}',    [PaymentController::class, 'simulation'],       ['auth']],
+    ['POST', '/paiement/simulation/{ref}',    [PaymentController::class, 'simulationResult'], ['auth', 'csrf']],
+    ['GET',  '/paiement/retour/{ref}',        [PaymentController::class, 'result'],           ['auth']],
+
     ['GET',  '/vendeur/gains',       [SellerController::class, 'earnings'],     ['auth']],
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],
     ['GET',  '/vendeur/affiliation', [SellerController::class, 'affiliation'],  ['auth']],
