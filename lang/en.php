@@ -581,6 +581,8 @@ return [
     'shop.status.published' => 'Live',
     'shop.status.draft' => 'Draft',
     'shop.draft_banner' => 'Your shop is a draft: only you can see it. Publish it when ready.',
+    'shop.copy_url' => 'Copy address',
+    'shop.copied' => 'Copied!',
     'shop.view_public' => 'View shop',
     'shop.products_title' => 'Products',
     'shop.products_empty' => 'Add your first products (photos, price, stock) — product management is coming very soon.',

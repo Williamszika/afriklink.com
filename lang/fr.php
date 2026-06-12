@@ -581,6 +581,8 @@ return [
     'shop.status.published' => 'En ligne',
     'shop.status.draft' => 'Brouillon',
     'shop.draft_banner' => 'Ta boutique est en brouillon : seul toi peux la voir. Publie-la quand tu es prêt.',
+    'shop.copy_url' => 'Copier l’adresse',
+    'shop.copied' => 'Copié !',
     'shop.view_public' => 'Voir la boutique',
     'shop.products_title' => 'Produits',
     'shop.products_empty' => 'Ajoute tes premiers produits (photos, prix, stock) — la gestion arrive très bientôt.',

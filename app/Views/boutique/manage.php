@@ -25,7 +25,10 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <h1><?= e((string) $boutique['name']) ?>
                     <span class="badge <?= $published ? 'badge-ok' : 'badge-warn' ?>"><?= e(t($published ? 'shop.status.published' : 'shop.status.draft')) ?></span>
                 </h1>
-                <p class="muted"><a href="<?= e(url($publicPath)) ?>" target="_blank" rel="noopener"><?= e($baseUrl) ?><?= e($publicPath) ?> ↗</a></p>
+                <p class="muted shop-url-row">
+                    <a href="<?= e(url($publicPath)) ?>" target="_blank" rel="noopener"><?= e($baseUrl) ?><?= e($publicPath) ?> ↗</a>
+                    <button type="button" class="btn-copy" data-copy="<?= e(url($publicPath)) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>" aria-label="<?= e(t('shop.copy_url')) ?>" title="<?= e(t('shop.copy_url')) ?>">📋 <?= e(t('shop.copy_url')) ?></button>
+                </p>
             </div>
             <div class="shop-admin-actions">
                 <a class="btn btn-ghost btn-sm" href="<?= e(url('/boutique/modifier')) ?>">✏️ <?= e(t('shop.edit_shop')) ?></a>

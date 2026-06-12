@@ -22,7 +22,10 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
     <div class="seller-main">
         <div class="seller-head">
             <h1>✏️ <?= e(t('shop.edit_title')) ?></h1>
-            <p class="muted"><?= e($baseUrl) ?>/boutique/<?= e((string) $boutique['slug']) ?></p>
+            <p class="muted shop-url-row">
+                <span><?= e($baseUrl) ?>/boutique/<?= e((string) $boutique['slug']) ?></span>
+                <button type="button" class="btn-copy" data-copy="<?= e(url('/boutique/' . $boutique['slug'])) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>" aria-label="<?= e(t('shop.copy_url')) ?>" title="<?= e(t('shop.copy_url')) ?>">📋 <?= e(t('shop.copy_url')) ?></button>
+            </p>
         </div>
 
         <form method="post" action="<?= e(url('/boutique/modifier')) ?>" id="shop-form" novalidate

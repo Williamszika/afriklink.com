@@ -210,6 +210,48 @@ document.addEventListener('click', function (ev) {
     }
 }, true);
 
+/* ---- Copie générique dans le presse-papiers (boutons [data-copy]) ----
+   Copie le texte de l'attribut data-copy ; fallback execCommand pour les
+   navigateurs sans Clipboard API. Affiche un retour bref « ✓ Copié ! ». */
+document.addEventListener('click', function (ev) {
+    var el = ev.target && ev.target.closest ? ev.target.closest('[data-copy]') : null;
+    if (!el) { return; }
+    ev.preventDefault();
+    var text = el.getAttribute('data-copy') || '';
+
+    function feedback() {
+        var done = el.getAttribute('data-copied');
+        if (!done) { return; }
+        if (el.dataset.copyTimer) { window.clearTimeout(Number(el.dataset.copyTimer)); }
+        else { el.setAttribute('data-copy-label', el.innerHTML); }
+        el.innerHTML = done;
+        el.classList.add('is-copied');
+        el.dataset.copyTimer = String(window.setTimeout(function () {
+            el.innerHTML = el.getAttribute('data-copy-label') || el.innerHTML;
+            el.classList.remove('is-copied');
+            delete el.dataset.copyTimer;
+        }, 1600));
+    }
+
+    function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); feedback(); } catch (e) { /* ignore */ }
+        document.body.removeChild(ta);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(feedback, fallback);
+    } else {
+        fallback();
+    }
+});
+
 /* ---- Page annonce : clic sur une vignette = grande photo ---- */
 document.addEventListener('click', function (ev) {
     var btn = ev.target && ev.target.closest ? ev.target.closest('[data-gallery-full]') : null;
