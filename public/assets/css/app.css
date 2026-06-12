@@ -388,10 +388,12 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .inline-add select { max-width: 150px; }
 /* Boissons : contenances + prix */
 .vol-rows { display: grid; gap: 8px; margin: 4px 0 6px; }
-.vol-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 10px; }
-.vol-row:has(input[type=checkbox]:checked) { border-color: var(--brand); background: #ecfdf3; }
-.vol-row .vol-size { font-weight: 700; min-width: 56px; }
-.vol-row .vol-price { margin: 0; flex: 1; max-width: 220px; }
+.vol-row { display: flex; align-items: center; gap: 12px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 10px; flex-wrap: wrap; }
+.vol-row.is-checked, .vol-row:has(input[type=checkbox]:checked) { border-color: var(--brand); background: #ecfdf3; }
+.vol-check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.vol-check .vol-size { font-weight: 700; min-width: 46px; }
+.vol-row .vol-price { margin: 0; flex: 1; min-width: 140px; max-width: 240px; }
+.vol-row .vol-price:disabled { background: #f1f3f5; color: #9aa1a9; cursor: not-allowed; }
 .menu-item-vars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
 .vol-tag { font-size: .76rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--bg, #eef1f4); color: var(--ink); border: 1px solid var(--border); }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }

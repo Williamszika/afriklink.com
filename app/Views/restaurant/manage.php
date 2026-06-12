@@ -113,11 +113,14 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                         <p class="hint"><?= e(t('resto.drink_volumes_hint')) ?></p>
                         <div class="vol-rows">
                             <?php foreach ($volumes as $v): ?>
-                                <label class="vol-row">
-                                    <input type="checkbox" name="vol[]" value="<?= e($v) ?>">
-                                    <span class="vol-size"><?= e(rtrim(rtrim((string) $v, '0'), '.')) ?> L</span>
-                                    <input type="text" name="vol_price[<?= e($v) ?>]" inputmode="decimal" class="vol-price" placeholder="<?= e(t('resto.f.item_price')) ?> (<?= e($cur) ?>)">
-                                </label>
+                                <div class="vol-row" data-vol-row>
+                                    <label class="vol-check">
+                                        <input type="checkbox" name="vol[]" value="<?= e($v) ?>">
+                                        <span class="vol-size"><?= e(rtrim(rtrim((string) $v, '0'), '.')) ?> L</span>
+                                    </label>
+                                    <input type="text" name="vol_price[<?= e($v) ?>]" inputmode="decimal" class="vol-price" disabled
+                                           placeholder="<?= e(t('resto.f.item_price')) ?> (<?= e($cur) ?>)">
+                                </div>
                             <?php endforeach; ?>
                         </div>
                         <?php if (has_error('item_price')): ?><p class="field-error"><?= e(error('item_price')) ?></p><?php endif; ?>

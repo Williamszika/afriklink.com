@@ -296,6 +296,16 @@ document.addEventListener('click', function (ev) {
     var sel = form && form.querySelector('[data-itemcat]');
     if (!form || !sel) { return; }
 
+    // Une contenance cochée → son champ prix s'active (sinon grisé et vidé).
+    function syncVolRow(row) {
+        var cb = row.querySelector('input[type="checkbox"]');
+        var price = row.querySelector('.vol-price');
+        if (!cb || !price) { return; }
+        price.disabled = !cb.checked;
+        if (!cb.checked) { price.value = ''; }
+        row.classList.toggle('is-checked', cb.checked);
+    }
+
     function apply() {
         var opt = sel.options[sel.selectedIndex];
         var kind = opt ? (opt.getAttribute('data-kind') || 'dish') : 'dish';
@@ -303,11 +313,26 @@ document.addEventListener('click', function (ev) {
             var on = block.getAttribute('data-kind-block') === kind;
             block.hidden = !on;
             block.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+            // Dans le bloc boisson actif, le prix reste lié à la case cochée.
+            if (on && block.getAttribute('data-kind-block') === 'drink') {
+                block.querySelectorAll('[data-vol-row]').forEach(syncVolRow);
+            }
         });
         var lbl = form.querySelector('[data-item-namelabel]');
         if (lbl) { lbl.textContent = kind === 'drink' ? (form.getAttribute('data-l-drink') || lbl.textContent) : (form.getAttribute('data-l-dish') || lbl.textContent); }
     }
+
     sel.addEventListener('change', apply);
+    form.addEventListener('change', function (ev) {
+        var row = ev.target && ev.target.closest ? ev.target.closest('[data-vol-row]') : null;
+        if (row && ev.target.type === 'checkbox') {
+            syncVolRow(row);
+            if (ev.target.checked) {
+                var pr = row.querySelector('.vol-price');
+                if (pr) { pr.focus(); }
+            }
+        }
+    });
     apply();
 })();
 
