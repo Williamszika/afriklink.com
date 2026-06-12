@@ -93,11 +93,12 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                         <dd class="zones-list">
                             <?php
                             // « Ma ville » / « Mon pays » deviennent les noms réellement
-                            // détectés par la géolocalisation de la boutique (sinon le
-                            // pays du vendeur, sinon le libellé générique).
-                            $zoneCc = (string) ($boutique['country_code'] ?? '') ?: $cc;
+                            // détectés : ceux de la boutique (géolocalisation vérifiée),
+                            // sinon ceux du profil du vendeur, sinon le libellé générique.
+                            $zoneCity = (string) ($boutique['city'] ?? '') ?: (string) ($seller['city'] ?? '');
+                            $zoneCc   = (string) ($boutique['country_code'] ?? '') ?: $cc;
                             foreach ($zones as $z) {
-                                echo '<span>' . e(shop_zone_label($z, (string) ($boutique['city'] ?? ''), $zoneCc)) . '</span>';
+                                echo '<span>' . e(shop_zone_label($z, $zoneCity, $zoneCc)) . '</span>';
                             }
                             ?>
                         </dd>
