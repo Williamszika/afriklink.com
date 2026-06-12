@@ -392,6 +392,7 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .btn-copy { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; font-size:.8rem; font-weight:600; line-height:1.4; color:#1f6f54; background:#eafaf2; border:1px solid #bfe8d4; border-radius:999px; cursor:pointer; transition:background .15s, border-color .15s, color .15s; }
 .btn-copy:hover { background:#d9f4e7; border-color:#9fdcbe; }
 .btn-copy.is-copied { color:#0f7a3c; background:#d2f5dd; border-color:#8fe0a8; }
+.btn-copy .ico-copy { font-size:1.05em; line-height:1; font-weight:700; }
 .product-rows { display:grid; gap:10px; }
 .product-row { display:flex; gap:14px; align-items:flex-start; padding:12px; }
 .product-thumb img { border-radius:8px; object-fit:cover; display:block; }

@@ -27,7 +27,7 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 </h1>
                 <p class="muted shop-url-row">
                     <a href="<?= e(url($publicPath)) ?>" target="_blank" rel="noopener"><?= e($baseUrl) ?><?= e($publicPath) ?> ↗</a>
-                    <button type="button" class="btn-copy" data-copy="<?= e(url($publicPath)) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>" aria-label="<?= e(t('shop.copy_url')) ?>" title="<?= e(t('shop.copy_url')) ?>">📋 <?= e(t('shop.copy_url')) ?></button>
+                    <button type="button" class="btn-copy" data-copy="<?= e(url($publicPath)) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>" aria-label="<?= e(t('shop.copy_url')) ?>" title="<?= e(t('shop.copy_url')) ?>"><span class="ico-copy" aria-hidden="true">⧉</span> <?= e(t('shop.copy_url')) ?></button>
                 </p>
             </div>
             <div class="shop-admin-actions">
