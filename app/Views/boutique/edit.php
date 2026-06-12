@@ -122,7 +122,14 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <label for="shop-free"><?= e(t('shop.f.free_ship')) ?></label>
                 <input type="text" id="shop-free" name="free_ship" value="<?= e($freeVal) ?>" inputmode="decimal">
                 <?php if (has_error('free_ship')): ?><p class="field-error"><?= e(error('free_ship')) ?></p><?php endif; ?>
-                <label class="check-row"><input type="hidden" name="cod_enabled" value="0"><input type="checkbox" name="cod_enabled" value="1" <?= !empty($boutique['cod_enabled']) ? 'checked' : '' ?>><span>💵 <?= e(t('shop.f.cod')) ?></span></label>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title">💳 <?= e(t('shop.f.payment')) ?></h2>
+                <?= render_partial('partials/payment_fields', [
+                    'terms_sel'   => array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))),
+                    'methods_sel' => array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))),
+                ]) ?>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block"><?= e(t('profile.save')) ?></button>

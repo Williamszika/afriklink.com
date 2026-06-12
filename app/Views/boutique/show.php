@@ -110,10 +110,26 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                     <?php if (!empty($boutique['prep_time'])): ?>
                         <dt><?= e(t('shop.f.prep')) ?></dt><dd><?= e(t('shop.prep.' . $boutique['prep_time'])) ?></dd>
                     <?php endif; ?>
-                    <?php if (!empty($boutique['cod_enabled'])): ?>
+                    <?php $payTerms = array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))); ?>
+                    <?php if ($payTerms): ?>
+                        <dt><?= e(t('shop.f.payment_terms')) ?></dt>
+                        <dd><?= e(implode(' · ', array_map(static fn ($x) => t('shop.payterm.' . $x), $payTerms))) ?></dd>
+                    <?php elseif (!empty($boutique['cod_enabled'])): ?>
                         <dt><?= e(t('shop.f.payment')) ?></dt><dd>💵 <?= e(t('shop.f.cod')) ?></dd>
                     <?php endif; ?>
                 </dl>
+                <?php $payMethods = array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))); ?>
+                <?php if ($payMethods): ?>
+                    <div class="pay-accepted">
+                        <p class="pay-accepted-label"><?= e(t('shop.f.payment_methods')) ?></p>
+                        <div class="pay-logos">
+                            <?php foreach ($payMethods as $mk): ?>
+                                <img class="pay-logo" src="<?= e(asset('img/pay/' . $mk . '.svg')) ?>"
+                                     alt="<?= e(t('shop.paymethod.' . $mk)) ?>" title="<?= e(t('shop.paymethod.' . $mk)) ?>" width="40" height="26">
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <?php
                 [$ctSet, $ctPrimaries] = \App\Services\ContactChannels::forBoutique($boutique);
                 ?>

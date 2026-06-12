@@ -217,11 +217,7 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
             </div>
 
             <h3 class="wizard-h2"><?= e(t('shop.f.payment')) ?></h3>
-            <label class="check-row">
-                <input type="checkbox" name="cod_enabled" value="1" <?= (old('cod_enabled') === '1' || old('cod_enabled') === '') ? 'checked' : '' ?>>
-                <span>💵 <?= e(t('shop.f.cod')) ?></span>
-            </label>
-            <div class="notice notice-info"><p>📱💳 <?= e(t('shop.f.payment_soon')) ?></p></div>
+            <?= render_partial('partials/payment_fields', ['terms_sel' => ['on_delivery'], 'methods_sel' => ['cash']]) ?>
 
             <p class="hint"><?= e(t('shop.draft_note')) ?></p>
             <div class="wizard-nav">

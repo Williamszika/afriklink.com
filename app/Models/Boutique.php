@@ -37,6 +37,8 @@ final class Boutique
                 free_ship_cents  BIGINT UNSIGNED NULL,
                 prep_time        VARCHAR(16) NULL,
                 cod_enabled      TINYINT(1) NOT NULL DEFAULT 1,
+                payment_terms    VARCHAR(80) NULL,
+                payment_methods  VARCHAR(120) NULL,
                 contact_whatsapp  VARCHAR(120) NULL,
                 contact_sms       VARCHAR(120) NULL,
                 contact_telegram  VARCHAR(120) NULL,
@@ -119,6 +121,17 @@ final class Boutique
             }
         }
         try {
+            db()->query('SELECT payment_terms FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN payment_terms   VARCHAR(80) NULL,
+                    ADD COLUMN payment_methods VARCHAR(120) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
+        try {
             db()->query('SELECT contact_primary FROM boutiques LIMIT 1');
         } catch (\Throwable) {
             try {
@@ -154,6 +167,16 @@ final class Boutique
      * $d['contacts'] (assoc canal=>valeur) et $d['contact_primary'].
      * @return array<string,?string>
      */
+    /** Liste (array ou chaîne) → CSV propre, ou null si vide. */
+    private static function csv(array|string $v): ?string
+    {
+        if (is_string($v)) {
+            $v = array_filter(array_map('trim', explode(',', $v)));
+        }
+        $v = array_values(array_filter(array_map('strval', $v), static fn ($x): bool => $x !== ''));
+        return $v !== [] ? implode(',', $v) : null;
+    }
+
     private static function contactParams(array $d): array
     {
         $contacts = $d['contacts'] ?? [];
@@ -223,6 +246,7 @@ final class Boutique
                      logo_public_id, banner_public_id, currency, shop_type, address,
                      city, country_code, continent, geo_lat, geo_lng,
                      delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled,
+                     payment_terms, payment_methods,
                      contact_whatsapp, contact_sms, contact_telegram, contact_facebook,
                      contact_instagram, contact_tiktok, contact_primary, status)
                  VALUES
@@ -230,6 +254,7 @@ final class Boutique
                      :logo, :banner, :currency, :shop_type, :address,
                      :city, :cc, :continent, :lat, :lng,
                      :zones, :methods, :free, :prep, :cod,
+                     :pay_terms, :pay_methods,
                      :c_whatsapp, :c_sms, :c_telegram, :c_facebook,
                      :c_instagram, :c_tiktok, :c_primary, \'draft\')'
             );
@@ -256,6 +281,8 @@ final class Boutique
                 'free'       => $d['free_ship_cents'],
                 'prep'       => $d['prep_time'],
                 'cod'        => $d['cod_enabled'] ? 1 : 0,
+                'pay_terms'  => self::csv($d['payment_terms'] ?? []),
+                'pay_methods'=> self::csv($d['payment_methods'] ?? []),
             ] + self::contactParams($d));
             $id = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare('INSERT INTO boutique_banners (boutique_id, cloud_public_id, position) VALUES (:b, :c, :p)');
@@ -313,6 +340,7 @@ final class Boutique
                 city = :city, country_code = :cc, continent = :continent, geo_lat = :lat, geo_lng = :lng,
                 delivery_zones = :zones,
                 delivery_methods = :methods, free_ship_cents = :free, prep_time = :prep, cod_enabled = :cod,
+                payment_terms = :pay_terms, payment_methods = :pay_methods,
                 contact_whatsapp = :c_whatsapp, contact_sms = :c_sms, contact_telegram = :c_telegram,
                 contact_facebook = :c_facebook, contact_instagram = :c_instagram, contact_tiktok = :c_tiktok,
                 contact_primary = :c_primary
@@ -326,6 +354,7 @@ final class Boutique
             'continent' => $d['continent'] ?? null, 'lat' => $d['geo_lat'] ?? null, 'lng' => $d['geo_lng'] ?? null,
             'zones' => $d['delivery_zones'], 'methods' => $d['delivery_methods'], 'free' => $d['free_ship_cents'],
             'prep' => $d['prep_time'], 'cod' => $d['cod_enabled'] ? 1 : 0, 'id' => $id,
+            'pay_terms' => self::csv($d['payment_terms'] ?? []), 'pay_methods' => self::csv($d['payment_methods'] ?? []),
         ] + self::contactParams($d));
         self::setBanners($id, $banners);
     }

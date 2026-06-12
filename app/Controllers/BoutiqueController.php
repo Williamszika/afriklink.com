@@ -147,6 +147,7 @@ final class BoutiqueController
             'delivery_zones' => $d2['delivery_zones'], 'delivery_methods' => $d2['delivery_methods'],
             'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
             'cod_enabled' => $d3['cod_enabled'],
+            'payment_terms' => $d3['payment_terms'] ?? [], 'payment_methods' => $d3['payment_methods'] ?? [],
             'contacts' => $d1['contacts'] ?? [], 'contact_primary' => $d1['contact_primary'] ?? '',
         ]);
         AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
@@ -394,7 +395,23 @@ final class BoutiqueController
 
     private function validateStep3(): array
     {
-        return [['cod_enabled' => (string) ($_POST['cod_enabled'] ?? '1') === '1'], []];
+        // Conditions de paiement (quand) + moyens de paiement (comment) que le
+        // vendeur accepte : cases à cocher, gardées dans l'ordre du config.
+        $terms = $this->checkedList('payment_terms', (array) config('shop.payment_terms', []));
+        $methods = $this->checkedList('payment_methods', (array) config('shop.payment_methods', []));
+        return [[
+            'cod_enabled'     => in_array('on_delivery', $terms, true) || in_array('cash', $methods, true),
+            'payment_terms'   => $terms,
+            'payment_methods' => $methods,
+        ], []];
+    }
+
+    /** Valeurs cochées d'un champ tableau, filtrées par une liste blanche et ordonnées. @return list<string> */
+    private function checkedList(string $field, array $allowed): array
+    {
+        $raw = $_POST[$field] ?? [];
+        $raw = is_array($raw) ? array_map('strval', $raw) : [(string) $raw];
+        return array_values(array_intersect($allowed, $raw));
     }
 
     /* ---- Création finale ------------------------------------------- */
@@ -440,6 +457,8 @@ final class BoutiqueController
             'free_ship_cents'  => $s2['free_ship_cents'],
             'prep_time'        => $s2['prep_time'],
             'cod_enabled'      => $step3['cod_enabled'],
+            'payment_terms'    => $step3['payment_terms'] ?? [],
+            'payment_methods'  => $step3['payment_methods'] ?? [],
             'contacts'         => $s1['contacts'] ?? [],
             'contact_primary'  => $s1['contact_primary'] ?? '',
         ]);
