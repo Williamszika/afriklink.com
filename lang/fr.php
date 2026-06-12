@@ -639,6 +639,7 @@ return [
     'geo.error' => 'Position introuvable pour le moment. Tu peux remplir les champs à la main.',
     'geo.unsupported' => 'Ton navigateur ne permet pas la géolocalisation.',
     'geo.continent_label' => 'Continent :',
+    'geo.locked' => 'Position vérifiée par géolocalisation — ville et pays verrouillés. Clique « 📍 Utiliser ma position » pour les actualiser.',
     'geo.continent.africa' => 'Afrique',
     'geo.continent.europe' => 'Europe',
     'geo.continent.asia' => 'Asie',

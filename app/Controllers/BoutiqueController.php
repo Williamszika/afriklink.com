@@ -135,6 +135,7 @@ final class BoutiqueController
             redirect('/boutique/modifier');
         }
 
+        $d2 = $this->verifiedGeo($d2, $boutique);
         Boutique::update((int) $boutique['id'], [
             'name' => $d1['name'], 'tagline' => $d1['tagline'], 'description' => $d1['description'],
             'category' => $d1['category'],
@@ -397,6 +398,7 @@ final class BoutiqueController
         // Vérité serveur sur le logo et les bannières (existent sur notre compte).
         $logo    = $this->verifiedImage($s1['logo_public_id'] ?? null);
         $banners = $this->verifiedBanners($s1['banner_ids'] ?? [], []);
+        $s2      = $this->verifiedGeo($s2, null);
 
         $publicId = Boutique::create($userId, [
             'slug'             => $s1['slug'],
@@ -516,6 +518,38 @@ final class BoutiqueController
         $seen[$key] = 1;
         $_SESSION['shop_seen'] = $seen;
         ShopView::record((int) $boutique['id'], $productId);
+    }
+
+    /**
+     * Verrou serveur de la localisation : si des coordonnées GPS sont
+     * fournies, ville/pays/continent sont recalculés DEPUIS les coordonnées
+     * (les valeurs saisies ne font pas foi). Si la position n'a pas changé,
+     * on réutilise la localisation déjà vérifiée sans appel réseau.
+     */
+    private function verifiedGeo(array $d2, ?array $existing): array
+    {
+        $lat = $d2['geo_lat'];
+        $lng = $d2['geo_lng'];
+        if ($lat === null || $lng === null) {
+            return $d2; // pas de position : saisie manuelle assumée
+        }
+        if ($existing !== null
+            && $existing['geo_lat'] !== null && $existing['geo_lng'] !== null
+            && abs((float) $existing['geo_lat'] - $lat) < 0.0000005
+            && abs((float) $existing['geo_lng'] - $lng) < 0.0000005
+            && !empty($existing['country_code'])) {
+            $d2['city']         = $existing['city'];
+            $d2['country_code'] = $existing['country_code'];
+            $d2['continent']    = $existing['continent'];
+            return $d2;
+        }
+        $geo = \App\Services\GeoService::reverse($lat, $lng, current_locale());
+        if ($geo !== null && $geo['country_code'] !== null) {
+            $d2['city']         = $geo['city'] !== null ? mb_substr($geo['city'], 0, 80) : $d2['city'];
+            $d2['country_code'] = $geo['country_code'];
+            $d2['continent']    = $geo['continent'];
+        }
+        return $d2;
     }
 
     /** Le vendeur a-t-il terminé la vérification d'identité (KYC niveau 3) ? */

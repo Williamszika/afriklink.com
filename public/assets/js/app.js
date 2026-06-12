@@ -314,6 +314,29 @@ document.addEventListener('click', function (ev) {
             }
             var addr = el('data-geo-address');
             if (addr && geo.formatted) { addr.value = geo.formatted; }
+
+            // Position fournie → ville/pays verrouillés (📍 reste le seul
+            // moyen de les actualiser). Le select désactivé n'envoie rien :
+            // un champ caché porte le pays à sa place.
+            if (btn.getAttribute('data-geo-lock') === '1') {
+                if (city) { city.readOnly = true; city.classList.add('is-locked'); }
+                if (country) {
+                    country.disabled = true;
+                    country.classList.add('is-locked');
+                    country.removeAttribute('name');
+                    var hid = document.getElementById('shop-country-locked');
+                    if (!hid) {
+                        hid = document.createElement('input');
+                        hid.type = 'hidden';
+                        hid.name = 'country_code';
+                        hid.id = 'shop-country-locked';
+                        country.insertAdjacentElement('afterend', hid);
+                    }
+                    hid.value = geo.country_code || '';
+                }
+                var note = document.getElementById('geo-lock-note');
+                if (note) { note.hidden = false; }
+            }
             say('✓ ' + (geo.label || ''), false);
             btn.disabled = false;
         }).catch(function () {
