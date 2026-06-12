@@ -10,6 +10,8 @@ return [
     // Navigation
     'nav.home'      => 'Accueil',
     'nav.shops'     => 'Explorer',
+    'nav.explore'   => 'Explorer',
+    'nav.primary'   => 'Navigation principale',
     'nav.login'     => 'Connexion',
     'nav.register'  => 'Créer un compte',
     'nav.dashboard' => 'Tableau de bord',
@@ -641,6 +643,16 @@ return [
     'geo.continent_label' => 'Continent :',
     'geo.locked' => 'Position vérifiée par géolocalisation — ville et pays verrouillés. Clique « 📍 Utiliser ma position » pour les actualiser.',
     'geo.chip_title' => 'Ta position détectée — clique pour l’actualiser précisément',
+
+    // Explorer (page d'attente)
+    'explore.title' => 'Explorer Afriklink',
+    'explore.subtitle' => 'Bientôt : parcours toutes les boutiques, produits et annonces — d’Afrique en Europe — et trouve ce qu’il te faut près de chez toi.',
+    'explore.near' => 'On commencera autour de toi : :place',
+    'explore.f.shops' => 'Toutes les boutiques',
+    'explore.f.products' => 'Tous les produits',
+    'explore.f.search' => 'Recherche & filtres',
+    'explore.f.nearby' => 'Près de moi',
+    'explore.soon' => 'Bientôt disponible',
     'geo.continent.africa' => 'Afrique',
     'geo.continent.europe' => 'Europe',
     'geo.continent.asia' => 'Asie',

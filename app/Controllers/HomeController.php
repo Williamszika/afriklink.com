@@ -12,6 +12,12 @@ final class HomeController
         view('home');
     }
 
+    /** Explorer public — page d'attente élégante jusqu'à la découverte complète. */
+    public function explore(Request $request): void
+    {
+        view('explore_soon', ['page_title' => t('nav.explore')]);
+    }
+
     /**
      * One-click diagnostics (no secrets exposed): is the app up, is the database
      * reachable, which session driver is active. Lets a dashboard-only operator

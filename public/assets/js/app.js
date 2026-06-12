@@ -368,10 +368,12 @@ document.addEventListener('click', function (ev) {
     var url = document.body.getAttribute('data-geo-session-url');
     if (!url || !navigator.geolocation) { return; }
 
-    function updateChips(text) {
+    function updateChips(text, flag) {
         document.querySelectorAll('[data-geo-chip]').forEach(function (chip) {
             var span = chip.querySelector('[data-geo-chip-text]');
             if (span && text) { span.textContent = text; }
+            var fl = chip.querySelector('[data-geo-chip-flag]');
+            if (fl && flag) { fl.textContent = flag; }
             if (text) { chip.hidden = false; }
         });
     }
@@ -382,7 +384,7 @@ document.addEventListener('click', function (ev) {
             fetch(url + '?lat=' + pos.coords.latitude.toFixed(6) + '&lng=' + pos.coords.longitude.toFixed(6), {
                 headers: { 'Accept': 'application/json' }
             }).then(function (r) { return r.ok ? r.json() : null; })
-              .then(function (geo) { if (geo && geo.chip) { updateChips(geo.chip); } })
+              .then(function (geo) { if (geo && geo.chip) { updateChips(geo.chip, geo.flag); } })
               .catch(function () { /* on garde la localisation IP */ });
         }, function () {
             try { localStorage.setItem('afrikGeoAsked', '1'); } catch (e) { /* privé */ }

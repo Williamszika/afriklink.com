@@ -48,6 +48,17 @@ a:hover { text-decoration: underline; }
 .container { width: 100%; max-width: var(--max); margin: 0 auto; padding: 0 20px; }
 
 /* Header */
+/* Barre d'infos (haut) : position détectée + langues */
+.topbar { background: var(--ink, #14241d); color: #fff; font-size: .82rem; }
+.topbar-inner { display: flex; align-items: center; gap: 12px; min-height: 34px; padding-top: 4px; padding-bottom: 4px; flex-wrap: wrap; }
+.topbar-spacer { flex: 1; }
+.topbar .lang-switch { margin: 0; }
+.topbar .lang-switch a { color: rgba(255, 255, 255, .72); }
+.topbar .lang-switch a.is-active { color: #fff; font-weight: 700; }
+.topbar .geo-chip { color: #fff; background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .22); }
+.topbar .geo-chip:hover { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .35); }
+.geo-chip-flag { font-size: 1.05em; line-height: 1; }
+
 .site-header {
     background: rgba(255, 255, 255, .9);
     -webkit-backdrop-filter: blur(8px) saturate(1.1);
@@ -63,8 +74,11 @@ a:hover { text-decoration: underline; }
 
 /* Cauri (cowrie) logo */
 .cauri { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 2px rgba(120, 80, 20, .3)); }
-.main-nav { display: flex; gap: 18px; }
-.main-nav a { color: var(--ink); font-weight: 500; }
+.main-nav { display: flex; gap: 22px; }
+.main-nav a { color: var(--ink); font-weight: 500; position: relative; padding: 4px 0; }
+.main-nav a:hover { color: var(--brand); text-decoration: none; }
+.main-nav a.is-active { color: var(--brand); font-weight: 700; }
+.main-nav a.is-active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--brand); border-radius: 2px; }
 .nav-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .lang-switch { display: inline-flex; gap: 6px; margin-right: 6px; font-size: .85rem; }
 .lang-switch a { color: var(--muted); padding: 2px 4px; }
@@ -307,7 +321,18 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .geo-chip { display: inline-flex; align-items: center; gap: 3px; padding: 4px 11px; font-size: .82rem; font-weight: 600; color: #1f6f54; background: #eafaf2; border: 1px solid #bfe8d4; border-radius: 999px; cursor: pointer; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .geo-chip:hover { background: #d9f4e7; border-color: #9fdcbe; }
 .geo-chip [data-geo-chip-text] { overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 640px) { .geo-chip { max-width: 130px; } }
+@media (max-width: 640px) { .geo-chip { max-width: 150px; } }
+
+/* Explorer — page d'attente */
+.explore-hero { display: flex; justify-content: center; padding: 32px 0; }
+.explore-hero-inner { max-width: 640px; text-align: center; }
+.explore-emoji { font-size: 3rem; margin: 0 0 6px; }
+.explore-hero h1 { margin: 0 0 8px; }
+.explore-here { display: inline-block; margin: 6px 0 14px; padding: 6px 14px; background: #eafaf2; color: #1f6f54; border: 1px solid #bfe8d4; border-radius: 999px; font-weight: 600; font-size: .9rem; }
+.explore-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 18px 0; }
+.explore-card { display: flex; align-items: center; gap: 10px; padding: 16px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); font-weight: 600; text-align: left; }
+.explore-card span { font-size: 1.5rem; }
+@media (max-width: 520px) { .explore-grid { grid-template-columns: 1fr; } }
 
 /* Catalogue : onglets de filtre + état vide par filtre */
 .catalogue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }

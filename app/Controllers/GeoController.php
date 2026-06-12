@@ -69,6 +69,7 @@ final class GeoController
         $continentLabel = $geo['continent'] !== null ? t('geo.continent.' . $geo['continent']) : null;
         json_response($stored + [
             'continent_label' => $continentLabel,
+            'flag'            => $geo['country_code'] !== null ? flag_emoji($geo['country_code']) : '📍',
             'chip'            => trim(implode(', ', array_filter([$geo['city'], $geo['country']]))) ?: ($geo['country'] ?? ''),
             'label'           => trim(implode(', ', array_filter([$geo['city'], $geo['country']])))
                 . ($continentLabel !== null ? ' (' . $continentLabel . ')' : ''),

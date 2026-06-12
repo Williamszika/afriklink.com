@@ -32,6 +32,7 @@ use App\Controllers\SellerProfileController;
 return [
     // ---- Public -------------------------------------------------------
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
+    ['GET',  '/explorer',          [HomeController::class, 'explore'],        []],
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
 

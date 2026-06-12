@@ -46,8 +46,29 @@ $geoAutoprompt = !empty($_SESSION['geo_autoprompt']);
 unset($_SESSION['geo_autoprompt']);
 $geo = detected_geo();
 $geoChip = trim(implode(', ', array_filter([$geo['city'] ?? null, $geo['country'] ?? null]))) ?: ($geo['country'] ?? '');
+$geoFlag = !empty($geo['country_code']) ? flag_emoji((string) $geo['country_code']) : '📍';
+$navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
 ?>
 <body<?= $geoAutoprompt ? ' data-geo-autoprompt="1"' : '' ?> data-geo-session-url="<?= e(url('/api/geo/session')) ?>">
+
+<!-- Barre d'infos : position détectée (drapeau + ville) à gauche, langues à droite -->
+<div class="topbar">
+    <div class="container topbar-inner">
+        <button type="button" class="geo-chip" data-geo-chip
+                title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
+            <span class="geo-chip-flag" data-geo-chip-flag aria-hidden="true"><?= $geoFlag ?></span>
+            <span data-geo-chip-text><?= e($geoChip) ?></span>
+        </button>
+        <span class="topbar-spacer"></span>
+        <span class="lang-switch">
+            <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
+                <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>"
+                   href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?></a>
+            <?php endforeach; ?>
+        </span>
+    </div>
+</div>
+
 <header class="site-header">
     <div class="container header-inner">
         <a class="brand" href="<?= e(url('/')) ?>">
@@ -55,23 +76,12 @@ $geoChip = trim(implode(', ', array_filter([$geo['city'] ?? null, $geo['country'
             <span class="brand-text">Afrik<span>link</span></span>
         </a>
 
-        <nav class="main-nav" aria-label="<?= e(t('nav.home')) ?>">
-            <a href="<?= e(url('/')) ?>"><?= e(t('nav.home')) ?></a>
-            <a href="<?= e(url('/')) ?>#verticals"><?= e(t('nav.shops')) ?></a>
+        <nav class="main-nav" aria-label="<?= e(t('nav.primary')) ?>">
+            <a href="<?= e(url('/')) ?>" class="<?= $navPath === '/' ? 'is-active' : '' ?>"><?= e(t('nav.home')) ?></a>
+            <a href="<?= e(url('/explorer')) ?>" class="<?= str_starts_with($navPath, '/explorer') ? 'is-active' : '' ?>"><?= e(t('nav.explore')) ?></a>
         </nav>
 
         <div class="nav-actions">
-            <button type="button" class="geo-chip" data-geo-chip
-                    title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
-                📍 <span data-geo-chip-text><?= e($geoChip) ?></span>
-            </button>
-            <span class="lang-switch">
-                <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
-                    <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>"
-                       href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?></a>
-                <?php endforeach; ?>
-            </span>
-
             <?php if ($user !== null): ?>
                 <?php if (is_staff($user)): ?>
                     <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>">🛡️ <?= e(t('nav.moderation')) ?></a>
