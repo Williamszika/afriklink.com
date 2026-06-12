@@ -69,6 +69,9 @@ return [
     'gender.autre' => 'Autre',
     'field.other_specify' => 'Précise « Autre »',
     'field.other_specify_ph' => 'Écris ici…',
+    'captcha.label' => 'Vérification anti-robots',
+    'captcha.question' => 'Combien font :a + :b ?',
+    'captcha.error' => 'Vérification anti-robots échouée — réessaie.',
 
     // Inscription — choix du type de compte
     'register.choice_title'      => 'Créer un compte',

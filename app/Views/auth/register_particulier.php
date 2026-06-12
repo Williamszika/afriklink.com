@@ -117,6 +117,8 @@ $lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
         <input type="password" id="password_confirm" name="password_confirm" required autocomplete="new-password">
         <?php if (has_error('password_confirm')): ?><p class="field-error"><?= e(error('password_confirm')) ?></p><?php endif; ?>
 
+        <?= render_partial('partials/captcha') ?>
+
         <button type="submit" class="btn btn-primary btn-block"><?= e(t('register.particulier_submit')) ?></button>
     </form>
 

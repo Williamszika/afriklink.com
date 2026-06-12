@@ -84,6 +84,10 @@ final class ProRegistrationController
             $errors['accept_legal'] = t('validation.must_accept');
         }
 
+        if (!\App\Services\Captcha::verify()) {
+            $errors['captcha'] = t('captcha.error');
+        }
+
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);

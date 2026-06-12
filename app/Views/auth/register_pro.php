@@ -76,6 +76,8 @@ $selDial    = old('dial_country') ?: $selCountry;
         </label>
         <?php if (has_error('accept_legal')): ?><p class="field-error"><?= e(error('accept_legal')) ?></p><?php endif; ?>
 
+        <?= render_partial('partials/captcha') ?>
+
         <button type="submit" class="btn btn-primary btn-block"><?= e(t('pro.submit')) ?></button>
 
         <p class="hint" style="margin-top:10px">💡 <?= e(t('pro.rest_later')) ?></p>

@@ -69,6 +69,9 @@ return [
     'gender.autre' => 'Other',
     'field.other_specify' => 'Specify “Other”',
     'field.other_specify_ph' => 'Write here…',
+    'captcha.label' => 'Anti-robot check',
+    'captcha.question' => 'How much is :a + :b?',
+    'captcha.error' => 'Anti-robot check failed — please try again.',
 
     // Registration — account type choice
     'register.choice_title'      => 'Create an account',

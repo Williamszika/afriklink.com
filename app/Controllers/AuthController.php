@@ -84,6 +84,7 @@ final class AuthController
         if ($birthdate === null)           { $errors['birthdate'] = t('validation.birthdate_invalid'); }
         if ($gender === null)              { $errors['gender'] = t('validation.required'); }
         if ($country === null)             { $errors['country_code'] = t('validation.required'); }
+        if (!\App\Services\Captcha::verify()) { $errors['captcha'] = t('captcha.error'); }
 
         if ($errors !== []) {
             keep_old($_POST);
