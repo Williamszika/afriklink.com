@@ -11,7 +11,7 @@ $here = trim(implode(', ', array_filter([$geo['city'] ?? null, $geo['country'] ?
         <p class="lead"><?= e(t('explore.subtitle')) ?></p>
 
         <?php if ($here !== ''): ?>
-            <p class="explore-here">📍 <?= e(t('explore.near', [':place' => $here])) ?></p>
+            <p class="explore-here">📍 <?= e(t('explore.near', ['place' => $here])) ?></p>
         <?php endif; ?>
 
         <div class="explore-grid">
