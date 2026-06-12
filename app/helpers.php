@@ -233,6 +233,23 @@ function detected_geo(): array
     if (isset($_SESSION['geo']) && is_array($_SESSION['geo'])) {
         return $_SESSION['geo'];
     }
+    // Utilisateur connecté : sa localisation détectée enregistrée le suit
+    // partout (toute visite, tout appareil) et prime sur la géo par IP.
+    $u = current_user();
+    if ($u !== null && !empty($u['geo_country_code'])) {
+        $cc = strtoupper((string) $u['geo_country_code']);
+        $geo = [
+            'city'         => ($u['geo_city'] ?? '') !== '' ? (string) $u['geo_city'] : null,
+            'country_code' => $cc,
+            'country'      => country_name($cc),
+            'continent'    => ($u['geo_continent'] ?? '') !== '' ? (string) $u['geo_continent'] : \App\Services\GeoService::continentOf($cc),
+            'lat'          => isset($u['geo_lat']) && is_numeric($u['geo_lat']) ? (float) $u['geo_lat'] : null,
+            'lng'          => isset($u['geo_lng']) && is_numeric($u['geo_lng']) ? (float) $u['geo_lng'] : null,
+            'source'       => 'saved',
+        ];
+        $_SESSION['geo'] = $geo;
+        return $geo;
+    }
     $cc   = detect_country_code() ?: null;
     $city = detect_city() ?: null;
     $lat  = request_header('X-Vercel-IP-Latitude');

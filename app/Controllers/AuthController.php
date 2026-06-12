@@ -157,6 +157,7 @@ final class AuthController
         }
 
         login_user((int) $user['id']); // regenerates session id
+        unset($_SESSION['geo']); // réamorce la géo depuis la localisation du compte
         $_SESSION['geo_autoprompt'] = true; // active la position précise après connexion
         AuditLog::record((int) $user['id'], 'auth.login_success', 'user', (int) $user['id'], [], $request->ipBinary());
         clear_old();

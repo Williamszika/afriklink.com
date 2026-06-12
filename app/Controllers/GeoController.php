@@ -66,6 +66,12 @@ final class GeoController
             'source'       => 'gps',
         ];
         set_session_geo($stored);
+        // Connecté : on rattache la position au compte → réutilisée sur tout le
+        // site, à chaque visite, sur n'importe quel appareil.
+        $uid = current_user_id();
+        if ($uid !== null) {
+            \App\Models\User::setDetectedLocation((int) $uid, $stored);
+        }
         $continentLabel = $geo['continent'] !== null ? t('geo.continent.' . $geo['continent']) : null;
         json_response($stored + [
             'continent_label' => $continentLabel,
