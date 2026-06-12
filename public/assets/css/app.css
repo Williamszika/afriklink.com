@@ -373,6 +373,26 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .pay-result { text-align: center; }
 .pay-result-icon { font-size: 3rem; line-height: 1; margin-bottom: 4px; }
 .pay-result .recap-list { max-width: 320px; margin: 14px auto; text-align: left; }
+
+/* Restaurant — carte (menu) */
+.stat-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 560px) { .stat-grid.cols-3 { grid-template-columns: 1fr; } }
+.inline-add { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.inline-add input { max-width: 280px; }
+.resto-item-form { display: grid; gap: 4px; }
+.menu-cat { margin-bottom: 18px; }
+.menu-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 4px; }
+.menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
+.menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
+.menu-item-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); }
+.menu-item-row.is-off { opacity: .55; }
+.menu-item-main { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.menu-item-name { font-weight: 700; }
+.menu-item-desc { font-size: .85rem; color: var(--muted); }
+.menu-item-price { font-weight: 800; color: var(--brand); white-space: nowrap; }
+.menu-item-actions { display: flex; gap: 10px; flex: none; }
+.diet-badge { display: inline-block; font-size: .68rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: #ecfdf3; color: #1f6f54; border: 1px solid #bfe8d4; margin-left: 4px; vertical-align: middle; }
+.resto-hero-band { height: 90px; border-radius: var(--radius) var(--radius) 0 0; background: linear-gradient(120deg, #f59e0b, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 2.4rem; }
 .geo-status { min-height: 1.2em; }
 .geo-status.is-error { color: #b42318; }
 .geo-continent { font-weight: 600; }

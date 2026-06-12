@@ -1,0 +1,32 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Verticale Restaurant : carte (menu) en ligne. Réutilise la base commune
+ * (géolocalisation, contacts, paiement, commandes) et ajoute le spécifique
+ * restauration.
+ */
+return [
+    'name_max'  => 80,
+    'slug_min'  => 3,
+    'slug_max'  => 40,
+    'desc_max'  => 1000,
+    'slug_reserved' => ['creer', 'gerer', 'plat', 'plats', 'categorie', 'menu', 'api', 'admin', 'resto', 'login', 'register', 'dashboard'],
+
+    'item_name_max' => 80,
+    'item_desc_max' => 400,
+    'item_max_photos' => 1,
+
+    // Types de cuisine (pour le filtre/Explorer plus tard).
+    'cuisines' => ['africaine', 'senegalaise', 'ivoirienne', 'maghrebine', 'libanaise',
+        'fast_food', 'patisserie', 'grillades', 'pizza', 'asiatique', 'europeenne', 'autre'],
+
+    // Mode de service.
+    'services' => ['dine_in', 'takeaway', 'delivery'],
+
+    // Étiquettes alimentaires d'un plat (badges).
+    'diets' => ['vegetarien', 'vegan', 'halal', 'epice', 'sans_gluten', 'populaire'],
+
+    // Catégories de carte proposées par défaut à la création.
+    'default_categories' => ['entrees', 'plats', 'desserts', 'boissons'],
+];

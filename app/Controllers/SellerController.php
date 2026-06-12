@@ -50,8 +50,9 @@ final class SellerController
     {
         $user = current_user() ?? [];
         view('vendeur/vitrines', [
-            'active'   => 'vitrines',
-            'boutique' => \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0)),
+            'active'     => 'vitrines',
+            'boutique'   => \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0)),
+            'restaurant' => \App\Models\Restaurant::findByUserId((int) ($user['id'] ?? 0)),
         ] + self::commonData($user));
     }
 

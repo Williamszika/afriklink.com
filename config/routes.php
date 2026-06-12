@@ -11,6 +11,7 @@ use App\Controllers\ListingController;
 use App\Controllers\GeoController;
 use App\Controllers\MediaController;
 use App\Controllers\ProductController;
+use App\Controllers\RestaurantController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
 use App\Controllers\OrderController;
@@ -134,6 +135,17 @@ return [
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
     ['GET',  '/boutique/{slug}',         [BoutiqueController::class, 'show'],    []],
+
+    // Restaurant (vitrine + carte/menu + page publique)
+    ['GET',  '/restaurant/creer',  [RestaurantController::class, 'create'], ['auth']],
+    ['POST', '/restaurant/creer',  [RestaurantController::class, 'store'],  ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['GET',  '/restaurant/gerer',  [RestaurantController::class, 'manage'], ['auth']],
+    ['POST', '/restaurant/publier', [RestaurantController::class, 'publish'], ['auth', 'csrf']],
+    ['POST', '/restaurant/categorie',            [RestaurantController::class, 'storeCategory'],  ['auth', 'csrf', 'throttle:product,80,3600']],
+    ['POST', '/restaurant/categorie/{cid}/suppr', [RestaurantController::class, 'deleteCategory'], ['auth', 'csrf']],
+    ['POST', '/restaurant/plat',                 [RestaurantController::class, 'storeItem'],      ['auth', 'csrf', 'throttle:product,120,3600']],
+    ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
+    ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
 
     // Roadmap interstitials for not-yet-built dashboard actions
     ['GET',  '/bientot/{feature}', [DashboardController::class, 'comingSoon'],    ['auth']],

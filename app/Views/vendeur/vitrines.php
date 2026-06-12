@@ -1,7 +1,6 @@
 <?php
-/** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url  @var ?array $boutique */
+/** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url  @var ?array $boutique  @var ?array $restaurant */
 $verticals = [
-    ['key' => 'restaurant', 'icon' => '🍽️'],
     ['key' => 'salon',      'icon' => '💈'],
     ['key' => 'service',    'icon' => '🛠️'],
 ];
@@ -21,6 +20,13 @@ $verticals = [
                 <span class="action-head">🛍️ <strong><?= e(t('pro.vertical.boutique')) ?></strong>
                     <span class="chip-live"><?= e($boutique ? t('shop.cta_manage') : t('shop.cta_create')) ?></span></span>
                 <span class="muted"><?= e(t('pro.vertical.boutique_desc')) ?></span>
+            </a>
+
+            <!-- Restaurant : RÉEL -->
+            <a class="action-card action-card--live" href="<?= e(url($restaurant ? '/restaurant/gerer' : '/restaurant/creer')) ?>">
+                <span class="action-head">🍽️ <strong><?= e(t('pro.vertical.restaurant')) ?></strong>
+                    <span class="chip-live"><?= e($restaurant ? t('shop.cta_manage') : t('shop.cta_create')) ?></span></span>
+                <span class="muted"><?= e(t('pro.vertical.restaurant_desc')) ?></span>
             </a>
 
             <!-- Les autres verticales : bientôt -->
