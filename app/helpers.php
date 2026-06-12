@@ -284,6 +284,47 @@ function country_name(string $code): string
 }
 
 /**
+ * Étiquette d'horaires d'un restaurant à partir des champs structurés :
+ * jours cochés regroupés (« Lun–Mer, Ven–Sam ») + plage horaire
+ * (« 11:00–23:00 »). Repli sur l'ancien texte libre si rien de structuré.
+ */
+function resto_hours_label(?string $daysCsv, ?string $open, ?string $close, ?string $legacy = null): string
+{
+    $order = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    $days = array_values(array_intersect($order, array_filter(explode(',', (string) $daysCsv))));
+    if ($days === []) {
+        return trim((string) $legacy);
+    }
+    $idx = array_flip($order);
+    $groups = [];
+    $start = $prev = null;
+    foreach ($days as $d) {
+        if ($start === null) {
+            $start = $prev = $d;
+            continue;
+        }
+        if ($idx[$d] === $idx[$prev] + 1) {
+            $prev = $d;
+            continue;
+        }
+        $groups[] = [$start, $prev];
+        $start = $prev = $d;
+    }
+    $groups[] = [$start, $prev];
+    $parts = array_map(
+        static fn (array $g): string => $g[0] === $g[1]
+            ? t('resto.day.' . $g[0])
+            : t('resto.day.' . $g[0]) . '–' . t('resto.day.' . $g[1]),
+        $groups
+    );
+    $label = implode(', ', $parts);
+    if ($open !== null && $open !== '' && $close !== null && $close !== '') {
+        $label .= ' · ' . $open . '–' . $close;
+    }
+    return $label;
+}
+
+/**
  * Label of a delivery zone, personalised with the shop's geolocated city /
  * country when known ("🏠 Dakar", "🌍 Sénégal"), generic otherwise.
  */

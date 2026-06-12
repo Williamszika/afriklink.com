@@ -29,6 +29,9 @@ final class Restaurant
                 currency         CHAR(3) NOT NULL DEFAULT \'XOF\',
                 services         VARCHAR(60) NULL,
                 hours            VARCHAR(160) NULL,
+                open_days        VARCHAR(30) NULL,
+                open_time        VARCHAR(5) NULL,
+                close_time       VARCHAR(5) NULL,
                 address          VARCHAR(220) NULL,
                 city             VARCHAR(80) NULL,
                 country_code     CHAR(2) NULL,
@@ -62,6 +65,19 @@ final class Restaurant
         } catch (\Throwable) {
             // information_schema indisponible : on réessaiera
         }
+        // Horaires structurés : jours cochés + heures d'ouverture/fermeture.
+        try {
+            db()->query('SELECT open_days FROM restaurants LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE restaurants
+                    ADD COLUMN open_days  VARCHAR(30) NULL,
+                    ADD COLUMN open_time  VARCHAR(5) NULL,
+                    ADD COLUMN close_time VARCHAR(5) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     public static function create(int $userId, array $d): string
@@ -71,12 +87,14 @@ final class Restaurant
         $stmt = db()->prepare(
             'INSERT INTO restaurants
                 (public_id, user_id, slug, name, tagline, description, cuisine, currency,
-                 services, hours, address, city, country_code, continent, geo_lat, geo_lng,
+                 services, hours, open_days, open_time, close_time,
+                 address, city, country_code, continent, geo_lat, geo_lng,
                  delivery_fee_cents, delivery_min_cents, prep_minutes,
                  contact_whatsapp, contact_phone, status)
              VALUES
                 (:pid, :uid, :slug, :name, :tagline, :desc, :cuisine, :cur,
-                 :services, :hours, :address, :city, :cc, :continent, :lat, :lng,
+                 :services, :hours, :odays, :otime, :ctime,
+                 :address, :city, :cc, :continent, :lat, :lng,
                  :dfee, :dmin, :prep, :wa, :phone, \'draft\')'
         );
         $stmt->execute([
@@ -84,6 +102,7 @@ final class Restaurant
             'tagline' => $d['tagline'] ?? null, 'desc' => $d['description'] ?? null,
             'cuisine' => $d['cuisine'] ?? null, 'cur' => $d['currency'],
             'services' => $d['services'] ?? null, 'hours' => $d['hours'] ?? null,
+            'odays' => $d['open_days'] ?? null, 'otime' => $d['open_time'] ?? null, 'ctime' => $d['close_time'] ?? null,
             'address' => $d['address'] ?? null, 'city' => $d['city'] ?? null,
             'cc' => $d['country_code'] ?? null, 'continent' => $d['continent'] ?? null,
             'lat' => $d['geo_lat'] ?? null, 'lng' => $d['geo_lng'] ?? null,
@@ -100,6 +119,7 @@ final class Restaurant
         $stmt = db()->prepare(
             'UPDATE restaurants SET name = :name, tagline = :tagline, description = :desc,
                 cuisine = :cuisine, currency = :cur, services = :services, hours = :hours,
+                open_days = :odays, open_time = :otime, close_time = :ctime,
                 address = :address, city = :city, country_code = :cc, continent = :continent,
                 geo_lat = :lat, geo_lng = :lng, delivery_fee_cents = :dfee,
                 delivery_min_cents = :dmin, prep_minutes = :prep,
@@ -111,6 +131,7 @@ final class Restaurant
             'name' => $d['name'], 'tagline' => $d['tagline'] ?? null, 'desc' => $d['description'] ?? null,
             'cuisine' => $d['cuisine'] ?? null, 'cur' => $d['currency'],
             'services' => $d['services'] ?? null, 'hours' => $d['hours'] ?? null,
+            'odays' => $d['open_days'] ?? null, 'otime' => $d['open_time'] ?? null, 'ctime' => $d['close_time'] ?? null,
             'address' => $d['address'] ?? null, 'city' => $d['city'] ?? null,
             'cc' => $d['country_code'] ?? null, 'continent' => $d['continent'] ?? null,
             'lat' => $d['geo_lat'] ?? null, 'lng' => $d['geo_lng'] ?? null,

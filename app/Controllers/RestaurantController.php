@@ -201,13 +201,22 @@ final class RestaurantController
         $wa = preg_replace('/[^0-9+]/', '', (string) input_string('contact_whatsapp', '')) ?: null;
         $phone = preg_replace('/[^0-9+]/', '', (string) input_string('contact_phone', '')) ?: null;
 
+        // Horaires structurés : jours cochés + heures HH:MM ; on garde aussi
+        // une étiquette lisible (« Lun–Sam · 11:00–23:00 ») dans hours.
+        $openDays = array_values(array_intersect(config('restaurant.days', []), (array) ($_POST['open_days'] ?? [])));
+        $timeOk = static fn (string $v): ?string => preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $v) ? $v : null;
+        $openTime = $timeOk((string) input_string('open_time', ''));
+        $closeTime = $timeOk((string) input_string('close_time', ''));
+        $openDaysCsv = $openDays !== [] ? implode(',', $openDays) : null;
+
         return [[
             'slug' => $slug, 'name' => mb_substr($name, 0, 80),
             'tagline' => (string) input_string('tagline', '') ?: null,
             'description' => (string) input_string('description', '') ?: null,
             'cuisine' => $cuisine, 'currency' => $currency,
             'services' => $services !== [] ? implode(',', $services) : null,
-            'hours' => mb_substr((string) input_string('hours', ''), 0, 160) ?: null,
+            'hours' => resto_hours_label($openDaysCsv, $openTime, $closeTime) ?: null,
+            'open_days' => $openDaysCsv, 'open_time' => $openTime, 'close_time' => $closeTime,
             'address' => mb_substr((string) input_string('address', ''), 0, 220) ?: null,
             'city' => $city, 'country_code' => $cc, 'continent' => GeoService::continentOf($cc),
             'geo_lat' => $hasCoords ? round($lat, 6) : null, 'geo_lng' => $hasCoords ? round($lng, 6) : null,

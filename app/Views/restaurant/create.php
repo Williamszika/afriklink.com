@@ -39,8 +39,24 @@ $autoGeo = detected_geo();
             <?php endforeach; ?>
         </div>
 
-        <label for="r-hours"><?= e(t('resto.f.hours')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-        <input type="text" id="r-hours" name="hours" value="<?= old('hours') ?>" maxlength="160" placeholder="<?= e(t('resto.f.hours_ph')) ?>">
+        <label><?= e(t('resto.f.open_days')) ?></label>
+        <?php $selDays = old_array('open_days') !== [] ? old_array('open_days') : ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']; ?>
+        <div class="lang-checks">
+            <?php foreach (config('restaurant.days', []) as $d): ?>
+                <label class="check-pill"><input type="checkbox" name="open_days[]" value="<?= e($d) ?>" <?= in_array($d, $selDays, true) ? 'checked' : '' ?>><span><?= e(t('resto.day.' . $d)) ?></span></label>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <label for="r-open"><?= e(t('resto.f.open_time')) ?></label>
+                <input type="time" id="r-open" name="open_time" value="<?= old('open_time') ?: '11:00' ?>">
+            </div>
+            <div>
+                <label for="r-close"><?= e(t('resto.f.close_time')) ?></label>
+                <input type="time" id="r-close" name="close_time" value="<?= old('close_time') ?: '22:00' ?>">
+            </div>
+        </div>
 
         <label for="r-address"><?= e(t('resto.f.address')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <input type="text" id="r-address" name="address" value="<?= old('address') ?>" maxlength="220" autocomplete="street-address">

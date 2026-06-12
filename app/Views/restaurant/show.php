@@ -67,7 +67,8 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                         <dt><?= e(t('resto.f.services')) ?></dt>
                         <dd><?= e(implode(' · ', array_map(static fn ($s) => t('resto.service.' . $s), $services))) ?></dd>
                     <?php endif; ?>
-                    <?php if (!empty($resto['hours'])): ?><dt><?= e(t('resto.f.hours')) ?></dt><dd>🕒 <?= e((string) $resto['hours']) ?></dd><?php endif; ?>
+                    <?php $hoursLabel = resto_hours_label($resto['open_days'] ?? null, $resto['open_time'] ?? null, $resto['close_time'] ?? null, $resto['hours'] ?? null); ?>
+                    <?php if ($hoursLabel !== ''): ?><dt><?= e(t('resto.f.hours')) ?></dt><dd>🕒 <?= e($hoursLabel) ?></dd><?php endif; ?>
                     <?php if (!empty($resto['address'])): ?><dt><?= e(t('resto.f.address')) ?></dt><dd>📍 <?= e((string) $resto['address']) ?></dd><?php endif; ?>
                     <?php if (!empty($resto['prep_minutes'])): ?><dt><?= e(t('resto.f.prep')) ?></dt><dd>⏱️ <?= (int) $resto['prep_minutes'] ?> min</dd><?php endif; ?>
                     <?php if (!empty($resto['delivery_fee_cents'])): ?><dt><?= e(t('resto.f.delivery_fee')) ?></dt><dd>🛵 <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></dd><?php endif; ?>

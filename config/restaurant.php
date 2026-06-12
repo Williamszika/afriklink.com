@@ -24,6 +24,9 @@ return [
     // Mode de service.
     'services' => ['dine_in', 'takeaway', 'delivery'],
 
+    // Jours de la semaine (horaires d'ouverture à cocher).
+    'days' => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
+
     // Étiquettes alimentaires d'un plat (badges).
     'diets' => ['vegetarien', 'vegan', 'halal', 'epice', 'sans_gluten', 'populaire'],
 
