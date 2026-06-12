@@ -147,6 +147,7 @@ final class BoutiqueController
             'delivery_zones' => $d2['delivery_zones'], 'delivery_methods' => $d2['delivery_methods'],
             'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
             'cod_enabled' => $d3['cod_enabled'],
+            'contacts' => $d1['contacts'] ?? [], 'contact_primary' => $d1['contact_primary'] ?? '',
         ]);
         AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
         clear_old();
@@ -298,9 +299,20 @@ final class BoutiqueController
         }
         $category = whitelist((string) input_string('category', ''), config('listings.categories', []), null);
 
+        // Canaux de contact : valeurs normalisées (vides ignorées) + canal principal.
+        $contacts = [];
+        foreach (\App\Services\ContactChannels::CHANNELS as $ch) {
+            $val = \App\Services\ContactChannels::normalize($ch, (string) input_string('contact_' . $ch, ''));
+            if ($val !== null) {
+                $contacts[$ch] = $val;
+            }
+        }
+        $primary = whitelist((string) input_string('contact_primary', ''), \App\Services\ContactChannels::CHANNELS, '');
+
         return [[
             'name' => $name, 'slug' => $slug, 'logo_public_id' => $logo, 'banner_ids' => $bannerIds,
             'tagline' => $tagline, 'description' => $description, 'category' => $category,
+            'contacts' => $contacts, 'contact_primary' => $primary,
         ], $errors];
     }
 
@@ -421,6 +433,8 @@ final class BoutiqueController
             'free_ship_cents'  => $s2['free_ship_cents'],
             'prep_time'        => $s2['prep_time'],
             'cod_enabled'      => $step3['cod_enabled'],
+            'contacts'         => $s1['contacts'] ?? [],
+            'contact_primary'  => $s1['contact_primary'] ?? '',
         ]);
 
         AuditLog::record($userId, 'shop.created', 'boutique', null, ['public_id' => $publicId], $request->ipBinary());

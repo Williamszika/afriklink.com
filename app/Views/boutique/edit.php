@@ -78,6 +78,9 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <select id="shop-cat" name="category"><option value=""><?= e(t('field.choose')) ?></option>
                     <?php foreach ($cats as $c): ?><option value="<?= e($c) ?>" <?= $selCat === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option><?php endforeach; ?>
                 </select>
+
+                <?php [$ctVals, $ctPrimary] = \App\Services\ContactChannels::forBoutique($boutique); ?>
+                <?= render_partial('partials/contact_fields', ['values' => $ctVals, 'primary' => $ctPrimary]) ?>
             </div>
 
             <div class="panel">

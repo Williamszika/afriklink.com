@@ -114,7 +114,29 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                         <dt><?= e(t('shop.f.payment')) ?></dt><dd>💵 <?= e(t('shop.f.cod')) ?></dd>
                     <?php endif; ?>
                 </dl>
-                <?php if ($waPhone !== ''): ?>
+                <?php
+                [$ctSet, $ctPrimary] = \App\Services\ContactChannels::forBoutique($boutique);
+                ?>
+                <?php if ($ctSet !== []): ?>
+                    <div class="contact-buttons">
+                        <?php if ($ctPrimary !== ''): $pm = \App\Services\ContactChannels::meta($ctPrimary); ?>
+                            <a class="btn btn-primary btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
+                               href="<?= e(\App\Services\ContactChannels::url($ctPrimary, $ctSet[$ctPrimary])) ?>">
+                                <span aria-hidden="true"><?= $pm['icon'] ?></span> <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
+                            </a>
+                        <?php endif; ?>
+                        <?php $others = array_filter($ctSet, static fn ($k) => $k !== $ctPrimary, ARRAY_FILTER_USE_KEY); ?>
+                        <?php if ($others !== []): ?>
+                            <div class="contact-secondary">
+                                <?php foreach ($others as $ch => $val): $m = \App\Services\ContactChannels::meta($ch); ?>
+                                    <a class="contact-ico contact--<?= e($m['class']) ?>" rel="noopener" target="_blank"
+                                       href="<?= e(\App\Services\ContactChannels::url($ch, $val)) ?>"
+                                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>"><?= $m['icon'] ?></a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php elseif ($waPhone !== ''): ?>
                     <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
                        href="https://wa.me/<?= e($waPhone) ?>">💬 <?= e(t('listing.contact_whatsapp')) ?></a>
                 <?php endif; ?>

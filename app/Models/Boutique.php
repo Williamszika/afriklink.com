@@ -37,6 +37,13 @@ final class Boutique
                 free_ship_cents  BIGINT UNSIGNED NULL,
                 prep_time        VARCHAR(16) NULL,
                 cod_enabled      TINYINT(1) NOT NULL DEFAULT 1,
+                contact_whatsapp  VARCHAR(120) NULL,
+                contact_sms       VARCHAR(120) NULL,
+                contact_telegram  VARCHAR(120) NULL,
+                contact_facebook  VARCHAR(160) NULL,
+                contact_instagram VARCHAR(120) NULL,
+                contact_tiktok    VARCHAR(120) NULL,
+                contact_primary   VARCHAR(12) NULL,
                 status           VARCHAR(12) NOT NULL DEFAULT \'draft\',
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -111,6 +118,39 @@ final class Boutique
                 // course entre instances : une autre a déjà migré
             }
         }
+        try {
+            db()->query('SELECT contact_primary FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN contact_whatsapp  VARCHAR(120) NULL,
+                    ADD COLUMN contact_sms       VARCHAR(120) NULL,
+                    ADD COLUMN contact_telegram  VARCHAR(120) NULL,
+                    ADD COLUMN contact_facebook  VARCHAR(160) NULL,
+                    ADD COLUMN contact_instagram VARCHAR(120) NULL,
+                    ADD COLUMN contact_tiktok    VARCHAR(120) NULL,
+                    ADD COLUMN contact_primary   VARCHAR(12) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
+    }
+
+    /**
+     * Construit les paramètres SQL des canaux de contact à partir de
+     * $d['contacts'] (assoc canal=>valeur) et $d['contact_primary'].
+     * @return array<string,?string>
+     */
+    private static function contactParams(array $d): array
+    {
+        $contacts = $d['contacts'] ?? [];
+        $out = [];
+        foreach (\App\Services\ContactChannels::CHANNELS as $ch) {
+            $out['c_' . $ch] = $contacts[$ch] ?? null;
+        }
+        $primary = (string) ($d['contact_primary'] ?? '');
+        $out['c_primary'] = isset($contacts[$primary]) ? $primary : null;
+        return $out;
     }
 
     /** Le slug est-il libre ? (hors la boutique de $exceptUserId, pour l'édition) */
@@ -160,12 +200,16 @@ final class Boutique
                     (public_id, user_id, slug, name, tagline, description, category,
                      logo_public_id, banner_public_id, currency, shop_type, address,
                      city, country_code, continent, geo_lat, geo_lng,
-                     delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled, status)
+                     delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled,
+                     contact_whatsapp, contact_sms, contact_telegram, contact_facebook,
+                     contact_instagram, contact_tiktok, contact_primary, status)
                  VALUES
                     (:public_id, :user_id, :slug, :name, :tagline, :description, :category,
                      :logo, :banner, :currency, :shop_type, :address,
                      :city, :cc, :continent, :lat, :lng,
-                     :zones, :methods, :free, :prep, :cod, \'draft\')'
+                     :zones, :methods, :free, :prep, :cod,
+                     :c_whatsapp, :c_sms, :c_telegram, :c_facebook,
+                     :c_instagram, :c_tiktok, :c_primary, \'draft\')'
             );
             $stmt->execute([
                 'public_id'  => $publicId,
@@ -190,7 +234,7 @@ final class Boutique
                 'free'       => $d['free_ship_cents'],
                 'prep'       => $d['prep_time'],
                 'cod'        => $d['cod_enabled'] ? 1 : 0,
-            ]);
+            ] + self::contactParams($d));
             $id = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare('INSERT INTO boutique_banners (boutique_id, cloud_public_id, position) VALUES (:b, :c, :p)');
             foreach ($banners as $i => $bid) {
@@ -246,7 +290,10 @@ final class Boutique
                 shop_type = :shop_type, address = :address,
                 city = :city, country_code = :cc, continent = :continent, geo_lat = :lat, geo_lng = :lng,
                 delivery_zones = :zones,
-                delivery_methods = :methods, free_ship_cents = :free, prep_time = :prep, cod_enabled = :cod
+                delivery_methods = :methods, free_ship_cents = :free, prep_time = :prep, cod_enabled = :cod,
+                contact_whatsapp = :c_whatsapp, contact_sms = :c_sms, contact_telegram = :c_telegram,
+                contact_facebook = :c_facebook, contact_instagram = :c_instagram, contact_tiktok = :c_tiktok,
+                contact_primary = :c_primary
              WHERE id = :id'
         );
         $stmt->execute([
@@ -257,7 +304,7 @@ final class Boutique
             'continent' => $d['continent'] ?? null, 'lat' => $d['geo_lat'] ?? null, 'lng' => $d['geo_lng'] ?? null,
             'zones' => $d['delivery_zones'], 'methods' => $d['delivery_methods'], 'free' => $d['free_ship_cents'],
             'prep' => $d['prep_time'], 'cod' => $d['cod_enabled'] ? 1 : 0, 'id' => $id,
-        ]);
+        ] + self::contactParams($d));
         self::setBanners($id, $banners);
     }
 }

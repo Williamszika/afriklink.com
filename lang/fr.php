@@ -643,6 +643,19 @@ return [
     'geo.continent_label' => 'Continent :',
     'geo.locked' => 'Position détectée automatiquement — ville et pays verrouillés.',
     'geo.auto' => 'Localisation détectée automatiquement',
+
+    // Canaux de contact de la boutique
+    'contact.legend' => 'Comment te contacter',
+    'contact.intro' => 'Ajoute les moyens que tu utilises — laisse vide ceux que tu n’as pas. Ils apparaîtront sur ta boutique.',
+    'contact.primary' => 'Canal de contact principal',
+    'contact.primary_hint' => 'Le bouton mis en avant sur ta boutique. Les autres apparaissent en petites icônes.',
+    'contact.reach' => 'Contacter sur :channel',
+    'contact.ph.whatsapp' => 'Numéro WhatsApp, ex. +221 77 123 45 67',
+    'contact.ph.sms' => 'Numéro SMS, ex. +33 6 12 34 56 78',
+    'contact.ph.telegram' => 'Pseudo Telegram, ex. @maboutique',
+    'contact.ph.facebook' => 'Page Facebook (pseudo ou lien)',
+    'contact.ph.instagram' => 'Pseudo Instagram, ex. @maboutique',
+    'contact.ph.tiktok' => 'Pseudo TikTok, ex. @maboutique',
     'geo.chip_title' => 'Ta position détectée — clique pour l’actualiser précisément',
 
     // Explorer (page d'attente)

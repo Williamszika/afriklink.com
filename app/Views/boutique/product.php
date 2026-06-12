@@ -5,7 +5,8 @@ use App\Services\CloudinaryService;
 $cur     = (string) $boutique['currency'];
 $main    = $photos[0]['cloud_public_id'] ?? null;
 $hasVideo = !empty($product['video_public_id']);
-$waPhone = preg_replace('/\D+/', '', (string) ($seller['phone'] ?? ''));
+// Bouton « Commander » : WhatsApp de la boutique en priorité, sinon le téléphone du vendeur.
+$waPhone = preg_replace('/\D+/', '', (string) ($boutique['contact_whatsapp'] ?? '') ?: (string) ($seller['phone'] ?? ''));
 $inStock = $product['stock'] === null || (int) $product['stock'] > 0;
 $productUrl = url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']);
 $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name']]) . ' ' . $productUrl);

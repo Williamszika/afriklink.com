@@ -315,6 +315,25 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 /* Géolocalisation (bouton « Utiliser ma position » + statut) */
 .geo-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 4px; }
 .geo-auto-hint { display: inline-flex; align-items: center; gap: 4px; font-size: .82rem; font-weight: 600; color: #1f6f54; }
+
+/* Canaux de contact — formulaire */
+.contact-fields { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin: 14px 0; }
+.contact-fields legend { font-weight: 700; padding: 0 6px; }
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-bottom: 10px; }
+@media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
+.contact-field label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 2px; }
+/* Canaux de contact — vitrine publique */
+.contact-buttons { margin-top: 12px; }
+.contact-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.contact-secondary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
+.contact-ico { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid var(--border); border-radius: 50%; background: var(--card); transition: border-color .15s, transform .15s; }
+.contact-ico:hover { transform: translateY(-2px); text-decoration: none; }
+.contact--wa { border-color: #bfe8d4; }
+.contact--sms { border-color: #cdd6e0; }
+.contact--tg { border-color: #bfdcf2; }
+.contact--fb { border-color: #c5d4f6; }
+.contact--ig { border-color: #f2cfe0; }
+.contact--tt { border-color: #d3d3d8; }
 .geo-status { min-height: 1.2em; }
 .geo-status.is-error { color: #b42318; }
 .geo-continent { font-weight: 600; }
