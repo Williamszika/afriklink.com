@@ -322,18 +322,24 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin-bottom: 10px; }
 @media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
 .contact-field label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 2px; }
+/* Logos officiels (SVG 3D) */
+.social-logo-sm { width: 20px; height: 20px; vertical-align: -5px; }
+.social-logo { width: 24px; height: 24px; vertical-align: -6px; }
+
 /* Canaux de contact — vitrine publique */
-.contact-buttons { margin-top: 12px; display: grid; gap: 8px; }
-.contact-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.contact-secondary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; justify-content: center; }
-.contact-ico { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid var(--border); border-radius: 50%; background: var(--card); transition: border-color .15s, transform .15s; }
-.contact-ico:hover { transform: translateY(-2px); text-decoration: none; }
-.contact--wa { border-color: #bfe8d4; }
-.contact--sms { border-color: #cdd6e0; }
-.contact--tg { border-color: #bfdcf2; }
-.contact--fb { border-color: #c5d4f6; }
-.contact--ig { border-color: #f2cfe0; }
-.contact--tt { border-color: #d3d3d8; }
+.contact-buttons { margin-top: 12px; display: grid; gap: 9px; }
+.contact-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; background: var(--card); color: var(--ink); border: 1.6px solid var(--border); border-radius: 12px; padding: 11px 14px; font-weight: 700; }
+.contact-btn:hover { text-decoration: none; box-shadow: var(--shadow); transform: translateY(-1px); }
+.contact-secondary { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; justify-content: center; }
+.contact-logo { display: inline-flex; transition: transform .15s; }
+.contact-logo:hover { transform: translateY(-3px) scale(1.04); text-decoration: none; }
+.contact-logo img { display: block; width: 46px; height: 46px; }
+.contact--wa:hover { border-color: #9fdcbe; }
+.contact--sms:hover { border-color: #9fd9ad; }
+.contact--tg:hover { border-color: #9fd2f0; }
+.contact--fb:hover { border-color: #a9c0f0; }
+.contact--ig:hover { border-color: #ecb6d4; }
+.contact--tt:hover { border-color: #b3b3ba; }
 .geo-status { min-height: 1.2em; }
 .geo-status.is-error { color: #b42318; }
 .geo-continent { font-weight: 600; }

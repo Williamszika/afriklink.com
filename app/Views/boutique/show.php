@@ -120,18 +120,19 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                 <?php if ($ctSet !== []): ?>
                     <div class="contact-buttons">
                         <?php foreach ($ctPrimaries as $ch): $pm = \App\Services\ContactChannels::meta($ch); ?>
-                            <a class="btn btn-primary btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
+                            <a class="btn btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
                                href="<?= e(\App\Services\ContactChannels::url($ch, $ctSet[$ch])) ?>">
-                                <span aria-hidden="true"><?= $pm['icon'] ?></span> <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
+                                <img class="social-logo" src="<?= e(asset('img/social/' . $ch . '.svg')) ?>" alt="" width="24" height="24">
+                                <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
                             </a>
                         <?php endforeach; ?>
                         <?php $others = array_filter($ctSet, static fn ($k) => !in_array($k, $ctPrimaries, true), ARRAY_FILTER_USE_KEY); ?>
                         <?php if ($others !== []): ?>
                             <div class="contact-secondary">
                                 <?php foreach ($others as $ch => $val): $m = \App\Services\ContactChannels::meta($ch); ?>
-                                    <a class="contact-ico contact--<?= e($m['class']) ?>" rel="noopener" target="_blank"
+                                    <a class="contact-logo" rel="noopener" target="_blank"
                                        href="<?= e(\App\Services\ContactChannels::url($ch, $val)) ?>"
-                                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>"><?= $m['icon'] ?></a>
+                                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>"><img src="<?= e(asset('img/social/' . $ch . '.svg')) ?>" alt="<?= e($m['label']) ?>" width="46" height="46"></a>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>

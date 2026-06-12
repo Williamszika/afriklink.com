@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Telegram">
+  <defs>
+    <linearGradient id="tg-bg" x1="32" y1="5" x2="32" y2="59" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#43C3F2"/><stop offset="1" stop-color="#1C8FD6"/>
+    </linearGradient>
+    <linearGradient id="tg-gl" x1="32" y1="5" x2="32" y2="35" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".5"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="tg-sh" x="-25%" y="-20%" width="150%" height="155%">
+      <feDropShadow dx="0" dy="1.6" stdDeviation="1.7" flood-color="#0a3a55" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <rect x="5" y="4" width="54" height="54" rx="15" fill="url(#tg-bg)" filter="url(#tg-sh)"/>
+  <rect x="5" y="4" width="54" height="30" rx="15" fill="url(#tg-gl)"/>
+  <path fill="#fff" d="M45.9 18.3 40.2 45c-.43 1.9-1.56 2.36-3.16 1.47l-8.72-6.43-4.2 4.05c-.47.46-.85.85-1.74.85l.62-8.83 16.06-14.5c.7-.62-.15-.97-1.08-.35L18.9 34.2l-8.55-2.67c-1.86-.58-1.9-1.86.39-2.76l33.42-12.88c1.55-.57 2.9.35 2.34 2.41z"/>
+  <path fill="#cfeefc" d="m23.4 36.6 14.18-12.8c.7-.62-.15-.97-1.08-.35L18.9 34.2l.62 5.04c.6-1.42 1.9-2.32 3.88-2.64z" opacity=".7"/>
+</svg>

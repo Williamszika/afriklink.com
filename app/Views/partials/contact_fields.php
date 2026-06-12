@@ -31,7 +31,7 @@ $ctDialPrefix = $ctDial !== '' ? '+' . $ctDial . ' ' : '';
             }
             ?>
             <div class="contact-field">
-                <label for="contact-<?= e($ch) ?>"><span aria-hidden="true"><?= $m['icon'] ?></span> <?= e($m['label']) ?></label>
+                <label for="contact-<?= e($ch) ?>"><img class="social-logo-sm" src="<?= e(asset('img/social/' . $ch . '.svg')) ?>" alt="" width="20" height="20"> <?= e($m['label']) ?></label>
                 <input type="text" id="contact-<?= e($ch) ?>" name="contact_<?= e($ch) ?>"
                        value="<?= e($v) ?>" maxlength="120" autocomplete="off"
                        <?= $isPhone ? 'inputmode="tel" data-dialcode="1"' : '' ?>
@@ -46,7 +46,7 @@ $ctDialPrefix = $ctDial !== '' ? '+' . $ctDial . ' ' : '';
         <?php foreach (ContactChannels::CHANNELS as $ch): $m = ContactChannels::meta($ch); ?>
             <label class="check-pill">
                 <input type="checkbox" name="contact_primary[]" value="<?= e($ch) ?>" <?= in_array($ch, $selP, true) ? 'checked' : '' ?>>
-                <span><?= $m['icon'] ?> <?= e($m['label']) ?></span>
+                <span><img class="social-logo-sm" src="<?= e(asset('img/social/' . $ch . '.svg')) ?>" alt="" width="18" height="18"> <?= e($m['label']) ?></span>
             </label>
         <?php endforeach; ?>
     </div>
