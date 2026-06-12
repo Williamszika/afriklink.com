@@ -245,6 +245,8 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .badge-ok { background: var(--success-bg); color: var(--success); border: 1px solid #abefc6; }
 .badge-warn { background: var(--warning-bg); color: var(--warning); border: 1px solid #fedf89; }
 .badge-neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.badge-info { background: #eef3fe; color: #1d4ed8; border: 1px solid #c5d4f6; }
+.badge-violet { background: #f3eefe; color: #6d28d9; border: 1px solid #ddd0f6; }
 .dash-progress .progress-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
 .progress-track { height: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--brand); border-radius: 999px; transition: width .4s ease; }
@@ -257,6 +259,26 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .stat-card--link { cursor: pointer; }
 .stat-card--link .stat-cta { color: var(--brand); font-size: .76rem; font-weight: 700; margin-top: 4px; opacity: .85; }
 .stat-card--link:hover .stat-cta { opacity: 1; }
+.stat-card--urgent { border-color: #f4b740; background: #fffaf0; }
+.stat-card--urgent .num { color: #b45309; }
+
+/* Commandes (suivi vendeur) */
+.chip-pending { margin-left: auto; min-width: 20px; text-align: center; padding: 1px 7px; font-size: .72rem; font-weight: 800; color: #fff; background: #dc2626; border-radius: 999px; }
+.order-record summary { cursor: pointer; font-weight: 700; }
+.order-record[open] summary { margin-bottom: 8px; }
+.order-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 14px; margin-bottom: 10px; }
+.order-form-grid .order-form-note { grid-column: 1 / -1; }
+@media (max-width: 700px) { .order-form-grid { grid-template-columns: 1fr; } }
+.order-rows { display: grid; gap: 10px; }
+.order-row { padding: 12px 14px; display: grid; gap: 6px; }
+.order-row-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.order-ref { font-weight: 800; font-size: .85rem; letter-spacing: .03em; }
+.order-source { color: var(--muted); font-size: .78rem; }
+.order-date { margin-left: auto; color: var(--muted); font-size: .78rem; }
+.order-line, .order-client, .order-note { margin: 0; font-size: .92rem; }
+.order-note { color: var(--muted); }
+.order-total { color: var(--brand); }
+.order-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 
 /* Catalogue : onglets de filtre + état vide par filtre */
 .catalogue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }

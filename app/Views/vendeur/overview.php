@@ -8,9 +8,11 @@ $hasReg      = !empty($profile['reg_number']);
 $hasDesc     = !empty($profile['description']);
 $cur         = (string) ($user['preferred_currency'] ?? 'EUR');
 
+$ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
 $stats = [
     ['icon' => '💰', 'label' => t('seller.stat.revenue'), 'value' => format_price(0, $cur), 'note' => t('dash.phase', ['n' => 3])],
-    ['icon' => '🧾', 'label' => t('seller.stat.orders'),  'value' => '0',                   'note' => t('dash.phase', ['n' => 3])],
+    ['icon' => '🧾', 'label' => t('seller.stat.orders'),  'value' => (string) $ordersPending,
+     'note' => t('shop.kpi.orders_cta') . ' →', 'href' => url('/vendeur/commandes?filtre=a_traiter'), 'urgent' => $ordersPending > 0],
     ['icon' => '👁️', 'label' => t('seller.stat.views'),   'value' => '0',                   'note' => t('dash.phase', ['n' => 4])],
     ['icon' => '💬', 'label' => t('dash.stat.messages'),  'value' => '0',                   'note' => t('dash.phase', ['n' => 5])],
 ];
@@ -38,11 +40,12 @@ $checklist = [
 
         <div class="stat-grid cols-4">
             <?php foreach ($stats as $s): ?>
-                <div class="stat-card">
+                <?php $tag = isset($s['href']) ? 'a' : 'div'; ?>
+                <<?= $tag ?> class="stat-card<?= isset($s['href']) ? ' stat-card--link' : '' ?><?= !empty($s['urgent']) ? ' stat-card--urgent' : '' ?>"<?= isset($s['href']) ? ' href="' . e($s['href']) . '"' : '' ?>>
                     <div class="num"><span aria-hidden="true"><?= $s['icon'] ?></span> <?= e($s['value']) ?></div>
                     <div class="lbl"><?= e($s['label']) ?></div>
-                    <div class="phase"><?= e($s['note']) ?></div>
-                </div>
+                    <div class="<?= isset($s['href']) ? 'stat-cta' : 'phase' ?>"><?= e($s['note']) ?></div>
+                </<?= $tag ?>>
             <?php endforeach; ?>
         </div>
 

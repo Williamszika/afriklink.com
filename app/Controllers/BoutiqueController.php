@@ -98,6 +98,7 @@ final class BoutiqueController
             'filter'   => $filter,
             'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
             'counts'   => \App\Models\Product::countFor((int) $boutique['id']),
+            'orders_pending' => \App\Models\Order::countFor((int) $boutique['id'])['new'],
         ] + SellerController::commonData($user));
     }
 

@@ -62,8 +62,13 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <div class="lbl"><?= e(t('shop.kpi.total')) ?></div>
                 <div class="stat-cta"><?= e(t('shop.kpi.total_cta')) ?> →</div>
             </a>
-            <div class="stat-card"><div class="num"><span aria-hidden="true">🧾</span> 0</div>
-                <div class="lbl"><?= e(t('seller.stat.orders')) ?></div><div class="phase"><?= e(t('dash.phase', ['n' => 3])) ?></div></div>
+            <?php $nPending = (int) ($orders_pending ?? 0); ?>
+            <a class="stat-card stat-card--link<?= $nPending > 0 ? ' stat-card--urgent' : '' ?>"
+               href="<?= e(url('/vendeur/commandes?filtre=a_traiter')) ?>" title="<?= e(t('shop.kpi.orders_cta')) ?>">
+                <div class="num"><span aria-hidden="true">🧾</span> <?= $nPending ?></div>
+                <div class="lbl"><?= e(t('seller.stat.orders')) ?></div>
+                <div class="stat-cta"><?= e(t('shop.kpi.orders_cta')) ?> →</div>
+            </a>
             <div class="stat-card"><div class="num"><span aria-hidden="true">👁️</span> 0</div>
                 <div class="lbl"><?= e(t('seller.stat.views')) ?></div><div class="phase"><?= e(t('dash.phase', ['n' => 4])) ?></div></div>
         </div>

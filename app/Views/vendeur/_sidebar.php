@@ -4,11 +4,14 @@ $companyName = (string) ($profile['company_name'] ?? ($user['full_name'] ?? ''))
 $verified    = ($profile['verification_status'] ?? 'pending') === 'verified';
 
 $soon = t('dash.soon');
+// Commandes « à traiter » : pastille en direct sur l'entrée du menu.
+$ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
 $groups = [
     ['label' => null, 'items' => [
         ['key' => 'overview',  'icon' => '🏠', 'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
         ['key' => 'vitrines',  'icon' => '🏪', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
-        ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),      'chip' => $soon],
+        ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),
+         'chip' => $ordersPending > 0 ? (string) $ordersPending : null, 'chip_class' => 'chip-pending'],
         ['key' => 'messages',  'icon' => '💬', 'href' => url('/vendeur/messages'),  'label' => t('seller.nav.messages'),    'chip' => $soon],
     ]],
     ['label' => t('seller.group.develop'), 'items' => [
@@ -52,7 +55,7 @@ $groups = [
                    href="<?= e($it['href']) ?>"<?= $active === $it['key'] ? ' aria-current="page"' : '' ?>>
                     <span class="seller-nav-ico" aria-hidden="true"><?= $it['icon'] ?></span>
                     <span class="seller-nav-label"><?= e($it['label']) ?></span>
-                    <?php if ($it['chip'] !== null): ?><span class="chip-soon"><?= e($it['chip']) ?></span><?php endif; ?>
+                    <?php if ($it['chip'] !== null): ?><span class="<?= e($it['chip_class'] ?? 'chip-soon') ?>"><?= e($it['chip']) ?></span><?php endif; ?>
                 </a>
             <?php endforeach; ?>
         <?php endforeach; ?>

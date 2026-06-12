@@ -12,6 +12,7 @@ use App\Controllers\MediaController;
 use App\Controllers\ProductController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProRegistrationController;
+use App\Controllers\OrderController;
 use App\Controllers\SellerController;
 use App\Controllers\SellerProfileController;
 
@@ -69,7 +70,9 @@ return [
 
     // Espace vendeur (tableau de bord à menu latéral). « Vue d'ensemble » = /dashboard.
     ['GET',  '/vendeur/vitrines',  [SellerController::class, 'storefronts'],  ['auth']],
-    ['GET',  '/vendeur/commandes', [SellerController::class, 'orders'],       ['auth']],
+    ['GET',  '/vendeur/commandes',                [OrderController::class, 'index'],     ['auth']],
+    ['POST', '/vendeur/commandes',                [OrderController::class, 'store'],     ['auth', 'csrf', 'throttle:order,80,3600']],
+    ['POST', '/vendeur/commandes/{oid}/statut',   [OrderController::class, 'setStatus'], ['auth', 'csrf']],
     ['GET',  '/vendeur/messages',  [SellerController::class, 'messages'],     ['auth']],
     ['GET',  '/vendeur/gains',       [SellerController::class, 'earnings'],     ['auth']],
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],

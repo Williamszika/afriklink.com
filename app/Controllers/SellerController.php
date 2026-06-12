@@ -55,11 +55,6 @@ final class SellerController
         ] + self::commonData($user));
     }
 
-    public function orders(Request $request): void
-    {
-        view('vendeur/commandes', ['active' => 'commandes'] + self::commonData(current_user() ?? []));
-    }
-
     public function messages(Request $request): void
     {
         view('vendeur/messages', ['active' => 'messages'] + self::commonData(current_user() ?? []));
