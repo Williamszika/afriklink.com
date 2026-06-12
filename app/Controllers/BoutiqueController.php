@@ -141,6 +141,8 @@ final class BoutiqueController
             'logo_public_id' => $this->resolveImage($d1['logo_public_id'] ?? null, $boutique['logo_public_id'] ?? null),
             'banners' => $this->verifiedBanners($d1['banner_ids'] ?? [], Boutique::banners((int) $boutique['id'])),
             'currency' => $d2['currency'], 'shop_type' => $d2['shop_type'], 'address' => $d2['address'],
+            'city' => $d2['city'], 'country_code' => $d2['country_code'], 'continent' => $d2['continent'],
+            'geo_lat' => $d2['geo_lat'], 'geo_lng' => $d2['geo_lng'],
             'delivery_zones' => $d2['delivery_zones'], 'delivery_methods' => $d2['delivery_methods'],
             'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
             'cod_enabled' => $d3['cod_enabled'],
@@ -326,6 +328,17 @@ final class BoutiqueController
             }
         }
 
+        // Localisation : ville saisie ou remplie par la géolocalisation du
+        // navigateur ; pays sur liste blanche ; continent déduit du pays
+        // côté serveur (jamais fourni par le client). Coordonnées en option.
+        $city = trim((string) input_string('city', ''));
+        $city = $city !== '' ? mb_substr($city, 0, 80) : null;
+        $countryCode = whitelist(strtoupper((string) input_string('country_code', '')), array_keys(config('countries', [])), null);
+        $continent = \App\Services\GeoService::continentOf($countryCode);
+        $lat = filter_var((string) input_string('geo_lat', ''), FILTER_VALIDATE_FLOAT);
+        $lng = filter_var((string) input_string('geo_lng', ''), FILTER_VALIDATE_FLOAT);
+        $hasCoords = $lat !== false && $lng !== false && $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180;
+
         $zones   = array_values(array_intersect((array) ($_POST['zones'] ?? []), config('shop.delivery_zones', [])));
         $methods = array_values(array_intersect((array) ($_POST['methods'] ?? []), config('shop.delivery_methods', [])));
 
@@ -350,6 +363,9 @@ final class BoutiqueController
 
         return [[
             'currency' => $currency, 'shop_type' => $shopType, 'address' => $address,
+            'city' => $city, 'country_code' => $countryCode, 'continent' => $continent,
+            'geo_lat' => $hasCoords ? round($lat, 6) : null,
+            'geo_lng' => $hasCoords ? round($lng, 6) : null,
             'delivery_zones' => implode(',', $zones),
             'delivery_methods' => implode(',', $methods), 'prep_time' => $prep,
             'free_ship_cents' => $freeCents,
@@ -393,6 +409,11 @@ final class BoutiqueController
             'currency'         => $s2['currency'],
             'shop_type'        => $s2['shop_type'] ?? 'online',
             'address'          => $s2['address'] ?? null,
+            'city'             => $s2['city'] ?? null,
+            'country_code'     => $s2['country_code'] ?? null,
+            'continent'        => $s2['continent'] ?? null,
+            'geo_lat'          => $s2['geo_lat'] ?? null,
+            'geo_lng'          => $s2['geo_lng'] ?? null,
             'delivery_zones'   => $s2['delivery_zones'],
             'delivery_methods' => $s2['delivery_methods'],
             'free_ship_cents'  => $s2['free_ship_cents'],

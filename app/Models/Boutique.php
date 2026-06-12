@@ -27,6 +27,11 @@ final class Boutique
                 currency         CHAR(3) NOT NULL DEFAULT \'EUR\',
                 shop_type        VARCHAR(12) NOT NULL DEFAULT \'online\',
                 address          VARCHAR(220) NULL,
+                city             VARCHAR(80) NULL,
+                country_code     CHAR(2) NULL,
+                continent        VARCHAR(16) NULL,
+                geo_lat          DECIMAL(9,6) NULL,
+                geo_lng          DECIMAL(9,6) NULL,
                 delivery_zones   VARCHAR(80) NULL,
                 delivery_methods VARCHAR(80) NULL,
                 free_ship_cents  BIGINT UNSIGNED NULL,
@@ -78,7 +83,7 @@ final class Boutique
         }
     }
 
-    /** Ajoute shop_type/address à une table déjà créée (idempotent). */
+    /** Ajoute shop_type/address puis la géolocalisation (idempotent). */
     private static function migrate(): void
     {
         try {
@@ -88,6 +93,20 @@ final class Boutique
                 db()->exec('ALTER TABLE boutiques
                     ADD COLUMN shop_type VARCHAR(12) NOT NULL DEFAULT \'online\',
                     ADD COLUMN address VARCHAR(220) NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
+        try {
+            db()->query('SELECT city FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN city VARCHAR(80) NULL,
+                    ADD COLUMN country_code CHAR(2) NULL,
+                    ADD COLUMN continent VARCHAR(16) NULL,
+                    ADD COLUMN geo_lat DECIMAL(9,6) NULL,
+                    ADD COLUMN geo_lng DECIMAL(9,6) NULL');
             } catch (\Throwable) {
                 // course entre instances : une autre a déjà migré
             }
@@ -140,10 +159,12 @@ final class Boutique
                 'INSERT INTO boutiques
                     (public_id, user_id, slug, name, tagline, description, category,
                      logo_public_id, banner_public_id, currency, shop_type, address,
+                     city, country_code, continent, geo_lat, geo_lng,
                      delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled, status)
                  VALUES
                     (:public_id, :user_id, :slug, :name, :tagline, :description, :category,
                      :logo, :banner, :currency, :shop_type, :address,
+                     :city, :cc, :continent, :lat, :lng,
                      :zones, :methods, :free, :prep, :cod, \'draft\')'
             );
             $stmt->execute([
@@ -159,6 +180,11 @@ final class Boutique
                 'currency'   => $d['currency'],
                 'shop_type'  => $d['shop_type'],
                 'address'    => $d['address'],
+                'city'       => $d['city'] ?? null,
+                'cc'         => $d['country_code'] ?? null,
+                'continent'  => $d['continent'] ?? null,
+                'lat'        => $d['geo_lat'] ?? null,
+                'lng'        => $d['geo_lng'] ?? null,
                 'zones'      => $d['delivery_zones'],
                 'methods'    => $d['delivery_methods'],
                 'free'       => $d['free_ship_cents'],
@@ -216,7 +242,9 @@ final class Boutique
             'UPDATE boutiques SET
                 name = :name, tagline = :tagline, description = :description, category = :category,
                 logo_public_id = :logo, banner_public_id = :banner, currency = :currency,
-                shop_type = :shop_type, address = :address, delivery_zones = :zones,
+                shop_type = :shop_type, address = :address,
+                city = :city, country_code = :cc, continent = :continent, geo_lat = :lat, geo_lng = :lng,
+                delivery_zones = :zones,
                 delivery_methods = :methods, free_ship_cents = :free, prep_time = :prep, cod_enabled = :cod
              WHERE id = :id'
         );
@@ -224,6 +252,8 @@ final class Boutique
             'name' => $d['name'], 'tagline' => $d['tagline'], 'description' => $d['description'],
             'category' => $d['category'], 'logo' => $d['logo_public_id'], 'banner' => $banners[0] ?? null,
             'currency' => $d['currency'], 'shop_type' => $d['shop_type'], 'address' => $d['address'],
+            'city' => $d['city'] ?? null, 'cc' => $d['country_code'] ?? null,
+            'continent' => $d['continent'] ?? null, 'lat' => $d['geo_lat'] ?? null, 'lng' => $d['geo_lng'] ?? null,
             'zones' => $d['delivery_zones'], 'methods' => $d['delivery_methods'], 'free' => $d['free_ship_cents'],
             'prep' => $d['prep_time'], 'cod' => $d['cod_enabled'] ? 1 : 0, 'id' => $id,
         ]);

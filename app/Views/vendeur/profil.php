@@ -95,6 +95,16 @@ $verified = ($profile['verification_status'] ?? 'pending') === 'verified';
             <label for="address"><?= e(t('pro.field.address')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
             <input type="text" id="address" name="address" value="<?= $v('address') ?>" maxlength="220"
                    placeholder="<?= e(t('pro.field.address_ph')) ?>" autocomplete="street-address">
+            <div class="geo-row">
+                <button type="button" class="btn btn-ghost btn-sm" data-geolocate
+                        data-geo-url="<?= e(url('/api/geo/reverse')) ?>"
+                        data-geo-address="#address" data-geo-status="#geo-status-profil"
+                        data-msg-asking="<?= e(t('geo.asking')) ?>" data-msg-denied="<?= e(t('geo.denied')) ?>"
+                        data-msg-error="<?= e(t('geo.error')) ?>" data-msg-unsupported="<?= e(t('geo.unsupported')) ?>">
+                    📍 <?= e(t('geo.btn')) ?>
+                </button>
+                <span class="geo-status hint" id="geo-status-profil" role="status" aria-live="polite"></span>
+            </div>
             <?php if (has_error('address')): ?><p class="field-error"><?= e(error('address')) ?></p><?php endif; ?>
 
             <label for="website"><?= e(t('pro.field.website')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

@@ -257,6 +257,75 @@ document.addEventListener('click', function (ev) {
     }
 });
 
+/* ---- Géolocalisation générique (boutons [data-geolocate]) ----
+   Méthode standard : navigator.geolocation demande la permission, fournit
+   latitude/longitude ; notre serveur (/api/geo/reverse) convertit en ville,
+   pays et continent. Cibles configurées par attributs :
+   data-geo-city / data-geo-country / data-geo-continent / data-geo-address /
+   data-geo-lat / data-geo-lng / data-geo-status (sélecteurs CSS). */
+document.addEventListener('click', function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest('[data-geolocate]') : null;
+    if (!btn) { return; }
+    ev.preventDefault();
+
+    function el(attr) {
+        var sel = btn.getAttribute(attr);
+        return sel ? document.querySelector(sel) : null;
+    }
+    var status = el('data-geo-status');
+    function say(msg, isError) {
+        if (status) {
+            status.textContent = msg || '';
+            status.classList.toggle('is-error', !!isError);
+        }
+    }
+
+    if (!navigator.geolocation) {
+        say(btn.getAttribute('data-msg-unsupported'), true);
+        return;
+    }
+    btn.disabled = true;
+    say(btn.getAttribute('data-msg-asking'), false);
+
+    navigator.geolocation.getCurrentPosition(function (position) {
+        var lat = position.coords.latitude.toFixed(6);
+        var lng = position.coords.longitude.toFixed(6);
+        var latEl = el('data-geo-lat');
+        var lngEl = el('data-geo-lng');
+        if (latEl) { latEl.value = lat; }
+        if (lngEl) { lngEl.value = lng; }
+
+        fetch(btn.getAttribute('data-geo-url') + '?lat=' + lat + '&lng=' + lng, {
+            headers: { 'Accept': 'application/json' }
+        }).then(function (r) {
+            if (!r.ok) { throw new Error('geo'); }
+            return r.json();
+        }).then(function (geo) {
+            var city = el('data-geo-city');
+            if (city && geo.city) { city.value = geo.city; }
+            var country = el('data-geo-country');
+            if (country && geo.country_code) {
+                var opt = country.querySelector('option[value="' + geo.country_code + '"]');
+                if (opt) { country.value = geo.country_code; }
+            }
+            var cont = el('data-geo-continent');
+            if (cont && geo.continent_label) {
+                cont.textContent = (cont.getAttribute('data-prefix') || '') + ' ' + geo.continent_label;
+            }
+            var addr = el('data-geo-address');
+            if (addr && geo.formatted) { addr.value = geo.formatted; }
+            say('✓ ' + (geo.label || ''), false);
+            btn.disabled = false;
+        }).catch(function () {
+            say(btn.getAttribute('data-msg-error'), true);
+            btn.disabled = false;
+        });
+    }, function (err) {
+        say(btn.getAttribute(err && err.code === 1 ? 'data-msg-denied' : 'data-msg-error'), true);
+        btn.disabled = false;
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+});
+
 /* ---- Catalogue boutique : filtre « Tous / En ligne / Masqués » ----
    Filtrage instantané sans rechargement (les liens restent valides sans JS :
    ils rechargent la page avec ?filtre=…). Déclenché par les onglets et par les

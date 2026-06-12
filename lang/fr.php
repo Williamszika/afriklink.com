@@ -628,6 +628,24 @@ return [
     'shop.kpi.total_cta' => 'Voir tout le catalogue',
     'shop.kpi.orders_cta' => 'Traiter les commandes',
     'shop.kpi.views_cta' => 'Voir les statistiques',
+    'shop.f.city' => 'Ville',
+    'shop.f.country' => 'Pays',
+    'shop.f.location' => 'Localisation',
+
+    // Géolocalisation (navigateur → ville / pays / continent)
+    'geo.btn' => 'Utiliser ma position',
+    'geo.asking' => 'Recherche de ta position…',
+    'geo.denied' => 'Autorisation refusée — active la localisation dans ton navigateur et réessaie.',
+    'geo.error' => 'Position introuvable pour le moment. Tu peux remplir les champs à la main.',
+    'geo.unsupported' => 'Ton navigateur ne permet pas la géolocalisation.',
+    'geo.continent_label' => 'Continent :',
+    'geo.continent.africa' => 'Afrique',
+    'geo.continent.europe' => 'Europe',
+    'geo.continent.asia' => 'Asie',
+    'geo.continent.north_america' => 'Amérique du Nord',
+    'geo.continent.south_america' => 'Amérique du Sud',
+    'geo.continent.oceania' => 'Océanie',
+    'geo.continent.antarctica' => 'Antarctique',
 
     // Statistiques de la boutique (vues)
     'stats.title' => 'Statistiques',

@@ -296,6 +296,12 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .views-fill { display: block; height: 100%; background: var(--brand); border-radius: 999px; }
 .views-n { text-align: right; font-weight: 700; }
 
+/* Géolocalisation (bouton « Utiliser ma position » + statut) */
+.geo-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0 4px; }
+.geo-status { min-height: 1.2em; }
+.geo-status.is-error { color: #b42318; }
+.geo-continent { font-weight: 600; }
+
 /* Catalogue : onglets de filtre + état vide par filtre */
 .catalogue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
 .chip-filter { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; font-size: .85rem; font-weight: 600; color: var(--ink); background: var(--card); border: 1px solid var(--border); border-radius: 999px; text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }

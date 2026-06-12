@@ -80,6 +80,14 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                     <?php if (($boutique['shop_type'] ?? '') === 'physical' && !empty($boutique['address'])): ?>
                         <dt><?= e(t('shop.f.address')) ?></dt><dd>📍 <?= e((string) $boutique['address']) ?></dd>
                     <?php endif; ?>
+                    <?php if (!empty($boutique['city']) || !empty($boutique['country_code'])): ?>
+                        <dt><?= e(t('shop.f.location')) ?></dt>
+                        <dd>🌍 <?= e(implode(' · ', array_filter([
+                            (string) ($boutique['city'] ?? '') ?: null,
+                            !empty($boutique['country_code']) ? trim(flag_emoji((string) $boutique['country_code']) . ' ' . country_name((string) $boutique['country_code'])) : null,
+                            !empty($boutique['continent']) ? t('geo.continent.' . $boutique['continent']) : null,
+                        ]))) ?></dd>
+                    <?php endif; ?>
                     <?php if ($zones): ?>
                         <dt><?= e(t('shop.f.zones')) ?></dt>
                         <dd><?= e(implode(' · ', array_map(static fn ($z) => t('shop.zone.' . $z), $zones))) ?></dd>

@@ -628,6 +628,24 @@ return [
     'shop.kpi.total_cta' => 'See full catalogue',
     'shop.kpi.orders_cta' => 'Process orders',
     'shop.kpi.views_cta' => 'See statistics',
+    'shop.f.city' => 'City',
+    'shop.f.country' => 'Country',
+    'shop.f.location' => 'Location',
+
+    // Geolocation (browser → city / country / continent)
+    'geo.btn' => 'Use my position',
+    'geo.asking' => 'Locating you…',
+    'geo.denied' => 'Permission denied — enable location in your browser and try again.',
+    'geo.error' => 'Could not find your position right now. You can fill the fields manually.',
+    'geo.unsupported' => 'Your browser does not support geolocation.',
+    'geo.continent_label' => 'Continent:',
+    'geo.continent.africa' => 'Africa',
+    'geo.continent.europe' => 'Europe',
+    'geo.continent.asia' => 'Asia',
+    'geo.continent.north_america' => 'North America',
+    'geo.continent.south_america' => 'South America',
+    'geo.continent.oceania' => 'Oceania',
+    'geo.continent.antarctica' => 'Antarctica',
 
     // Shop statistics (views)
     'stats.title' => 'Statistics',

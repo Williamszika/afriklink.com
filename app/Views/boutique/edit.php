@@ -93,6 +93,13 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                     <label for="shop-address"><?= e(t('shop.f.address')) ?></label>
                     <input type="text" id="shop-address" name="address" value="<?= $v('address') ?>" maxlength="220">
                     <?php if (has_error('address')): ?><p class="field-error"><?= e(error('address')) ?></p><?php endif; ?>
+                    <?= render_partial('partials/geo_fields', [
+                        'city'      => old('city') !== '' ? old('city') : (string) ($boutique['city'] ?? ''),
+                        'cc'        => old('country_code') !== '' ? old('country_code') : (string) ($boutique['country_code'] ?? ''),
+                        'continent' => $boutique['continent'] ?? null,
+                        'lat'       => old('geo_lat') !== '' ? old('geo_lat') : (string) ($boutique['geo_lat'] ?? ''),
+                        'lng'       => old('geo_lng') !== '' ? old('geo_lng') : (string) ($boutique['geo_lng'] ?? ''),
+                    ]) ?>
                 </div>
                 <div class="grid-2">
                     <div><label for="shop-cur"><?= e(t('shop.f.currency')) ?></label>

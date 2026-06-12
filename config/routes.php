@@ -8,6 +8,7 @@ use App\Controllers\BoutiqueController;
 use App\Controllers\HomeController;
 use App\Controllers\KycController;
 use App\Controllers\ListingController;
+use App\Controllers\GeoController;
 use App\Controllers\MediaController;
 use App\Controllers\ProductController;
 use App\Controllers\ProfileController;
@@ -101,6 +102,7 @@ return [
 
     // Signature des envois médias directs navigateur → Cloudinary
     ['POST', '/api/media/sign',          [MediaController::class, 'sign'],        ['auth', 'csrf', 'throttle:sign,60,3600']],
+    ['GET',  '/api/geo/reverse',         [GeoController::class, 'reverse'],       ['throttle:geo,60,3600']],
 
     // Boutique en ligne (assistant de création + gestion + page publique)
     ['GET',  '/boutique/creer',  [BoutiqueController::class, 'create'],  ['auth']],
