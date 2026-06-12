@@ -58,7 +58,11 @@ final class GeoService
         if (!is_array($addr)) {
             return null;
         }
-        $city = $addr['city'] ?? $addr['town'] ?? $addr['village'] ?? $addr['municipality'] ?? $addr['county'] ?? null;
+        // Ville : on élargit aux niveaux administratifs proches quand les
+        // champs habituels manquent (ex. Abidjan, district autonome → state).
+        $city = $addr['city'] ?? $addr['town'] ?? $addr['village'] ?? $addr['municipality']
+            ?? $addr['city_district'] ?? $addr['suburb'] ?? $addr['county']
+            ?? $addr['state_district'] ?? $addr['state'] ?? $addr['region'] ?? null;
         $cc   = isset($addr['country_code']) ? strtoupper((string) $addr['country_code']) : null;
         $road = trim(implode(' ', array_filter([$addr['house_number'] ?? null, $addr['road'] ?? null])));
         return [
@@ -80,7 +84,7 @@ final class GeoService
             return null;
         }
         $cc   = strtoupper((string) $data['countryCode']);
-        $city = $data['city'] ?? $data['locality'] ?? null;
+        $city = $data['city'] ?? $data['locality'] ?? $data['principalSubdivision'] ?? null;
         if ($cc === '') {
             return null;
         }
