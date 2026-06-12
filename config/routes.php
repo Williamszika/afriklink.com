@@ -147,6 +147,7 @@ return [
     ['POST', '/restaurant/categorie/{cid}/renommer', [RestaurantController::class, 'renameCategory'], ['auth', 'csrf']],
     ['POST', '/restaurant/plat',                 [RestaurantController::class, 'storeItem'],      ['auth', 'csrf', 'throttle:product,120,3600']],
     ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
+    ['POST', '/restaurant/plat/{mid}/contenance', [RestaurantController::class, 'setVariantStatus'], ['auth', 'csrf']],
     ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
 
     // Signalement « ce n'était pas moi » (lien reçu par e-mail, sans connexion)

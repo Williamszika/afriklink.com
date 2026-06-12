@@ -187,6 +187,24 @@ final class RestaurantController
         redirect('/restaurant/gerer');
     }
 
+    /** Marque une contenance de boisson épuisée / de retour. */
+    public function setVariantStatus(Request $request): void
+    {
+        $resto = $this->ownRestaurant();
+        $item = MenuItem::findItem((string) $request->param('mid', ''));
+        if ($item === null || (int) $item['restaurant_id'] !== (int) $resto['id']) {
+            abort(404);
+        }
+        $vol = (string) input_string('vol', '');
+        $action = whitelist((string) input_string('action', ''), ['out', 'in'], null);
+        if ($action === null || !MenuItem::setVariantOut((int) $item['id'], $vol, $action === 'out')) {
+            flash('error', t('resto.size_unknown'));
+        } else {
+            flash('success', t($action === 'out' ? 'resto.size_marked_out' : 'resto.size_marked_in', ['vol' => $vol]));
+        }
+        redirect('/restaurant/gerer');
+    }
+
     /* ---- Page publique -------------------------------------------- */
 
     public function show(Request $request): void

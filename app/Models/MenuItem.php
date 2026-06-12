@@ -148,7 +148,7 @@ final class MenuItem
         ]);
     }
 
-    /** Décode les contenances d'une boisson. @return list<array{v:string,p:int}> */
+    /** Décode les contenances d'une boisson. @return list<array{v:string,p:int,out:bool}> */
     public static function variants(?string $raw): array
     {
         if ($raw === null || $raw === '') {
@@ -157,10 +157,45 @@ final class MenuItem
         $out = [];
         foreach (json_decode($raw, true) ?: [] as $row) {
             if (isset($row['v'], $row['p'])) {
-                $out[] = ['v' => (string) $row['v'], 'p' => (int) $row['p']];
+                $out[] = ['v' => (string) $row['v'], 'p' => (int) $row['p'], 'out' => !empty($row['out'])];
             }
         }
         return $out;
+    }
+
+    /**
+     * Marque une contenance épuisée (ou de retour) et recalcule le prix de
+     * base = la moins chère des contenances encore disponibles (sinon de
+     * toutes). Vrai si la contenance existait.
+     */
+    public static function setVariantOut(int $itemId, string $vol, bool $isOut): bool
+    {
+        try {
+            $stmt = db()->prepare('SELECT variants FROM menu_items WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $itemId]);
+            $raw = $stmt->fetchColumn();
+        } catch (\Throwable) {
+            return false;
+        }
+        $vars = self::variants(is_string($raw) ? $raw : null);
+        $found = false;
+        foreach ($vars as &$r) {
+            if ($r['v'] === $vol) {
+                $r['out'] = $isOut;
+                $found = true;
+            }
+        }
+        unset($r);
+        if (!$found) {
+            return false;
+        }
+        $available = array_values(array_filter($vars, static fn (array $r): bool => !$r['out']));
+        $minSource = $available !== [] ? $available : $vars;
+        $min = min(array_column($minSource, 'p'));
+        $rows = array_map(static fn (array $r): array => ['v' => $r['v'], 'p' => $r['p'], 'out' => $r['out'] ? 1 : 0], $vars);
+        db()->prepare('UPDATE menu_items SET variants = :v, price_cents = :p WHERE id = :id')
+            ->execute(['v' => json_encode($rows, JSON_UNESCAPED_UNICODE), 'p' => $min, 'id' => $itemId]);
+        return true;
     }
 
     /** @return list<array> plats d'un restaurant (option : seulement disponibles) */

@@ -164,7 +164,19 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                                         <?php if (!empty($it['description'])): ?><span class="menu-item-desc"><?= e((string) $it['description']) ?></span><?php endif; ?>
                                         <?php $vars = \App\Models\MenuItem::variants($it['variants'] ?? null); ?>
                                         <?php if ($vars !== []): ?>
-                                            <span class="menu-item-vars"><?php foreach ($vars as $vr): ?><span class="vol-tag"><?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?></span><?php endforeach; ?></span>
+                                            <span class="menu-item-vars">
+                                                <?php foreach ($vars as $vr): $vOut = !empty($vr['out']); ?>
+                                                    <span class="vol-tag<?= $vOut ? ' is-out' : '' ?>">
+                                                        <?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?>
+                                                        <form method="post" action="<?= e(url('/restaurant/plat/' . $it['public_id'] . '/contenance')) ?>" class="inline-form">
+                                                            <?= csrf_field() ?>
+                                                            <input type="hidden" name="vol" value="<?= e((string) $vr['v']) ?>">
+                                                            <button class="link-button vol-out-btn" name="action" value="<?= $vOut ? 'in' : 'out' ?>"
+                                                                    title="<?= e($vOut ? t('resto.size_mark_in') : t('resto.size_mark_out')) ?>"><?= $vOut ? '↩ ' . e(t('resto.size_mark_in')) : e(t('resto.size_mark_out')) ?></button>
+                                                        </form>
+                                                    </span>
+                                                <?php endforeach; ?>
+                                            </span>
                                         <?php endif; ?>
                                     </div>
                                     <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>

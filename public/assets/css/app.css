@@ -395,7 +395,11 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .vol-row .vol-price { margin: 0; flex: 1; min-width: 140px; max-width: 240px; }
 .vol-row .vol-price:disabled { background: #f1f3f5; color: #9aa1a9; cursor: not-allowed; }
 .menu-item-vars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
-.vol-tag { font-size: .76rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--bg, #eef1f4); color: var(--ink); border: 1px solid var(--border); }
+.vol-tag { font-size: .76rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--bg, #eef1f4); color: var(--ink); border: 1px solid var(--border); display: inline-flex; align-items: center; gap: 6px; }
+.vol-tag.is-out { background: #fdf1f1; border-color: #f1c4c4; color: #9a3b3b; }
+.vol-tag.is-out::before { content: "⛔"; }
+.vol-out-btn { font-size: .72rem; color: var(--muted); }
+.vol-out-btn:hover { color: var(--brand); }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
 .menu-item-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); }

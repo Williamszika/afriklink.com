@@ -52,7 +52,7 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                                         <?php foreach (array_filter(explode(',', (string) ($it['diets'] ?? ''))) as $dt): ?><span class="diet-badge"><?= e(t('resto.diet.' . $dt)) ?></span><?php endforeach; ?>
                                     </span>
                                     <?php if (!empty($it['description'])): ?><span class="menu-item-desc"><?= e((string) $it['description']) ?></span><?php endif; ?>
-                                    <?php if ($vars !== []): ?><span class="menu-item-vars"><?php foreach ($vars as $vr): ?><span class="vol-tag"><?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?></span><?php endforeach; ?></span><?php endif; ?>
+                                    <?php if ($vars !== []): ?><span class="menu-item-vars"><?php foreach ($vars as $vr): $vOut = !empty($vr['out']); ?><span class="vol-tag<?= $vOut ? ' is-out' : '' ?>"><?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?></span><?php endforeach; ?></span><?php endif; ?>
                                 </div>
                                 <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
                             </div>
