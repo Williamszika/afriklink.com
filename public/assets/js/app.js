@@ -257,6 +257,59 @@ document.addEventListener('click', function (ev) {
     }
 });
 
+/* ---- Catalogue boutique : filtre « Tous / En ligne / Masqués » ----
+   Filtrage instantané sans rechargement (les liens restent valides sans JS :
+   ils rechargent la page avec ?filtre=…). Déclenché par les onglets et par les
+   cartes d'indicateurs (« Produits en ligne »). */
+(function () {
+    var cat = document.querySelector('[data-catalogue]');
+    if (!cat) { return; }
+
+    function matches(status, filter) {
+        return filter === 'tous'
+            || (filter === 'en_ligne' && status === 'active')
+            || (filter === 'masques' && status !== 'active');
+    }
+
+    function apply(filter, scroll) {
+        var rows = cat.querySelectorAll('.product-row[data-status]');
+        var visible = 0;
+        rows.forEach(function (row) {
+            var show = matches(row.getAttribute('data-status') || '', filter);
+            row.classList.toggle('is-hidden', !show);
+            if (show) { visible++; }
+        });
+        // Onglets : état actif + aria-selected.
+        cat.querySelectorAll('.chip-filter[data-filter-to]').forEach(function (tab) {
+            var on = tab.getAttribute('data-filter-to') === filter;
+            tab.classList.toggle('is-active', on);
+            tab.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        // Message « aucun produit » propre au filtre.
+        var empty = cat.querySelector('[data-filter-empty]');
+        if (empty) {
+            var msg = cat.getAttribute('data-empty-' + filter) || '';
+            var p = empty.querySelector('p');
+            if (p && msg) { p.textContent = msg; }
+            empty.hidden = visible > 0;
+        }
+        // URL alignée sur le filtre (le rafraîchissement conserve la vue).
+        try {
+            var u = new URL(window.location.href);
+            u.searchParams.set('filtre', filter);
+            window.history.replaceState(null, '', u.pathname + u.search + '#catalogue');
+        } catch (e) { /* navigateurs anciens : on ignore */ }
+        if (scroll) { cat.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+
+    document.addEventListener('click', function (ev) {
+        var trigger = ev.target && ev.target.closest ? ev.target.closest('[data-filter-to]') : null;
+        if (!trigger) { return; }
+        ev.preventDefault();
+        apply(trigger.getAttribute('data-filter-to') || 'tous', !cat.contains(trigger));
+    });
+})();
+
 /* ---- Page annonce : clic sur une vignette = grande photo ---- */
 document.addEventListener('click', function (ev) {
     var btn = ev.target && ev.target.closest ? ev.target.closest('[data-gallery-full]') : null;

@@ -254,6 +254,19 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .stat-card .num { font-size: 1.5rem; font-weight: 800; }
 .stat-card .lbl { color: var(--ink); font-size: .9rem; font-weight: 600; }
 .stat-card .phase { color: var(--muted); font-size: .74rem; margin-top: 2px; }
+.stat-card--link { cursor: pointer; }
+.stat-card--link .stat-cta { color: var(--brand); font-size: .76rem; font-weight: 700; margin-top: 4px; opacity: .85; }
+.stat-card--link:hover .stat-cta { opacity: 1; }
+
+/* Catalogue : onglets de filtre + état vide par filtre */
+.catalogue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
+.chip-filter { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; font-size: .85rem; font-weight: 600; color: var(--ink); background: var(--card); border: 1px solid var(--border); border-radius: 999px; text-decoration: none; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.chip-filter:hover { border-color: var(--brand); text-decoration: none; }
+.chip-filter.is-active { color: #fff; background: var(--brand); border-color: var(--brand); }
+.chip-count { font-size: .76rem; font-weight: 800; padding: 1px 7px; border-radius: 999px; background: rgba(0,0,0,.08); }
+.chip-filter.is-active .chip-count { background: rgba(255,255,255,.28); }
+.filter-empty { padding: 18px; text-align: center; color: var(--muted); background: var(--bg, #f7f8fa); border: 1px dashed var(--border); border-radius: var(--radius); margin-bottom: 12px; }
+.product-row.is-hidden, .is-hidden { display: none !important; }
 .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .action-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--ink); }
 .action-card:hover { border-color: var(--brand); box-shadow: var(--shadow); text-decoration: none; }

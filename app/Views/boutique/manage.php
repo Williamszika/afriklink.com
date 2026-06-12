@@ -48,11 +48,20 @@ $publicPath = '/boutique/' . $boutique['slug'];
         <?php endif; ?>
 
         <!-- Indicateurs -->
+        <?php $nActive = (int) ($counts['active'] ?? 0); $nTotal = (int) ($counts['total'] ?? 0); ?>
         <div class="stat-grid cols-4">
-            <div class="stat-card"><div class="num"><span aria-hidden="true">📦</span> <?= (int) ($counts['active'] ?? 0) ?></div>
-                <div class="lbl"><?= e(t('shop.kpi.online')) ?></div></div>
-            <div class="stat-card"><div class="num"><span aria-hidden="true">🗂️</span> <?= (int) ($counts['total'] ?? 0) ?></div>
-                <div class="lbl"><?= e(t('shop.kpi.total')) ?></div></div>
+            <a class="stat-card stat-card--link" href="<?= e(url('/boutique/gerer?filtre=en_ligne')) ?>#catalogue"
+               data-filter-to="en_ligne" title="<?= e(t('shop.kpi.online_cta')) ?>">
+                <div class="num"><span aria-hidden="true">📦</span> <?= $nActive ?></div>
+                <div class="lbl"><?= e(t('shop.kpi.online')) ?></div>
+                <div class="stat-cta"><?= e(t('shop.kpi.online_cta')) ?> →</div>
+            </a>
+            <a class="stat-card stat-card--link" href="<?= e(url('/boutique/gerer?filtre=tous')) ?>#catalogue"
+               data-filter-to="tous" title="<?= e(t('shop.kpi.total_cta')) ?>">
+                <div class="num"><span aria-hidden="true">🗂️</span> <?= $nTotal ?></div>
+                <div class="lbl"><?= e(t('shop.kpi.total')) ?></div>
+                <div class="stat-cta"><?= e(t('shop.kpi.total_cta')) ?> →</div>
+            </a>
             <div class="stat-card"><div class="num"><span aria-hidden="true">🧾</span> 0</div>
                 <div class="lbl"><?= e(t('seller.stat.orders')) ?></div><div class="phase"><?= e(t('dash.phase', ['n' => 3])) ?></div></div>
             <div class="stat-card"><div class="num"><span aria-hidden="true">👁️</span> 0</div>
@@ -76,7 +85,22 @@ $publicPath = '/boutique/' . $boutique['slug'];
         </div>
 
         <!-- Catalogue -->
-        <div class="panel">
+        <?php
+        $filter   = $filter ?? 'tous';
+        $nMasques = max(0, $nTotal - $nActive);
+        $matches  = static fn (string $st, string $f): bool =>
+            $f === 'tous' || ($f === 'en_ligne' && $st === 'active') || ($f === 'masques' && $st !== 'active');
+        $visibleNow = $filter === 'en_ligne' ? $nActive : ($filter === 'masques' ? $nMasques : $nTotal);
+        $emptyMsg = static fn (string $f): string => match ($f) {
+            'en_ligne' => t('shop.filter_empty_online'),
+            'masques'  => t('shop.filter_empty_hidden'),
+            default    => t('shop.products_empty'),
+        };
+        ?>
+        <div class="panel" id="catalogue" data-catalogue
+             data-empty-tous="<?= e(t('shop.products_empty')) ?>"
+             data-empty-en_ligne="<?= e(t('shop.filter_empty_online')) ?>"
+             data-empty-masques="<?= e(t('shop.filter_empty_hidden')) ?>">
             <div class="panel-title-row">
                 <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?></h2>
                 <a class="btn btn-primary btn-sm" href="<?= e(url('/boutique/produits/nouveau')) ?>">+ <?= e(t('product.add')) ?></a>
@@ -89,10 +113,28 @@ $publicPath = '/boutique/' . $boutique['slug'];
                     <a class="btn btn-primary" href="<?= e(url('/boutique/produits/nouveau')) ?>"><?= e(t('product.add_first')) ?></a>
                 </div>
             <?php else: ?>
+                <div class="catalogue-filters" role="tablist">
+                    <?php foreach (['tous' => $nTotal, 'en_ligne' => $nActive, 'masques' => $nMasques] as $key => $n): ?>
+                        <a class="chip-filter <?= $filter === $key ? 'is-active' : '' ?>" role="tab"
+                           aria-selected="<?= $filter === $key ? 'true' : 'false' ?>" data-filter-to="<?= e($key) ?>"
+                           href="<?= e(url('/boutique/gerer?filtre=' . $key)) ?>#catalogue">
+                            <?= e(t('shop.filter.' . $key)) ?> <span class="chip-count"><?= (int) $n ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="filter-empty" data-filter-empty <?= $visibleNow > 0 ? 'hidden' : '' ?>>
+                    <p><?= e($emptyMsg($filter)) ?></p>
+                </div>
+
                 <div class="product-rows">
                     <?php foreach ($products as $p): ?>
-                        <?php $main = $mains[(int) $p['id']] ?? null; $active2 = $p['status'] === 'active'; ?>
-                        <div class="panel product-row">
+                        <?php
+                        $main = $mains[(int) $p['id']] ?? null;
+                        $active2 = $p['status'] === 'active';
+                        $st = $active2 ? 'active' : 'hidden';
+                        ?>
+                        <div class="panel product-row<?= $matches($st, $filter) ? '' : ' is-hidden' ?>" data-status="<?= e($st) ?>">
                             <div class="product-thumb">
                                 <?php if ($main !== null): ?>
                                     <img src="<?= e(CloudinaryService::imageUrl($main, 140, 140)) ?>" alt="" loading="lazy" width="70" height="70">
