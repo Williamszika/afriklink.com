@@ -14,20 +14,26 @@ final class ContactChannels
     /** Ordre d'affichage. */
     public const CHANNELS = ['whatsapp', 'sms', 'telegram', 'facebook', 'instagram', 'tiktok'];
 
-    /** @var array<string,array{icon:string,label:string,type:string,class:string}> */
+    /** @var array<string,array{icon:string,label:string,type:string,class:string,logo:string}> */
     private const META = [
-        'whatsapp'  => ['icon' => '💬', 'label' => 'WhatsApp',  'type' => 'phone',  'class' => 'wa'],
-        'sms'       => ['icon' => '✉️', 'label' => 'SMS',       'type' => 'phone',  'class' => 'sms'],
-        'telegram'  => ['icon' => '✈️', 'label' => 'Telegram',  'type' => 'handle', 'class' => 'tg'],
-        'facebook'  => ['icon' => '📘', 'label' => 'Facebook',  'type' => 'fb',     'class' => 'fb'],
-        'instagram' => ['icon' => '📸', 'label' => 'Instagram', 'type' => 'handle', 'class' => 'ig'],
-        'tiktok'    => ['icon' => '🎵', 'label' => 'TikTok',    'type' => 'handle', 'class' => 'tt'],
+        'whatsapp'  => ['icon' => '💬', 'label' => 'WhatsApp',  'type' => 'phone',  'class' => 'wa',  'logo' => 'whatsapp.svg'],
+        'sms'       => ['icon' => '✉️', 'label' => 'SMS',       'type' => 'phone',  'class' => 'sms', 'logo' => 'sms.svg'],
+        'telegram'  => ['icon' => '✈️', 'label' => 'Telegram',  'type' => 'handle', 'class' => 'tg',  'logo' => 'telegram.svg'],
+        'facebook'  => ['icon' => '📘', 'label' => 'Facebook',  'type' => 'fb',     'class' => 'fb',  'logo' => 'facebook.png'],
+        'instagram' => ['icon' => '📸', 'label' => 'Instagram', 'type' => 'handle', 'class' => 'ig',  'logo' => 'instagram.svg'],
+        'tiktok'    => ['icon' => '🎵', 'label' => 'TikTok',    'type' => 'handle', 'class' => 'tt',  'logo' => 'tiktok.png'],
     ];
 
-    /** @return array{icon:string,label:string,type:string,class:string}|null */
+    /** @return array{icon:string,label:string,type:string,class:string,logo:string}|null */
     public static function meta(string $channel): ?array
     {
         return self::META[$channel] ?? null;
+    }
+
+    /** URL du logo officiel (PNG fourni par la marque, ou SVG maison). */
+    public static function logo(string $channel): string
+    {
+        return \asset('img/social/' . (self::META[$channel]['logo'] ?? ($channel . '.svg')));
     }
 
     /** Valeur normalisée pour stockage, ou null si vide/invalide. */

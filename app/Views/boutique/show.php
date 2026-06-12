@@ -122,7 +122,7 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                         <?php foreach ($ctPrimaries as $ch): $pm = \App\Services\ContactChannels::meta($ch); ?>
                             <a class="btn btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
                                href="<?= e(\App\Services\ContactChannels::url($ch, $ctSet[$ch])) ?>">
-                                <img class="social-logo" src="<?= e(asset('img/social/' . $ch . '.svg')) ?>" alt="" width="24" height="24">
+                                <img class="social-logo" src="<?= e(\App\Services\ContactChannels::logo($ch)) ?>" alt="" width="24" height="24">
                                 <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
                             </a>
                         <?php endforeach; ?>
@@ -132,7 +132,7 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                                 <?php foreach ($others as $ch => $val): $m = \App\Services\ContactChannels::meta($ch); ?>
                                     <a class="contact-logo" rel="noopener" target="_blank"
                                        href="<?= e(\App\Services\ContactChannels::url($ch, $val)) ?>"
-                                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>"><img src="<?= e(asset('img/social/' . $ch . '.svg')) ?>" alt="<?= e($m['label']) ?>" width="46" height="46"></a>
+                                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>"><img src="<?= e(\App\Services\ContactChannels::logo($ch)) ?>" alt="<?= e($m['label']) ?>" width="46" height="46"></a>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
