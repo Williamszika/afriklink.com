@@ -640,6 +640,7 @@ return [
     'geo.unsupported' => 'Ton navigateur ne permet pas la géolocalisation.',
     'geo.continent_label' => 'Continent :',
     'geo.locked' => 'Position vérifiée par géolocalisation — ville et pays verrouillés. Clique « 📍 Utiliser ma position » pour les actualiser.',
+    'geo.chip_title' => 'Ta position détectée — clique pour l’actualiser précisément',
     'geo.continent.africa' => 'Afrique',
     'geo.continent.europe' => 'Europe',
     'geo.continent.asia' => 'Asie',

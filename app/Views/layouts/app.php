@@ -37,7 +37,17 @@ $metaImage = (string) ($meta['image'] ?? '');
     <link rel="icon" type="image/svg+xml" href="<?= e(asset('img/logo-cauri.svg')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 </head>
-<body>
+<?php
+// Auto-activation de la position précise : une fois juste après connexion
+// (le drapeau de session est consommé ici), sinon le JS reste silencieux si
+// la permission est déjà accordée. La localisation détectée (IP par défaut)
+// est disponible tout de suite, sans permission.
+$geoAutoprompt = !empty($_SESSION['geo_autoprompt']);
+unset($_SESSION['geo_autoprompt']);
+$geo = detected_geo();
+$geoChip = trim(implode(', ', array_filter([$geo['city'] ?? null, $geo['country'] ?? null]))) ?: ($geo['country'] ?? '');
+?>
+<body<?= $geoAutoprompt ? ' data-geo-autoprompt="1"' : '' ?> data-geo-session-url="<?= e(url('/api/geo/session')) ?>">
 <header class="site-header">
     <div class="container header-inner">
         <a class="brand" href="<?= e(url('/')) ?>">
@@ -51,6 +61,10 @@ $metaImage = (string) ($meta['image'] ?? '');
         </nav>
 
         <div class="nav-actions">
+            <button type="button" class="geo-chip" data-geo-chip
+                    title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
+                📍 <span data-geo-chip-text><?= e($geoChip) ?></span>
+            </button>
             <span class="lang-switch">
                 <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
                     <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>"

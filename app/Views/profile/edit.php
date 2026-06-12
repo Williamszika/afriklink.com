@@ -4,8 +4,9 @@ $hasEmail  = !empty($user['email']);
 $contact   = $hasEmail ? (string) ($user['email'] ?? '') : (string) ($user['phone'] ?? '');
 $bd        = old('birthdate') ?: (!empty($user['birthdate']) ? date('d/m/Y', strtotime((string) $user['birthdate'])) : '');
 $g         = old('gender') ?: (string) ($user['gender'] ?? '');
-$cc        = old('country_code') ?: strtoupper((string) ($user['country_code'] ?? ''));
-$city      = old('city') ?: (string) ($user['city'] ?? '');
+$autoGeo   = detected_geo(); // localisation détectée (IP/GPS) en secours quand le profil est vide
+$cc        = old('country_code') ?: strtoupper((string) ($user['country_code'] ?? '')) ?: (string) ($autoGeo['country_code'] ?? '');
+$city      = old('city') ?: ((string) ($user['city'] ?? '') ?: (string) ($autoGeo['city'] ?? ''));
 $avatarUrl = avatar_url($user, $avatar_version ?? null);
 ?>
 <section class="profile">

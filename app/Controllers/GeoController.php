@@ -39,4 +39,39 @@ final class GeoController
                 . ($continentLabel !== null ? ' (' . $continentLabel . ')' : ''),
         ]);
     }
+
+    /**
+     * Position GPS précise (avec permission) → mémorisée dans la session pour
+     * tout le site. Alimente l'auto-activation : le navigateur envoie la
+     * position, on la convertit et on la garde côté serveur.
+     */
+    public function session(Request $request): void
+    {
+        $lat = filter_var(input_string('lat', ''), FILTER_VALIDATE_FLOAT);
+        $lng = filter_var(input_string('lng', ''), FILTER_VALIDATE_FLOAT);
+        if ($lat === false || $lng === false || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+            json_response(['error' => 'invalid_coordinates'], 422);
+        }
+        $geo = GeoService::reverse(round($lat, 6), round($lng, 6), current_locale());
+        if ($geo === null) {
+            json_response(['error' => 'lookup_failed'], 503);
+        }
+        $stored = [
+            'city'         => $geo['city'],
+            'country_code' => $geo['country_code'],
+            'country'      => $geo['country'],
+            'continent'    => $geo['continent'],
+            'lat'          => round($lat, 6),
+            'lng'          => round($lng, 6),
+            'source'       => 'gps',
+        ];
+        set_session_geo($stored);
+        $continentLabel = $geo['continent'] !== null ? t('geo.continent.' . $geo['continent']) : null;
+        json_response($stored + [
+            'continent_label' => $continentLabel,
+            'chip'            => trim(implode(', ', array_filter([$geo['city'], $geo['country']]))) ?: ($geo['country'] ?? ''),
+            'label'           => trim(implode(', ', array_filter([$geo['city'], $geo['country']])))
+                . ($continentLabel !== null ? ' (' . $continentLabel . ')' : ''),
+        ]);
+    }
 }

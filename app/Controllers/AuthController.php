@@ -157,6 +157,7 @@ final class AuthController
         }
 
         login_user((int) $user['id']); // regenerates session id
+        $_SESSION['geo_autoprompt'] = true; // active la position précise après connexion
         AuditLog::record((int) $user['id'], 'auth.login_success', 'user', (int) $user['id'], [], $request->ipBinary());
         clear_old();
         flash('success', t('flash.logged_in'));

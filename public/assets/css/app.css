@@ -304,6 +304,10 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 form input.is-locked, form select.is-locked { background: #f3f4f6; color: #374151; cursor: not-allowed; }
 .geo-lock-note { color: #0f7a3c; font-weight: 600; }
 .zones-list span { display: block; line-height: 1.7; }
+.geo-chip { display: inline-flex; align-items: center; gap: 3px; padding: 4px 11px; font-size: .82rem; font-weight: 600; color: #1f6f54; background: #eafaf2; border: 1px solid #bfe8d4; border-radius: 999px; cursor: pointer; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.geo-chip:hover { background: #d9f4e7; border-color: #9fdcbe; }
+.geo-chip [data-geo-chip-text] { overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 640px) { .geo-chip { max-width: 130px; } }
 
 /* Catalogue : onglets de filtre + état vide par filtre */
 .catalogue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }

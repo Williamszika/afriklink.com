@@ -356,6 +356,61 @@ document.addEventListener('click', function (ev) {
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
 });
 
+/* ---- Géolocalisation automatique du site ----
+   1. La localisation par IP (sans permission) est déjà fournie par le serveur.
+   2. Ici, on active la position GPS précise AUTOMATIQUEMENT quand c'est permis :
+      - permission déjà accordée → on relève la position en silence ;
+      - juste après connexion (data-geo-autoprompt) ou à la 1ʳᵉ visite → une
+        seule invite ;
+      les navigateurs interdisant l'invite répétée sans clic, un clic sur la
+      puce « 📍 » relance toujours la demande. */
+(function () {
+    var url = document.body.getAttribute('data-geo-session-url');
+    if (!url || !navigator.geolocation) { return; }
+
+    function updateChips(text) {
+        document.querySelectorAll('[data-geo-chip]').forEach(function (chip) {
+            var span = chip.querySelector('[data-geo-chip-text]');
+            if (span && text) { span.textContent = text; }
+            if (text) { chip.hidden = false; }
+        });
+    }
+
+    function locate() {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            try { localStorage.setItem('afrikGeoAsked', '1'); } catch (e) { /* privé */ }
+            fetch(url + '?lat=' + pos.coords.latitude.toFixed(6) + '&lng=' + pos.coords.longitude.toFixed(6), {
+                headers: { 'Accept': 'application/json' }
+            }).then(function (r) { return r.ok ? r.json() : null; })
+              .then(function (geo) { if (geo && geo.chip) { updateChips(geo.chip); } })
+              .catch(function () { /* on garde la localisation IP */ });
+        }, function () {
+            try { localStorage.setItem('afrikGeoAsked', '1'); } catch (e) { /* privé */ }
+        }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 600000 });
+    }
+
+    var asked = false;
+    try { asked = localStorage.getItem('afrikGeoAsked') === '1'; } catch (e) { /* privé */ }
+    var forcePrompt = document.body.hasAttribute('data-geo-autoprompt');
+
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+            if (p.state === 'granted') { locate(); }                       // silencieux
+            else if (p.state === 'prompt' && (forcePrompt || !asked)) { locate(); } // une invite
+        }).catch(function () { if (forcePrompt || !asked) { locate(); } });
+    } else if (forcePrompt || !asked) {
+        locate();
+    }
+
+    // Clic sur la puce 📍 = relance explicite (geste utilisateur : marche toujours).
+    document.addEventListener('click', function (ev) {
+        if (ev.target && ev.target.closest && ev.target.closest('[data-geo-chip]')) {
+            ev.preventDefault();
+            locate();
+        }
+    });
+})();
+
 /* ---- Catalogue boutique : filtre « Tous / En ligne / Masqués » ----
    Filtrage instantané sans rechargement (les liens restent valides sans JS :
    ils rechargent la page avec ?filtre=…). Déclenché par les onglets et par les

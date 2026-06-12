@@ -129,10 +129,11 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
                        placeholder="<?= e(t('pro.field.address_ph')) ?>" autocomplete="street-address">
                 <p class="hint"><?= e(t('shop.f.address_hint')) ?></p>
                 <?php if (has_error('address')): ?><p class="field-error"><?= e(error('address')) ?></p><?php endif; ?>
+                <?php $autoGeo = detected_geo(); ?>
                 <?= render_partial('partials/geo_fields', [
-                    'city'      => old('city') !== '' ? old('city') : (string) ($s2['city'] ?? ''),
-                    'cc'        => old('country_code') !== '' ? old('country_code') : (string) ($s2['country_code'] ?? ''),
-                    'continent' => $s2['continent'] ?? null,
+                    'city'      => old('city') !== '' ? old('city') : ((string) ($s2['city'] ?? '') ?: (string) ($autoGeo['city'] ?? '')),
+                    'cc'        => old('country_code') !== '' ? old('country_code') : ((string) ($s2['country_code'] ?? '') ?: (string) ($autoGeo['country_code'] ?? '')),
+                    'continent' => $s2['continent'] ?? ($autoGeo['continent'] ?? null),
                     'lat'       => old('geo_lat') !== '' ? old('geo_lat') : (string) ($s2['geo_lat'] ?? ''),
                     'lng'       => old('geo_lng') !== '' ? old('geo_lng') : (string) ($s2['geo_lng'] ?? ''),
                 ]) ?>

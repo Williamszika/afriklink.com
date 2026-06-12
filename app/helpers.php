@@ -221,6 +221,43 @@ function detect_city(): string
     return $value === '' ? '' : trim(rawurldecode($value));
 }
 
+/**
+ * Localisation détectée pour la session courante. Automatique et sans
+ * permission : déduite des en-têtes edge (Vercel/Cloudflare) à la première
+ * visite, puis mémorisée en session. La position GPS précise (avec
+ * permission de l'utilisateur) l'enrichit via /api/geo/session (source 'gps').
+ * @return array{city:?string,country_code:?string,country:?string,continent:?string,lat:?float,lng:?float,source:string}
+ */
+function detected_geo(): array
+{
+    if (isset($_SESSION['geo']) && is_array($_SESSION['geo'])) {
+        return $_SESSION['geo'];
+    }
+    $cc   = detect_country_code() ?: null;
+    $city = detect_city() ?: null;
+    $lat  = request_header('X-Vercel-IP-Latitude');
+    $lng  = request_header('X-Vercel-IP-Longitude');
+    $geo = [
+        'city'         => $city,
+        'country_code' => $cc,
+        'country'      => $cc !== null ? country_name($cc) : null,
+        'continent'    => \App\Services\GeoService::continentOf($cc),
+        'lat'          => is_numeric($lat) ? (float) $lat : null,
+        'lng'          => is_numeric($lng) ? (float) $lng : null,
+        'source'       => ($cc !== null || $city !== null) ? 'ip' : 'unknown',
+    ];
+    if ($geo['source'] !== 'unknown') {
+        $_SESSION['geo'] = $geo; // on ne mémorise pas un échec (réessai au prochain coup)
+    }
+    return $geo;
+}
+
+/** Mémorise une localisation précise (GPS) pour la session. */
+function set_session_geo(array $geo): void
+{
+    $_SESSION['geo'] = $geo;
+}
+
 /** French country name for an ISO code, or the code itself if unknown. */
 function country_name(string $code): string
 {

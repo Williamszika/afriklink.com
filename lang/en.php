@@ -640,6 +640,7 @@ return [
     'geo.unsupported' => 'Your browser does not support geolocation.',
     'geo.continent_label' => 'Continent:',
     'geo.locked' => 'Location verified by geolocation — city and country are locked. Click “📍 Use my position” to refresh them.',
+    'geo.chip_title' => 'Your detected location — click to refresh it precisely',
     'geo.continent.africa' => 'Africa',
     'geo.continent.europe' => 'Europe',
     'geo.continent.asia' => 'Asia',
