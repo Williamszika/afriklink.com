@@ -381,7 +381,10 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .inline-add input { max-width: 280px; }
 .resto-item-form { display: grid; gap: 4px; }
 .menu-cat { margin-bottom: 18px; }
-.menu-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 4px; }
+.menu-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 2px solid var(--border); padding-bottom: 6px; flex-wrap: wrap; }
+.cat-rename { display: flex; gap: 6px; align-items: center; flex: 1; min-width: 220px; }
+.cat-rename input { margin: 0; max-width: 260px; font-weight: 700; }
+.menu-cat-actions { display: flex; gap: 8px; align-items: center; }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
 .menu-item-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); }

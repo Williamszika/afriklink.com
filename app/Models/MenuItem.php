@@ -76,6 +76,24 @@ final class MenuItem
         }
     }
 
+    public static function renameCategory(int $id, string $name): void
+    {
+        db()->prepare('UPDATE menu_categories SET name = :n WHERE id = :id')
+            ->execute(['n' => mb_substr($name, 0, 60), 'id' => $id]);
+    }
+
+    /** Une catégorie du même nom existe-t-elle déjà (insensible à la casse) ? */
+    public static function categoryNameExists(int $restaurantId, string $name, ?int $exceptId = null): bool
+    {
+        $needle = mb_strtolower(trim($name));
+        foreach (self::categories($restaurantId) as $c) {
+            if ((int) $c['id'] !== (int) $exceptId && mb_strtolower((string) $c['name']) === $needle) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function deleteCategory(int $id): void
     {
         db()->prepare('DELETE FROM menu_items WHERE category_id = :id')->execute(['id' => $id]);

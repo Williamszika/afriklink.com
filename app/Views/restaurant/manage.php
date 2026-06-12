@@ -65,7 +65,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                     <div class="grid-2">
                         <div>
                             <label for="i-cat"><?= e(t('resto.f.item_cat')) ?></label>
-                            <select id="i-cat" name="category"><?php foreach ($categories as $c): ?><option value="<?= e((string) $c['public_id']) ?>"><?= e((string) $c['name']) ?></option><?php endforeach; ?></select>
+                            <select id="i-cat" name="category"><?php foreach ($categories as $c): ?><option value="<?= e((string) $c['public_id']) ?>" <?= ($precat ?? '') === $c['public_id'] ? 'selected' : '' ?>><?= e((string) $c['name']) ?></option><?php endforeach; ?></select>
                         </div>
                         <div>
                             <label for="i-price"><?= e(t('resto.f.item_price')) ?> (<?= e($cur) ?>)</label>
@@ -92,11 +92,19 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                 <?php foreach ($categories as $c): ?>
                     <div class="menu-cat">
                         <div class="menu-cat-head">
-                            <h3><?= e((string) $c['name']) ?></h3>
-                            <form method="post" action="<?= e(url('/restaurant/categorie/' . $c['public_id'] . '/suppr')) ?>" class="inline-form">
+                            <form method="post" action="<?= e(url('/restaurant/categorie/' . $c['public_id'] . '/renommer')) ?>" class="cat-rename inline-form">
                                 <?= csrf_field() ?>
-                                <button class="link-button btn-danger" data-confirm="<?= e(t('resto.cat_delete_confirm')) ?>"><?= e(t('product.delete')) ?></button>
+                                <input type="text" name="name" value="<?= e((string) $c['name']) ?>" maxlength="60" required
+                                       aria-label="<?= e(t('resto.cat_rename_aria')) ?>">
+                                <button class="btn btn-ghost btn-sm" title="<?= e(t('resto.cat_rename')) ?>">✓ <?= e(t('resto.cat_rename')) ?></button>
                             </form>
+                            <div class="menu-cat-actions">
+                                <a class="btn btn-ghost btn-sm" href="<?= e(url('/restaurant/gerer?cat=' . $c['public_id'])) ?>#i-name">➕ <?= e(t('resto.add_dish_here')) ?></a>
+                                <form method="post" action="<?= e(url('/restaurant/categorie/' . $c['public_id'] . '/suppr')) ?>" class="inline-form">
+                                    <?= csrf_field() ?>
+                                    <button class="link-button btn-danger" data-confirm="<?= e(t('resto.cat_delete_confirm')) ?>"><?= e(t('product.delete')) ?></button>
+                                </form>
+                            </div>
                         </div>
                         <?php $list = $byCat[(int) $c['id']] ?? []; ?>
                         <?php if ($list === []): ?>

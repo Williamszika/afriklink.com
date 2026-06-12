@@ -79,6 +79,7 @@ final class RestaurantController
             'categories' => MenuItem::categories((int) $resto['id']),
             'items' => MenuItem::forRestaurant((int) $resto['id']),
             'counts' => MenuItem::countFor((int) $resto['id']),
+            'precat' => (string) input_string('cat', ''), // « + Plat » depuis une catégorie
         ] + SellerController::commonData($user));
     }
 
@@ -100,11 +101,33 @@ final class RestaurantController
     {
         $resto = $this->ownRestaurant();
         $name = trim((string) input_string('name', ''));
-        if (mb_strlen($name) >= 2 && mb_strlen($name) <= 60) {
+        if (mb_strlen($name) < 2 || mb_strlen($name) > 60) {
+            flash('error', t('resto.cat_invalid'));
+        } elseif (MenuItem::categoryNameExists((int) $resto['id'], $name)) {
+            flash('error', t('resto.cat_exists', ['name' => $name]));
+        } else {
             MenuItem::createCategory((int) $resto['id'], mb_substr($name, 0, 60));
             flash('success', t('resto.cat_added'));
-        } else {
+        }
+        redirect('/restaurant/gerer');
+    }
+
+    /** Renomme une catégorie déjà créée (depuis la carte). */
+    public function renameCategory(Request $request): void
+    {
+        $resto = $this->ownRestaurant();
+        $cat = MenuItem::findCategory((string) $request->param('cid', ''));
+        if ($cat === null || (int) $cat['restaurant_id'] !== (int) $resto['id']) {
+            abort(404);
+        }
+        $name = trim((string) input_string('name', ''));
+        if (mb_strlen($name) < 2 || mb_strlen($name) > 60) {
             flash('error', t('resto.cat_invalid'));
+        } elseif (MenuItem::categoryNameExists((int) $resto['id'], $name, (int) $cat['id'])) {
+            flash('error', t('resto.cat_exists', ['name' => $name]));
+        } elseif ($name !== (string) $cat['name']) {
+            MenuItem::renameCategory((int) $cat['id'], $name);
+            flash('success', t('resto.cat_renamed'));
         }
         redirect('/restaurant/gerer');
     }

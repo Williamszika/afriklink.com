@@ -144,6 +144,7 @@ return [
     ['POST', '/restaurant/publier', [RestaurantController::class, 'publish'], ['auth', 'csrf']],
     ['POST', '/restaurant/categorie',            [RestaurantController::class, 'storeCategory'],  ['auth', 'csrf', 'throttle:product,80,3600']],
     ['POST', '/restaurant/categorie/{cid}/suppr', [RestaurantController::class, 'deleteCategory'], ['auth', 'csrf']],
+    ['POST', '/restaurant/categorie/{cid}/renommer', [RestaurantController::class, 'renameCategory'], ['auth', 'csrf']],
     ['POST', '/restaurant/plat',                 [RestaurantController::class, 'storeItem'],      ['auth', 'csrf', 'throttle:product,120,3600']],
     ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
     ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
