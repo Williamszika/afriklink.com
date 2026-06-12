@@ -9,11 +9,13 @@ $hasDesc     = !empty($profile['description']);
 $cur         = (string) ($user['preferred_currency'] ?? 'EUR');
 
 $ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
+$viewsTotal    = \App\Models\ShopView::totalForUser((int) ($user['id'] ?? 0));
 $stats = [
     ['icon' => '💰', 'label' => t('seller.stat.revenue'), 'value' => format_price(0, $cur), 'note' => t('dash.phase', ['n' => 3])],
     ['icon' => '🧾', 'label' => t('seller.stat.orders'),  'value' => (string) $ordersPending,
      'note' => t('shop.kpi.orders_cta') . ' →', 'href' => url('/vendeur/commandes?filtre=a_traiter'), 'urgent' => $ordersPending > 0],
-    ['icon' => '👁️', 'label' => t('seller.stat.views'),   'value' => '0',                   'note' => t('dash.phase', ['n' => 4])],
+    ['icon' => '👁️', 'label' => t('seller.stat.views'),   'value' => (string) $viewsTotal,
+     'note' => t('shop.kpi.views_cta') . ' →', 'href' => url('/boutique/stats')],
     ['icon' => '💬', 'label' => t('dash.stat.messages'),  'value' => '0',                   'note' => t('dash.phase', ['n' => 5])],
 ];
 

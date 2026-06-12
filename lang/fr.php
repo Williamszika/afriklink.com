@@ -627,6 +627,20 @@ return [
     'shop.kpi.online_cta' => 'Voir la liste',
     'shop.kpi.total_cta' => 'Voir tout le catalogue',
     'shop.kpi.orders_cta' => 'Traiter les commandes',
+    'shop.kpi.views_cta' => 'Voir les statistiques',
+
+    // Statistiques de la boutique (vues)
+    'stats.title' => 'Statistiques',
+    'stats.subtitle' => 'Qui regarde « :name » ? Vues de ta vitrine et de tes produits — visiteurs uniques par jour, robots exclus.',
+    'stats.total' => 'Vues au total',
+    'stats.d7' => 'Vues sur 7 jours',
+    'stats.d30' => 'Vues sur 30 jours',
+    'stats.chart_title' => 'Les 14 derniers jours',
+    'stats.pages_title' => 'Pages les plus vues (30 jours)',
+    'stats.shop_page' => 'Page de la boutique',
+    'stats.deleted_product' => 'Produit supprimé',
+    'stats.empty' => 'Pas encore de visite sur les 30 derniers jours. Partage ta boutique (WhatsApp, Facebook, TikTok, QR code) pour attirer tes premiers visiteurs !',
+    'stats.note' => 'Comptage léger : 1 vue par visiteur et par jour pour chaque page ; tes propres visites et les robots ne comptent pas.',
 
     // Commandes (suivi côté vendeur)
     'order.title' => 'Commandes',

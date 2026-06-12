@@ -111,6 +111,7 @@ return [
     ['GET',  '/boutique/modifier', [BoutiqueController::class, 'edit'],       ['auth']],
     ['POST', '/boutique/modifier', [BoutiqueController::class, 'updateShop'], ['auth', 'csrf', 'throttle:shop,40,3600']],
     ['GET',  '/boutique/qr',       [BoutiqueController::class, 'qr'],         ['auth']],
+    ['GET',  '/boutique/stats',    [BoutiqueController::class, 'stats'],      ['auth']],
     // Produits du catalogue
     ['GET',  '/boutique/produits/nouveau',        [ProductController::class, 'create'],    ['auth']],
     ['POST', '/boutique/produits',                [ProductController::class, 'store'],     ['auth', 'csrf', 'throttle:product,60,3600']],

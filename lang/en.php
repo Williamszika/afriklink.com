@@ -627,6 +627,20 @@ return [
     'shop.kpi.online_cta' => 'See the list',
     'shop.kpi.total_cta' => 'See full catalogue',
     'shop.kpi.orders_cta' => 'Process orders',
+    'shop.kpi.views_cta' => 'See statistics',
+
+    // Shop statistics (views)
+    'stats.title' => 'Statistics',
+    'stats.subtitle' => 'Who is looking at “:name”? Views of your storefront and products — unique visitors per day, bots excluded.',
+    'stats.total' => 'Total views',
+    'stats.d7' => 'Views over 7 days',
+    'stats.d30' => 'Views over 30 days',
+    'stats.chart_title' => 'Last 14 days',
+    'stats.pages_title' => 'Most viewed pages (30 days)',
+    'stats.shop_page' => 'Shop page',
+    'stats.deleted_product' => 'Deleted product',
+    'stats.empty' => 'No visits in the last 30 days yet. Share your shop (WhatsApp, Facebook, TikTok, QR code) to attract your first visitors!',
+    'stats.note' => 'Light counting: 1 view per visitor per day for each page; your own visits and bots are not counted.',
 
     // Orders (seller-side tracking)
     'order.title' => 'Orders',

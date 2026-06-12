@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Models\Boutique;
 use App\Models\ProProfile;
+use App\Models\ShopView;
 use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
@@ -99,6 +100,7 @@ final class BoutiqueController
             'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
             'counts'   => \App\Models\Product::countFor((int) $boutique['id']),
             'orders_pending' => \App\Models\Order::countFor((int) $boutique['id'])['new'],
+            'views_total'    => ShopView::totals((int) $boutique['id'])['total'],
         ] + SellerController::commonData($user));
     }
 
@@ -196,6 +198,7 @@ final class BoutiqueController
         if ($boutique['status'] !== 'published' && !$isOwner) {
             abort(404); // brouillon : visible seulement par le propriétaire
         }
+        $this->countView($boutique, $isOwner);
         $products = \App\Models\Product::forBoutique((int) $boutique['id'], true);
         $banners  = Boutique::banners((int) $boutique['id']);
         $ogImage  = $banners[0] ?? ($boutique['logo_public_id'] ?? null);
@@ -231,6 +234,7 @@ final class BoutiqueController
         if (!$isOwner && ($boutique['status'] !== 'published' || $product['status'] !== 'active')) {
             abort(404);
         }
+        $this->countView($boutique, $isOwner, (int) $product['id']);
         $photos = \App\Models\Product::photos((int) $product['id']);
         $main   = $photos[0]['cloud_public_id'] ?? null;
         view('boutique/product', [
@@ -441,6 +445,56 @@ final class BoutiqueController
             return $existing;
         }
         return $this->verifiedImage($submitted) ?? $existing;
+    }
+
+    /** Page « Statistiques » : vues de la vitrine et des produits. */
+    public function stats(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $products = \App\Models\Product::forBoutique((int) $boutique['id']);
+        $names = [];
+        foreach ($products as $p) {
+            $names[(int) $p['id']] = (string) $p['name'];
+        }
+        view('boutique/stats', [
+            'active'     => 'vitrines',
+            'boutique'   => $boutique,
+            'totals'     => ShopView::totals((int) $boutique['id']),
+            'daily'      => ShopView::daily((int) $boutique['id'], 14),
+            'by_product' => ShopView::byProduct((int) $boutique['id']),
+            'names'      => $names,
+        ] + SellerController::commonData($user));
+    }
+
+    /**
+     * Compte une vue publique (vitrine si $productId = 0) : jamais le
+     * propriétaire, jamais les robots, une seule vue par visiteur et par
+     * jour pour une même page (session).
+     */
+    private function countView(array $boutique, bool $isOwner, int $productId = 0): void
+    {
+        if ($isOwner || ($boutique['status'] ?? '') !== 'published') {
+            return;
+        }
+        $ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
+        if ($ua === '' || preg_match('/bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|telegram|curl|wget|python|httpclient/i', $ua)) {
+            return;
+        }
+        $key = $boutique['id'] . ':' . $productId . ':' . date('Ymd');
+        $seen = (array) ($_SESSION['shop_seen'] ?? []);
+        if (isset($seen[$key])) {
+            return;
+        }
+        if (count($seen) > 200) {
+            $seen = []; // borne la taille de la session
+        }
+        $seen[$key] = 1;
+        $_SESSION['shop_seen'] = $seen;
+        ShopView::record((int) $boutique['id'], $productId);
     }
 
     /** Le vendeur a-t-il terminé la vérification d'identité (KYC niveau 3) ? */

@@ -69,8 +69,11 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <div class="lbl"><?= e(t('seller.stat.orders')) ?></div>
                 <div class="stat-cta"><?= e(t('shop.kpi.orders_cta')) ?> →</div>
             </a>
-            <div class="stat-card"><div class="num"><span aria-hidden="true">👁️</span> 0</div>
-                <div class="lbl"><?= e(t('seller.stat.views')) ?></div><div class="phase"><?= e(t('dash.phase', ['n' => 4])) ?></div></div>
+            <a class="stat-card stat-card--link" href="<?= e(url('/boutique/stats')) ?>" title="<?= e(t('shop.kpi.views_cta')) ?>">
+                <div class="num"><span aria-hidden="true">👁️</span> <?= (int) ($views_total ?? 0) ?></div>
+                <div class="lbl"><?= e(t('seller.stat.views')) ?></div>
+                <div class="stat-cta"><?= e(t('shop.kpi.views_cta')) ?> →</div>
+            </a>
         </div>
 
         <!-- Partage & QR code -->
