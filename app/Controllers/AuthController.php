@@ -171,6 +171,7 @@ final class AuthController
     public function logout(Request $request): void
     {
         $id = current_user_id();
+        current_user(); // mémorise le genre avant la fin de session (accord « Déconnecté:fe »)
         AuditLog::record($id, 'auth.logout', 'user', $id, [], $request->ipBinary());
         logout_user();
         flash('success', t('flash.logged_out'));

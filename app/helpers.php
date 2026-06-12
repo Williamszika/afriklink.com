@@ -40,6 +40,17 @@ function config(string $key, mixed $default = null): mixed
     return $value;
 }
 
+/** Suffixe d'accord féminin (« e ») selon le genre de la personne connectée. */
+function user_gender_suffix(): string
+{
+    try {
+        $u = current_user();
+    } catch (\Throwable) {
+        return '';
+    }
+    return (($u['gender'] ?? '') === 'femme') ? 'e' : '';
+}
+
 /** Read an environment variable (loaded from .env) with a default. */
 function env(string $key, mixed $default = null): mixed
 {
@@ -107,6 +118,12 @@ function t(string $key, array $replace = []): string
     }
     $translations = $GLOBALS['__afrikalink_translations'];
     $text = $translations[$key] ?? $key;
+
+    // Accord en genre : « :fe » devient « e » pour une utilisatrice, rien sinon
+    // (ex. « Connecté:fe » → « Connectée » / « Connecté »).
+    if (str_contains($text, ':fe')) {
+        $text = str_replace(':fe', user_gender_suffix(), $text);
+    }
 
     foreach ($replace as $name => $value) {
         $text = str_replace(':' . $name, (string) $value, $text);
