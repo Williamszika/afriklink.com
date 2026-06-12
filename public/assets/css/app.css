@@ -385,6 +385,15 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .cat-rename { display: flex; gap: 6px; align-items: center; flex: 1; min-width: 220px; }
 .cat-rename input { margin: 0; max-width: 260px; font-weight: 700; }
 .menu-cat-actions { display: flex; gap: 8px; align-items: center; }
+.inline-add select { max-width: 150px; }
+/* Boissons : contenances + prix */
+.vol-rows { display: grid; gap: 8px; margin: 4px 0 6px; }
+.vol-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 10px; }
+.vol-row:has(input[type=checkbox]:checked) { border-color: var(--brand); background: #ecfdf3; }
+.vol-row .vol-size { font-weight: 700; min-width: 56px; }
+.vol-row .vol-price { margin: 0; flex: 1; max-width: 220px; }
+.menu-item-vars { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; }
+.vol-tag { font-size: .76rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--bg, #eef1f4); color: var(--ink); border: 1px solid var(--border); }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
 .menu-item-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); }

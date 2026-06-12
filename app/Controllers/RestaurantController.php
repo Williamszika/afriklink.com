@@ -49,7 +49,7 @@ final class RestaurantController
         $resto = Restaurant::findBySlug($data['slug']);
         if ($resto !== null) {
             foreach ((array) config('restaurant.default_categories', []) as $key) {
-                MenuItem::createCategory((int) $resto['id'], t('resto.cat.' . $key));
+                MenuItem::createCategory((int) $resto['id'], t('resto.cat.' . $key), $key === 'boissons' ? 'drink' : 'dish');
             }
         }
         AuditLog::record((int) $user['id'], 'restaurant.created', 'restaurant', null, ['public_id' => $publicId], $request->ipBinary());
@@ -101,12 +101,14 @@ final class RestaurantController
     {
         $resto = $this->ownRestaurant();
         $name = trim((string) input_string('name', ''));
+        $kind = whitelist((string) input_string('kind', ''), config('restaurant.category_kinds', []), null)
+            ?? (preg_match('/boisson|drink|breuvage/i', $name) ? 'drink' : 'dish');
         if (mb_strlen($name) < 2 || mb_strlen($name) > 60) {
             flash('error', t('resto.cat_invalid'));
         } elseif (MenuItem::categoryNameExists((int) $resto['id'], $name)) {
             flash('error', t('resto.cat_exists', ['name' => $name]));
         } else {
-            MenuItem::createCategory((int) $resto['id'], mb_substr($name, 0, 60));
+            MenuItem::createCategory((int) $resto['id'], mb_substr($name, 0, 60), $kind);
             flash('success', t('resto.cat_added'));
         }
         redirect('/restaurant/gerer');
@@ -263,6 +265,7 @@ final class RestaurantController
     private function validateItem(array $resto): array
     {
         $errors = [];
+        $cur = (string) $resto['currency'];
         $name = trim((string) input_string('name', ''));
         if (mb_strlen($name) < 2 || mb_strlen($name) > (int) config('restaurant.item_name_max', 80)) {
             $errors['item_name'] = t('validation.required');
@@ -271,18 +274,49 @@ final class RestaurantController
         if ($cat === null || (int) $cat['restaurant_id'] !== (int) $resto['id']) {
             $errors['category'] = t('validation.required');
         }
-        $price = parse_price_to_cents((string) input_string('price', ''), (string) $resto['currency']);
-        if ($price === null) {
-            $errors['item_price'] = t('validation.price_invalid');
+        $kind = (string) ($cat['kind'] ?? 'dish');
+
+        $price = 0;
+        $variants = null;
+        $diets = [];
+
+        if ($kind === 'drink') {
+            // Boisson : contenances cochées, un prix par contenance ; le prix de
+            // base (price_cents) = la moins chère, pour l'affichage et le tri.
+            $checked = (array) ($_POST['vol'] ?? []);
+            $prices  = (array) ($_POST['vol_price'] ?? []);
+            $rows = [];
+            $min = null;
+            foreach ((array) config('restaurant.drink_volumes', []) as $v) {
+                if (!in_array($v, $checked, true)) { continue; }
+                $p = parse_price_to_cents((string) ($prices[$v] ?? ''), $cur);
+                if ($p === null) { continue; }
+                $rows[] = ['v' => $v, 'p' => $p];
+                $min = $min === null ? $p : min($min, $p);
+            }
+            if ($rows === []) {
+                $errors['item_price'] = t('resto.drink_need_volume');
+            } else {
+                $price = $min ?? 0;
+                $variants = json_encode($rows, JSON_UNESCAPED_UNICODE);
+            }
+        } else {
+            $p = parse_price_to_cents((string) input_string('price', ''), $cur);
+            if ($p === null) {
+                $errors['item_price'] = t('validation.price_invalid');
+            } else {
+                $price = $p;
+            }
+            $diets = array_values(array_intersect(config('restaurant.diets', []), (array) ($_POST['diets'] ?? [])));
         }
-        $diets = array_values(array_intersect(config('restaurant.diets', []), (array) ($_POST['diets'] ?? [])));
 
         return [[
             'restaurant_id' => (int) $resto['id'],
             'category_id' => $cat['id'] ?? 0,
             'name' => mb_substr($name, 0, 80),
             'description' => mb_substr((string) input_string('description', ''), 0, 400) ?: null,
-            'price_cents' => $price ?? 0,
+            'price_cents' => $price,
+            'variants' => $variants,
             'diets' => $diets !== [] ? implode(',', $diets) : null,
             'is_available' => (string) input_string('is_available', '1') === '1',
         ], $errors];

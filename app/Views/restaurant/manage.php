@@ -49,6 +49,10 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
             <form method="post" action="<?= e(url('/restaurant/categorie')) ?>" class="inline-add">
                 <?= csrf_field() ?>
                 <input type="text" name="name" maxlength="60" placeholder="<?= e(t('resto.cat_ph')) ?>" required>
+                <select name="kind" aria-label="<?= e(t('resto.cat_kind')) ?>">
+                    <option value="dish"><?= e(t('resto.kind.dish')) ?></option>
+                    <option value="drink"><?= e(t('resto.kind.drink')) ?></option>
+                </select>
                 <button class="btn btn-ghost btn-sm">+ <?= e(t('resto.cat_add')) ?></button>
             </form>
             <?php if ($categories === []): ?>
@@ -57,31 +61,55 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
         </div>
 
         <?php if ($categories !== []): ?>
-            <!-- Ajouter un plat -->
+            <!-- Ajouter un plat / une boisson (le formulaire s'adapte à la catégorie) -->
+            <?php $volumes = config('restaurant.drink_volumes', []); ?>
             <div class="panel">
                 <h2 class="panel-title">➕ <?= e(t('resto.item_add_title')) ?></h2>
-                <form method="post" action="<?= e(url('/restaurant/plat')) ?>" class="resto-item-form">
+                <form method="post" action="<?= e(url('/restaurant/plat')) ?>" class="resto-item-form" data-itemform
+                      data-l-dish="<?= e(t('resto.f.item_name')) ?>" data-l-drink="<?= e(t('resto.f.drink_name')) ?>">
                     <?= csrf_field() ?>
-                    <div class="grid-2">
-                        <div>
-                            <label for="i-cat"><?= e(t('resto.f.item_cat')) ?></label>
-                            <select id="i-cat" name="category"><?php foreach ($categories as $c): ?><option value="<?= e((string) $c['public_id']) ?>" <?= ($precat ?? '') === $c['public_id'] ? 'selected' : '' ?>><?= e((string) $c['name']) ?></option><?php endforeach; ?></select>
-                        </div>
-                        <div>
-                            <label for="i-price"><?= e(t('resto.f.item_price')) ?> (<?= e($cur) ?>)</label>
-                            <input type="text" id="i-price" name="price" inputmode="decimal" required placeholder="0">
-                            <?php if (has_error('item_price')): ?><p class="field-error"><?= e(error('item_price')) ?></p><?php endif; ?>
-                        </div>
-                    </div>
-                    <label for="i-name"><?= e(t('resto.f.item_name')) ?></label>
+                    <label for="i-cat"><?= e(t('resto.f.item_cat')) ?></label>
+                    <select id="i-cat" name="category" data-itemcat>
+                        <?php foreach ($categories as $c): ?>
+                            <option value="<?= e((string) $c['public_id']) ?>" data-kind="<?= e((string) ($c['kind'] ?? 'dish')) ?>" <?= ($precat ?? '') === $c['public_id'] ? 'selected' : '' ?>>
+                                <?= ($c['kind'] ?? '') === 'drink' ? '🥤 ' : '' ?><?= e((string) $c['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+
+                    <label for="i-name" data-item-namelabel><?= e(t('resto.f.item_name')) ?></label>
                     <input type="text" id="i-name" name="name" maxlength="80" required placeholder="<?= e(t('resto.f.item_name_ph')) ?>">
                     <?php if (has_error('item_name')): ?><p class="field-error"><?= e(error('item_name')) ?></p><?php endif; ?>
-                    <label for="i-desc"><?= e(t('resto.f.item_desc')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                    <input type="text" id="i-desc" name="description" maxlength="400" placeholder="<?= e(t('resto.f.item_desc_ph')) ?>">
-                    <label><?= e(t('resto.f.diets')) ?></label>
-                    <div class="lang-checks">
-                        <?php foreach ($diets as $d): ?><label class="check-pill"><input type="checkbox" name="diets[]" value="<?= e($d) ?>"><span><?= e(t('resto.diet.' . $d)) ?></span></label><?php endforeach; ?>
+
+                    <!-- Bloc PLAT standard -->
+                    <div data-kind-block="dish">
+                        <label for="i-price"><?= e(t('resto.f.item_price')) ?> (<?= e($cur) ?>)</label>
+                        <input type="text" id="i-price" name="price" inputmode="decimal" placeholder="0">
+                        <?php if (has_error('item_price')): ?><p class="field-error"><?= e(error('item_price')) ?></p><?php endif; ?>
+                        <label for="i-desc"><?= e(t('resto.f.item_desc')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                        <input type="text" id="i-desc" name="description" maxlength="400" placeholder="<?= e(t('resto.f.item_desc_ph')) ?>">
+                        <label><?= e(t('resto.f.diets')) ?></label>
+                        <div class="lang-checks">
+                            <?php foreach ($diets as $d): ?><label class="check-pill"><input type="checkbox" name="diets[]" value="<?= e($d) ?>"><span><?= e(t('resto.diet.' . $d)) ?></span></label><?php endforeach; ?>
+                        </div>
                     </div>
+
+                    <!-- Bloc BOISSON : contenances cochables + prix -->
+                    <div data-kind-block="drink" hidden>
+                        <label><?= e(t('resto.drink_volumes_label')) ?></label>
+                        <p class="hint"><?= e(t('resto.drink_volumes_hint')) ?></p>
+                        <div class="vol-rows">
+                            <?php foreach ($volumes as $v): ?>
+                                <label class="vol-row">
+                                    <input type="checkbox" name="vol[]" value="<?= e($v) ?>">
+                                    <span class="vol-size"><?= e(rtrim(rtrim((string) $v, '0'), '.')) ?> L</span>
+                                    <input type="text" name="vol_price[<?= e($v) ?>]" inputmode="decimal" class="vol-price" placeholder="<?= e(t('resto.f.item_price')) ?> (<?= e($cur) ?>)">
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php if (has_error('item_price')): ?><p class="field-error"><?= e(error('item_price')) ?></p><?php endif; ?>
+                    </div>
+
                     <button type="submit" class="btn btn-primary"><?= e(t('resto.item_add')) ?></button>
                 </form>
             </div>
@@ -118,8 +146,12 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                                             <?php if (!$avail): ?><span class="badge badge-neutral"><?= e(t('resto.unavailable')) ?></span><?php endif; ?>
                                         </span>
                                         <?php if (!empty($it['description'])): ?><span class="menu-item-desc"><?= e((string) $it['description']) ?></span><?php endif; ?>
+                                        <?php $vars = \App\Models\MenuItem::variants($it['variants'] ?? null); ?>
+                                        <?php if ($vars !== []): ?>
+                                            <span class="menu-item-vars"><?php foreach ($vars as $vr): ?><span class="vol-tag"><?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?></span><?php endforeach; ?></span>
+                                        <?php endif; ?>
                                     </div>
-                                    <span class="menu-item-price"><?= e(format_price((int) $it['price_cents'], $cur)) ?></span>
+                                    <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
                                     <form method="post" action="<?= e(url('/restaurant/plat/' . $it['public_id'] . '/statut')) ?>" class="inline-form menu-item-actions">
                                         <?= csrf_field() ?>
                                         <button class="link-button" name="action" value="<?= $avail ? 'unavailable' : 'available' ?>"><?= e($avail ? t('resto.mark_off') : t('resto.mark_on')) ?></button>

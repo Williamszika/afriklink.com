@@ -45,14 +45,16 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                     <div class="menu-cat">
                         <h3 class="menu-cat-title"><?= e((string) $c['name']) ?></h3>
                         <?php foreach ($list as $it): ?>
+                            <?php $vars = \App\Models\MenuItem::variants($it['variants'] ?? null); ?>
                             <div class="menu-item-row">
                                 <div class="menu-item-main">
                                     <span class="menu-item-name"><?= e((string) $it['name']) ?>
                                         <?php foreach (array_filter(explode(',', (string) ($it['diets'] ?? ''))) as $dt): ?><span class="diet-badge"><?= e(t('resto.diet.' . $dt)) ?></span><?php endforeach; ?>
                                     </span>
                                     <?php if (!empty($it['description'])): ?><span class="menu-item-desc"><?= e((string) $it['description']) ?></span><?php endif; ?>
+                                    <?php if ($vars !== []): ?><span class="menu-item-vars"><?php foreach ($vars as $vr): ?><span class="vol-tag"><?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?></span><?php endforeach; ?></span><?php endif; ?>
                                 </div>
-                                <span class="menu-item-price"><?= e(format_price((int) $it['price_cents'], $cur)) ?></span>
+                                <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
                             </div>
                         <?php endforeach; ?>
                     </div>

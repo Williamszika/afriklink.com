@@ -18,6 +18,7 @@ final class MenuItem
                 public_id     CHAR(36) NOT NULL UNIQUE,
                 restaurant_id BIGINT UNSIGNED NOT NULL,
                 name          VARCHAR(60) NOT NULL,
+                kind          VARCHAR(10) NOT NULL DEFAULT \'dish\',
                 position      INT NOT NULL DEFAULT 0,
                 KEY idx_mcat_restaurant (restaurant_id, position)
             )'
@@ -31,6 +32,7 @@ final class MenuItem
                 name          VARCHAR(80) NOT NULL,
                 description   VARCHAR(400) NULL,
                 price_cents   BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                variants      VARCHAR(255) NULL,
                 photo_public_id VARCHAR(255) NULL,
                 diets         VARCHAR(120) NULL,
                 is_available  TINYINT(1) NOT NULL DEFAULT 1,
@@ -39,16 +41,27 @@ final class MenuItem
                 KEY idx_mitem_restaurant (restaurant_id, category_id, position)
             )'
         );
+        // Migrations douces (colonnes ajoutées aux tables déjà créées).
+        try {
+            db()->query('SELECT kind FROM menu_categories LIMIT 1');
+        } catch (\Throwable) {
+            try { db()->exec('ALTER TABLE menu_categories ADD COLUMN kind VARCHAR(10) NOT NULL DEFAULT \'dish\''); } catch (\Throwable) {}
+        }
+        try {
+            db()->query('SELECT variants FROM menu_items LIMIT 1');
+        } catch (\Throwable) {
+            try { db()->exec('ALTER TABLE menu_items ADD COLUMN variants VARCHAR(255) NULL'); } catch (\Throwable) {}
+        }
     }
 
     /* ---- Catégories ------------------------------------------------- */
 
-    public static function createCategory(int $restaurantId, string $name): string
+    public static function createCategory(int $restaurantId, string $name, string $kind = 'dish'): string
     {
         self::ensureTables();
         $pid = uuid();
-        db()->prepare('INSERT INTO menu_categories (public_id, restaurant_id, name, position) VALUES (:p, :r, :n, :pos)')
-            ->execute(['p' => $pid, 'r' => $restaurantId, 'n' => $name, 'pos' => time() % 100000000]);
+        db()->prepare('INSERT INTO menu_categories (public_id, restaurant_id, name, kind, position) VALUES (:p, :r, :n, :k, :pos)')
+            ->execute(['p' => $pid, 'r' => $restaurantId, 'n' => $name, 'k' => $kind, 'pos' => time() % 100000000]);
         return $pid;
     }
 
@@ -108,12 +121,13 @@ final class MenuItem
         $pid = uuid();
         $stmt = db()->prepare(
             'INSERT INTO menu_items (public_id, restaurant_id, category_id, name, description,
-                price_cents, photo_public_id, diets, is_available, position)
-             VALUES (:p, :r, :c, :n, :desc, :price, :photo, :diets, :avail, :pos)'
+                price_cents, variants, photo_public_id, diets, is_available, position)
+             VALUES (:p, :r, :c, :n, :desc, :price, :variants, :photo, :diets, :avail, :pos)'
         );
         $stmt->execute([
             'p' => $pid, 'r' => $d['restaurant_id'], 'c' => $d['category_id'], 'n' => $d['name'],
             'desc' => $d['description'] ?? null, 'price' => $d['price_cents'],
+            'variants' => $d['variants'] ?? null,
             'photo' => $d['photo_public_id'] ?? null, 'diets' => $d['diets'] ?? null,
             'avail' => !empty($d['is_available']) ? 1 : 0, 'pos' => time() % 100000000,
         ]);
@@ -124,14 +138,29 @@ final class MenuItem
     {
         $stmt = db()->prepare(
             'UPDATE menu_items SET category_id = :c, name = :n, description = :desc,
-                price_cents = :price, photo_public_id = :photo, diets = :diets, is_available = :avail
+                price_cents = :price, variants = :variants, photo_public_id = :photo, diets = :diets, is_available = :avail
              WHERE id = :id'
         );
         $stmt->execute([
             'c' => $d['category_id'], 'n' => $d['name'], 'desc' => $d['description'] ?? null,
-            'price' => $d['price_cents'], 'photo' => $d['photo_public_id'] ?? null,
+            'price' => $d['price_cents'], 'variants' => $d['variants'] ?? null, 'photo' => $d['photo_public_id'] ?? null,
             'diets' => $d['diets'] ?? null, 'avail' => !empty($d['is_available']) ? 1 : 0, 'id' => $id,
         ]);
+    }
+
+    /** Décode les contenances d'une boisson. @return list<array{v:string,p:int}> */
+    public static function variants(?string $raw): array
+    {
+        if ($raw === null || $raw === '') {
+            return [];
+        }
+        $out = [];
+        foreach (json_decode($raw, true) ?: [] as $row) {
+            if (isset($row['v'], $row['p'])) {
+                $out[] = ['v' => (string) $row['v'], 'p' => (int) $row['p']];
+            }
+        }
+        return $out;
     }
 
     /** @return list<array> plats d'un restaurant (option : seulement disponibles) */

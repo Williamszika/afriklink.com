@@ -32,4 +32,12 @@ return [
 
     // Catégories de carte proposées par défaut à la création.
     'default_categories' => ['entrees', 'plats', 'desserts', 'boissons'],
+
+    // Type d'une catégorie : pilote le formulaire d'ajout.
+    //  - 'dish'  : plat standard (nom, prix, description, étiquettes)
+    //  - 'drink' : boisson (nom + contenances cochables avec prix)
+    'category_kinds' => ['dish', 'drink'],
+
+    // Contenances proposées pour les boissons (en litres).
+    'drink_volumes' => ['0.33', '0.5', '1', '1.5', '2'],
 ];

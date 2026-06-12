@@ -288,6 +288,29 @@ document.addEventListener('click', function (ev) {
     }
 })();
 
+/* ---- Carte restaurant : le formulaire d'ajout s'adapte à la catégorie ----
+   Catégorie « boisson » → champs contenances + prix ; sinon → plat standard.
+   Les champs du bloc caché sont désactivés pour ne pas être soumis/validés. */
+(function () {
+    var form = document.querySelector('[data-itemform]');
+    var sel = form && form.querySelector('[data-itemcat]');
+    if (!form || !sel) { return; }
+
+    function apply() {
+        var opt = sel.options[sel.selectedIndex];
+        var kind = opt ? (opt.getAttribute('data-kind') || 'dish') : 'dish';
+        form.querySelectorAll('[data-kind-block]').forEach(function (block) {
+            var on = block.getAttribute('data-kind-block') === kind;
+            block.hidden = !on;
+            block.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        });
+        var lbl = form.querySelector('[data-item-namelabel]');
+        if (lbl) { lbl.textContent = kind === 'drink' ? (form.getAttribute('data-l-drink') || lbl.textContent) : (form.getAttribute('data-l-dish') || lbl.textContent); }
+    }
+    sel.addEventListener('change', apply);
+    apply();
+})();
+
 /* ---- Géolocalisation générique (boutons [data-geolocate]) ----
    Méthode standard : navigator.geolocation demande la permission, fournit
    latitude/longitude ; notre serveur (/api/geo/reverse) convertit en ville,
