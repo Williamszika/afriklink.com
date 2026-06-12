@@ -237,6 +237,7 @@ final class Boutique
 
     public static function update(int $id, array $d): void
     {
+        self::ensureTable(); // applique les migrations (nouvelles colonnes) avant l'UPDATE
         $banners = array_values($d['banners'] ?? []);
         $stmt = db()->prepare(
             'UPDATE boutiques SET
