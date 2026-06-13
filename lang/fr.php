@@ -1055,6 +1055,8 @@ return [
     'notif.msg' => 'Nouveau message de :name',
     'notif.order' => 'Nouvelle commande reçue',
     'notif.review' => 'Nouvel avis sur un de vos produits',
+    'common.see_all' => 'Voir tout',
+    'common.loading' => 'Chargement…',
     'explore.subtitle' => 'Bientôt : parcourez toutes les boutiques, produits et annonces — d’Afrique en Europe — et trouvez ce qu’il vous faut près de chez vous.',
     'explore.near' => 'On commencera autour de vous : :place',
     'explore.f.shops' => 'Toutes les boutiques',

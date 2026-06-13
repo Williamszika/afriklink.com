@@ -24,6 +24,27 @@ final class CompareController
         ]);
     }
 
+    /** Aperçu du comparateur (menu déroulant) — fragment HTML. */
+    public function preview(Request $request): void
+    {
+        $ids      = Compare::ids();
+        $products = $ids !== [] ? Product::onlineByPublicIds($ids) : [];
+        $mains    = Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products));
+        $items = [];
+        foreach ($products as $p) {
+            $m = $mains[(int) $p['id']] ?? null;
+            $items[] = [
+                'url'   => url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']),
+                'name'  => (string) $p['name'],
+                'price' => format_price((int) $p['price_cents'], (string) $p['currency']),
+                'main'  => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80) : null,
+            ];
+        }
+        header('Content-Type: text/html; charset=utf-8');
+        echo render_partial('partials/nav_dropdown', ['items' => $items, 'all_url' => url('/comparer'), 'all_label' => t('common.see_all'), 'empty' => t('compare.empty')]);
+        exit;
+    }
+
     public function toggle(Request $request): void
     {
         $now   = Compare::toggle((string) $request->param('pid', ''));

@@ -46,6 +46,37 @@ final class CartController
         ]);
     }
 
+    /** Aperçu du panier (menu déroulant de l'en-tête) — fragment HTML. */
+    public function preview(Request $request): void
+    {
+        $cart     = Cart::raw();
+        $pids     = Cart::allPids();
+        $products = $pids !== [] ? Product::onlineByPublicIds($pids) : [];
+        $mains    = Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products));
+        $items = [];
+        foreach ($products as $p) {
+            $bid = (int) $p['boutique_id'];
+            $pid = (string) $p['public_id'];
+            $qty = (int) ($cart[$bid][$pid] ?? 0);
+            if ($qty <= 0) {
+                continue;
+            }
+            $m = $mains[(int) $p['id']] ?? null;
+            $items[] = [
+                'url'  => url('/boutique/' . $p['boutique_slug'] . '/p/' . $pid),
+                'name' => (string) $p['name'],
+                'sub'  => $qty . '× ' . format_price((int) $p['price_cents'], (string) $p['currency']),
+                'main' => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80) : null,
+            ];
+            if (count($items) >= 6) {
+                break;
+            }
+        }
+        header('Content-Type: text/html; charset=utf-8');
+        echo render_partial('partials/nav_dropdown', ['items' => $items, 'all_url' => url('/panier'), 'all_label' => t('common.see_all'), 'empty' => t('cart.empty')]);
+        exit;
+    }
+
     /** Synchro depuis le storefront (fetch) : fixe la quantité d'un produit. */
     public function add(Request $request): void
     {

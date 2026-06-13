@@ -24,6 +24,27 @@ final class WishlistController
         ]);
     }
 
+    /** Aperçu des favoris (menu déroulant) — fragment HTML. */
+    public function preview(Request $request): void
+    {
+        $ids      = Wishlist::ids();
+        $products = $ids !== [] ? Product::onlineByPublicIds($ids) : [];
+        $mains    = Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products));
+        $items = [];
+        foreach (array_slice($products, 0, 6) as $p) {
+            $m = $mains[(int) $p['id']] ?? null;
+            $items[] = [
+                'url'   => url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']),
+                'name'  => (string) $p['name'],
+                'price' => format_price((int) $p['price_cents'], (string) $p['currency']),
+                'main'  => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80) : null,
+            ];
+        }
+        header('Content-Type: text/html; charset=utf-8');
+        echo render_partial('partials/nav_dropdown', ['items' => $items, 'all_url' => url('/favoris'), 'all_label' => t('common.see_all'), 'empty' => t('wish.empty')]);
+        exit;
+    }
+
     public function toggle(Request $request): void
     {
         $now   = Wishlist::toggle((string) $request->param('pid', ''));

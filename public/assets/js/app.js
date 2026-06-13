@@ -2278,3 +2278,46 @@ document.addEventListener('click', function (ev) {
             .catch(function () { form.submit(); });
     });
 })();
+
+/* ---- Menus déroulants d'en-tête : aperçu chargé au clic (fetch, CSP-safe) ----
+   Repli sans JS = le lien mène à la page complète. */
+(function () {
+    'use strict';
+    var toggles = document.querySelectorAll('[data-dd-toggle]');
+    if (!toggles.length) { return; }
+    function closeAll(except) {
+        document.querySelectorAll('[data-dd]').forEach(function (dd) {
+            var panel = dd.querySelector('[data-dd-panel]');
+            if (panel && panel !== except) {
+                panel.hidden = true;
+                var t = dd.querySelector('[data-dd-toggle]');
+                if (t) { t.setAttribute('aria-expanded', 'false'); }
+            }
+        });
+    }
+    toggles.forEach(function (toggle) {
+        var dd = toggle.closest('[data-dd]');
+        var panel = dd ? dd.querySelector('[data-dd-panel]') : null;
+        var body = panel ? panel.querySelector('[data-dd-body]') : null;
+        var url = toggle.getAttribute('data-dd-url');
+        if (!panel) { return; }
+        toggle.addEventListener('click', function (ev) {
+            if (ev.ctrlKey || ev.metaKey || ev.shiftKey) { return; } // laisse ouvrir dans un onglet
+            ev.preventDefault();
+            var willOpen = panel.hidden;
+            closeAll(willOpen ? panel : null);
+            panel.hidden = !willOpen;
+            toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen && url && body) {
+                fetch(url, { headers: { 'Accept': 'text/html' } })
+                    .then(function (r) { return r.text(); })
+                    .then(function (html) { body.innerHTML = html; })
+                    .catch(function () {});
+            }
+        });
+    });
+    document.addEventListener('click', function (ev) {
+        if (!ev.target.closest || !ev.target.closest('[data-dd]')) { closeAll(null); }
+    });
+    document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { closeAll(null); } });
+})();

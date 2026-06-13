@@ -17,6 +17,14 @@ final class NotificationController
         ]);
     }
 
+    /** Aperçu des notifications (menu déroulant de la cloche) — fragment HTML. */
+    public function preview(Request $request): void
+    {
+        header('Content-Type: text/html; charset=utf-8');
+        echo render_partial('partials/notif_preview', ['notifications' => Notification::forUser((int) current_user_id(), 8)]);
+        exit;
+    }
+
     public function open(Request $request): void
     {
         $row = Notification::markRead((int) $request->param('id', 0), (int) current_user_id());

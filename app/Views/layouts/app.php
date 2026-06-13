@@ -95,15 +95,27 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
             $cartCount    = \App\Services\Cart::count();
             $compareCount = \App\Services\Compare::count();
             ?>
-            <a class="btn btn-ghost nav-icon" href="<?= e(url('/panier')) ?>" title="<?= e(t('cart.title')) ?>" aria-label="<?= e(t('cart.title')) ?>">🛒<span class="nav-badge" data-global-cart-count <?= $cartCount > 0 ? '' : 'hidden' ?>><?= (int) $cartCount ?></span></a>
-            <a class="btn btn-ghost nav-icon" href="<?= e(url('/favoris')) ?>" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>">❤️<span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
-            <a class="btn btn-ghost nav-icon" href="<?= e(url('/comparer')) ?>" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>">⇄<span class="nav-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
+            <div class="nav-dd" data-dd>
+                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/panier/apercu')) ?>" href="<?= e(url('/panier')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('cart.title')) ?>" aria-label="<?= e(t('cart.title')) ?>">🛒<span class="nav-badge" data-global-cart-count <?= $cartCount > 0 ? '' : 'hidden' ?>><?= (int) $cartCount ?></span></a>
+                <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
+            </div>
+            <div class="nav-dd" data-dd>
+                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/favoris/apercu')) ?>" href="<?= e(url('/favoris')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>">❤️<span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
+                <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
+            </div>
+            <div class="nav-dd" data-dd>
+                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/comparer/apercu')) ?>" href="<?= e(url('/comparer')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>">⇄<span class="nav-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
+                <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
+            </div>
             <?php if ($user !== null): ?>
                 <?php if (is_staff($user)): ?>
                     <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>">🛡️ <?= e(t('nav.moderation')) ?></a>
                 <?php endif; ?>
                 <?php $notifUnread = \App\Models\Notification::unreadCount((int) $user['id']); ?>
-                <a class="btn btn-ghost nav-icon" href="<?= e(url('/notifications')) ?>" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>">🔔<span class="nav-badge" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
+                <div class="nav-dd" data-dd>
+                    <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/notifications/apercu')) ?>" href="<?= e(url('/notifications')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>">🔔<span class="nav-badge" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
+                    <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
+                </div>
                 <a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
                 <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form">
                     <?= csrf_field() ?>
