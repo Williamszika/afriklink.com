@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Models\Boutique;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockAlert;
 use App\Request;
 use App\Services\AuditLog;
@@ -36,6 +37,11 @@ final class ProductController
             redirect('/boutique/produits/nouveau');
         }
         $publicId = Product::create((int) $b['id'], (int) $b['user_id'], $data, $photos);
+        $created = Product::findByPublicId($publicId);
+        if ($created !== null) {
+            $stock = $this->syncVariants((int) $created['id'], $b, $data['stock'], (int) $data['price_cents']);
+            Product::setStock((int) $created['id'], $stock);
+        }
         AuditLog::record((int) current_user_id(), 'product.created', 'product', null, ['public_id' => $publicId], $request->ipBinary());
         clear_old();
         flash('success', t('product.created_flash'));
@@ -47,7 +53,8 @@ final class ProductController
         $b = $this->boutiqueOrRedirect();
         $p = $this->ownProductOr404($request, $b);
         view('boutique/product_form', ['mode' => 'edit', 'boutique' => $b, 'product' => $p,
-            'photos' => Product::photos((int) $p['id']), 'media_ready' => CloudinaryService::configured()]);
+            'photos' => Product::photos((int) $p['id']), 'variants' => ProductVariant::forProduct((int) $p['id']),
+            'media_ready' => CloudinaryService::configured()]);
     }
 
     public function update(Request $request): void
@@ -69,6 +76,10 @@ final class ProductController
         if ($photos !== null) {
             Product::setPhotos((int) $p['id'], $photos);
         }
+        // Variantes : réécrites depuis le formulaire ; products.stock recalé sur leur somme.
+        $stock = $this->syncVariants((int) $p['id'], $b, $data['stock'], (int) $data['price_cents']);
+        Product::setStock((int) $p['id'], $stock);
+        $nowIn = $stock === null || $stock > 0;
         AuditLog::record((int) current_user_id(), 'product.updated', 'product', (int) $p['id'], [], $request->ipBinary());
 
         if ($wasOut && $nowIn) {
@@ -239,6 +250,58 @@ final class ProductController
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
         ], $errors, $errors === [] ? $photos : null];
+    }
+
+    /**
+     * Réconcilie les variantes soumises (la liste du formulaire fait foi) et
+     * renvoie le stock total à porter sur products.stock (somme ; null si une
+     * variante est illimitée). Sans variante saisie : variante par défaut alignée
+     * sur le champ stock (le panier en ligne lit toujours products.stock en A1).
+     */
+    private function syncVariants(int $productId, array $boutique, ?int $fieldStock, int $priceCents): ?int
+    {
+        $cur    = (string) $boutique['currency'];
+        $labels = (array) ($_POST['var_label'] ?? []);
+        $skus   = (array) ($_POST['var_sku'] ?? []);
+        $prices = (array) ($_POST['var_price'] ?? []);
+        $stocks = (array) ($_POST['var_stock'] ?? []);
+        $rows = [];
+        foreach ($labels as $i => $label) {
+            $label    = trim((string) $label);
+            $sku      = trim((string) ($skus[$i] ?? ''));
+            $stockRaw = trim((string) ($stocks[$i] ?? ''));
+            $priceRaw = trim((string) ($prices[$i] ?? ''));
+            if ($label === '' && $sku === '' && $stockRaw === '' && $priceRaw === '') {
+                continue;
+            }
+            $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
+            $rows[] = [
+                'label' => $label !== '' ? mb_substr($label, 0, 120) : null,
+                'sku'   => $sku !== '' ? mb_substr($sku, 0, 64) : null,
+                'stock' => ($stockRaw !== '' && ctype_digit($stockRaw)) ? (int) $stockRaw : null,
+                'price' => ($price !== null && $price >= 0) ? $price : null,
+            ];
+        }
+        ProductVariant::deleteForProduct($productId);
+        if ($rows === []) {
+            ProductVariant::ensureDefault($productId, (int) $boutique['id'], $fieldStock, $priceCents);
+            return $fieldStock;
+        }
+        $total = 0;
+        $unlimited = false;
+        foreach ($rows as $pos => $r) {
+            ProductVariant::create($productId, (int) $boutique['id'], [
+                'sku'         => $r['sku'],
+                'attributes'  => $r['label'] !== null ? ['label' => $r['label']] : [],
+                'label'       => $r['label'],
+                'price_cents' => $r['price'],
+                'stock'       => $r['stock'],
+                'position'    => $pos,
+                'is_default'  => $pos === 0,
+            ]);
+            if ($r['stock'] === null) { $unlimited = true; } else { $total += $r['stock']; }
+        }
+        return $unlimited ? null : $total;
     }
 
     private function boutiqueOrRedirect(): array

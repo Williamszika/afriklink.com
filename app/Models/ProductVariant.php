@@ -156,6 +156,15 @@ final class ProductVariant
         }
     }
 
+    /** Supprime toutes les variantes d'un produit (utilisé pour réécrire la liste). */
+    public static function deleteForProduct(int $productId): void
+    {
+        try {
+            db()->prepare('DELETE FROM product_variants WHERE product_id = :p')->execute(['p' => $productId]);
+        } catch (\Throwable) {
+        }
+    }
+
     /**
      * Décrément de stock atomique et borné (jamais négatif). Stock NULL =
      * illimité (non touché). Renvoie true si décrémenté (ou illimité).

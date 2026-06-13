@@ -9,6 +9,16 @@ $maxPhotos = (int) config('shop.product_max_photos', 6);
 $existingIds = array_map(static fn (array $p): string => (string) $p['cloud_public_id'], $photos);
 $priceVal = $isEdit ? rtrim(rtrim(number_format(((int) $product['price_cents']) / 100, 2, '.', ''), '0'), '.') : '';
 if (currency_is_integer($cur) && $isEdit) { $priceVal = (string) intdiv((int) $product['price_cents'], 100); }
+$variants = $variants ?? [];
+// Variantes « réelles » = hors variante par défaut implicite (1 seule, sans libellé/sku).
+$realVariants = array_values(array_filter($variants, static fn (array $v): bool =>
+    trim((string) ($v['label'] ?? '')) !== '' || trim((string) ($v['sku'] ?? '')) !== '' || count($variants) > 1));
+$fmtP = static function ($cents) use ($cur): string {
+    if ($cents === null || $cents === '') { return ''; }
+    return currency_is_integer($cur)
+        ? (string) intdiv((int) $cents, 100)
+        : rtrim(rtrim(number_format(((int) $cents) / 100, 2, '.', ''), '0'), '.');
+};
 ?>
 <section class="auth-card auth-card--wide">
     <h1>📦 <?= e($isEdit ? t('product.edit_title') : t('product.add_title')) ?></h1>
@@ -42,6 +52,32 @@ if (currency_is_integer($cur) && $isEdit) { $priceVal = (string) intdiv((int) $p
                 <?php if (has_error('stock')): ?><p class="field-error"><?= e(error('stock')) ?></p><?php endif; ?>
             </div>
         </div>
+
+        <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('variant.section')) ?></summary>
+            <p class="hint"><?= e(t('variant.hint')) ?></p>
+            <div class="variant-rows" id="variant-rows" data-variant-rows>
+                <?php foreach ($realVariants as $v): $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []); ?>
+                    <div class="variant-row">
+                        <input type="text" name="var_label[]" value="<?= e((string) ($v['label'] ?: ($attr['label'] ?? ''))) ?>" maxlength="120" placeholder="<?= e(t('variant.label_ph')) ?>" aria-label="<?= e(t('variant.label_ph')) ?>">
+                        <input type="text" name="var_sku[]" value="<?= e((string) ($v['sku'] ?? '')) ?>" maxlength="64" placeholder="<?= e(t('variant.sku_ph')) ?>" aria-label="<?= e(t('variant.sku_ph')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($v['price_cents'] ?? null)) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_ph')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $v['stock'] !== null ? (int) $v['stock'] : '' ?>" placeholder="<?= e(t('variant.stock_ph')) ?>" aria-label="<?= e(t('variant.stock_ph')) ?>">
+                        <button type="button" class="variant-del" data-variant-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-variant-add>+ <?= e(t('variant.add')) ?></button>
+            <template id="variant-template">
+                <div class="variant-row">
+                    <input type="text" name="var_label[]" maxlength="120" placeholder="<?= e(t('variant.label_ph')) ?>" aria-label="<?= e(t('variant.label_ph')) ?>">
+                    <input type="text" name="var_sku[]" maxlength="64" placeholder="<?= e(t('variant.sku_ph')) ?>" aria-label="<?= e(t('variant.sku_ph')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_ph')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="<?= e(t('variant.stock_ph')) ?>" aria-label="<?= e(t('variant.stock_ph')) ?>">
+                    <button type="button" class="variant-del" data-variant-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
 
         <label for="p-desc"><?= e(t('product.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <textarea id="p-desc" name="description" rows="4" maxlength="<?= (int) config('shop.product_desc_max', 3000) ?>"><?= old('description') ?: e((string) ($product['description'] ?? '')) ?></textarea>

@@ -380,6 +380,15 @@ final class Product
         db()->prepare('UPDATE products SET status = :s WHERE id = :id')->execute(['s' => $status, 'id' => $id]);
     }
 
+    /** Cale le stock total du produit (= somme des variantes ; null = illimité). */
+    public static function setStock(int $id, ?int $stock): void
+    {
+        try {
+            db()->prepare('UPDATE products SET stock = :s WHERE id = :id')->execute(['s' => $stock, 'id' => $id]);
+        } catch (\Throwable) {
+        }
+    }
+
     public static function delete(int $id): void
     {
         db()->prepare('DELETE FROM product_photos WHERE product_id = :id')->execute(['id' => $id]);

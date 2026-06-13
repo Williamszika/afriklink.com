@@ -1529,3 +1529,14 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .geo-detect-btn[disabled]{opacity:.6;cursor:progress}
 .geo-detect-status{display:block;margin-top:6px}
 .geo-detect-status.is-error{color:var(--danger)}
+
+/* — Éditeur de variantes produit (vendeur) — */
+.variants-box{border:1px solid var(--afk-ligne);border-radius:var(--afk-r);padding:14px 16px;margin:8px 0 14px;background:var(--afk-cream-2)}
+.variants-box>summary{cursor:pointer;font-family:var(--afk-display);font-weight:700;list-style:none}
+.variants-box>summary::-webkit-details-marker{display:none}
+.variant-rows{display:grid;gap:8px;margin:10px 0}
+.variant-row{display:grid;grid-template-columns:1.4fr 1.2fr .8fr .7fr auto;gap:8px;align-items:center}
+.variant-row input{margin:0}
+.variant-del{width:36px;height:36px;border:1px solid var(--afk-ligne);background:#fff;border-radius:9px;cursor:pointer;color:var(--danger);font-size:1rem;flex:none}
+.variant-del:hover{background:var(--danger-bg);border-color:var(--danger)}
+@media(max-width:640px){.variant-row{grid-template-columns:1fr 1fr}.variant-del{grid-column:span 2;width:auto}}

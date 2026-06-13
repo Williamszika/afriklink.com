@@ -2413,3 +2413,24 @@ document.addEventListener('click', function (ev) {
     });
     document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { closeAll(null); } });
 })();
+
+/* ---- Éditeur de variantes produit : ajouter / retirer une ligne ---- */
+document.addEventListener('click', function (ev) {
+    if (!ev.target || !ev.target.closest) { return; }
+    var add = ev.target.closest('[data-variant-add]');
+    if (add) {
+        var tpl = document.getElementById('variant-template');
+        var rows = document.querySelector('[data-variant-rows]');
+        if (tpl && tpl.content && rows) {
+            rows.appendChild(tpl.content.cloneNode(true));
+            var input = rows.lastElementChild ? rows.lastElementChild.querySelector('input') : null;
+            if (input) { input.focus(); }
+        }
+        return;
+    }
+    var del = ev.target.closest('[data-variant-del]');
+    if (del) {
+        var row = del.closest('.variant-row');
+        if (row && row.parentNode) { row.parentNode.removeChild(row); }
+    }
+});
