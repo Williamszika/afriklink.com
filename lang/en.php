@@ -1186,6 +1186,7 @@ return [
     'variant.sku_ph' => 'SKU / barcode',
     'variant.price_ph' => 'Price (optional)',
     'variant.stock_ph' => 'Stock',
+    'variant.choose' => 'Choose your option:',
     'product.f.description' => 'Description',
     'product.f.photos' => 'Photos (1 to :max — the first one is the main)',
     'product.f.photos_hint' => 'JPG, PNG or WebP. A nice photo sells better.',

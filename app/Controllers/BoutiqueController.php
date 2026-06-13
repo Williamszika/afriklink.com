@@ -358,6 +358,7 @@ final class BoutiqueController
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
+            'variants' => \App\Models\ProductVariant::forProduct((int) $product['id']),
             'photos'   => $photos,
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
             'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
@@ -926,26 +927,37 @@ final class BoutiqueController
     {
         $lines = [];
         foreach ($entries as $entry) {
-            $product = \App\Models\Product::findByPublicId((string) ($entry['id'] ?? ''));
+            $id = (string) ($entry['id'] ?? '');
+            // L'identifiant du panier peut désigner un produit simple OU une variante.
+            $variant = \App\Models\ProductVariant::findByPublicId($id);
+            $product = $variant !== null
+                ? \App\Models\Product::findById((int) $variant['product_id'])
+                : \App\Models\Product::findByPublicId($id);
             if ($product === null
                 || (int) $product['boutique_id'] !== (int) $boutique['id']
                 || $product['status'] !== 'active') {
                 continue;
             }
+            // Stock + prix : de la variante choisie si fournie, sinon du produit.
+            $stock = $variant !== null ? $variant['stock'] : $product['stock'];
+            $price = ($variant !== null && $variant['price_cents'] !== null)
+                ? (int) $variant['price_cents'] : (int) $product['price_cents'];
             $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
-            if ($product['stock'] !== null) {
-                $stock = (int) $product['stock'];
+            if ($stock !== null) {
+                $stock = (int) $stock;
                 if ($stock <= 0) {
                     continue;
                 }
                 $qty = min($qty, $stock);
             }
+            $label = $variant !== null ? trim((string) ($variant['label'] ?? '')) : '';
             $lines[] = [
                 'product_id'       => (int) $product['id'],
-                'public_id'        => (string) $product['public_id'],
-                'title'            => (string) $product['name'],
+                'variant_id'       => $variant !== null ? (int) $variant['id'] : null,
+                'public_id'        => $variant !== null ? (string) $variant['public_id'] : (string) $product['public_id'],
+                'title'            => (string) $product['name'] . ($label !== '' ? ' — ' . $label : ''),
                 'qty'              => $qty,
-                'unit_price_cents' => (int) $product['price_cents'],
+                'unit_price_cents' => $price,
             ];
         }
         return $lines;

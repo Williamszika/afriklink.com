@@ -1186,6 +1186,7 @@ return [
     'variant.sku_ph' => 'SKU / code-barres',
     'variant.price_ph' => 'Prix (optionnel)',
     'variant.stock_ph' => 'Stock',
+    'variant.choose' => 'Choisis ta déclinaison :',
     'product.f.description' => 'Description',
     'product.f.photos' => 'Photos (1 à :max — la première est la principale)',
     'product.f.photos_hint' => 'JPG, PNG ou WebP. Une belle photo vend mieux.',

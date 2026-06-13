@@ -248,6 +248,18 @@ final class Product
         }
     }
 
+    public static function findById(int $id): ?array
+    {
+        try {
+            $stmt = db()->prepare('SELECT * FROM products WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $id]);
+            $row = $stmt->fetch();
+            return $row !== false ? $row : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /** @return list<array> photos triées */
     public static function photos(int $productId): array
     {

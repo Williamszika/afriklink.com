@@ -18,6 +18,20 @@ $payMethods = array_values(array_filter(explode(',', (string) ($boutique['paymen
 // Commande en ligne si en stock, et vitrine publiée (ou aperçu propriétaire).
 $published = ($boutique['status'] ?? '') === 'published';
 $canOrder = $inStock && ($published || $is_owner);
+// Déclinaisons « réelles » (hors variante par défaut implicite).
+$variants = $variants ?? [];
+$realVariants = array_values(array_filter($variants, static fn (array $v): bool =>
+    trim((string) ($v['label'] ?? '')) !== '' || count($variants) > 1));
+// Cible d'achat : 1ʳᵉ déclinaison en stock si variantes, sinon le produit lui-même.
+$buyId = (string) $product['public_id'];
+$buyPrice = (int) $product['price_cents'];
+foreach ($realVariants as $rv) {
+    if ($rv['stock'] === null || (int) $rv['stock'] > 0) {
+        $buyId = (string) $rv['public_id'];
+        $buyPrice = $rv['price_cents'] !== null ? (int) $rv['price_cents'] : (int) $product['price_cents'];
+        break;
+    }
+}
 ?>
 <section class="listing-page">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
@@ -73,10 +87,29 @@ $canOrder = $inStock && ($published || $is_owner);
                         </form>
                     </div>
                 <?php endif; ?>
+                <?php if ($realVariants !== []): ?>
+                    <div class="variant-pick" data-variant-pick>
+                        <p class="variant-pick-label"><?= e(t('variant.choose')) ?></p>
+                        <div class="variant-chips">
+                            <?php foreach ($realVariants as $v):
+                                $vOut = $v['stock'] !== null && (int) $v['stock'] <= 0;
+                                $vPrice = $v['price_cents'] !== null ? (int) $v['price_cents'] : (int) $product['price_cents'];
+                            ?>
+                                <label class="variant-chip<?= $vOut ? ' is-out' : '' ?>">
+                                    <input type="radio" name="pick_variant" value="<?= e((string) $v['public_id']) ?>"
+                                           data-price="<?= $vPrice ?>" <?= (string) $v['public_id'] === $buyId ? 'checked' : '' ?> <?= $vOut ? 'disabled' : '' ?>>
+                                    <span><?= e((string) ($v['label'] ?: '—')) ?><?php if ($vOut): ?> · <?= e(t('product.out_of_stock')) ?><?php endif; ?></span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <?php if ($canOrder): ?>
                     <div class="product-buy">
-                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e((string) $product['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
-                        <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
+                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e($buyId) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
+                        <?php if ($realVariants === []): ?>
+                            <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
                 <div class="product-wish-line">

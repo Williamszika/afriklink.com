@@ -67,6 +67,7 @@ final class Order
                 id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 order_id         BIGINT UNSIGNED NOT NULL,
                 product_id       BIGINT UNSIGNED NULL,
+                variant_id       BIGINT UNSIGNED NULL,
                 title            VARCHAR(150) NOT NULL,
                 qty              INT UNSIGNED NOT NULL DEFAULT 1,
                 unit_price_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -74,6 +75,15 @@ final class Order
                 KEY idx_oitems_order (order_id)
             )'
         );
+        // Colonne variante (ajoutée après coup sur les tables déjà créées).
+        try {
+            db()->query('SELECT variant_id FROM order_items LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE order_items ADD COLUMN variant_id BIGINT UNSIGNED NULL AFTER product_id');
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /** Ajoute les colonnes ajoutées après coup sur une table déjà créée. */
@@ -188,19 +198,28 @@ final class Order
             ]);
             $orderId = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare(
-                'INSERT INTO order_items (order_id, product_id, title, qty, unit_price_cents, line_total_cents)
-                 VALUES (:o, :p, :t, :q, :u, :lt)'
+                'INSERT INTO order_items (order_id, product_id, variant_id, title, qty, unit_price_cents, line_total_cents)
+                 VALUES (:o, :p, :v, :t, :q, :u, :lt)'
             );
-            // Décompte du stock : atomique et borné (jamais négatif). Les produits
-            // à stock illimité (stock NULL) ne sont pas touchés.
+            // Décompte du stock : atomique et borné (jamais négatif) — variante ET
+            // produit (stock partagé online + POS). Le WHERE `stock >= :qmin`
+            // sérialise deux ventes concurrentes : la 2ᵉ voit le stock déjà baissé
+            // et n'affecte 0 ligne → jamais de survente. Stock NULL = illimité.
             $dec = $pdo->prepare(
                 'UPDATE products SET stock = stock - :qty WHERE id = :pid AND stock IS NOT NULL AND stock >= :qmin'
             );
+            $decV = $pdo->prepare(
+                'UPDATE product_variants SET stock = stock - :qtyv WHERE id = :vid AND stock IS NOT NULL AND stock >= :qminv'
+            );
             foreach ($lines as $l) {
                 $ins->execute([
-                    'o' => $orderId, 'p' => $l['product_id'], 't' => mb_substr($l['title'], 0, 150),
+                    'o' => $orderId, 'p' => $l['product_id'], 'v' => $l['variant_id'] ?? null,
+                    't' => mb_substr($l['title'], 0, 150),
                     'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty'],
                 ]);
+                if (!empty($l['variant_id'])) {
+                    $decV->execute(['qtyv' => $l['qty'], 'qminv' => $l['qty'], 'vid' => (int) $l['variant_id']]);
+                }
                 if (!empty($l['product_id'])) {
                     $dec->execute(['qty' => $l['qty'], 'qmin' => $l['qty'], 'pid' => (int) $l['product_id']]);
                 }

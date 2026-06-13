@@ -1540,3 +1540,14 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .variant-del{width:36px;height:36px;border:1px solid var(--afk-ligne);background:#fff;border-radius:9px;cursor:pointer;color:var(--danger);font-size:1rem;flex:none}
 .variant-del:hover{background:var(--danger-bg);border-color:var(--danger)}
 @media(max-width:640px){.variant-row{grid-template-columns:1fr 1fr}.variant-del{grid-column:span 2;width:auto}}
+
+/* — Sélecteur de déclinaison (fiche produit) — */
+.variant-pick{margin:8px 0 12px}
+.variant-pick-label{font-weight:600;font-size:.9rem;margin:0 0 8px}
+.variant-chips{display:flex;flex-wrap:wrap;gap:8px}
+.variant-chip{position:relative;display:inline-flex;cursor:pointer}
+.variant-chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.variant-chip span{display:inline-block;padding:8px 14px;border:1.5px solid var(--afk-ligne-fort);border-radius:var(--afk-r-pill);font-size:.88rem;font-weight:600;transition:.15s;background:#fff}
+.variant-chip input:checked + span{border-color:var(--afk-foret);background:var(--afk-foret);color:#fff}
+.variant-chip:hover span{border-color:var(--afk-foret-300)}
+.variant-chip.is-out span{opacity:.55;text-decoration:line-through;cursor:not-allowed}

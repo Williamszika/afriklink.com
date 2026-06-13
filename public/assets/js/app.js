@@ -2434,3 +2434,11 @@ document.addEventListener('click', function (ev) {
         if (row && row.parentNode) { row.parentNode.removeChild(row); }
     }
 });
+
+/* ---- Sélecteur de déclinaison (fiche produit) : « Acheter » cible la variante ---- */
+document.addEventListener('change', function (ev) {
+    var radio = ev.target;
+    if (!radio || radio.name !== 'pick_variant' || !radio.checked) { return; }
+    var buy = document.querySelector('[data-buy-now]');
+    if (buy) { buy.setAttribute('data-buy-now', radio.value); }
+});
