@@ -21,6 +21,7 @@ use App\Services\CloudinaryService;
                         <span class="muted explore-card-shop"><?= e(t('explore.by', ['shop' => (string) $p['boutique_name']])) ?></span>
                     </a>
                     <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
+                    <?= render_partial('partials/compare_toggle', ['pid' => (string) $p['public_id']]) ?>
                 </div>
             <?php endforeach; ?>
         </div>

@@ -23,6 +23,7 @@ if (empty($products)) {
                     <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
                 </a>
                 <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
+                <?= render_partial('partials/compare_toggle', ['pid' => (string) $p['public_id']]) ?>
             </div>
         <?php endforeach; ?>
     </div>

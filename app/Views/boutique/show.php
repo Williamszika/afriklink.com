@@ -100,6 +100,7 @@ $canOrder = !empty($products) && ($published || $is_owner);
                                 <?php endif; ?>
                             </a>
                             <?= render_partial('partials/wish_heart', ['pid' => (string) $pr['public_id']]) ?>
+                            <?= render_partial('partials/compare_toggle', ['pid' => (string) $pr['public_id']]) ?>
                             <?php if ($canOrder && $inStock): ?>
                                 <div class="product-actions">
                                     <button type="button" class="btn btn-primary btn-sm buy-now-btn" data-buy-now="<?= e((string) $pr['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>

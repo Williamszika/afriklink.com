@@ -67,6 +67,7 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
                         <?php endif; ?>
                     </a>
                     <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
+                    <?= render_partial('partials/compare_toggle', ['pid' => (string) $p['public_id']]) ?>
                 </div>
             <?php endforeach; ?>
         </div>

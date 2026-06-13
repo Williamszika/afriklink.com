@@ -4,6 +4,7 @@ declare(strict_types=1);
 use App\Controllers\AffiliateController;
 use App\Controllers\LegalController;
 use App\Controllers\WishlistController;
+use App\Controllers\CompareController;
 use App\Controllers\MessageController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
@@ -51,6 +52,8 @@ return [
     ['GET',  '/consentement/{choice}', [LegalController::class, 'consent'],   ['throttle:consent,60,3600']],
     ['GET',  '/favoris',                [WishlistController::class, 'index'],  []],
     ['POST', '/favoris/{pid}/basculer', [WishlistController::class, 'toggle'], ['csrf', 'throttle:wish,180,3600']],
+    ['GET',  '/comparer',               [CompareController::class, 'index'],   []],
+    ['POST', '/comparer/{pid}/basculer', [CompareController::class, 'toggle'], ['csrf', 'throttle:compare,180,3600']],
 
     // ---- Authentication (guests) -------------------------------------
     ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],

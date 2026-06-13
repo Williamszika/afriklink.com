@@ -2213,6 +2213,7 @@ document.addEventListener('click', function (ev) {
     document.addEventListener('submit', function (ev) {
         var form = ev.target;
         if (!form || !form.matches || !form.matches('[data-wish-form]')) { return; }
+        if (form.closest('.wish-page')) { return; } // sur /favoris : submit natif (recharge, retire la carte)
         ev.preventDefault();
         var btn = form.querySelector('[data-wish]');
         fetch(form.getAttribute('action'), { method: 'POST', headers: { 'Accept': 'application/json' } })
@@ -2222,6 +2223,35 @@ document.addEventListener('click', function (ev) {
                 if (btn) {
                     btn.classList.toggle('is-wished', !!data.wished);
                     btn.setAttribute('aria-pressed', data.wished ? 'true' : 'false');
+                }
+                if (typeof data.count === 'number') { setCount(data.count); }
+            })
+            .catch(function () { form.submit(); });
+    });
+})();
+
+/* ---- Comparateur : bascule instantanée du bouton ⇄ (fetch, CSP-safe) ---- */
+(function () {
+    'use strict';
+    function setCount(n) {
+        document.querySelectorAll('[data-compare-count]').forEach(function (b) {
+            b.textContent = String(n);
+            if (n > 0) { b.removeAttribute('hidden'); } else { b.setAttribute('hidden', ''); }
+        });
+    }
+    document.addEventListener('submit', function (ev) {
+        var form = ev.target;
+        if (!form || !form.matches || !form.matches('[data-compare-form]')) { return; }
+        if (form.closest('.compare-page')) { return; } // sur /comparer : submit natif (recharge, retire la colonne)
+        ev.preventDefault();
+        var btn = form.querySelector('[data-compare]');
+        fetch(form.getAttribute('action'), { method: 'POST', headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data) { return; }
+                if (btn) {
+                    btn.classList.toggle('is-comparing', !!data.comparing);
+                    btn.setAttribute('aria-pressed', data.comparing ? 'true' : 'false');
                 }
                 if (typeof data.count === 'number') { setCount(data.count); }
             })

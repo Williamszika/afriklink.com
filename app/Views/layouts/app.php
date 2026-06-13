@@ -97,8 +97,10 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 foreach ((array) $cItems as $cIt) { $cartCount += (int) ($cIt['qty'] ?? 0); }
             }
             $cartShop = (string) ($_SESSION['cart_shop'] ?? '');
+            $compareCount = \App\Services\Compare::count();
             ?>
             <a class="btn btn-ghost nav-icon" href="<?= e(url('/favoris')) ?>" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>">❤️<span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
+            <a class="btn btn-ghost nav-icon" href="<?= e(url('/comparer')) ?>" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>">⇄<span class="nav-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
             <?php if ($cartCount > 0 && $cartShop !== ''): ?>
                 <a class="btn btn-ghost nav-icon" href="<?= e(url('/boutique/' . $cartShop . '/caisse')) ?>" title="<?= e(t('bcart.view_cart')) ?>" aria-label="<?= e(t('bcart.view_cart')) ?>">🛒<span class="nav-badge"><?= (int) $cartCount ?></span></a>
             <?php endif; ?>

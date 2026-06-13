@@ -82,6 +82,8 @@ $canOrder = $inStock && ($published || $is_owner);
                 <div class="product-wish-line">
                     <?= render_partial('partials/wish_heart', ['pid' => (string) $product['public_id']]) ?>
                     <span class="muted"><?= e(t('wish.add')) ?></span>
+                    <?= render_partial('partials/compare_toggle', ['pid' => (string) $product['public_id']]) ?>
+                    <span class="muted"><?= e(t('compare.add')) ?></span>
                 </div>
                 <?php if ($waPhone !== '' && $boutique['status'] === 'published'): ?>
                     <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank"
