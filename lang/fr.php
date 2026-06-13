@@ -113,7 +113,7 @@ return [
     'field.dial_code'        => 'Indicatif',
     'field.phone_placeholder'=> 'Numéro sans l’indicatif',
     'field.phone_hint'       => 'Indicatif selon votre position.',
-    'geo.unlock'             => 'Ce n’est pas mon pays ?',
+    'geo.unlock'             => 'Ce n’est pas ma position ?',
     'field.identifier'       => 'E-mail ou téléphone',
     'field.identifier_placeholder' => 'vous@exemple.com ou +221…',
 

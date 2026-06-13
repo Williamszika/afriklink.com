@@ -113,7 +113,7 @@ return [
     'field.dial_code'        => 'Dialing code',
     'field.phone_placeholder'=> 'Number without the code',
     'field.phone_hint'       => 'Dialing code from your location.',
-    'geo.unlock'             => 'Not my country?',
+    'geo.unlock'             => 'Not my location?',
     'field.identifier'       => 'Email or phone',
     'field.identifier_placeholder' => 'you@example.com or +221…',
 

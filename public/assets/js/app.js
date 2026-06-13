@@ -23,10 +23,10 @@
     }
 })();
 
-// Escape hatch for the geolocation-locked country/indicatif: the discreet
-// "Ce n'est pas mon pays ?" link re-enables both selects (and removes the hidden
-// inputs so the user's own choice is what gets submitted). Once unlocked, the
-// GPS refinement below stops touching the country.
+// Escape hatch for the geolocation-locked location block: the discreet
+// "Ce n'est pas ma position ?" link re-enables the country/indicatif selects AND
+// the city (removing the hidden inputs so the user's own choice is submitted).
+// Once unlocked, the GPS refinement below stops touching the fields.
 (function () {
     'use strict';
 
@@ -40,14 +40,18 @@
                 sel.disabled = false;
                 sel.removeAttribute('tabindex');
                 sel.removeAttribute('aria-disabled');
-                sel.classList.remove('locked-field');
+                sel.classList.remove('locked-field', 'is-locked');
                 sel.name = id;                 // re-enabled select submits itself
                 sel.dataset.unlocked = '1';    // tells the GPS code to back off
             }
             var hidden = document.getElementById(id + '_value');
             if (hidden && hidden.parentNode) { hidden.parentNode.removeChild(hidden); }
         });
-        if (unlockBtn.parentNode) { unlockBtn.parentNode.removeChild(unlockBtn); }
+        // The city is locked (read-only) after a precise GPS fix — release it too.
+        var cityEl = document.getElementById('city');
+        if (cityEl) { cityEl.readOnly = false; cityEl.classList.remove('is-locked'); cityEl.dataset.unlocked = '1'; }
+        var note = document.getElementById('geo-lock-note');
+        if (note) { note.hidden = true; }
     });
 })();
 
@@ -57,8 +61,9 @@
 // budget), then a free key-less reverse-geocoding API (BigDataCloud, in our CSP)
 // turns coordinates into city + country.
 // Quality gate: a fix coarser than 2 km is almost certainly an IP/WiFi fallback —
-// the city is then left untouched. By design NOTHING is ever displayed: the
-// fields just get corrected quietly and always stay editable.
+// the city is then left untouched. On a good fix, city + country are filled AND
+// locked (read-only input / disabled select + hidden submit input); the
+// "Ce n'est pas ma position ?" link restores manual editing.
 // Two entry points so geolocation works EVERYWHERE:
 //   • a silent attempt on load (desktop / already-granted permission),
 //   • a visible "Utiliser ma position" button (#geo-detect) — REQUIRED on mobile
@@ -121,8 +126,15 @@
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 var name = d.city || d.locality || '';
-                if (name) { city.value = name; }
+                // Don't re-lock once the user chose to edit manually (unlock link).
+                var canLock = (!country || country.dataset.unlocked !== '1') && city.dataset.unlocked !== '1';
+                if (name) {
+                    city.value = name;
+                    if (canLock) { city.readOnly = true; city.classList.add('is-locked'); }
+                }
                 applyCountry(d.countryCode);
+                var note = document.getElementById('geo-lock-note');
+                if (note && canLock) { note.hidden = false; }
                 if (mode === 'manual') { say('✓ ' + (name || 'OK'), false); }
             })
             .catch(function () { if (mode === 'manual') { say(attr('data-unavailable'), true); } });

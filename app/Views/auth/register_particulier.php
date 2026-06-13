@@ -84,13 +84,12 @@ $lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
             <div>
                 <label for="country_code"><?= e(t('field.country')) ?></label>
                 <?php if ($lockCountry): ?>
-                    <select id="country_code" class="locked-field" disabled aria-disabled="true" tabindex="-1">
+                    <select id="country_code" class="locked-field is-locked" disabled aria-disabled="true" tabindex="-1">
                         <?php foreach ($countries as $code => $name): ?>
                             <option value="<?= e($code) ?>" <?= $selCountry === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?></option>
                         <?php endforeach; ?>
                     </select>
                     <input type="hidden" name="country_code" id="country_code_value" value="<?= e($selCountry) ?>">
-                    <button type="button" id="geo-unlock" class="link-button"><?= e(t('geo.unlock')) ?></button>
                 <?php else: ?>
                     <select id="country_code" name="country_code" required>
                         <option value=""><?= e(t('field.choose')) ?></option>
@@ -110,6 +109,9 @@ $lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
                 <span id="geo-detect-status" class="hint geo-detect-status" aria-live="polite"></span>
             </div>
         </div>
+        <p class="hint geo-lock-note" id="geo-lock-note" <?= $lockCountry ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?>
+            <button type="button" id="geo-unlock" class="link-button">— <?= e(t('geo.unlock')) ?></button>
+        </p>
 
         <label for="password"><?= e(t('field.password')) ?></label>
         <input type="password" id="password" name="password" required autocomplete="new-password"
