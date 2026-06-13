@@ -5,8 +5,10 @@
 use App\Models\Product;
 use App\Services\CloudinaryService;
 
+$countries = $countries ?? [];
 $baseParams = array_filter([
-    'q' => $f['q'], 'categorie' => $f['category'], 'min' => $f['min'], 'max' => $f['max'], 'tri' => $f['sort'],
+    'q' => $f['q'], 'categorie' => $f['category'], 'pays' => $f['country'], 'ville' => $f['city'],
+    'stock' => !empty($f['in_stock']) ? '1' : '', 'min' => $f['min'], 'max' => $f['max'], 'tri' => $f['sort'],
 ], static fn ($v): bool => $v !== '' && $v !== null);
 $qs = static fn (array $over): string => http_build_query(array_merge($baseParams, $over));
 ?>
@@ -22,6 +24,15 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
                 <option value="<?= e($c) ?>" <?= $f['category'] === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option>
             <?php endforeach; ?>
         </select>
+        <?php if ($countries !== []): ?>
+            <select name="pays" class="explore-filter" aria-label="<?= e(t('explore.country_all')) ?>">
+                <option value=""><?= e(t('explore.country_all')) ?></option>
+                <?php foreach ($countries as $pc): ?>
+                    <option value="<?= e($pc) ?>" <?= $f['country'] === $pc ? 'selected' : '' ?>><?= e(trim(flag_emoji($pc) . ' ' . country_name($pc))) ?></option>
+                <?php endforeach; ?>
+            </select>
+        <?php endif; ?>
+        <input type="text" name="ville" value="<?= e($f['city']) ?>" placeholder="<?= e(t('explore.city_ph')) ?>" class="explore-city" aria-label="<?= e(t('explore.city_ph')) ?>">
         <input type="number" name="min" value="<?= e($f['min']) ?>" placeholder="<?= e(t('explore.price_min')) ?>" min="0" inputmode="numeric" class="explore-price" aria-label="<?= e(t('explore.price_min')) ?>">
         <input type="number" name="max" value="<?= e($f['max']) ?>" placeholder="<?= e(t('explore.price_max')) ?>" min="0" inputmode="numeric" class="explore-price" aria-label="<?= e(t('explore.price_max')) ?>">
         <select name="tri" class="explore-filter" aria-label="<?= e(t('explore.sort_label')) ?>">
@@ -29,6 +40,7 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
                 <option value="<?= e($s) ?>" <?= $f['sort'] === $s ? 'selected' : '' ?>><?= e(t('explore.sort.' . $s)) ?></option>
             <?php endforeach; ?>
         </select>
+        <label class="explore-check"><input type="checkbox" name="stock" value="1" <?= !empty($f['in_stock']) ? 'checked' : '' ?>> <?= e(t('explore.in_stock')) ?></label>
         <button type="submit" class="btn btn-primary">🔎 <?= e(t('explore.search_btn')) ?></button>
     </form>
 

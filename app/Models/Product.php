@@ -255,6 +255,8 @@ final class Product
         self::migrate();
         $q   = trim((string) ($f['q'] ?? ''));
         $cat = (string) ($f['category'] ?? '');
+        $pays = strtoupper(trim((string) ($f['country'] ?? '')));
+        $city = trim((string) ($f['city'] ?? ''));
         $min = ($f['min'] ?? '') !== '' ? (int) $f['min'] : null;
         $max = ($f['max'] ?? '') !== '' ? (int) $f['max'] : null;
         $limit  = max(1, min(48, (int) ($f['limit'] ?? 24)));
@@ -269,6 +271,9 @@ final class Product
             $args['q'] = $like; $args['q2'] = $like; $args['q3'] = $like;
         }
         if ($cat !== '') { $where[] = 'b.category = :cat'; $args['cat'] = $cat; }
+        if ($pays !== '') { $where[] = 'b.country_code = :pays'; $args['pays'] = $pays; }
+        if ($city !== '') { $where[] = 'b.city LIKE :city'; $args['city'] = '%' . $city . '%'; }
+        if (!empty($f['in_stock'])) { $where[] = '(p.stock IS NULL OR p.stock > 0)'; }
         if ($min !== null) { $where[] = 'p.price_cents >= :pmin'; $args['pmin'] = $min * 100; }
         if ($max !== null) { $where[] = 'p.price_cents <= :pmax'; $args['pmax'] = $max * 100; }
 
@@ -287,6 +292,22 @@ final class Product
             $stmt = db()->prepare($sql);
             $stmt->execute($args);
             return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Pays (codes ISO) ayant des produits en ligne — alimente le filtre de recherche. @return list<string> */
+    public static function searchCountries(): array
+    {
+        try {
+            $rows = db()->query(
+                "SELECT DISTINCT b.country_code FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE p.status = 'active' AND b.status = 'published'
+                    AND b.country_code IS NOT NULL AND b.country_code <> ''
+                  ORDER BY b.country_code"
+            )->fetchAll() ?: [];
+            return array_map(static fn (array $r): string => (string) $r['country_code'], $rows);
         } catch (\Throwable) {
             return [];
         }

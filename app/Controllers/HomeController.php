@@ -34,12 +34,16 @@ final class HomeController
     /** Explorer public — recherche marketplace (mot-clé, catégorie, prix, tri). */
     public function explore(Request $request): void
     {
-        $cats  = config('listings.categories', []);
+        $cats      = config('listings.categories', []);
+        $countries = \App\Models\Product::searchCountries();
         $page  = max(1, (int) input_string('page', '1'));
         $limit = 24;
         $f = [
             'q'        => trim((string) input_string('q', '')),
             'category' => whitelist((string) input_string('categorie', ''), $cats, ''),
+            'country'  => whitelist(strtoupper((string) input_string('pays', '')), $countries, ''),
+            'city'     => trim((string) input_string('ville', '')),
+            'in_stock' => input_string('stock', '') === '1',
             'min'      => preg_replace('/\D+/', '', (string) input_string('min', '')),
             'max'      => preg_replace('/\D+/', '', (string) input_string('max', '')),
             'sort'     => whitelist((string) input_string('tri', 'recent'), ['recent', 'price_asc', 'price_desc'], 'recent'),
@@ -51,6 +55,7 @@ final class HomeController
         view('explore', [
             'page_title' => t('explore.title'),
             'categories' => $cats,
+            'countries'  => $countries,
             'f'          => $f,
             'page'       => $page,
             'has_next'   => count($products) === $limit,

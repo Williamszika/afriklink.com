@@ -1075,3 +1075,7 @@ h2 { letter-spacing:-.01em; }
 .menu-item-row { align-items:flex-start; }
 .menu-item-thumb { width:78px; height:78px; border-radius:12px; overflow:hidden; flex:none; border:1px solid var(--border); margin-bottom:2px; }
 .menu-item-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Explorer — filtres avancés (ville, en stock) */
+.explore-city { width:120px; }
+.explore-check { display:inline-flex; align-items:center; gap:6px; font-size:.88rem; white-space:nowrap; cursor:pointer; }
