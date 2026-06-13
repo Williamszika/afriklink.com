@@ -441,6 +441,21 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .caisse-total { font-size: 1.15rem; margin-top: 10px; border-top: 2px solid var(--border); padding-top: 10px; }
 .caisse-form label { display: block; margin-top: 10px; font-weight: 600; }
 .caisse-section { margin: 18px 0 2px; font-size: 1.02rem; border-top: 1px solid var(--border); padding-top: 12px; }
+/* Partage de position (caisse) */
+.geo-share { margin: 6px 0 2px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.geo-status { font-size: .85rem; color: var(--muted, #6b7280); }
+.geo-status.is-error { color: var(--danger, #b42318); }
+/* Suivi de commande (frise d'étapes) */
+.order-track-box { margin: 14px auto; max-width: 460px; }
+.order-track-title { font-weight: 700; margin: 0 0 8px; }
+.order-track { list-style: none; display: flex; justify-content: space-between; margin: 0; padding: 0; position: relative; }
+.order-track::before { content: ''; position: absolute; top: 13px; left: 10%; right: 10%; height: 2px; background: var(--border); z-index: 0; }
+.track-step { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; position: relative; z-index: 1; font-size: .76rem; color: var(--muted, #6b7280); text-align: center; }
+.track-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff; border: 2px solid var(--border); font-weight: 800; color: #9aa3af; }
+.track-step.is-done .track-dot { background: var(--brand); border-color: var(--brand); color: #fff; }
+.track-step.is-done .track-label, .track-step.is-current .track-label { color: var(--ink); font-weight: 600; }
+.track-step.is-current .track-dot { box-shadow: 0 0 0 4px #ecfdf3; }
+.track-cancelled { color: var(--danger, #b42318); font-weight: 700; }
 @media (max-width: 760px) { .caisse-grid { grid-template-columns: 1fr; } }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }

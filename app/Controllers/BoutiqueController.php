@@ -350,6 +350,10 @@ final class BoutiqueController
         $phone = trim((string) input_string('client_phone', ''));
         $email = trim((string) input_string('client_email', ''));
         $address = trim((string) input_string('client_address', ''));
+        // Position partagée par le client (GPS du navigateur) — pour une livraison précise.
+        $lat = filter_var((string) input_string('geo_lat', ''), FILTER_VALIDATE_FLOAT);
+        $lng = filter_var((string) input_string('geo_lng', ''), FILTER_VALIDATE_FLOAT);
+        $hasGeo = $lat !== false && $lng !== false && $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180;
         $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
         $fulfillment = $methods !== []
             ? whitelist((string) input_string('fulfillment', ''), $methods, $methods[0])
@@ -399,6 +403,8 @@ final class BoutiqueController
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
             'client_address' => $address !== '' ? mb_substr($address, 0, 220) : null,
+            'geo_lat'        => $hasGeo ? round($lat, 6) : null,
+            'geo_lng'        => $hasGeo ? round($lng, 6) : null,
             'note'           => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
             'fulfillment'    => $fulfillment,
             'payment_term'   => $paymentTerm,

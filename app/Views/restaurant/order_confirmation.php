@@ -23,6 +23,16 @@ $waText = rawurlencode(
     <h1><?= e(t('rorder.confirm_title')) ?></h1>
     <p class="muted"><?= e(t('rorder.confirm_sub', ['ref' => $ref])) ?></p>
 
+    <?= render_partial('partials/order_tracker', [
+        'current' => (string) ($order['status'] ?? 'new'),
+        'steps'   => [
+            ['key' => 'new',       'label' => t('rorder.st.new')],
+            ['key' => 'confirmed', 'label' => t('rorder.st.confirmed')],
+            ['key' => 'ready',     'label' => t('rorder.st.ready')],
+            ['key' => 'delivered', 'label' => t('rorder.st.delivered')],
+        ],
+    ]) ?>
+
     <ul class="cart-lines confirm-lines">
         <?php foreach ($items as $it): ?>
             <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e((string) $it['title']) ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>

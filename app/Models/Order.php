@@ -39,6 +39,8 @@ final class Order
                 client_phone     VARCHAR(24) NULL,
                 client_email     VARCHAR(120) NULL,
                 client_address   VARCHAR(220) NULL,
+                geo_lat          DECIMAL(9,6) NULL,
+                geo_lng          DECIMAL(9,6) NULL,
                 note             VARCHAR(500) NULL,
                 fulfillment      VARCHAR(16) NULL,
                 source           VARCHAR(12) NOT NULL DEFAULT \'manual\',
@@ -89,6 +91,8 @@ final class Order
             'payment_method' => "ADD COLUMN payment_method VARCHAR(16) NULL AFTER payment_term",
             'client_email'   => "ADD COLUMN client_email VARCHAR(120) NULL AFTER client_phone",
             'client_address' => "ADD COLUMN client_address VARCHAR(220) NULL AFTER client_email",
+            'geo_lat'        => "ADD COLUMN geo_lat DECIMAL(9,6) NULL AFTER client_address",
+            'geo_lng'        => "ADD COLUMN geo_lng DECIMAL(9,6) NULL AFTER geo_lat",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -164,9 +168,9 @@ final class Order
             $stmt = $pdo->prepare(
                 'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
                     unit_price_cents, qty, total_cents, currency, client_name, client_phone, client_email, client_address,
-                    note, fulfillment, payment_term, payment_method, source, status)
+                    geo_lat, geo_lng, note, fulfillment, payment_term, payment_method, source, status)
                  VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :cemail, :caddr,
-                    :note, :ful, :term, :method, \'online\', \'new\')'
+                    :lat, :lng, :note, :ful, :term, :method, \'online\', \'new\')'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $header['boutique_id'], 'uid' => $header['user_id'],
@@ -174,6 +178,7 @@ final class Order
                 'cur' => $header['currency'], 'cname' => $header['client_name'],
                 'cphone' => $header['client_phone'], 'cemail' => $header['client_email'] ?? null,
                 'caddr' => $header['client_address'] ?? null,
+                'lat' => $header['geo_lat'] ?? null, 'lng' => $header['geo_lng'] ?? null,
                 'note' => $header['note'], 'ful' => $header['fulfillment'], 'term' => $header['payment_term'] ?? null,
                 'method' => $header['payment_method'] ?? null,
             ]);

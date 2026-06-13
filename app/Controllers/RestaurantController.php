@@ -234,6 +234,9 @@ final class RestaurantController
         $phone = trim((string) input_string('client_phone', ''));
         $email = trim((string) input_string('client_email', ''));
         $address = trim((string) input_string('client_address', ''));
+        $lat = filter_var((string) input_string('geo_lat', ''), FILTER_VALIDATE_FLOAT);
+        $lng = filter_var((string) input_string('geo_lng', ''), FILTER_VALIDATE_FLOAT);
+        $hasGeo = $lat !== false && $lng !== false && $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180;
         $service = whitelist((string) input_string('service', ''), RestaurantOrder::SERVICES, 'takeaway');
         // Condition + moyen de paiement choisis (parmi ceux acceptés par le restaurant).
         $terms = array_values(array_filter(explode(',', (string) ($resto['payment_terms'] ?? ''))));
@@ -262,6 +265,8 @@ final class RestaurantController
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
             'client_address' => $address !== '' ? mb_substr($address, 0, 220) : null,
+            'geo_lat' => $hasGeo ? round($lat, 6) : null,
+            'geo_lng' => $hasGeo ? round($lng, 6) : null,
             'service' => $service,
             'note' => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
             'currency' => $cur,

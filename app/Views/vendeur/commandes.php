@@ -152,6 +152,9 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                             <?php if (!empty($o['client_address'])): ?>
                                 <p class="order-note">📍 <?= e((string) $o['client_address']) ?></p>
                             <?php endif; ?>
+                            <?php if (!empty($o['geo_lat']) && !empty($o['geo_lng'])): ?>
+                                <p class="order-note">🗺️ <a href="https://www.google.com/maps?q=<?= e((string) $o['geo_lat']) ?>,<?= e((string) $o['geo_lng']) ?>" target="_blank" rel="noopener"><?= e(t('order.map_link')) ?></a></p>
+                            <?php endif; ?>
                             <?php if (!empty($o['note'])): ?>
                                 <p class="order-note">📝 <?= e((string) $o['note']) ?></p>
                             <?php endif; ?>

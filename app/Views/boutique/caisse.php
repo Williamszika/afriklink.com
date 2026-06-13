@@ -65,6 +65,7 @@ $cur = (string) $boutique['currency'];
             <label for="cl-addr"><?= e(t('order.f.address')) ?></label>
             <input type="text" id="cl-addr" name="client_address" maxlength="220" value="<?= old('client_address') ?>" placeholder="<?= e(t('order.f.address_ph')) ?>"
                    data-require-radio="fulfillment" data-require-when="local,international">
+            <?= render_partial('partials/share_location') ?>
             <?php if (has_error('client_address')): ?><p class="field-error"><?= e(error('client_address')) ?></p><?php endif; ?>
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
