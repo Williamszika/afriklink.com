@@ -75,7 +75,34 @@ final class SellerController
 
     public function advertising(Request $request): void
     {
-        $this->soon('publicite', '📣', 'seller.ads');
+        $user     = current_user() ?? [];
+        $boutique = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
+        $products = $boutique !== null ? \App\Models\Product::forBoutique((int) $boutique['id']) : [];
+        view('vendeur/publicite', [
+            'active'     => 'publicite',
+            'boutique'   => $boutique,
+            'products'   => $products,
+            'mains'      => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'promo_days' => 7,
+        ] + self::commonData($user));
+    }
+
+    /** Active/retire la mise en avant « sponsorisé » d'un de ses produits. */
+    public function promote(Request $request): void
+    {
+        $user     = current_user() ?? [];
+        $boutique = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
+        $product  = \App\Models\Product::findByPublicId((string) $request->param('pid', ''));
+        if ($boutique === null || $product === null || (int) $product['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        $action = whitelist((string) input_string('action', ''), ['promote', 'stop'], null);
+        if ($action === null) {
+            abort(404);
+        }
+        \App\Models\Product::setPromoted((int) $product['id'], $action === 'promote' ? 7 : null);
+        flash('success', t($action === 'promote' ? 'ads.promoted_flash' : 'ads.stopped_flash'));
+        redirect('/vendeur/publicite');
     }
 
     public function affiliation(Request $request): void

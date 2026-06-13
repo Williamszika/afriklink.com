@@ -93,6 +93,7 @@ return [
 
     ['GET',  '/vendeur/gains',       [SellerController::class, 'earnings'],     ['auth']],
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],
+    ['POST', '/vendeur/publicite/{pid}/promouvoir', [SellerController::class, 'promote'], ['auth', 'csrf', 'throttle:product,60,3600']],
     ['GET',  '/vendeur/affiliation', [SellerController::class, 'affiliation'],  ['auth']],
     ['GET',  '/vendeur/verification',[SellerController::class, 'verification'], ['auth']],
     ['POST', '/vendeur/verification/{level}', [KycController::class, 'submit'], ['auth', 'csrf', 'throttle:kycsub2,200,3600']],

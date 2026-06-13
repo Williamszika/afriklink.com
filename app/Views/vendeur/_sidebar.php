@@ -16,7 +16,7 @@ $groups = [
     ]],
     ['label' => t('seller.group.develop'), 'items' => [
         ['key' => 'gains',       'icon' => '💸', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
-        ['key' => 'publicite',   'icon' => '📣', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => $soon],
+        ['key' => 'publicite',   'icon' => '📣', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => null],
         ['key' => 'affiliation', 'icon' => '🤝', 'href' => url('/vendeur/affiliation'), 'label' => t('seller.nav.affiliation'),  'chip' => null],
     ]],
     ['label' => t('seller.group.account'), 'items' => [

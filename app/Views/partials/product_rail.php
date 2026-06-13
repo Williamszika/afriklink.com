@@ -16,6 +16,7 @@ if (empty($products)) {
             <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
                 <span class="product-card-img">
                     <?php if ($m !== null): ?><img src="<?= e(\App\Services\CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                    <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                 </span>
                 <span class="product-card-name"><?= e((string) $p['name']) ?></span>
                 <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>

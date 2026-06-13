@@ -15,10 +15,13 @@ final class HomeController
             8,
             array_map(static fn (array $p): string => (string) $p['public_id'], $recent)
         );
+        // Produits sponsorisés (mise en avant payante — simulation).
+        $sponsored = \App\Models\Product::promotedMarketplace(8);
         view('home', [
+            'sponsored'       => $sponsored,
             'recently_viewed' => $recent,
             'for_you'         => $forYou,
-            'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($recent, $forYou)),
+            'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($sponsored, $recent, $forYou)),
         ]);
     }
 

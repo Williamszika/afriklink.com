@@ -78,6 +78,7 @@ $canOrder = !empty($products) && ($published || $is_owner);
                                     <?php if ($m !== null): ?>
                                         <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
                                     <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                                    <?php if (\App\Models\Product::isPromoted($pr)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                                     <?php if (!$inStock): ?><span class="card-out-badge"><?= e(t('product.out_of_stock')) ?></span><?php endif; ?>
                                 </span>
                                 <span class="product-card-name"><?= e((string) $pr['name']) ?></span>

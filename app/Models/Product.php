@@ -113,15 +113,77 @@ final class Product
         }
     }
 
-    /** @return list<array> produits d'une boutique (les plus récents d'abord) */
+    /** Ajoute les colonnes introduites après coup (idempotent, une fois par requête). */
+    private static function migrate(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            db()->query('SELECT promoted_until FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products ADD COLUMN promoted_until DATETIME NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+    }
+
+    /** @return list<array> produits d'une boutique (sponsorisés en tête, puis récents) */
     public static function forBoutique(int $boutiqueId, bool $activeOnly = false): array
     {
+        self::migrate();
         try {
             $sql = 'SELECT * FROM products WHERE boutique_id = :bid';
             if ($activeOnly) { $sql .= ' AND status = \'active\''; }
-            $sql .= ' ORDER BY position DESC, id DESC';
+            // Produits sponsorisés (mise en avant non expirée) remontés en tête.
+            $sql .= ' ORDER BY (promoted_until IS NOT NULL AND promoted_until > NOW()) DESC, position DESC, id DESC';
             $stmt = db()->prepare($sql);
             $stmt->execute(['bid' => $boutiqueId]);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Active (jours) ou retire (null) la mise en avant « sponsorisé » d'un produit. */
+    public static function setPromoted(int $id, ?int $days): void
+    {
+        self::migrate();
+        try {
+            if ($days !== null && $days > 0) {
+                db()->prepare('UPDATE products SET promoted_until = (NOW() + INTERVAL ' . max(1, min(365, $days)) . ' DAY) WHERE id = :id')
+                    ->execute(['id' => $id]);
+            } else {
+                db()->prepare('UPDATE products SET promoted_until = NULL WHERE id = :id')->execute(['id' => $id]);
+            }
+        } catch (\Throwable) {
+        }
+    }
+
+    /** Produit actuellement sponsorisé ? (mise en avant non expirée) */
+    public static function isPromoted(array $row): bool
+    {
+        $u = $row['promoted_until'] ?? null;
+        return $u !== null && $u !== '' && strtotime((string) $u) > time();
+    }
+
+    /** Produits sponsorisés du marketplace (vitrines publiées). @return list<array> */
+    public static function promotedMarketplace(int $limit = 8): array
+    {
+        self::migrate();
+        try {
+            $stmt = db()->prepare(
+                "SELECT p.*, b.slug AS boutique_slug, b.currency AS currency
+                   FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE p.status = 'active' AND b.status = 'published'
+                    AND p.promoted_until IS NOT NULL AND p.promoted_until > NOW()
+                  ORDER BY p.promoted_until DESC LIMIT " . max(1, min(24, $limit))
+            );
+            $stmt->execute();
             return $stmt->fetchAll() ?: [];
         } catch (\Throwable) {
             return [];

@@ -50,6 +50,7 @@ $canOrder = $inStock && ($published || $is_owner);
         <div class="listing-side">
             <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
+                <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line">✨ <?= e(t('ads.badge')) ?></p><?php endif; ?>
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
                 <?php endif; ?>

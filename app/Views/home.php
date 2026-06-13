@@ -1,4 +1,5 @@
 <?php
+$sponsored       = $sponsored ?? [];
 $recently_viewed = $recently_viewed ?? [];
 $for_you         = $for_you ?? [];
 $reco_mains      = $reco_mains ?? [];
@@ -39,8 +40,11 @@ $verticals = [
     </div>
 </section>
 
-<?php if (!empty($recently_viewed) || !empty($for_you)): ?>
+<?php if (!empty($sponsored) || !empty($recently_viewed) || !empty($for_you)): ?>
 <section class="reco-rails">
+    <?php if (!empty($sponsored)): ?>
+        <?= render_partial('partials/product_rail', ['icon' => '✨', 'title' => t('reco.sponsored'), 'products' => $sponsored, 'mains' => $reco_mains]) ?>
+    <?php endif; ?>
     <?php if (!empty($recently_viewed)): ?>
         <?= render_partial('partials/product_rail', ['icon' => '🕒', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains]) ?>
     <?php endif; ?>
