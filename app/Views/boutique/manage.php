@@ -230,6 +230,53 @@ $publicPath = '/boutique/' . $boutique['slug'];
             <?php endif; ?>
         </div>
 
+        <!-- Promotions / codes promo -->
+        <div class="panel" id="promos">
+            <h2 class="panel-title">🏷️ <?= e(t('promo.title')) ?></h2>
+            <p class="muted"><?= e(t('promo.lead')) ?></p>
+            <form method="post" action="<?= e(url('/boutique/promotions')) ?>" class="promo-form">
+                <?= csrf_field() ?>
+                <div class="grid-2">
+                    <div>
+                        <label for="promo-code"><?= e(t('promo.f.code')) ?></label>
+                        <input type="text" id="promo-code" name="code" maxlength="40" placeholder="<?= e(t('promo.f.code_ph')) ?>" required style="text-transform:uppercase">
+                    </div>
+                    <div>
+                        <label for="promo-type"><?= e(t('promo.f.type')) ?></label>
+                        <select id="promo-type" name="type">
+                            <option value="percent"><?= e(t('promo.type.percent')) ?></option>
+                            <option value="amount"><?= e(t('promo.type.amount', ['cur' => $cur])) ?></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label for="promo-value"><?= e(t('promo.f.value')) ?></label>
+                        <input type="text" id="promo-value" name="value" inputmode="decimal" placeholder="10" required>
+                    </div>
+                    <div>
+                        <label for="promo-min"><?= e(t('promo.f.min')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                        <input type="text" id="promo-min" name="min_order" inputmode="decimal" placeholder="0">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><?= e(t('promo.create_btn')) ?></button>
+            </form>
+            <?php if (!empty($discounts)): ?>
+                <ul class="promo-list">
+                    <?php foreach ($discounts as $d): $on = ($d['status'] ?? '') === 'active'; ?>
+                        <li class="promo-item<?= $on ? '' : ' is-off' ?>">
+                            <span class="promo-code-tag"><?= e((string) $d['code']) ?></span>
+                            <span class="muted"><?= $d['type'] === 'amount' ? e(format_price((int) $d['value'], $cur)) : (int) $d['value'] . ' %' ?><?php if (!empty($d['min_order_cents'])): ?> · <?= e(t('promo.min_short', ['amount' => format_price((int) $d['min_order_cents'], $cur)])) ?><?php endif; ?> · <?= (int) ($d['uses'] ?? 0) ?> <?= e(t('promo.uses')) ?></span>
+                            <form method="post" action="<?= e(url('/boutique/promotions/' . $d['id'] . '/statut')) ?>" class="inline-form">
+                                <?= csrf_field() ?>
+                                <button class="link-button" name="action" value="<?= $on ? 'disable' : 'enable' ?>"><?= e(t($on ? 'promo.disable' : 'promo.enable')) ?></button>
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </div>
+
         <!-- Politique de retour & remboursement -->
         <div class="panel">
             <h2 class="panel-title">↩️ <?= e(t('shop.policy_title')) ?></h2>

@@ -88,6 +88,8 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             <?php if (has_error('client_address')): ?><p class="field-error"><?= e(error('client_address')) ?></p><?php endif; ?>
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
+            <label for="cl-promo">🏷️ <?= e(t('promo.label')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <input type="text" id="cl-promo" name="promo_code" maxlength="40" value="<?= old('promo_code') ?>" placeholder="<?= e(t('promo.ph')) ?>" autocapitalize="characters">
             <button type="submit" class="btn btn-primary btn-block btn-lg"<?= $belowMin ? ' disabled' : '' ?>>✅ <?= e(t('caisse.validate')) ?></button>
         </form>
     </div>

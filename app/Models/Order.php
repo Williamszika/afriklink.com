@@ -105,6 +105,8 @@ final class Order
             'geo_lat'        => "ADD COLUMN geo_lat DECIMAL(9,6) NULL AFTER client_address",
             'geo_lng'        => "ADD COLUMN geo_lng DECIMAL(9,6) NULL AFTER geo_lat",
             'shipping_cents' => "ADD COLUMN shipping_cents BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER total_cents",
+            'discount_cents' => "ADD COLUMN discount_cents BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER shipping_cents",
+            'discount_code'  => "ADD COLUMN discount_code VARCHAR(40) NULL AFTER discount_cents",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -172,7 +174,8 @@ final class Order
             $subtotal += $l['qty'] * $l['unit_price_cents'];
         }
         $shipping = max(0, (int) ($header['shipping_cents'] ?? 0));
-        $grand = $subtotal + $shipping;
+        $discount = max(0, min($subtotal, (int) ($header['discount_cents'] ?? 0)));
+        $grand = max(0, $subtotal + $shipping - $discount);
         // Étiquette de repli (l'affichage détaillé se fait via order_items).
         $first = (string) ($lines[0]['title'] ?? '');
         $summary = count($lines) > 1 ? $first . ' +' . (count($lines) - 1) : $first;
@@ -181,14 +184,15 @@ final class Order
         try {
             $stmt = $pdo->prepare(
                 'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
-                    unit_price_cents, qty, total_cents, shipping_cents, currency, client_name, client_phone, client_email, client_address,
+                    unit_price_cents, qty, total_cents, shipping_cents, discount_cents, discount_code, currency, client_name, client_phone, client_email, client_address,
                     geo_lat, geo_lng, note, fulfillment, payment_term, payment_method, source, status)
-                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :ship, :cur, :cname, :cphone, :cemail, :caddr,
+                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :ship, :disc, :dcode, :cur, :cname, :cphone, :cemail, :caddr,
                     :lat, :lng, :note, :ful, :term, :method, \'online\', \'new\')'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $header['boutique_id'], 'uid' => $header['user_id'],
                 'pname' => mb_substr($summary, 0, 150), 'qty' => $count, 'total' => $grand, 'ship' => $shipping,
+                'disc' => $discount, 'dcode' => $header['discount_code'] ?? null,
                 'cur' => $header['currency'], 'cname' => $header['client_name'],
                 'cphone' => $header['client_phone'], 'cemail' => $header['client_email'] ?? null,
                 'caddr' => $header['client_address'] ?? null,

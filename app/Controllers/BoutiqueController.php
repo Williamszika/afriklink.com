@@ -116,6 +116,7 @@ final class BoutiqueController
             'counts'   => $counts,
             'orders_pending' => \App\Models\Order::countFor((int) $boutique['id'])['new'],
             'views_total'    => ShopView::totals((int) $boutique['id'])['total'],
+            'discounts'      => \App\Models\Discount::forBoutique((int) $boutique['id']),
         ] + SellerController::commonData($user));
     }
 
@@ -552,6 +553,55 @@ final class BoutiqueController
         redirect('/boutique/gerer');
     }
 
+    /** Le vendeur crée un code promo (pourcentage ou montant) pour sa boutique. */
+    public function createDiscount(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $cur  = (string) $boutique['currency'];
+        $code = strtoupper(trim((string) input_string('code', '')));
+        $type = whitelist((string) input_string('type', 'percent'), ['percent', 'amount'], 'percent');
+        if (preg_match('/^[A-Z0-9_-]{2,40}$/', $code) !== 1) {
+            flash('error', t('promo.err_code'));
+            redirect('/boutique/gerer#promos');
+        }
+        $value = $type === 'amount'
+            ? (int) (parse_price_to_cents(trim((string) input_string('value', '')), $cur) ?? 0)
+            : max(0, min(100, (int) input_string('value', '0')));
+        if ($value <= 0) {
+            flash('error', t('promo.err_value'));
+            redirect('/boutique/gerer#promos');
+        }
+        $minRaw = trim((string) input_string('min_order', ''));
+        $min = $minRaw !== '' ? parse_price_to_cents($minRaw, $cur) : null;
+        \App\Models\Discount::create((int) $boutique['id'], [
+            'code' => $code, 'type' => $type, 'value' => $value,
+            'min_order_cents' => $min !== null && $min > 0 ? $min : null,
+        ]);
+        flash('success', t('promo.created'));
+        redirect('/boutique/gerer#promos');
+    }
+
+    /** Active ou désactive un code promo de la boutique. */
+    public function toggleDiscount(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $id = (int) $request->param('id', '0');
+        $action = whitelist((string) input_string('action', ''), ['disable', 'enable'], null);
+        if ($action !== null && $id > 0) {
+            \App\Models\Discount::setStatus($id, (int) $boutique['id'], $action === 'disable' ? 'disabled' : 'active');
+            flash('success', t('promo.updated'));
+        }
+        redirect('/boutique/gerer#promos');
+    }
+
     /* ---- Caisse & commande en ligne (panier public) ---------------- */
 
     /**
@@ -706,6 +756,19 @@ final class BoutiqueController
 
         $subtotal = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
         $shipping = $this->shippingFor($boutique, $fulfillment, $subtotal);
+        // Code promo (optionnel) : revalidé côté serveur sur cette boutique.
+        $promoCode = trim((string) input_string('promo_code', ''));
+        $discount = 0;
+        $discountRow = null;
+        if ($promoCode !== '') {
+            $discountRow = \App\Models\Discount::findValidCode((int) $boutique['id'], $promoCode);
+            if ($discountRow === null) {
+                keep_old($_POST);
+                flash('error', t('promo.invalid'));
+                redirect('/boutique/' . $boutique['slug'] . '/caisse');
+            }
+            $discount = \App\Models\Discount::reductionFor($discountRow, $subtotal);
+        }
         $publicId = Order::createCart([
             'boutique_id'  => (int) $boutique['id'],
             'user_id'      => (int) $boutique['user_id'],
@@ -720,8 +783,13 @@ final class BoutiqueController
             'payment_term'   => $paymentTerm,
             'payment_method' => $paymentMethod,
             'shipping_cents' => $shipping,
+            'discount_cents' => $discount,
+            'discount_code'  => $discountRow !== null ? (string) $discountRow['code'] : null,
             'currency'       => $cur,
         ], $lines);
+        if ($discountRow !== null) {
+            \App\Models\Discount::recordUse((int) $discountRow['id']);
+        }
 
         unset($_SESSION['caisse'][(int) $boutique['id']]); // panier consommé
         \App\Services\Cart::clearBoutique((int) $boutique['id']); // vide aussi le panier persistant

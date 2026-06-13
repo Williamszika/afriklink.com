@@ -1551,3 +1551,11 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .variant-chip input:checked + span{border-color:var(--afk-foret);background:var(--afk-foret);color:#fff}
 .variant-chip:hover span{border-color:var(--afk-foret-300)}
 .variant-chip.is-out span{opacity:.55;text-decoration:line-through;cursor:not-allowed}
+
+/* — Codes promo (vendeur) — */
+.promo-form{margin:6px 0 4px}
+.promo-list{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.promo-item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--afk-ligne);border-radius:var(--afk-r-sm);background:#fff}
+.promo-item.is-off{opacity:.55}
+.promo-code-tag{font-family:var(--afk-mono);font-weight:700;background:var(--accent-50);color:#8a5a08;border:1px solid #f0c674;padding:3px 10px;border-radius:7px}
+.promo-item .inline-form{margin-left:auto}

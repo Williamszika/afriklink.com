@@ -185,6 +185,8 @@ return [
     ['POST', '/boutique/{slug}/assistant',            [BoutiqueController::class, 'assistant'],        ['csrf', 'throttle:assistant,30,3600']],
     ['POST', '/boutique/avis/{rid}/masquer',  [BoutiqueController::class, 'hideReview'],  ['auth', 'csrf']],
     ['POST', '/boutique/politique',           [BoutiqueController::class, 'updatePolicy'], ['auth', 'csrf']],
+    ['POST', '/boutique/promotions',              [BoutiqueController::class, 'createDiscount'], ['auth', 'csrf']],
+    ['POST', '/boutique/promotions/{id}/statut',  [BoutiqueController::class, 'toggleDiscount'], ['auth', 'csrf']],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
     ['GET',  '/boutique/{slug}',         [BoutiqueController::class, 'show'],    []],
