@@ -26,15 +26,15 @@ $canOrder = $inStock && ($published || $is_owner);
         <?php $fulls = array_map(static fn ($ph) => CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1400, 1050), $photos); ?>
         <div class="listing-media" data-gallery data-photos="<?= e((string) json_encode(array_values($fulls), JSON_UNESCAPED_SLASHES)) ?>">
             <?php if ($main !== null): ?>
-                <button type="button" class="listing-main-zoom" data-zoom-open data-index="0" aria-label="<?= e(t('product.zoom')) ?>">
-                    <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($main, 880, 660)) ?>" alt="<?= e((string) $product['name']) ?>" width="880" height="660">
+                <button type="button" class="listing-main-zoom" data-zoom-open data-zoom-hover data-index="0" aria-label="<?= e(t('product.zoom')) ?>">
+                    <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($main, 1100, 825)) ?>" alt="<?= e((string) $product['name']) ?>" width="880" height="660">
                     <span class="zoom-hint" aria-hidden="true">🔍</span>
                 </button>
             <?php endif; ?>
             <?php if (count($photos) > 1): ?>
                 <div class="listing-thumbs">
                     <?php foreach ($photos as $i => $ph): ?>
-                        <button type="button" class="thumb" data-index="<?= (int) $i ?>" data-gallery-full="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 880, 660)) ?>">
+                        <button type="button" class="thumb" data-index="<?= (int) $i ?>" data-gallery-full="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1100, 825)) ?>">
                             <img src="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 120, 90)) ?>" alt="" loading="lazy" width="120" height="90">
                         </button>
                     <?php endforeach; ?>

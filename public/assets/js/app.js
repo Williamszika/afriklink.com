@@ -2174,3 +2174,27 @@ document.addEventListener('click', function (ev) {
         chip.addEventListener('click', function () { ask(chip.textContent); });
     });
 })();
+
+/* ---- Galerie produit : zoom à la loupe au survol (desktop, pointeur fin) ----
+   Aucun JS inline (CSP) ; on ne fait que déplacer transform-origin selon le
+   curseur. Le clic ouvre toujours le plein écran (lightbox). */
+(function () {
+    'use strict';
+    if (!window.matchMedia || !window.matchMedia('(pointer:fine)').matches) { return; }
+    document.querySelectorAll('[data-zoom-hover]').forEach(function (box) {
+        var img = box.querySelector('img');
+        if (!img) { return; }
+        box.addEventListener('mouseenter', function () { box.classList.add('is-zooming'); });
+        box.addEventListener('mouseleave', function () {
+            box.classList.remove('is-zooming');
+            img.style.transformOrigin = 'center center';
+        });
+        box.addEventListener('mousemove', function (e) {
+            var r = box.getBoundingClientRect();
+            if (!r.width || !r.height) { return; }
+            var x = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
+            var y = Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100));
+            img.style.transformOrigin = x + '% ' + y + '%';
+        });
+    });
+})();
