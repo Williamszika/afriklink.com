@@ -983,6 +983,7 @@ return [
     'order.f.your_details' => 'Your details',
     'order.f.contact_hint' => 'Leave at least a phone OR an email so we can reach you.',
     'order.err_contact' => 'Provide a phone or an email so we can contact you.',
+    'order.err_address' => 'Enter the delivery address.',
     'order.f.address' => 'Delivery address (if delivery)',
     'order.f.address_ph' => 'e.g. 12 Rue, Médina, Dakar',
     'order.filter.a_traiter' => 'To process',

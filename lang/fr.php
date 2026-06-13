@@ -983,6 +983,7 @@ return [
     'order.f.your_details' => 'Vos coordonnées',
     'order.f.contact_hint' => 'Laissez au moins un téléphone OU un e-mail pour être recontacté(e).',
     'order.err_contact' => 'Indiquez un téléphone ou un e-mail pour qu’on puisse vous recontacter.',
+    'order.err_address' => 'Indiquez l’adresse de livraison.',
     'order.f.address' => 'Adresse de livraison (si livraison)',
     'order.f.address_ph' => 'ex. Rue 12, Médina, Dakar',
     'order.filter.a_traiter' => 'À traiter',

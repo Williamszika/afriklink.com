@@ -382,6 +382,10 @@ final class BoutiqueController
         if ($phone === '' && $email === '') {
             $errors['contact'] = t('order.err_contact');
         }
+        // Adresse obligatoire si le mode choisi est une livraison.
+        if ($address === '' && in_array($fulfillment, ['local', 'international'], true)) {
+            $errors['client_address'] = t('order.err_address');
+        }
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);

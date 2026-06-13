@@ -247,6 +247,7 @@ final class RestaurantController
         if ($phone !== '' && !preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone)) { $errors['client_phone'] = t('order.err_phone'); }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['client_email'] = t('order.err_email'); }
         if ($phone === '' && $email === '') { $errors['contact'] = t('order.err_contact'); }
+        if ($address === '' && $service === 'delivery') { $errors['client_address'] = t('order.err_address'); }
 
         if ($errors !== []) {
             keep_old($_POST);

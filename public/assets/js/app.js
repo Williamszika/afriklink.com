@@ -1986,3 +1986,21 @@ document.addEventListener('click', function (ev) {
         });
     }
 })();
+
+/* ---- Caisse : champ obligatoire selon le mode choisi (ex. adresse pour la
+   livraison). L'input porte data-require-radio (nom du groupe de boutons) et
+   data-require-when (valeurs déclenchant l'obligation). ---- */
+(function () {
+    document.querySelectorAll('[data-require-when]').forEach(function (input) {
+        var vals = (input.getAttribute('data-require-when') || '').split(',');
+        var name = input.getAttribute('data-require-radio') || '';
+        var radios = document.querySelectorAll('input[name="' + name + '"]');
+        if (!radios.length) { return; }
+        function update() {
+            var sel = document.querySelector('input[name="' + name + '"]:checked');
+            input.required = !!(sel && vals.indexOf(sel.value) !== -1);
+        }
+        radios.forEach(function (r) { r.addEventListener('change', update); });
+        update();
+    });
+})();
