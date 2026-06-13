@@ -1,5 +1,6 @@
 <?php
-/** @var array $boutique  @var array $product  @var list<array> $photos  @var array $seller  @var bool $is_owner  @var bool $seller_verified */
+/** @var array $boutique  @var array $product  @var list<array> $photos  @var array $seller  @var bool $is_owner  @var bool $seller_verified
+ *  @var list<array> $reviews  @var array{avg:float,count:int} $rating  @var list<array> $related  @var array<int,string> $related_mains */
 use App\Services\CloudinaryService;
 
 $cur     = (string) $boutique['currency'];
@@ -45,6 +46,9 @@ $canOrder = $inStock && ($published || $is_owner);
         <div class="listing-side">
             <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
+                <?php if (($rating['count'] ?? 0) > 0): ?>
+                    <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
+                <?php endif; ?>
                 <p class="listing-price"><?= e(format_price((int) $product['price_cents'], $cur)) ?></p>
                 <p class="listing-tags">
                     <?php if ($inStock): ?>
@@ -84,6 +88,74 @@ $canOrder = $inStock && ($published || $is_owner);
         <div class="panel">
             <h2 class="panel-title"><?= e(t('product.f.description')) ?></h2>
             <p class="listing-description"><?= nl2br(e((string) $product['description'])) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <!-- Avis & notes -->
+    <div class="panel" id="avis">
+        <h2 class="panel-title">⭐ <?= e(t('review.title')) ?>
+            <?php if (($rating['count'] ?? 0) > 0): ?> <?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?><?php endif; ?>
+        </h2>
+        <?php if (empty($reviews)): ?>
+            <p class="muted"><?= e(t('review.empty')) ?></p>
+        <?php else: ?>
+            <ul class="review-list">
+                <?php foreach ($reviews as $rv): ?>
+                    <li class="review-item">
+                        <div class="review-head">
+                            <?= render_partial('partials/stars', ['avg' => (int) $rv['rating'], 'count' => 0, 'small' => true]) ?>
+                            <strong class="review-author"><?= e((string) $rv['author_name']) ?></strong>
+                            <span class="review-date muted"><?= e(date('d/m/Y', strtotime((string) $rv['created_at']))) ?></span>
+                            <?php if ($is_owner): ?>
+                                <form method="post" action="<?= e(url('/boutique/avis/' . $rv['public_id'] . '/masquer')) ?>" class="inline-form review-hide">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="back" value="/boutique/<?= e($boutique['slug']) ?>/p/<?= e($product['public_id']) ?>#avis">
+                                    <button class="link-button btn-danger" data-confirm="<?= e(t('review.hide_confirm')) ?>"><?= e(t('review.hide')) ?></button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                        <?php if (!empty($rv['comment'])): ?><p class="review-comment"><?= nl2br(e((string) $rv['comment'])) ?></p><?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+
+        <?php if ($published): ?>
+            <details class="review-form-box" <?= has_error('review') ? 'open' : '' ?>>
+                <summary>✍️ <?= e(t('review.cta')) ?></summary>
+                <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/avis')) ?>" class="review-form">
+                    <?= csrf_field() ?>
+                    <div class="star-input" role="radiogroup" aria-label="<?= e(t('review.title')) ?>">
+                        <?php for ($s = 5; $s >= 1; $s--): ?>
+                            <input type="radio" id="star<?= $s ?>" name="rating" value="<?= $s ?>" <?= $s === 5 ? 'checked' : '' ?>>
+                            <label for="star<?= $s ?>" title="<?= $s ?>/5">★</label>
+                        <?php endfor; ?>
+                    </div>
+                    <label for="rv-name"><?= e(t('order.f.client')) ?></label>
+                    <input type="text" id="rv-name" name="author_name" maxlength="80" required value="<?= old('author_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+                    <label for="rv-comment"><?= e(t('review.comment')) ?></label>
+                    <textarea id="rv-comment" name="comment" maxlength="1000" rows="3" placeholder="<?= e(t('review.comment_ph')) ?>"><?= old('comment') ?></textarea>
+                    <button type="submit" class="btn btn-primary"><?= e(t('review.submit')) ?></button>
+                </form>
+            </details>
+        <?php endif; ?>
+    </div>
+
+    <!-- Produits recommandés -->
+    <?php if (!empty($related)): ?>
+        <div class="panel">
+            <h2 class="panel-title">🛍️ <?= e(t('product.related')) ?></h2>
+            <div class="product-grid">
+                <?php foreach ($related as $rp): $rm = $related_mains[(int) $rp['id']] ?? null; ?>
+                    <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $rp['public_id'])) ?>">
+                        <span class="product-card-img">
+                            <?php if ($rm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($rm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                        </span>
+                        <span class="product-card-name"><?= e((string) $rp['name']) ?></span>
+                        <span class="product-card-price"><?= e(format_price((int) $rp['price_cents'], $cur)) ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </div>
         </div>
     <?php endif; ?>
 

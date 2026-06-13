@@ -7,6 +7,7 @@ use App\Models\Boutique;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\ProProfile;
+use App\Models\Review;
 use App\Models\ShopView;
 use App\Models\User;
 use App\Request;
@@ -223,6 +224,8 @@ final class BoutiqueController
             'is_owner' => $isOwner,
             'products' => $products,
             'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'ratings'  => Review::summaryForProducts(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'shop_rating' => Review::summaryForBoutique((int) $boutique['id']),
             'page_title' => (string) $boutique['name'],
             'meta' => [
                 'description' => $this->ogDescription((string) ($boutique['tagline'] ?: $boutique['description'] ?? '')),
@@ -250,6 +253,12 @@ final class BoutiqueController
         $this->countView($boutique, $isOwner, (int) $product['id']);
         $photos = \App\Models\Product::photos((int) $product['id']);
         $main   = $photos[0]['cloud_public_id'] ?? null;
+        // Produits recommandés : autres produits en ligne de la même boutique.
+        $related = array_values(array_filter(
+            \App\Models\Product::forBoutique((int) $boutique['id'], true),
+            static fn (array $p): bool => (int) $p['id'] !== (int) $product['id']
+        ));
+        $related = array_slice($related, 0, 4);
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
@@ -257,6 +266,10 @@ final class BoutiqueController
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
             'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
             'is_owner' => $isOwner,
+            'reviews'  => Review::forProduct((int) $product['id']),
+            'rating'   => Review::summaryForProduct((int) $product['id']),
+            'related'  => $related,
+            'related_mains' => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $related)),
             'page_title' => (string) $product['name'],
             'meta' => [
                 'description' => $this->ogDescription(
@@ -267,6 +280,56 @@ final class BoutiqueController
                 'url'   => url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']),
             ],
         ]);
+    }
+
+    /* ---- Avis & notes ---------------------------------------------- */
+
+    /** Un client dépose un avis sur un produit (public, anti-spam par throttle). */
+    public function storeReview(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || $boutique['status'] !== 'published') {
+            abort(404);
+        }
+        $product = \App\Models\Product::findByPublicId((string) $request->param('pid', ''));
+        if ($product === null || (int) $product['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        $back = '/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'];
+        $rating = (int) input_string('rating', '0');
+        $name = trim((string) input_string('author_name', ''));
+        $comment = trim((string) input_string('comment', ''));
+        if ($rating < 1 || $rating > 5 || mb_strlen($name) < 2) {
+            flash('error', t('review.invalid'));
+            keep_old($_POST);
+            redirect($back . '#avis');
+        }
+        Review::create([
+            'boutique_id' => (int) $boutique['id'],
+            'product_id'  => (int) $product['id'],
+            'user_id'     => current_user_id(),
+            'author_name' => $name,
+            'rating'      => $rating,
+            'comment'     => $comment !== '' ? $comment : null,
+        ]);
+        AuditLog::record((int) ($boutique['user_id']), 'review.posted', 'product', (int) $product['id'], ['rating' => $rating], $request->ipBinary());
+        flash('success', t('review.thanks'));
+        redirect($back . '#avis');
+    }
+
+    /** Le vendeur masque un avis abusif sur l'un de ses produits. */
+    public function hideReview(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $review = Review::findByPublicId((string) $request->param('rid', ''));
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($review === null || $boutique === null || (int) $review['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        Review::setStatus((int) $review['id'], 'hidden');
+        flash('success', t('review.hidden'));
+        $back = (string) input_string('back', '/boutique/gerer');
+        redirect(str_starts_with($back, '/boutique/') ? $back : '/boutique/gerer');
     }
 
     /* ---- Caisse & commande en ligne (panier public) ---------------- */

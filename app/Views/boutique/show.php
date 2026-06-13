@@ -44,6 +44,9 @@ $canOrder = !empty($products) && ($published || $is_owner);
                     <?php if (!empty($boutique['category'])): ?><span class="badge badge-neutral"><?= e(t('listing.cat.' . $boutique['category'])) ?></span><?php endif; ?>
                     <?php if ($cc !== ''): ?> <?= flag_emoji($cc) ?> <?= e(country_name($cc)) ?><?php endif; ?>
                 </p>
+                <?php if (!empty($shop_rating['count'])): ?>
+                    <p class="shop-rating"><?= render_partial('partials/stars', ['avg' => $shop_rating['avg'], 'count' => $shop_rating['count']]) ?></p>
+                <?php endif; ?>
                 <?= render_partial('partials/share_row', [
                     'share_url'  => $shopUrl,
                     'share_text' => t('share.shop_text', ['name' => (string) $boutique['name']]),
@@ -79,6 +82,9 @@ $canOrder = !empty($products) && ($published || $is_owner);
                                 </span>
                                 <span class="product-card-name"><?= e((string) $pr['name']) ?></span>
                                 <span class="product-card-price"><?= e(format_price((int) $pr['price_cents'], $cur)) ?></span>
+                                <?php if (!empty($ratings[(int) $pr['id']]['count'])): ?>
+                                    <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $ratings[(int) $pr['id']]['avg'], 'count' => $ratings[(int) $pr['id']]['count'], 'small' => true]) ?></span>
+                                <?php endif; ?>
                             </a>
                             <?php if ($canOrder && $inStock): ?>
                                 <div class="product-actions">
