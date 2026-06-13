@@ -154,6 +154,15 @@ final class Restaurant
         ]);
     }
 
+    /** Met à jour la configuration d'encaissement (conditions + moyens + fournisseur). */
+    public static function updatePayment(int $id, ?string $terms, ?string $methods, ?string $provider): void
+    {
+        self::ensureTable();
+        db()->prepare(
+            'UPDATE restaurants SET payment_terms = :terms, payment_methods = :methods, payment_provider = :provider WHERE id = :id'
+        )->execute(['terms' => $terms, 'methods' => $methods, 'provider' => $provider, 'id' => $id]);
+    }
+
     public static function findByUserId(int $userId): ?array
     {
         try {

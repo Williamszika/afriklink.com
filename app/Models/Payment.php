@@ -17,23 +17,49 @@ final class Payment
     {
         db()->exec(
             'CREATE TABLE IF NOT EXISTS payments (
-                id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                public_id    CHAR(36) NOT NULL UNIQUE,
-                boutique_id  BIGINT UNSIGNED NULL,
-                order_id     BIGINT UNSIGNED NULL,
-                user_id      BIGINT UNSIGNED NOT NULL,
-                provider     VARCHAR(20) NOT NULL,
-                provider_ref VARCHAR(100) NULL,
-                amount_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
-                currency     CHAR(3) NOT NULL DEFAULT \'EUR\',
-                description  VARCHAR(255) NULL,
-                status       VARCHAR(12) NOT NULL DEFAULT \'pending\',
-                created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                public_id     CHAR(36) NOT NULL UNIQUE,
+                kind          VARCHAR(12) NOT NULL DEFAULT \'boutique\',
+                boutique_id   BIGINT UNSIGNED NULL,
+                restaurant_id BIGINT UNSIGNED NULL,
+                order_id      BIGINT UNSIGNED NULL,
+                user_id       BIGINT UNSIGNED NOT NULL,
+                provider      VARCHAR(20) NOT NULL,
+                provider_ref  VARCHAR(100) NULL,
+                amount_cents  BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                currency      CHAR(3) NOT NULL DEFAULT \'EUR\',
+                description   VARCHAR(255) NULL,
+                status        VARCHAR(12) NOT NULL DEFAULT \'pending\',
+                created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 KEY idx_payments_boutique (boutique_id, status),
                 KEY idx_payments_user (user_id)
             )'
         );
+        self::migrate();
+    }
+
+    /** Ajoute kind + restaurant_id sur une table déjà créée (commandes restaurant). */
+    private static function migrate(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        foreach ([
+            'kind'          => "ADD COLUMN kind VARCHAR(12) NOT NULL DEFAULT 'boutique' AFTER public_id",
+            'restaurant_id' => "ADD COLUMN restaurant_id BIGINT UNSIGNED NULL AFTER boutique_id",
+        ] as $col => $ddl) {
+            try {
+                db()->query("SELECT {$col} FROM payments LIMIT 1");
+            } catch (\Throwable) {
+                try {
+                    db()->exec("ALTER TABLE payments {$ddl}");
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
 
     /** Crée une intention de paiement et renvoie sa référence (public_id). */
@@ -42,13 +68,15 @@ final class Payment
         self::ensureTable();
         $ref = uuid();
         $stmt = db()->prepare(
-            'INSERT INTO payments (public_id, boutique_id, order_id, user_id, provider,
+            'INSERT INTO payments (public_id, kind, boutique_id, restaurant_id, order_id, user_id, provider,
                 amount_cents, currency, description, status)
-             VALUES (:pid, :bid, :oid, :uid, :provider, :amount, :cur, :desc, \'pending\')'
+             VALUES (:pid, :kind, :bid, :rid, :oid, :uid, :provider, :amount, :cur, :desc, \'pending\')'
         );
         $stmt->execute([
             'pid' => $ref,
+            'kind' => $d['kind'] ?? 'boutique',
             'bid' => $d['boutique_id'] ?? null,
+            'rid' => $d['restaurant_id'] ?? null,
             'oid' => $d['order_id'] ?? null,
             'uid' => $d['user_id'],
             'provider' => $d['provider'],
@@ -59,12 +87,12 @@ final class Payment
         return $ref;
     }
 
-    /** Paiement le plus récent rattaché à une commande (ou null). */
-    public static function latestForOrder(int $orderId): ?array
+    /** Paiement le plus récent rattaché à une commande d'un type donné (ou null). */
+    public static function latestForOrder(int $orderId, string $kind = 'boutique'): ?array
     {
         try {
-            $stmt = db()->prepare('SELECT * FROM payments WHERE order_id = :o ORDER BY id DESC LIMIT 1');
-            $stmt->execute(['o' => $orderId]);
+            $stmt = db()->prepare('SELECT * FROM payments WHERE order_id = :o AND kind = :k ORDER BY id DESC LIMIT 1');
+            $stmt->execute(['o' => $orderId, 'k' => $kind]);
             $row = $stmt->fetch();
             return $row !== false ? $row : null;
         } catch (\Throwable) {

@@ -35,6 +35,11 @@ final class RestaurantOrder
                 note          VARCHAR(500) NULL,
                 subtotal_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
                 currency      CHAR(3) NOT NULL DEFAULT \'XOF\',
+                client_email   VARCHAR(120) NULL,
+                payment_status VARCHAR(12) NOT NULL DEFAULT \'unpaid\',
+                payment_ref    CHAR(36) NULL,
+                payment_term   VARCHAR(16) NULL,
+                payment_method VARCHAR(16) NULL,
                 status        VARCHAR(12) NOT NULL DEFAULT \'new\',
                 created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -42,6 +47,7 @@ final class RestaurantOrder
                 KEY idx_rorders_seller (seller_id, status)
             )'
         );
+        self::migrate();
         db()->exec(
             'CREATE TABLE IF NOT EXISTS restaurant_order_items (
                 id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -53,6 +59,62 @@ final class RestaurantOrder
                 KEY idx_roitems_order (order_id)
             )'
         );
+    }
+
+    /** Colonnes de paiement ajoutées après coup sur une table déjà créée. */
+    private static function migrate(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        foreach ([
+            'client_email'   => "ADD COLUMN client_email VARCHAR(120) NULL AFTER currency",
+            'payment_status' => "ADD COLUMN payment_status VARCHAR(12) NOT NULL DEFAULT 'unpaid' AFTER currency",
+            'payment_ref'    => "ADD COLUMN payment_ref CHAR(36) NULL AFTER payment_status",
+            'payment_term'   => "ADD COLUMN payment_term VARCHAR(16) NULL AFTER payment_ref",
+            'payment_method' => "ADD COLUMN payment_method VARCHAR(16) NULL AFTER payment_term",
+        ] as $col => $ddl) {
+            try {
+                db()->query("SELECT {$col} FROM restaurant_orders LIMIT 1");
+            } catch (\Throwable) {
+                try {
+                    db()->exec("ALTER TABLE restaurant_orders {$ddl}");
+                } catch (\Throwable) {
+                }
+            }
+        }
+    }
+
+    /** Montant à régler en ligne selon la condition (acompte / total / 0 à la livraison). */
+    public static function amountDue(array $order): int
+    {
+        $total = (int) ($order['subtotal_cents'] ?? 0);
+        return match ((string) ($order['payment_term'] ?? '')) {
+            'before_delivery' => $total,
+            'deposit'         => (int) round($total * (int) config('shop.deposit_pct', 50) / 100),
+            default           => 0,
+        };
+    }
+
+    public static function restDue(array $order): int
+    {
+        return max(0, (int) ($order['subtotal_cents'] ?? 0) - self::amountDue($order));
+    }
+
+    public static function setPaymentStatus(int $id, string $status, ?string $ref = null): void
+    {
+        self::migrate();
+        if (!in_array($status, ['unpaid', 'pending', 'paid', 'failed'], true)) {
+            return;
+        }
+        $sql = 'UPDATE restaurant_orders SET payment_status = :s' . ($ref !== null ? ', payment_ref = :r' : '') . ' WHERE id = :id';
+        $args = ['s' => $status, 'id' => $id];
+        if ($ref !== null) {
+            $args['r'] = $ref;
+        }
+        db()->prepare($sql)->execute($args);
     }
 
     /**
@@ -72,14 +134,17 @@ final class RestaurantOrder
         try {
             $stmt = $pdo->prepare(
                 'INSERT INTO restaurant_orders
-                    (public_id, restaurant_id, seller_id, client_name, client_phone, service, note, subtotal_cents, currency, status)
-                 VALUES (:pid, :rid, :sid, :cname, :cphone, :service, :note, :sub, :cur, \'new\')'
+                    (public_id, restaurant_id, seller_id, client_name, client_phone, client_email, service, note,
+                     subtotal_cents, currency, payment_term, payment_method, status)
+                 VALUES (:pid, :rid, :sid, :cname, :cphone, :cemail, :service, :note, :sub, :cur, :term, :method, \'new\')'
             );
             $stmt->execute([
                 'pid' => $publicId, 'rid' => $header['restaurant_id'], 'sid' => $header['seller_id'],
                 'cname' => $header['client_name'], 'cphone' => $header['client_phone'],
+                'cemail' => $header['client_email'] ?? null,
                 'service' => $header['service'], 'note' => $header['note'],
                 'sub' => $subtotal, 'cur' => $header['currency'],
+                'term' => $header['payment_term'] ?? null, 'method' => $header['payment_method'] ?? null,
             ]);
             $orderId = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare(

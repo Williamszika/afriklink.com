@@ -195,5 +195,39 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
             </div>
         <?php endif; ?>
 
+        <!-- Encaissement en ligne (conditions + moyens + fournisseur) -->
+        <div class="panel">
+            <h2 class="panel-title">💳 <?= e(t('resto.payment_title')) ?></h2>
+            <p class="muted"><?= e(t('resto.payment_hint')) ?></p>
+            <?php
+            $rTerms = array_filter(explode(',', (string) ($resto['payment_terms'] ?? '')));
+            $rMethods = array_filter(explode(',', (string) ($resto['payment_methods'] ?? '')));
+            ?>
+            <form method="post" action="<?= e(url('/restaurant/paiement')) ?>" class="resto-pay-form">
+                <?= csrf_field() ?>
+                <label><?= e(t('shop.f.payment_terms')) ?></label>
+                <div class="lang-checks">
+                    <?php foreach ((array) config('shop.payment_terms', []) as $pt): ?>
+                        <label class="check-pill"><input type="checkbox" name="payment_terms[]" value="<?= e($pt) ?>" <?= in_array($pt, $rTerms, true) ? 'checked' : '' ?>><span><?= e(t('shop.payterm.' . $pt)) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <label><?= e(t('shop.f.payment_methods')) ?></label>
+                <div class="lang-checks pay-method-checks">
+                    <?php foreach ((array) config('shop.payment_methods', []) as $pm): ?>
+                        <label class="check-pill"><input type="checkbox" name="payment_methods[]" value="<?= e($pm) ?>" <?= in_array($pm, $rMethods, true) ? 'checked' : '' ?>><img src="<?= e(asset('img/pay/' . $pm . '.svg')) ?>" alt="" width="30" height="19"><span><?= e(t('shop.paymethod.' . $pm)) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <label for="r-provider"><?= e(t('pay.provider_label')) ?></label>
+                <select id="r-provider" name="payment_provider">
+                    <option value=""><?= e(t('pay.provider_none')) ?></option>
+                    <?php foreach ((array) config('payment.providers', []) as $key => $p): if (!empty($p['always'])) { continue; } ?>
+                        <option value="<?= e((string) $key) ?>" <?= ($resto['payment_provider'] ?? '') === $key ? 'selected' : '' ?>><?= e((string) $p['label']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="hint"><?= e(t('pay.env_hint')) ?></p>
+                <button type="submit" class="btn btn-primary"><?= e(t('resto.payment_save')) ?></button>
+            </form>
+        </div>
+
     </div>
 </div>

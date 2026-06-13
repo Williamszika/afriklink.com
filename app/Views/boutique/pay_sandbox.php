@@ -18,7 +18,7 @@ $amount = (int) ($amount_cents ?? $order['total_cents']);
     <?php endif; ?>
     <p class="notice notice-info"><?= e(t('pay.sandbox_note')) ?></p>
 
-    <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/regler')) ?>" class="pay-sandbox-form">
+    <form method="post" action="<?= e($settle_url ?? url('/boutique/commande/' . $order['public_id'] . '/regler')) ?>" class="pay-sandbox-form">
         <?= csrf_field() ?>
         <button type="submit" class="btn btn-primary btn-block" name="outcome" value="pay">✅ <?= e(t('pay.sandbox_pay')) ?></button>
         <button type="submit" class="btn btn-ghost btn-block" name="outcome" value="cancel"><?= e(t('pay.sandbox_cancel')) ?></button>

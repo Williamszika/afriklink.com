@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\MenuItem;
+use App\Models\Payment;
 use App\Models\Restaurant;
 use App\Models\RestaurantOrder;
 use App\Models\User;
@@ -11,6 +12,10 @@ use App\Request;
 use App\Services\AuditLog;
 use App\Services\GeoService;
 use App\Services\OrderNotifier;
+use App\Services\Payment\PaymentException;
+use App\Services\Payment\PaymentProviders;
+use App\Services\Payment\PaymentRequest;
+use App\Services\Payment\PaymentResult;
 
 /**
  * Verticale Restaurant — création de la vitrine, gestion de la carte
@@ -222,11 +227,19 @@ final class RestaurantController
 
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));
+        $email = trim((string) input_string('client_email', ''));
         $service = whitelist((string) input_string('service', ''), RestaurantOrder::SERVICES, 'takeaway');
+        // Condition + moyen de paiement choisis (parmi ceux acceptés par le restaurant).
+        $terms = array_values(array_filter(explode(',', (string) ($resto['payment_terms'] ?? ''))));
+        $paymentTerm = $terms !== [] ? whitelist((string) input_string('payment_term', ''), $terms, $terms[0]) : null;
+        $payMethods = array_values(array_filter(explode(',', (string) ($resto['payment_methods'] ?? ''))));
+        $paymentMethod = $payMethods !== [] ? whitelist((string) input_string('payment_method', ''), $payMethods, $payMethods[0]) : null;
+
         $errors = [];
         if ($lines === []) { $errors['cart'] = t('rorder.empty'); }
         if (mb_strlen($name) < 2 || mb_strlen($name) > 80) { $errors['client_name'] = t('order.err_client'); }
         if ($phone !== '' && !preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone)) { $errors['client_phone'] = t('order.err_phone'); }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['client_email'] = t('order.err_email'); }
 
         if ($errors !== []) {
             keep_old($_POST);
@@ -239,9 +252,12 @@ final class RestaurantController
             'seller_id' => (int) $resto['user_id'],
             'client_name' => $name,
             'client_phone' => $phone !== '' ? $phone : null,
+            'client_email' => $email !== '' ? $email : null,
             'service' => $service,
             'note' => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
             'currency' => $cur,
+            'payment_term' => $paymentTerm,
+            'payment_method' => $paymentMethod,
         ], $lines);
 
         AuditLog::record((int) $resto['user_id'], 'rorder.placed', 'restaurant', (int) $resto['id'], ['order' => $publicId], $request->ipBinary());
@@ -268,10 +284,21 @@ final class RestaurantController
         } catch (\Throwable) {
             // notification best-effort
         }
+        try {
+            OrderNotifier::clientOrderPlaced(
+                $email, $phone, (string) $resto['name'], strtoupper(substr($publicId, 0, 6)),
+                $total, $cur, $paymentTerm, url('/restaurant/commande/' . $publicId),
+            );
+        } catch (\Throwable) {
+        }
 
         unset($_SESSION['rcaisse'][(int) $resto['id']]); // panier consommé
         clear_old();
-        redirect('/restaurant/commande/' . $publicId);
+        // « Valider le paiement » : selon le type choisi, on règle tout de suite
+        // (avance / avant) ou on va à la confirmation (à la livraison / sans paiement).
+        $order = RestaurantOrder::findByPublicId($publicId);
+        $payUrl = $order !== null ? $this->beginPayment($order, $resto) : null;
+        redirect($payUrl ?? ('/restaurant/commande/' . $publicId));
     }
 
     /* ---- Caisse (panier sur une page dédiée) ----------------------- */
@@ -316,11 +343,13 @@ final class RestaurantController
         }
         $services = array_filter(explode(',', (string) ($resto['services'] ?? '')));
         view('restaurant/caisse', [
-            'resto'      => $resto,
-            'lines'      => $lines,
-            'total'      => array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines)),
-            'services'   => $services !== [] ? array_values($services) : ['takeaway'],
-            'page_title' => t('caisse.title', ['shop' => (string) $resto['name']]),
+            'resto'       => $resto,
+            'lines'       => $lines,
+            'total'       => array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines)),
+            'services'    => $services !== [] ? array_values($services) : ['takeaway'],
+            'terms'       => array_values(array_filter(explode(',', (string) ($resto['payment_terms'] ?? '')))),
+            'pay_methods' => array_values(array_filter(explode(',', (string) ($resto['payment_methods'] ?? '')))),
+            'page_title'  => t('caisse.title', ['shop' => (string) $resto['name']]),
         ]);
     }
 
@@ -366,6 +395,176 @@ final class RestaurantController
         return $lines;
     }
 
+    /* ---- Paiement en ligne de la commande (public) ----------------- */
+
+    /** Démarre (ou reprend) le règlement d'une commande selon sa condition. */
+    private function beginPayment(array $order, array $resto): ?string
+    {
+        if (($order['payment_status'] ?? '') === 'paid') {
+            return null;
+        }
+        $amount = RestaurantOrder::amountDue($order);
+        if ($amount <= 0) {
+            return null;
+        }
+        $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
+        $provider = PaymentProviders::resolve($resto['payment_provider'] ?? null);
+        $payRef = Payment::create([
+            'kind'         => 'restaurant',
+            'restaurant_id' => (int) $resto['id'],
+            'order_id'     => (int) $order['id'],
+            'user_id'      => (int) $resto['user_id'],
+            'provider'     => $provider->key(),
+            'amount_cents' => $amount,
+            'currency'     => (string) $order['currency'],
+            'description'  => t('pay.order_desc', ['ref' => $ref]),
+        ]);
+        RestaurantOrder::setPaymentStatus((int) $order['id'], 'pending', $payRef);
+
+        if ($provider->key() === 'simulation') {
+            return '/restaurant/commande/' . $order['public_id'] . '/regler';
+        }
+        try {
+            $init = $provider->createPayment(new PaymentRequest(
+                reference: $payRef,
+                amountCents: $amount,
+                currency: (string) $order['currency'],
+                description: t('pay.order_desc', ['ref' => $ref]),
+                returnUrl: url('/restaurant/commande/' . $order['public_id'] . '/retour'),
+                customerName: (string) $order['client_name'],
+                customerPhone: (string) ($order['client_phone'] ?? ''),
+            ));
+        } catch (PaymentException) {
+            RestaurantOrder::setPaymentStatus((int) $order['id'], 'failed');
+            return null;
+        }
+        if ($init->providerRef !== '') {
+            Payment::setStatus($payRef, PaymentResult::PENDING, $init->providerRef);
+        }
+        return $init->redirectUrl;
+    }
+
+    public function payStart(Request $request): void
+    {
+        $order = RestaurantOrder::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        if (($order['payment_status'] ?? '') === 'paid') {
+            redirect('/restaurant/commande/' . $order['public_id']);
+        }
+        $resto = $this->restaurantOf((int) $order['restaurant_id']);
+        if ($resto === null) {
+            abort(404);
+        }
+        redirect($this->beginPayment($order, $resto) ?? ('/restaurant/commande/' . $order['public_id']));
+    }
+
+    /** Bac à sable (simulation) — public, tient lieu de PSP ; vue partagée avec la boutique. */
+    public function paySandbox(Request $request): void
+    {
+        $order = RestaurantOrder::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        if (($order['payment_status'] ?? '') === 'paid') {
+            redirect('/restaurant/commande/' . $order['public_id']);
+        }
+        $resto = $this->restaurantOf((int) $order['restaurant_id']);
+        if ($resto === null || PaymentProviders::resolve($resto['payment_provider'] ?? null)->key() !== 'simulation') {
+            abort(404);
+        }
+        $payment = Payment::latestForOrder((int) $order['id'], 'restaurant');
+        view('boutique/pay_sandbox', [
+            'order'        => ['public_id' => $order['public_id'], 'total_cents' => (int) $order['subtotal_cents'], 'currency' => $order['currency'], 'payment_method' => $order['payment_method'] ?? null],
+            'boutique'     => ['name' => (string) $resto['name']],
+            'amount_cents' => $payment !== null ? (int) $payment['amount_cents'] : RestaurantOrder::amountDue($order),
+            'is_deposit'   => (string) ($order['payment_term'] ?? '') === 'deposit',
+            'settle_url'   => url('/restaurant/commande/' . $order['public_id'] . '/regler'),
+            'page_title'   => t('pay.sandbox_title'),
+        ]);
+    }
+
+    public function paySettle(Request $request): void
+    {
+        $order = RestaurantOrder::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $payment = Payment::latestForOrder((int) $order['id'], 'restaurant');
+        if ($payment !== null && (string) $payment['provider'] !== 'simulation') {
+            abort(404);
+        }
+        $outcome = whitelist((string) input_string('outcome', ''), ['pay', 'cancel'], 'cancel');
+        if ($payment !== null) {
+            if ($outcome === 'pay') {
+                Payment::setStatus((string) $payment['public_id'], PaymentResult::PAID);
+                RestaurantOrder::setPaymentStatus((int) $order['id'], 'paid');
+                AuditLog::record((int) $order['seller_id'], 'rorder.paid', 'rorder', (int) $order['id'], [], $request->ipBinary());
+            } else {
+                Payment::setStatus((string) $payment['public_id'], PaymentResult::CANCELLED);
+                RestaurantOrder::setPaymentStatus((int) $order['id'], 'unpaid');
+            }
+        }
+        redirect('/restaurant/commande/' . $order['public_id']);
+    }
+
+    public function payReturn(Request $request): void
+    {
+        $order = RestaurantOrder::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $payment = Payment::latestForOrder((int) $order['id'], 'restaurant');
+        if ($payment !== null) {
+            $provider = PaymentProviders::resolve((string) $payment['provider']);
+            try {
+                $res = $provider->verify((string) $payment['public_id'], $_GET);
+            } catch (PaymentException) {
+                $res = new PaymentResult((string) $payment['public_id'], PaymentResult::FAILED);
+            }
+            Payment::setStatus((string) $payment['public_id'], $res->status);
+            RestaurantOrder::setPaymentStatus((int) $order['id'], $res->isPaid() ? 'paid' : ($res->status === 'pending' ? 'pending' : 'unpaid'));
+        }
+        redirect('/restaurant/commande/' . $order['public_id']);
+    }
+
+    /** Enregistre la configuration d'encaissement du restaurant (panneau « gérer »). */
+    public function updatePayment(Request $request): void
+    {
+        $resto = $this->ownRestaurant();
+        $terms = $this->checkedList('payment_terms', (array) config('shop.payment_terms', []));
+        $methods = $this->checkedList('payment_methods', (array) config('shop.payment_methods', []));
+        $provider = whitelist((string) input_string('payment_provider', ''), array_keys((array) config('payment.providers', [])), null);
+        Restaurant::updatePayment(
+            (int) $resto['id'],
+            $terms !== [] ? implode(',', $terms) : null,
+            $methods !== [] ? implode(',', $methods) : null,
+            $provider
+        );
+        flash('success', t('resto.payment_saved'));
+        redirect('/restaurant/gerer');
+    }
+
+    private function restaurantOf(int $id): ?array
+    {
+        try {
+            $stmt = db()->prepare('SELECT * FROM restaurants WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $id]);
+            return $stmt->fetch() ?: null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** Valeurs cochées filtrées par liste blanche et ordonnées. @return list<string> */
+    private function checkedList(string $field, array $allowed): array
+    {
+        $raw = $_POST[$field] ?? [];
+        $raw = is_array($raw) ? array_map('strval', $raw) : [(string) $raw];
+        return array_values(array_intersect($allowed, $raw));
+    }
+
     /** Confirmation client : récapitulatif + envoi au restaurant via WhatsApp. */
     public function orderConfirmation(Request $request): void
     {
@@ -384,11 +583,17 @@ final class RestaurantController
         if ($restoRow !== null) {
             $sellerPhone = (string) (User::findById((int) $restoRow['user_id'])['phone'] ?? '');
         }
+        $payStatus = (string) ($order['payment_status'] ?? 'unpaid');
+        $dueCents = RestaurantOrder::amountDue($order);
         view('restaurant/order_confirmation', [
             'order' => $order,
             'items' => RestaurantOrder::items((int) $order['id']),
             'resto' => $restoRow,
             'seller_phone' => $sellerPhone,
+            'pay_status' => $payStatus,
+            'due_cents'  => $dueCents,
+            'rest_cents' => RestaurantOrder::restDue($order),
+            'pay_ready'  => $dueCents > 0 && $payStatus !== 'paid',
             'page_title' => t('rorder.confirm_title'),
         ]);
     }
