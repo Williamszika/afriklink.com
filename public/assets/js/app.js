@@ -59,6 +59,15 @@
 // Quality gate: a fix coarser than 2 km is almost certainly an IP/WiFi fallback —
 // the city is then left untouched. By design NOTHING is ever displayed: the
 // fields just get corrected quietly and always stay editable.
+// Two entry points so geolocation works EVERYWHERE:
+//   • a silent attempt on load (desktop / already-granted permission),
+//   • a visible "Utiliser ma position" button (#geo-detect) — REQUIRED on mobile
+//     Safari & several mobile browsers that ignore getCurrentPosition unless it
+//     follows a user gesture (otherwise the prompt never appears → feature looks
+//     disabled). The browser permission prompt IS the user's consent.
+// The server pre-fills from IP (approximate); the Geolocation API refines until
+// ≤100 m, then a key-less reverse-geocoder (BigDataCloud, in our CSP) turns
+// coordinates into city + country. Fields always stay editable.
 (function () {
     'use strict';
 
@@ -71,6 +80,15 @@
     var GOOD_M = 100;      // requested precision
     var MAX_M = 2000;      // beyond this the fix is IP/WiFi-grade: don't trust it
     var REFINE_MS = 12000; // GPS refinement budget
+    var btn = document.getElementById('geo-detect');
+    var statusEl = document.getElementById('geo-detect-status');
+
+    function attr(name) { return btn ? (btn.getAttribute(name) || '') : ''; }
+    function say(text, isError) {
+        if (!statusEl) { return; }
+        statusEl.textContent = text || '';
+        statusEl.classList.toggle('is-error', !!isError);
+    }
 
     // Update a (possibly locked/disabled) <select> + its hidden submit input, so a
     // precise GPS fix corrects the locked country/flag/indicatif to the real one.
@@ -90,10 +108,11 @@
         setLocked('dial_country', iso);
     }
 
-    function conclude(best) {
-        if (!best) { return; } // silent failure
-        var acc = Math.round(best.coords.accuracy);
-        if (acc > MAX_M) { return; } // IP/WiFi-grade fix: leave the field as-is
+    function conclude() {
+        if (!best || Math.round(best.coords.accuracy) > MAX_M) {
+            if (mode === 'manual') { say(attr('data-unavailable'), true); } // IP/WiFi-grade fix
+            return;
+        }
         var url = 'https://api.bigdatacloud.net/data/reverse-geocode-client'
             + '?latitude=' + encodeURIComponent(best.coords.latitude)
             + '&longitude=' + encodeURIComponent(best.coords.longitude)
@@ -104,14 +123,21 @@
                 var name = d.city || d.locality || '';
                 if (name) { city.value = name; }
                 applyCountry(d.countryCode);
+                if (mode === 'manual') { say('✓ ' + (name || 'OK'), false); }
             })
-            .catch(function () { /* silent */ });
+            .catch(function () { if (mode === 'manual') { say(attr('data-unavailable'), true); } });
     }
 
     var best = null;
     var watchId = null;
     var pollId = null;
     var done = false;
+    var mode = 'silent';
+
+    function stopWatch() {
+        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+        if (pollId !== null) { clearInterval(pollId); pollId = null; }
+    }
 
     function consider(p) {
         if (!best || p.coords.accuracy < best.coords.accuracy) { best = p; }
@@ -121,38 +147,52 @@
     function finish() {
         if (done) { return; }
         done = true;
-        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); }
-        if (pollId !== null) { clearInterval(pollId); }
-        conclude(best);
+        stopWatch();
+        if (btn) { btn.disabled = false; }
+        conclude();
     }
 
-    navigator.geolocation.getCurrentPosition(
-        function (pos) {
-            best = pos;
-            if (pos.coords.accuracy <= GOOD_M) { finish(); return; }
-            // First fix too coarse — refine until ≤100 m or the budget ends.
-            // watchPosition AND an active 2.5 s re-poll: some browsers/WebViews
-            // never push watch updates, so polling is the reliable fallback.
-            watchId = navigator.geolocation.watchPosition(
-                consider,
-                // GPS often emits transient POSITION_UNAVAILABLE/TIMEOUT right
-                // before locking — only a permission denial is final here; the
-                // deadline below bounds everything else.
-                function (e) { if (e && e.code === 1) { finish(); } },
-                { enableHighAccuracy: true, maximumAge: 0 }
-            );
-            pollId = setInterval(function () {
-                navigator.geolocation.getCurrentPosition(
+    function refine(which) {
+        mode = which;
+        stopWatch();
+        best = null; done = false;
+        if (which === 'manual') { say(attr('data-asking'), false); if (btn) { btn.disabled = true; } }
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                best = pos;
+                if (pos.coords.accuracy <= GOOD_M) { finish(); return; }
+                // First fix too coarse — refine until ≤100 m or the budget ends.
+                // watchPosition AND an active 2.5 s re-poll: some browsers/WebViews
+                // never push watch updates, so polling is the reliable fallback.
+                watchId = navigator.geolocation.watchPosition(
                     consider,
-                    function () {},
-                    { enableHighAccuracy: true, maximumAge: 0, timeout: 2000 }
+                    function (e) { if (e && e.code === 1) { finish(); } },
+                    { enableHighAccuracy: true, maximumAge: 0 }
                 );
-            }, 2500);
-            setTimeout(finish, REFINE_MS);
-        },
-        function () { /* denied or unavailable — silent, IP estimate stays editable */ },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+                pollId = setInterval(function () {
+                    navigator.geolocation.getCurrentPosition(
+                        consider, function () {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 2000 }
+                    );
+                }, 2500);
+                setTimeout(finish, REFINE_MS);
+            },
+            function (e) {
+                if (btn) { btn.disabled = false; }
+                // Permission denial (code 1) vs transient unavailable — message only
+                // for the explicit button press; the silent attempt stays quiet.
+                if (which === 'manual') { say(attr(e && e.code === 1 ? 'data-denied' : 'data-unavailable'), true); }
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    // Gesture-triggered button: reliable on every browser, incl. mobile Safari.
+    if (btn) {
+        btn.hidden = false;
+        btn.addEventListener('click', function () { refine('manual'); });
+    }
+    // Silent attempt on load (no-op on browsers that need a gesture).
+    refine('silent');
 })();
 
 /* ---- Photo de profil : réduction côté navigateur avant envoi ----

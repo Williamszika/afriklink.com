@@ -104,6 +104,10 @@ $lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
             <div>
                 <label for="city"><?= e(t('field.city')) ?></label>
                 <input type="text" id="city" name="city" value="<?= old('city') ?>" autocomplete="address-level2">
+                <button type="button" id="geo-detect" class="link-button geo-detect-btn" hidden
+                        data-asking="<?= e(t('geo.asking')) ?>" data-denied="<?= e(t('geo.denied')) ?>"
+                        data-unavailable="<?= e(t('geo.error')) ?>">📍 <?= e(t('geo.btn')) ?></button>
+                <span id="geo-detect-status" class="hint geo-detect-status" aria-live="polite"></span>
             </div>
         </div>
 

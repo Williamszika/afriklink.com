@@ -1520,3 +1520,10 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .spotlight-head .afk-ad-tag{margin-bottom:14px}
 .spotlight-head h1{margin:0 0 10px}
 .spotlight-head .afk-lede{max-width:60ch}
+
+/* — Bouton « Utiliser ma position » (inscription) — */
+.geo-detect-btn{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-weight:600;color:var(--afk-foret);text-decoration:none}
+.geo-detect-btn:hover{color:var(--afk-foret-700);text-decoration:underline}
+.geo-detect-btn[disabled]{opacity:.6;cursor:progress}
+.geo-detect-status{display:block;margin-top:6px}
+.geo-detect-status.is-error{color:var(--danger)}
