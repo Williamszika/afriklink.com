@@ -59,6 +59,19 @@ final class Payment
         return $ref;
     }
 
+    /** Paiement le plus récent rattaché à une commande (ou null). */
+    public static function latestForOrder(int $orderId): ?array
+    {
+        try {
+            $stmt = db()->prepare('SELECT * FROM payments WHERE order_id = :o ORDER BY id DESC LIMIT 1');
+            $stmt->execute(['o' => $orderId]);
+            $row = $stmt->fetch();
+            return $row !== false ? $row : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     public static function findByReference(string $ref): ?array
     {
         try {

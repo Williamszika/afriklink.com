@@ -651,6 +651,24 @@ return [
     'pay.st.failed' => 'Failed',
     'pay.st.cancelled' => 'Cancelled',
     'pay.back_tester' => '← Back to payment tests',
+    // Customer order online payment
+    'pay.order_desc' => 'Order #:ref',
+    'pay.sandbox_title' => 'Order payment',
+    'pay.sandbox_sub' => 'Order #:ref',
+    'pay.sandbox_note' => 'Test mode: no real money is charged. As soon as the CinetPay/Stripe/PayPal keys are added, real payment turns on automatically.',
+    'pay.sandbox_pay' => 'Pay (test)',
+    'pay.sandbox_cancel' => 'Pay on delivery',
+    'pay.pay_now' => 'Pay now',
+    'pay.pay_now_hint' => 'Secure payment. You can also pay on delivery.',
+    'pay.status_paid' => 'Order paid',
+    'order.pay.paid' => 'Paid',
+    'order.pay.unpaid' => 'Unpaid',
+    // New-order notifications (email + SMS/WhatsApp to the seller)
+    'notify.order.sms' => 'New order #:ref on :shop: :n item(s), :total.',
+    'notify.order.mail_subject' => '🧾 New order #:ref — :shop',
+    'notify.order.mail_intro' => 'Good news! You received a new order (#:ref) on :shop.',
+    'notify.order.mail_client' => 'Customer',
+    'notify.order.mail_cta' => 'View the order',
 
     // Restaurant
     'pro.vertical.restaurant' => 'Restaurant',

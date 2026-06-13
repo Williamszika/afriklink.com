@@ -4,12 +4,19 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Boutique;
+use App\Models\Order;
+use App\Models\Payment;
 use App\Models\ProProfile;
 use App\Models\ShopView;
 use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
 use App\Services\CloudinaryService;
+use App\Services\OrderNotifier;
+use App\Services\Payment\PaymentException;
+use App\Services\Payment\PaymentProviders;
+use App\Services\Payment\PaymentRequest;
+use App\Services\Payment\PaymentResult;
 use App\Services\QrCode;
 
 /**
@@ -326,7 +333,7 @@ final class BoutiqueController
             redirect('/boutique/' . $boutique['slug'] . '#commander');
         }
 
-        $publicId = \App\Models\Order::createCart([
+        $publicId = Order::createCart([
             'boutique_id'  => (int) $boutique['id'],
             'user_id'      => (int) $boutique['user_id'],
             'client_name'  => $name,
@@ -337,6 +344,30 @@ final class BoutiqueController
         ], $lines);
 
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
+
+        // Prévient le vendeur (e-mail + SMS/WhatsApp). Ne doit jamais bloquer la commande.
+        try {
+            $total = 0;
+            $notifyLines = [];
+            foreach ($lines as $l) {
+                $total += $l['qty'] * $l['unit_price_cents'];
+                $notifyLines[] = ['qty' => $l['qty'], 'title' => $l['title'], 'line_total_cents' => $l['qty'] * $l['unit_price_cents']];
+            }
+            OrderNotifier::sellerNewOrder(
+                User::findById((int) $boutique['user_id']) ?? [],
+                (string) $boutique['name'],
+                strtoupper(substr($publicId, 0, 6)),
+                $notifyLines,
+                $total,
+                $cur,
+                $name,
+                $phone,
+                url('/vendeur/commandes'),
+            );
+        } catch (\Throwable) {
+            // notification best-effort
+        }
+
         clear_old();
         redirect('/boutique/commande/' . $publicId);
     }
@@ -358,13 +389,155 @@ final class BoutiqueController
         $sellerPhone = $boutique !== null
             ? (string) (User::findById((int) $boutique['user_id'])['phone'] ?? '')
             : '';
+        // La boutique propose-t-elle le paiement en ligne (moyens autres qu'espèces) ?
+        $payMethods = $boutique !== null ? array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))) : [];
+        $canPay = array_intersect($payMethods, ['mobile_money', 'card', 'paypal', 'apple_pay', 'google_pay']) !== [];
         view('boutique/order_confirmation', [
             'order'        => $order,
-            'items'        => \App\Models\Order::items((int) $order['id']),
+            'items'        => Order::items((int) $order['id']),
             'boutique'     => $boutique,
             'seller_phone' => $sellerPhone,
+            'can_pay'      => $canPay,
+            'pay_status'   => (string) ($order['payment_status'] ?? 'unpaid'),
             'page_title'   => t('rorder.confirm_title'),
         ]);
+    }
+
+    /* ---- Paiement en ligne de la commande (public) ----------------- */
+
+    /** Démarre le paiement d'une commande : crée l'intention et envoie le client payer. */
+    public function payStart(Request $request): void
+    {
+        $order = Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        if (($order['payment_status'] ?? '') === 'paid') {
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        $boutique = $this->boutiqueOf((int) $order['boutique_id']);
+        if ($boutique === null) {
+            abort(404);
+        }
+        $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
+        $provider = PaymentProviders::resolve($boutique['payment_provider'] ?? null);
+        $payRef = Payment::create([
+            'boutique_id'  => (int) $boutique['id'],
+            'order_id'     => (int) $order['id'],
+            'user_id'      => (int) $boutique['user_id'],
+            'provider'     => $provider->key(),
+            'amount_cents' => (int) $order['total_cents'],
+            'currency'     => (string) $order['currency'],
+            'description'  => t('pay.order_desc', ['ref' => $ref]),
+        ]);
+        Order::setPaymentStatus((int) $order['id'], 'pending', $payRef);
+
+        // Fournisseur « simulation » (pas encore de clés réelles) : page interne publique.
+        if ($provider->key() === 'simulation') {
+            redirect('/boutique/commande/' . $order['public_id'] . '/regler');
+        }
+        // PSP réel : on délègue ; le client revient sur /retour (public).
+        try {
+            $init = $provider->createPayment(new PaymentRequest(
+                reference: $payRef,
+                amountCents: (int) $order['total_cents'],
+                currency: (string) $order['currency'],
+                description: t('pay.order_desc', ['ref' => $ref]),
+                returnUrl: url('/boutique/commande/' . $order['public_id'] . '/retour'),
+                customerName: (string) $order['client_name'],
+                customerPhone: (string) ($order['client_phone'] ?? ''),
+            ));
+        } catch (PaymentException) {
+            Order::setPaymentStatus((int) $order['id'], 'failed');
+            flash('error', t('pay.provider_unavailable', ['provider' => $provider->label()]));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        if ($init->providerRef !== '') {
+            Payment::setStatus($payRef, PaymentResult::PENDING, $init->providerRef);
+        }
+        redirect($init->redirectUrl);
+    }
+
+    /** Page de paiement « bac à sable » (simulation) — publique, tient lieu de PSP. */
+    public function paySandbox(Request $request): void
+    {
+        $order = Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        if (($order['payment_status'] ?? '') === 'paid') {
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        $boutique = $this->boutiqueOf((int) $order['boutique_id']);
+        // Dès qu'un vrai PSP est branché, le bac à sable disparaît (sécurité).
+        if ($boutique === null || PaymentProviders::resolve($boutique['payment_provider'] ?? null)->key() !== 'simulation') {
+            abort(404);
+        }
+        view('boutique/pay_sandbox', [
+            'order'      => $order,
+            'boutique'   => $boutique,
+            'page_title' => t('pay.sandbox_title'),
+        ]);
+    }
+
+    /** Décision du bac à sable : payé / annulé. */
+    public function paySettle(Request $request): void
+    {
+        $order = Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $payment = Payment::latestForOrder((int) $order['id']);
+        // Le bac à sable ne règle QUE des paiements en simulation : un vrai
+        // paiement passe forcément par la vérification du PSP (payReturn).
+        if ($payment !== null && (string) $payment['provider'] !== 'simulation') {
+            abort(404);
+        }
+        $outcome = whitelist((string) input_string('outcome', ''), ['pay', 'cancel'], 'cancel');
+        if ($payment !== null) {
+            if ($outcome === 'pay') {
+                Payment::setStatus((string) $payment['public_id'], PaymentResult::PAID);
+                Order::setPaymentStatus((int) $order['id'], 'paid');
+                AuditLog::record((int) $order['user_id'], 'order.paid', 'order', (int) $order['id'], [], $request->ipBinary());
+            } else {
+                Payment::setStatus((string) $payment['public_id'], PaymentResult::CANCELLED);
+                Order::setPaymentStatus((int) $order['id'], 'unpaid');
+            }
+        }
+        redirect('/boutique/commande/' . $order['public_id']);
+    }
+
+    /** Retour d'un PSP réel : on vérifie le statut et on met la commande à jour. */
+    public function payReturn(Request $request): void
+    {
+        $order = Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $payment = Payment::latestForOrder((int) $order['id']);
+        if ($payment !== null) {
+            $provider = PaymentProviders::resolve((string) $payment['provider']);
+            try {
+                $res = $provider->verify((string) $payment['public_id'], $_GET);
+            } catch (PaymentException) {
+                $res = new PaymentResult((string) $payment['public_id'], PaymentResult::FAILED);
+            }
+            Payment::setStatus((string) $payment['public_id'], $res->status);
+            Order::setPaymentStatus((int) $order['id'], $res->isPaid() ? 'paid' : ($res->status === 'pending' ? 'pending' : 'unpaid'));
+        }
+        redirect('/boutique/commande/' . $order['public_id']);
+    }
+
+    /** Charge une boutique par son identifiant (pour les flux de paiement publics). */
+    private function boutiqueOf(int $id): ?array
+    {
+        try {
+            $stmt = db()->prepare('SELECT * FROM boutiques WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $id]);
+            return $stmt->fetch() ?: null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /* ---- Validation des étapes ------------------------------------- */

@@ -123,6 +123,9 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                 <span class="badge <?= $statusBadge($st) ?>"><?= e(t('order.status.' . $st)) ?></span>
                                 <span class="order-source"><?= e(t('order.source.' . (string) $o['source'])) ?></span>
                                 <?php if (!empty($o['fulfillment'])): ?><span class="order-source"><?= e(t('shop.method.' . $o['fulfillment'])) ?></span><?php endif; ?>
+                                <?php if (($o['source'] ?? '') === 'online'): $ps = (string) ($o['payment_status'] ?? 'unpaid'); ?>
+                                    <span class="badge <?= $ps === 'paid' ? 'badge-ok' : 'badge-neutral' ?>"><?= e(t('order.pay.' . ($ps === 'paid' ? 'paid' : 'unpaid'))) ?></span>
+                                <?php endif; ?>
                                 <span class="order-date"><?= e(date('d/m/Y H:i', strtotime((string) $o['created_at']))) ?></span>
                             </div>
                             <?php if ($oItems !== []): ?>

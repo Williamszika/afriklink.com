@@ -136,6 +136,11 @@ return [
     // Commande en ligne : panier public (client, éventuellement non connecté) + confirmation
     ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['csrf', 'throttle:border,40,3600']],
     ['GET',  '/boutique/commande/{ref}',   [BoutiqueController::class, 'orderConfirmation'], []],
+    // Paiement en ligne de la commande (public ; PSP réel ou bac à sable de simulation)
+    ['POST', '/boutique/commande/{ref}/payer',  [BoutiqueController::class, 'payStart'],   ['csrf', 'throttle:bpay,30,3600']],
+    ['GET',  '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySandbox'], []],
+    ['POST', '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySettle'],  ['csrf', 'throttle:bpay,30,3600']],
+    ['GET',  '/boutique/commande/{ref}/retour', [BoutiqueController::class, 'payReturn'],  []],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
     ['GET',  '/boutique/{slug}',         [BoutiqueController::class, 'show'],    []],

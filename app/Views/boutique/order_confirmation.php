@@ -1,6 +1,8 @@
 <?php
-/** @var array $order  @var list<array> $items  @var ?array $boutique  @var string $seller_phone */
+/** @var array $order  @var list<array> $items  @var ?array $boutique  @var string $seller_phone
+ *  @var bool $can_pay  @var string $pay_status */
 $cur = (string) $order['currency'];
+$payStatus = $pay_status ?? (string) ($order['payment_status'] ?? 'unpaid');
 $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
 // Message WhatsApp récapitulatif pour la boutique (WhatsApp boutique, sinon téléphone vendeur).
 $wa = preg_replace('/\D+/', '', (string) (($boutique['contact_whatsapp'] ?? '') ?: ($seller_phone ?? '')));
@@ -30,6 +32,16 @@ $waText = rawurlencode(
         <p class="hint"><?= e(t('shop.method.' . $order['fulfillment'])) ?> · <?= e((string) $order['client_name']) ?></p>
     <?php else: ?>
         <p class="hint"><?= e((string) $order['client_name']) ?></p>
+    <?php endif; ?>
+
+    <?php if ($payStatus === 'paid'): ?>
+        <p class="pay-paid-badge">✅ <?= e(t('pay.status_paid')) ?></p>
+    <?php elseif (!empty($can_pay)): ?>
+        <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/payer')) ?>" class="pay-now-form">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">💳 <?= e(t('pay.pay_now')) ?></button>
+        </form>
+        <p class="hint"><?= e(t('pay.pay_now_hint')) ?></p>
     <?php endif; ?>
 
     <p class="notice notice-info"><?= e(t('bcart.confirm_note')) ?></p>

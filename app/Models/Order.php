@@ -40,6 +40,8 @@ final class Order
                 note             VARCHAR(500) NULL,
                 fulfillment      VARCHAR(16) NULL,
                 source           VARCHAR(12) NOT NULL DEFAULT \'manual\',
+                payment_status   VARCHAR(12) NOT NULL DEFAULT \'unpaid\',
+                payment_ref      CHAR(36) NULL,
                 status           VARCHAR(12) NOT NULL DEFAULT \'new\',
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -67,7 +69,7 @@ final class Order
         );
     }
 
-    /** Ajoute la colonne fulfillment sur une table déjà créée (mode de réception). */
+    /** Ajoute les colonnes ajoutées après coup sur une table déjà créée. */
     private static function migrate(): void
     {
         static $done = false;
@@ -75,15 +77,37 @@ final class Order
             return;
         }
         $done = true;
-        try {
-            db()->query('SELECT fulfillment FROM orders LIMIT 1');
-        } catch (\Throwable) {
+        $columns = [
+            'fulfillment'    => "ADD COLUMN fulfillment VARCHAR(16) NULL AFTER note",
+            'payment_status' => "ADD COLUMN payment_status VARCHAR(12) NOT NULL DEFAULT 'unpaid' AFTER source",
+            'payment_ref'    => "ADD COLUMN payment_ref CHAR(36) NULL AFTER payment_status",
+        ];
+        foreach ($columns as $col => $ddl) {
             try {
-                db()->exec('ALTER TABLE orders ADD COLUMN fulfillment VARCHAR(16) NULL AFTER note');
+                db()->query("SELECT {$col} FROM orders LIMIT 1");
             } catch (\Throwable) {
-                // colonne déjà présente ou ALTER indisponible : on ignore
+                try {
+                    db()->exec("ALTER TABLE orders {$ddl}");
+                } catch (\Throwable) {
+                    // colonne déjà présente ou ALTER indisponible : on ignore
+                }
             }
         }
+    }
+
+    /** Met à jour le statut de paiement d'une commande (unpaid|pending|paid|failed). */
+    public static function setPaymentStatus(int $id, string $status, ?string $ref = null): void
+    {
+        self::migrate();
+        if (!in_array($status, ['unpaid', 'pending', 'paid', 'failed'], true)) {
+            return;
+        }
+        $sql = 'UPDATE orders SET payment_status = :s' . ($ref !== null ? ', payment_ref = :r' : '') . ' WHERE id = :id';
+        $args = ['s' => $status, 'id' => $id];
+        if ($ref !== null) {
+            $args['r'] = $ref;
+        }
+        db()->prepare($sql)->execute($args);
     }
 
     public static function create(array $d): string
@@ -145,11 +169,19 @@ final class Order
                 'INSERT INTO order_items (order_id, product_id, title, qty, unit_price_cents, line_total_cents)
                  VALUES (:o, :p, :t, :q, :u, :lt)'
             );
+            // Décompte du stock : atomique et borné (jamais négatif). Les produits
+            // à stock illimité (stock NULL) ne sont pas touchés.
+            $dec = $pdo->prepare(
+                'UPDATE products SET stock = stock - :q WHERE id = :pid AND stock IS NOT NULL AND stock >= :q'
+            );
             foreach ($lines as $l) {
                 $ins->execute([
                     'o' => $orderId, 'p' => $l['product_id'], 't' => mb_substr($l['title'], 0, 150),
                     'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty'],
                 ]);
+                if (!empty($l['product_id'])) {
+                    $dec->execute(['q' => $l['qty'], 'pid' => (int) $l['product_id']]);
+                }
             }
             $pdo->commit();
         } catch (\Throwable $e) {

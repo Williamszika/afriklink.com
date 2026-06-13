@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
 use App\Services\GeoService;
+use App\Services\OrderNotifier;
 
 /**
  * Verticale Restaurant — création de la vitrine, gestion de la carte
@@ -271,6 +272,30 @@ final class RestaurantController
         ], $lines);
 
         AuditLog::record((int) $resto['user_id'], 'rorder.placed', 'restaurant', (int) $resto['id'], ['order' => $publicId], $request->ipBinary());
+
+        // Prévient le restaurateur (e-mail + SMS/WhatsApp). Best-effort.
+        try {
+            $total = 0;
+            $notifyLines = [];
+            foreach ($lines as $l) {
+                $total += $l['qty'] * $l['unit_price_cents'];
+                $notifyLines[] = ['qty' => $l['qty'], 'title' => $l['title'], 'line_total_cents' => $l['qty'] * $l['unit_price_cents']];
+            }
+            OrderNotifier::sellerNewOrder(
+                User::findById((int) $resto['user_id']) ?? [],
+                (string) $resto['name'],
+                strtoupper(substr($publicId, 0, 6)),
+                $notifyLines,
+                $total,
+                $cur,
+                $name,
+                $phone,
+                url('/restaurant/commandes'),
+            );
+        } catch (\Throwable) {
+            // notification best-effort
+        }
+
         clear_old();
         redirect('/restaurant/commande/' . $publicId);
     }
