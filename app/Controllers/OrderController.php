@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Request;
 use App\Services\AuditLog;
+use App\Services\OrderNotifier;
 
 /**
  * Commandes côté vendeur : liste filtrée par statut, enregistrement manuel
@@ -151,6 +152,19 @@ final class OrderController
         } else {
             AuditLog::record((int) $user['id'], 'order.' . $action, 'order', (int) $order['id'], [], $request->ipBinary());
             flash('success', t('order.status_flash', ['status' => t('order.status.' . $to)]));
+            // À la CONFIRMATION d'une commande en ligne, on prévient le client : soit
+            // il doit régler (paiement avant / acompte), soit ce sera à la livraison.
+            if ($action === 'confirm' && (string) $order['source'] === 'online') {
+                try {
+                    OrderNotifier::clientOrderConfirmed(
+                        $order,
+                        (string) $boutique['name'],
+                        url('/boutique/commande/' . $order['public_id']),
+                    );
+                } catch (\Throwable) {
+                    // notification best-effort
+                }
+            }
         }
         $back = whitelist((string) input_string('retour', 'a_traiter'), array_keys(self::FILTERS), 'a_traiter');
         redirect('/vendeur/commandes?filtre=' . $back);

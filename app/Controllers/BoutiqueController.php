@@ -312,9 +312,15 @@ final class BoutiqueController
 
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));
+        $email = trim((string) input_string('client_email', ''));
         $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
         $fulfillment = $methods !== []
             ? whitelist((string) input_string('fulfillment', ''), $methods, $methods[0])
+            : null;
+        // Condition de paiement choisie par le client, parmi celles proposées par la boutique.
+        $terms = array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))));
+        $paymentTerm = $terms !== []
+            ? whitelist((string) input_string('payment_term', ''), $terms, $terms[0])
             : null;
 
         $errors = [];
@@ -327,6 +333,9 @@ final class BoutiqueController
         if ($phone !== '' && !preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone)) {
             $errors['client_phone'] = t('order.err_phone');
         }
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['client_email'] = t('order.err_email');
+        }
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);
@@ -338,34 +347,37 @@ final class BoutiqueController
             'user_id'      => (int) $boutique['user_id'],
             'client_name'  => $name,
             'client_phone' => $phone !== '' ? $phone : null,
+            'client_email' => $email !== '' ? $email : null,
             'note'         => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
             'fulfillment'  => $fulfillment,
+            'payment_term' => $paymentTerm,
             'currency'     => $cur,
         ], $lines);
 
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
 
-        // Prévient le vendeur (e-mail + SMS/WhatsApp). Ne doit jamais bloquer la commande.
+        // Notifications (best-effort, n'empêchent jamais la commande) :
+        // le vendeur reçoit l'alerte « nouvelle commande », le client une confirmation.
+        $ref = strtoupper(substr($publicId, 0, 6));
+        $total = 0;
+        $notifyLines = [];
+        foreach ($lines as $l) {
+            $total += $l['qty'] * $l['unit_price_cents'];
+            $notifyLines[] = ['qty' => $l['qty'], 'title' => $l['title'], 'line_total_cents' => $l['qty'] * $l['unit_price_cents']];
+        }
         try {
-            $total = 0;
-            $notifyLines = [];
-            foreach ($lines as $l) {
-                $total += $l['qty'] * $l['unit_price_cents'];
-                $notifyLines[] = ['qty' => $l['qty'], 'title' => $l['title'], 'line_total_cents' => $l['qty'] * $l['unit_price_cents']];
-            }
             OrderNotifier::sellerNewOrder(
                 User::findById((int) $boutique['user_id']) ?? [],
-                (string) $boutique['name'],
-                strtoupper(substr($publicId, 0, 6)),
-                $notifyLines,
-                $total,
-                $cur,
-                $name,
-                $phone,
-                url('/vendeur/commandes'),
+                (string) $boutique['name'], $ref, $notifyLines, $total, $cur, $name, $phone, url('/vendeur/commandes'),
             );
         } catch (\Throwable) {
-            // notification best-effort
+        }
+        try {
+            OrderNotifier::clientOrderPlaced(
+                $email, $phone, (string) $boutique['name'], $ref, $total, $cur, $paymentTerm,
+                url('/boutique/commande/' . $publicId),
+            );
+        } catch (\Throwable) {
         }
 
         clear_old();
@@ -389,16 +401,23 @@ final class BoutiqueController
         $sellerPhone = $boutique !== null
             ? (string) (User::findById((int) $boutique['user_id'])['phone'] ?? '')
             : '';
-        // La boutique propose-t-elle le paiement en ligne (moyens autres qu'espèces) ?
-        $payMethods = $boutique !== null ? array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))) : [];
-        $canPay = array_intersect($payMethods, ['mobile_money', 'card', 'paypal', 'apple_pay', 'google_pay']) !== [];
+        $status = (string) ($order['status'] ?? 'new');
+        $payStatus = (string) ($order['payment_status'] ?? 'unpaid');
+        $dueCents = Order::amountDue($order);
+        // Le paiement en ligne ne s'ouvre qu'une fois la commande CONFIRMÉE par le
+        // vendeur, et seulement si la condition choisie implique un paiement.
+        $payReady = $dueCents > 0 && $payStatus !== 'paid' && in_array($status, ['confirmed', 'shipped', 'delivered'], true);
         view('boutique/order_confirmation', [
             'order'        => $order,
             'items'        => Order::items((int) $order['id']),
             'boutique'     => $boutique,
             'seller_phone' => $sellerPhone,
-            'can_pay'      => $canPay,
-            'pay_status'   => (string) ($order['payment_status'] ?? 'unpaid'),
+            'term'         => (string) ($order['payment_term'] ?? ''),
+            'status'       => $status,
+            'pay_status'   => $payStatus,
+            'due_cents'    => $dueCents,
+            'rest_cents'   => Order::restDue($order),
+            'pay_ready'    => $payReady,
             'page_title'   => t('rorder.confirm_title'),
         ]);
     }
@@ -415,6 +434,16 @@ final class BoutiqueController
         if (($order['payment_status'] ?? '') === 'paid') {
             redirect('/boutique/commande/' . $order['public_id']);
         }
+        // Le paiement ne s'ouvre qu'après confirmation de la commande par le vendeur.
+        if (!in_array((string) ($order['status'] ?? 'new'), ['confirmed', 'shipped', 'delivered'], true)) {
+            flash('info', t('pay.await_confirm'));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        // Montant dû selon la condition : total, acompte, ou 0 (paiement à la livraison).
+        $amount = Order::amountDue($order);
+        if ($amount <= 0) {
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
         $boutique = $this->boutiqueOf((int) $order['boutique_id']);
         if ($boutique === null) {
             abort(404);
@@ -426,7 +455,7 @@ final class BoutiqueController
             'order_id'     => (int) $order['id'],
             'user_id'      => (int) $boutique['user_id'],
             'provider'     => $provider->key(),
-            'amount_cents' => (int) $order['total_cents'],
+            'amount_cents' => $amount,
             'currency'     => (string) $order['currency'],
             'description'  => t('pay.order_desc', ['ref' => $ref]),
         ]);
@@ -440,7 +469,7 @@ final class BoutiqueController
         try {
             $init = $provider->createPayment(new PaymentRequest(
                 reference: $payRef,
-                amountCents: (int) $order['total_cents'],
+                amountCents: $amount,
                 currency: (string) $order['currency'],
                 description: t('pay.order_desc', ['ref' => $ref]),
                 returnUrl: url('/boutique/commande/' . $order['public_id'] . '/retour'),
@@ -473,10 +502,14 @@ final class BoutiqueController
         if ($boutique === null || PaymentProviders::resolve($boutique['payment_provider'] ?? null)->key() !== 'simulation') {
             abort(404);
         }
+        $payment = Payment::latestForOrder((int) $order['id']);
         view('boutique/pay_sandbox', [
-            'order'      => $order,
-            'boutique'   => $boutique,
-            'page_title' => t('pay.sandbox_title'),
+            'order'        => $order,
+            'boutique'     => $boutique,
+            // Montant réellement demandé (acompte ou total), porté par l'intention de paiement.
+            'amount_cents' => $payment !== null ? (int) $payment['amount_cents'] : Order::amountDue($order),
+            'is_deposit'   => (string) ($order['payment_term'] ?? '') === 'deposit',
+            'page_title'   => t('pay.sandbox_title'),
         ]);
     }
 

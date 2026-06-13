@@ -37,11 +37,13 @@ final class Order
                 currency         CHAR(3) NOT NULL DEFAULT \'EUR\',
                 client_name      VARCHAR(80) NOT NULL,
                 client_phone     VARCHAR(24) NULL,
+                client_email     VARCHAR(120) NULL,
                 note             VARCHAR(500) NULL,
                 fulfillment      VARCHAR(16) NULL,
                 source           VARCHAR(12) NOT NULL DEFAULT \'manual\',
                 payment_status   VARCHAR(12) NOT NULL DEFAULT \'unpaid\',
                 payment_ref      CHAR(36) NULL,
+                payment_term     VARCHAR(16) NULL,
                 status           VARCHAR(12) NOT NULL DEFAULT \'new\',
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -81,6 +83,8 @@ final class Order
             'fulfillment'    => "ADD COLUMN fulfillment VARCHAR(16) NULL AFTER note",
             'payment_status' => "ADD COLUMN payment_status VARCHAR(12) NOT NULL DEFAULT 'unpaid' AFTER source",
             'payment_ref'    => "ADD COLUMN payment_ref CHAR(36) NULL AFTER payment_status",
+            'payment_term'   => "ADD COLUMN payment_term VARCHAR(16) NULL AFTER payment_ref",
+            'client_email'   => "ADD COLUMN client_email VARCHAR(120) NULL AFTER client_phone",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -155,14 +159,17 @@ final class Order
         try {
             $stmt = $pdo->prepare(
                 'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
-                    unit_price_cents, qty, total_cents, currency, client_name, client_phone, note, fulfillment, source, status)
-                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :note, :ful, \'online\', \'new\')'
+                    unit_price_cents, qty, total_cents, currency, client_name, client_phone, client_email,
+                    note, fulfillment, payment_term, source, status)
+                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :cemail,
+                    :note, :ful, :term, \'online\', \'new\')'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $header['boutique_id'], 'uid' => $header['user_id'],
                 'pname' => mb_substr($summary, 0, 150), 'qty' => $count, 'total' => $subtotal,
                 'cur' => $header['currency'], 'cname' => $header['client_name'],
-                'cphone' => $header['client_phone'], 'note' => $header['note'], 'ful' => $header['fulfillment'],
+                'cphone' => $header['client_phone'], 'cemail' => $header['client_email'] ?? null,
+                'note' => $header['note'], 'ful' => $header['fulfillment'], 'term' => $header['payment_term'] ?? null,
             ]);
             $orderId = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare(
@@ -189,6 +196,27 @@ final class Order
             throw $e;
         }
         return $publicId;
+    }
+
+    /**
+     * Montant à régler EN LIGNE selon la condition de paiement choisie :
+     *   before_delivery → la totalité ; deposit → un acompte (config shop.deposit_pct) ;
+     *   on_delivery / non défini → 0 (réglé à la réception, pas de paiement en ligne).
+     */
+    public static function amountDue(array $order): int
+    {
+        $total = (int) ($order['total_cents'] ?? 0);
+        return match ((string) ($order['payment_term'] ?? '')) {
+            'before_delivery' => $total,
+            'deposit'         => (int) round($total * (int) config('shop.deposit_pct', 50) / 100),
+            default           => 0,
+        };
+    }
+
+    /** Reste à régler à la livraison (cas de l'acompte). */
+    public static function restDue(array $order): int
+    {
+        return max(0, (int) ($order['total_cents'] ?? 0) - self::amountDue($order));
     }
 
     /** @return list<array> lignes d'une commande en ligne (vide pour les commandes manuelles) */

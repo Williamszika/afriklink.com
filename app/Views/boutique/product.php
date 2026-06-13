@@ -12,6 +12,7 @@ $productUrl = url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id
 $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name']]) . ' ' . $productUrl);
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
 $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
+$payTerms = array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))));
 // Commande en ligne possible si la vitrine est publiée et le produit en stock.
 $canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
 ?>
@@ -98,11 +99,22 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+            <?php if ($payTerms): ?>
+                <label><?= e(t('bcart.pay_term')) ?></label>
+                <div class="lang-checks">
+                    <?php foreach ($payTerms as $i => $pt): ?>
+                        <label class="check-pill"><input type="radio" name="payment_term" value="<?= e($pt) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.payterm.' . $pt)) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
             <label for="cl-name"><?= e(t('order.f.client')) ?></label>
             <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
             <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
             <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
             <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
+            <label for="cl-email"><?= e(t('order.f.email')) ?></label>
+            <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
+            <?php if (has_error('client_email')): ?><p class="field-error"><?= e(error('client_email')) ?></p><?php endif; ?>
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
             <input type="hidden" name="cart_json" data-cart-json value="[]">

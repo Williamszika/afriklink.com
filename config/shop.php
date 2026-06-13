@@ -26,6 +26,8 @@ return [
 
     // Quand le client paie (le vendeur coche celles qu'il propose).
     'payment_terms'    => ['on_delivery', 'deposit', 'before_delivery'],
+    // Part payée d'avance pour la condition « acompte » (%). Le reste est réglé à la livraison.
+    'deposit_pct'      => (int) env('SHOP_DEPOSIT_PCT', 50),
     // Comment le client paie (le vendeur coche ce qu'il peut recevoir).
     // L'encaissement réel (Stripe/PayPal…) est un chantier ultérieur (Phase 3).
     'payment_methods'  => ['cash', 'mobile_money', 'paypal', 'card', 'apple_pay', 'google_pay'],

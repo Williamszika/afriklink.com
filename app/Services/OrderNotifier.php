@@ -102,4 +102,83 @@ final class OrderNotifier
 
         MailService::send($to, t('notify.order.mail_subject', ['shop' => $vitrineName, 'ref' => $orderRef]), $html, $text);
     }
+
+    /* ---- Côté client -------------------------------------------------- */
+
+    /** Confirmation au client : commande bien reçue, en attente de validation du vendeur. */
+    public static function clientOrderPlaced(
+        string $email,
+        string $phone,
+        string $shopName,
+        string $ref,
+        int $totalCents,
+        string $currency,
+        ?string $term,
+        string $url,
+    ): void {
+        $total = format_price($totalCents, $currency);
+        $termLine = $term ? '<p>' . e(t('shop.f.payment_terms')) . ' : ' . e(t('shop.payterm.' . $term)) . '</p>' : '';
+        $html = '<p>' . e(t('notify.client.placed_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
+            . '<p>' . e(t('rorder.total')) . ' : <strong>' . e($total) . '</strong></p>'
+            . $termLine
+            . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+        $text = t('notify.client.placed_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n"
+            . t('rorder.total') . ' : ' . $total . "\n" . $url;
+        $sms = t('notify.client.placed_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
+        self::client($email, $phone, t('notify.client.placed_subject', ['ref' => $ref]), $html, $text, $sms);
+    }
+
+    /**
+     * Le vendeur a confirmé : on invite le client à régler (paiement avant / acompte)
+     * ou on lui rappelle que ce sera à la livraison. @param array $order ligne commande
+     */
+    public static function clientOrderConfirmed(array $order, string $shopName, string $url): void
+    {
+        $email = trim((string) ($order['client_email'] ?? ''));
+        $phone = (string) ($order['client_phone'] ?? '');
+        $ref   = strtoupper(substr((string) ($order['public_id'] ?? ''), 0, 6));
+        $cur   = (string) ($order['currency'] ?? 'EUR');
+        $due   = \App\Models\Order::amountDue($order);
+
+        if ($due > 0) {
+            $isDeposit = (string) ($order['payment_term'] ?? '') === 'deposit';
+            $amount = format_price($due, $cur);
+            $payLine = $isDeposit
+                ? t('notify.client.pay_deposit_line', ['amount' => $amount, 'rest' => format_price(\App\Models\Order::restDue($order), $cur)])
+                : t('notify.client.pay_line', ['amount' => $amount]);
+            $html = '<p>' . e(t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
+                . '<p>' . e($payLine) . '</p>'
+                . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
+                . e(t('pay.pay_now')) . '</a></p>'
+                . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+            $text = t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n" . $payLine . "\n" . $url;
+            $sms = t('notify.client.pay_sms', ['ref' => $ref, 'amount' => $amount]) . ' ' . $url;
+            self::client($email, $phone, t('notify.client.pay_subject', ['ref' => $ref]), $html, $text, $sms);
+        } else {
+            $html = '<p>' . e(t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
+                . '<p>' . e(t('notify.client.cod_line')) . '</p>'
+                . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+            $text = t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n" . t('notify.client.cod_line') . "\n" . $url;
+            $sms = t('notify.client.cod_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
+            self::client($email, $phone, t('notify.client.confirmed_subject', ['ref' => $ref]), $html, $text, $sms);
+        }
+    }
+
+    /** Envoi au client : e-mail (si fourni) + SMS/WhatsApp (si téléphone). Best-effort. */
+    private static function client(string $email, string $phone, string $subject, string $html, string $text, string $sms): void
+    {
+        if ($email !== '') {
+            try {
+                MailService::send($email, $subject, $html, $text);
+            } catch (\Throwable) {
+            }
+        }
+        $p = Notifier::normalize($phone);
+        if ($p !== '') {
+            try {
+                Notifier::send($p, $sms);
+            } catch (\Throwable) {
+            }
+        }
+    }
 }

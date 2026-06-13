@@ -1,14 +1,18 @@
 <?php
-/** @var array $order  @var ?array $boutique */
+/** @var array $order  @var ?array $boutique  @var int $amount_cents  @var bool $is_deposit */
 $cur = (string) $order['currency'];
 $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
+$amount = (int) ($amount_cents ?? $order['total_cents']);
 ?>
 <section class="auth-card pay-result">
     <div class="pay-result-icon" aria-hidden="true">💳</div>
     <h1><?= e(t('pay.sandbox_title')) ?></h1>
     <p class="muted"><?= e(t('pay.sandbox_sub', ['ref' => $ref])) ?><?php if ($boutique): ?> · <?= e((string) $boutique['name']) ?><?php endif; ?></p>
 
-    <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong><?= e(format_price((int) $order['total_cents'], $cur)) ?></strong></p>
+    <p class="cart-total-row"><span><?= e(!empty($is_deposit) ? t('pay.deposit_to_pay') : t('pay.amount_to_pay')) ?></span> <strong><?= e(format_price($amount, $cur)) ?></strong></p>
+    <?php if (!empty($is_deposit)): ?>
+        <p class="hint"><?= e(t('pay.deposit_hint', ['rest' => format_price(max(0, (int) $order['total_cents'] - $amount), $cur)])) ?></p>
+    <?php endif; ?>
     <p class="notice notice-info"><?= e(t('pay.sandbox_note')) ?></p>
 
     <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/regler')) ?>" class="pay-sandbox-form">

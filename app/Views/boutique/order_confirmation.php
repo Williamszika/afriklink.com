@@ -1,8 +1,10 @@
 <?php
 /** @var array $order  @var list<array> $items  @var ?array $boutique  @var string $seller_phone
- *  @var bool $can_pay  @var string $pay_status */
+ *  @var string $term  @var string $status  @var string $pay_status  @var int $due_cents  @var int $rest_cents  @var bool $pay_ready */
 $cur = (string) $order['currency'];
 $payStatus = $pay_status ?? (string) ($order['payment_status'] ?? 'unpaid');
+$term = $term ?? (string) ($order['payment_term'] ?? '');
+$status = $status ?? (string) ($order['status'] ?? 'new');
 $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
 // Message WhatsApp récapitulatif pour la boutique (WhatsApp boutique, sinon téléphone vendeur).
 $wa = preg_replace('/\D+/', '', (string) (($boutique['contact_whatsapp'] ?? '') ?: ($seller_phone ?? '')));
@@ -34,17 +36,31 @@ $waText = rawurlencode(
         <p class="hint"><?= e((string) $order['client_name']) ?></p>
     <?php endif; ?>
 
-    <?php if ($payStatus === 'paid'): ?>
-        <p class="pay-paid-badge">✅ <?= e(t('pay.status_paid')) ?></p>
-    <?php elseif (!empty($can_pay)): ?>
-        <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/payer')) ?>" class="pay-now-form">
-            <?= csrf_field() ?>
-            <button type="submit" class="btn btn-primary btn-block btn-lg">💳 <?= e(t('pay.pay_now')) ?></button>
-        </form>
-        <p class="hint"><?= e(t('pay.pay_now_hint')) ?></p>
+    <?php if ($term !== ''): ?>
+        <p class="hint"><?= e(t('shop.f.payment_terms')) ?> : <strong><?= e(t('shop.payterm.' . $term)) ?></strong></p>
     <?php endif; ?>
 
-    <p class="notice notice-info"><?= e(t('bcart.confirm_note')) ?></p>
+    <?php if ($payStatus === 'paid'): ?>
+        <?php if ($term === 'deposit'): ?>
+            <p class="pay-paid-badge">✅ <?= e(t('pay.deposit_paid', ['rest' => format_price((int) ($rest_cents ?? 0), $cur)])) ?></p>
+        <?php else: ?>
+            <p class="pay-paid-badge">✅ <?= e(t('pay.status_paid')) ?></p>
+        <?php endif; ?>
+    <?php elseif (!empty($pay_ready)): ?>
+        <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/payer')) ?>" class="pay-now-form">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">💳 <?= e(t('pay.pay_amount', ['amount' => format_price((int) ($due_cents ?? 0), $cur)])) ?></button>
+        </form>
+        <?php if ($term === 'deposit'): ?>
+            <p class="hint"><?= e(t('pay.deposit_hint', ['rest' => format_price((int) ($rest_cents ?? 0), $cur)])) ?></p>
+        <?php else: ?>
+            <p class="hint"><?= e(t('pay.pay_now_hint')) ?></p>
+        <?php endif; ?>
+    <?php elseif ($status === 'new'): ?>
+        <p class="notice notice-info">⏳ <?= e(t('bcart.await_confirm')) ?></p>
+    <?php else: ?>
+        <p class="hint">💵 <?= e(t('bcart.pay_on_delivery')) ?></p>
+    <?php endif; ?>
     <?php if ($wa !== ''): ?>
         <p><a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('bcart.send_whatsapp')) ?></a></p>
     <?php endif; ?>
