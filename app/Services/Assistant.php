@@ -57,8 +57,8 @@ final class Assistant
             $methods = self::labels($ctx['delivery_methods'], 'shop.method.');
             $delay   = $ctx['delivery_delay'] !== '' ? t('shop.prep.' . $ctx['delivery_delay']) : t('assistant.unknown');
             $text = $methods !== ''
-                ? t('assistant.a.delivery', [':methods' => $methods, ':delay' => $delay])
-                : t('assistant.a.delivery_generic', [':delay' => $delay]);
+                ? t('assistant.a.delivery', ['methods' => $methods, 'delay' => $delay])
+                : t('assistant.a.delivery_generic', ['delay' => $delay]);
             return self::reply($text, $suggest, false);
         }
 
@@ -68,8 +68,8 @@ final class Assistant
             $terms   = self::labels($ctx['payment_terms'], 'shop.payterm.');
             $text = $methods !== '' || $terms !== ''
                 ? t('assistant.a.payment', [
-                    ':methods' => $methods !== '' ? $methods : t('assistant.unknown'),
-                    ':terms'   => $terms !== '' ? $terms : t('assistant.unknown'),
+                    'methods' => $methods !== '' ? $methods : t('assistant.unknown'),
+                    'terms'   => $terms !== '' ? $terms : t('assistant.unknown'),
                 ])
                 : t('assistant.a.payment_generic');
             return self::reply($text, $suggest, false);
@@ -78,7 +78,7 @@ final class Assistant
         // Retours / remboursement
         if (self::hits($q, ['retour', 'rembours', 'return', 'refund', 'echange', 'exchange'])) {
             $text = trim($ctx['return_policy']) !== ''
-                ? t('assistant.a.return', [':policy' => mb_substr(trim($ctx['return_policy']), 0, 600)])
+                ? t('assistant.a.return', ['policy' => mb_substr(trim($ctx['return_policy']), 0, 600)])
                 : t('assistant.a.return_none');
             return self::reply($text, $suggest, trim($ctx['return_policy']) === '');
         }

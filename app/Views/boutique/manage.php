@@ -114,7 +114,7 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <a class="btn btn-primary btn-sm" href="<?= e(url('/boutique/produits/nouveau')) ?>">+ <?= e(t('product.add')) ?></a>
             </div>
             <?php if (!empty($restock_count)): ?>
-                <p class="restock-summary">🔁 <?= e(t('forecast.restock_summary', [':n' => (int) $restock_count])) ?></p>
+                <p class="restock-summary">🔁 <?= e(t('forecast.restock_summary', ['n' => (int) $restock_count])) ?></p>
             <?php endif; ?>
 
             <?php if ($products === []): ?>
@@ -161,15 +161,15 @@ $publicPath = '/boutique/' . $boutique['slug'];
                                 </p>
                                 <?php $fc = $forecasts[(int) $p['id']] ?? null; ?>
                                 <?php if ($fc !== null && $fc['status'] !== 'unlimited'): ?>
-                                    <p class="product-forecast forecast-<?= e($fc['status']) ?>" title="<?= e(t('forecast.rate', [':sold' => (int) $fc['sold'], ':win' => (int) $fc['window']])) ?>">
+                                    <p class="product-forecast forecast-<?= e($fc['status']) ?>" title="<?= e(t('forecast.rate', ['sold' => (int) $fc['sold'], 'win' => (int) $fc['window']])) ?>">
                                         <?php if ($fc['status'] === 'out'): ?>
                                             🔴 <?= e(t('forecast.out')) ?>
                                         <?php elseif ($fc['status'] === 'nodata'): ?>
                                             <span class="muted">📊 <?= e(t('forecast.nodata')) ?></span>
                                         <?php else: ?>
                                             <?= $fc['status'] === 'critical' ? '⚠️' : ($fc['status'] === 'soon' ? '🟠' : '🟢') ?>
-                                            <?= e(t('forecast.days', [':n' => (int) $fc['days_left']])) ?>
-                                            <span class="muted forecast-rate"><?= e(t('forecast.rate', [':sold' => (int) $fc['sold'], ':win' => (int) $fc['window']])) ?></span>
+                                            <?= e(t('forecast.days', ['n' => (int) $fc['days_left']])) ?>
+                                            <span class="muted forecast-rate"><?= e(t('forecast.rate', ['sold' => (int) $fc['sold'], 'win' => (int) $fc['window']])) ?></span>
                                         <?php endif; ?>
                                     </p>
                                 <?php endif; ?>
