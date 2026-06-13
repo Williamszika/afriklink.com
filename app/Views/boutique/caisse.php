@@ -1,11 +1,14 @@
 <?php
-/** @var array $boutique  @var list<array> $lines  @var int $total
+/** @var array $boutique  @var list<array> $lines  @var int $total  @var bool $preview
  *  @var list<string> $terms  @var list<string> $pay_methods  @var list<string> $fulfillments */
 $cur = (string) $boutique['currency'];
 ?>
 <section class="caisse">
     <h1 class="caisse-title">🧾 <?= e(t('caisse.title', ['shop' => (string) $boutique['name']])) ?></h1>
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e(t('caisse.continue')) ?></a></p>
+    <?php if (!empty($preview)): ?>
+        <div class="notice notice-info"><p>👁️ <?= e(t('caisse.preview')) ?></p></div>
+    <?php endif; ?>
 
     <div class="caisse-grid">
         <div class="panel caisse-cart">

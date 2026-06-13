@@ -218,8 +218,13 @@ final class RestaurantController
     public function checkout(Request $request): void
     {
         $resto = Restaurant::findBySlug((string) $request->param('slug', ''));
-        if ($resto === null || $resto['status'] !== 'published') {
+        if ($resto === null || !$this->canShop($resto)) {
             abort(404);
+        }
+        // Aperçu propriétaire : sur un brouillon, la vraie commande est bloquée.
+        if ($resto['status'] !== 'published') {
+            flash('info', t('shop.preview_blocked'));
+            redirect('/restaurant/' . $resto['slug'] . '/caisse');
         }
         $cur = (string) $resto['currency'];
         // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.
@@ -311,7 +316,7 @@ final class RestaurantController
     public function caisseStore(Request $request): void
     {
         $resto = Restaurant::findBySlug((string) $request->param('slug', ''));
-        if ($resto === null || $resto['status'] !== 'published') {
+        if ($resto === null || !$this->canShop($resto)) {
             abort(404);
         }
         $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
@@ -334,7 +339,7 @@ final class RestaurantController
     public function caisse(Request $request): void
     {
         $resto = Restaurant::findBySlug((string) $request->param('slug', ''));
-        if ($resto === null || $resto['status'] !== 'published') {
+        if ($resto === null || !$this->canShop($resto)) {
             abort(404);
         }
         $lines = $this->validatedCart($resto);
@@ -346,6 +351,7 @@ final class RestaurantController
             'resto'       => $resto,
             'lines'       => $lines,
             'total'       => array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines)),
+            'preview'     => $resto['status'] !== 'published',
             'services'    => $services !== [] ? array_values($services) : ['takeaway'],
             'terms'       => array_values(array_filter(explode(',', (string) ($resto['payment_terms'] ?? '')))),
             'pay_methods' => array_values(array_filter(explode(',', (string) ($resto['payment_methods'] ?? '')))),
@@ -544,6 +550,13 @@ final class RestaurantController
         );
         flash('success', t('resto.payment_saved'));
         redirect('/restaurant/gerer');
+    }
+
+    /** Accès à la caisse : restaurant publié (tout le monde) ou propriétaire (aperçu d'un brouillon). */
+    private function canShop(array $resto): bool
+    {
+        return ($resto['status'] ?? '') === 'published'
+            || (int) $resto['user_id'] === (int) (current_user_id() ?? 0);
     }
 
     private function restaurantOf(int $id): ?array

@@ -279,7 +279,7 @@ final class BoutiqueController
     public function caisseStore(Request $request): void
     {
         $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
-        if ($boutique === null || $boutique['status'] !== 'published') {
+        if ($boutique === null || !$this->canShop($boutique)) {
             abort(404);
         }
         $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
@@ -306,7 +306,7 @@ final class BoutiqueController
     public function caisse(Request $request): void
     {
         $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
-        if ($boutique === null || $boutique['status'] !== 'published') {
+        if ($boutique === null || !$this->canShop($boutique)) {
             abort(404);
         }
         $lines = $this->validatedCart($boutique);
@@ -318,6 +318,7 @@ final class BoutiqueController
             'boutique'     => $boutique,
             'lines'        => $lines,
             'total'        => $total,
+            'preview'      => $boutique['status'] !== 'published',
             'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
             'pay_methods'  => array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))),
             'fulfillments' => array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? '')))),
@@ -333,8 +334,13 @@ final class BoutiqueController
     public function checkout(Request $request): void
     {
         $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
-        if ($boutique === null || $boutique['status'] !== 'published') {
+        if ($boutique === null || !$this->canShop($boutique)) {
             abort(404);
+        }
+        // Aperçu propriétaire : sur un brouillon, la vraie commande est bloquée.
+        if ($boutique['status'] !== 'published') {
+            flash('info', t('shop.preview_blocked'));
+            redirect('/boutique/' . $boutique['slug'] . '/caisse');
         }
         $cur = (string) $boutique['currency'];
         // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.
@@ -648,6 +654,13 @@ final class BoutiqueController
             Payment::setStatus($payRef, PaymentResult::PENDING, $init->providerRef);
         }
         return $init->redirectUrl;
+    }
+
+    /** Accès à la caisse : vitrine publiée (tout le monde) ou propriétaire (aperçu d'un brouillon). */
+    private function canShop(array $boutique): bool
+    {
+        return ($boutique['status'] ?? '') === 'published'
+            || (int) $boutique['user_id'] === (int) (current_user_id() ?? 0);
     }
 
     /** Charge une boutique par son identifiant (pour les flux de paiement publics). */

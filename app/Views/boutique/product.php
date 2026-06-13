@@ -14,8 +14,9 @@ $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' 
 $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
 $payTerms = array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))));
 $payMethods = array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))));
-// Commande en ligne possible si la vitrine est publiée et le produit en stock.
-$canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
+// Commande en ligne si en stock, et vitrine publiée (ou aperçu propriétaire).
+$published = ($boutique['status'] ?? '') === 'published';
+$canOrder = $inStock && ($published || $is_owner);
 ?>
 <section class="listing-page">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>

@@ -11,10 +11,16 @@ $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_
 $shopUrl = url('/boutique/' . $boutique['slug']);
 $cur = (string) $boutique['currency'];
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
-// Commande en ligne possible uniquement sur une vitrine publiée et avec des produits.
-$canOrder = ($boutique['status'] ?? '') === 'published' && !empty($products);
+// Commande en ligne : sur une vitrine publiée pour tout le monde ; sur un
+// brouillon, seulement le propriétaire (aperçu — la vraie commande est bloquée).
+$published = ($boutique['status'] ?? '') === 'published';
+$previewOrder = !$published && $is_owner;
+$canOrder = !empty($products) && ($published || $is_owner);
 ?>
 <section class="shop-page">
+<?php if ($previewOrder && $canOrder): ?>
+    <div class="notice notice-info"><p>👁️ <?= e(t('shop.preview_note')) ?></p></div>
+<?php endif; ?>
     <?php if ($is_owner && ($boutique['status'] ?? '') !== 'published'): ?>
         <div class="notice notice-info"><p><?= e(t('shop.owner_draft')) ?> — <a href="<?= e(url('/boutique/gerer')) ?>"><?= e(t('shop.manage_link')) ?></a></p></div>
     <?php endif; ?>
