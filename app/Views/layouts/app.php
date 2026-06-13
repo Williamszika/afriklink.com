@@ -35,6 +35,7 @@ $metaImage = (string) ($meta['image'] ?? '');
         <meta name="twitter:card" content="summary">
     <?php endif; ?>
     <link rel="icon" type="image/svg+xml" href="<?= e(asset('img/logo-cauri.svg')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('css/fonts.css')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
     <?php if (!empty($meta['jsonld'])): ?>
         <script type="application/ld+json"><?= $meta['jsonld'] /* JSON déjà encodé ; bloc de données, exempt de CSP script-src */ ?></script>

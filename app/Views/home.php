@@ -13,10 +13,10 @@ $verified_sellers     = $verified_sellers ?? [];
 $promo_annonces       = $promo_annonces ?? [];
 $promo_annonce_mains  = $promo_annonce_mains ?? [];
 $verticals = [
-    ['key' => 'shop',       'icon' => '🛍️'],
-    ['key' => 'restaurant', 'icon' => '🍽️'],
-    ['key' => 'salon',      'icon' => '💈'],
-    ['key' => 'service',    'icon' => '🛠️'],
+    ['key' => 'shop',       'icon' => '🛍️', 'alt' => ''],
+    ['key' => 'restaurant', 'icon' => '🍽️', 'alt' => 'afk-uni__ic--alt1'],
+    ['key' => 'salon',      'icon' => '💈', 'alt' => 'afk-uni__ic--alt2'],
+    ['key' => 'service',    'icon' => '🛠️', 'alt' => 'afk-uni__ic--alt3'],
 ];
 $catIcons = [
     'mode' => '👗', 'electronique' => '📱', 'maison' => '🏠', 'beaute' => '💄',
@@ -26,15 +26,43 @@ $catIcons = [
 $categories = config('listings.categories', []);
 $loggedIn   = current_user() !== null;
 ?>
-<?php /* On tombe directement sur le contenu réel : produits en vedette, vitrines, restaurants, annonces. */ ?>
+<!-- Hero — accroche, recherche, confiance + panneau wax -->
+<section class="afk-hero">
+    <div class="afk-hero__text">
+        <span class="afk-eyebrow">◆ <?= e(t('home.hero_kicker')) ?></span>
+        <h1 class="afk-h1"><?= e(t('home.hero_title')) ?></h1>
+        <p class="afk-lede"><?= e(t('home.hero_subtitle')) ?></p>
+        <form class="afk-hero-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
+            <div class="afk-search">
+                <span class="afk-ic" aria-hidden="true">🔎</span>
+                <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
+            </div>
+            <button class="afk-btn afk-btn--gold" type="submit"><?= e(t('explore.search_btn')) ?></button>
+        </form>
+        <div class="afk-trust">
+            <span class="afk-trust__item">🔒 <?= e(t('home.why.secure_t')) ?></span>
+            <span class="afk-trust__item">✅ <?= e(t('home.why.verified_t')) ?></span>
+            <span class="afk-trust__item">🌍 <?= e(t('home.why.ship_t')) ?></span>
+        </div>
+    </div>
+    <aside class="afk-waxpanel" aria-hidden="true">
+        <div class="afk-waxpanel__emblem"><span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'hero']) ?></span></div>
+        <div class="afk-waxpanel__verts">
+            <?php foreach ($verticals as $v): ?>
+                <span><?= $v['icon'] ?> <?= e(t('home.vertical.' . $v['key'] . '.title')) ?></span>
+            <?php endforeach; ?>
+        </div>
+    </aside>
+</section>
+
 <?php if (!empty($sponsored)): ?>
-<section class="reco-rails">
+<section class="reco-rails afk-block">
     <?= render_partial('partials/product_rail', ['icon' => '✨', 'title' => t('reco.sponsored'), 'products' => $sponsored, 'mains' => $reco_mains]) ?>
 </section>
 <?php endif; ?>
 
 <?php if (!empty($promo_annonces)): ?>
-<section class="live-section">
+<section class="live-section afk-block">
     <h2>✨ <?= e(t('home.featured_annonces')) ?></h2>
     <div class="product-grid">
         <?php foreach ($promo_annonces as $a): $am = $promo_annonce_mains[(int) $a['id']] ?? null; ?>
@@ -52,7 +80,7 @@ $loggedIn   = current_user() !== null;
 <?php endif; ?>
 
 <?php if (!empty($boutiques)): ?>
-<section class="live-section">
+<section class="live-section afk-block">
     <h2>🏪 <?= e(t('home.boutiques_title')) ?></h2>
     <div class="vendor-grid">
         <?php foreach ($boutiques as $b): ?>
@@ -68,7 +96,7 @@ $loggedIn   = current_user() !== null;
 <?php endif; ?>
 
 <?php if (!empty($restaurants)): ?>
-<section class="live-section">
+<section class="live-section afk-block">
     <h2>🍽️ <?= e(t('home.restaurants_title')) ?></h2>
     <div class="vendor-grid">
         <?php foreach ($restaurants as $r): $sub = trim((string) ($r['tagline'] ?? '')) ?: trim((string) ($r['cuisine'] ?? '')); ?>
@@ -83,7 +111,7 @@ $loggedIn   = current_user() !== null;
 <?php endif; ?>
 
 <?php if (!empty($annonces)): ?>
-<section class="live-section">
+<section class="live-section afk-block">
     <h2>🏷️ <?= e(t('home.annonces_title')) ?></h2>
     <div class="product-grid">
         <?php foreach ($annonces as $a): $am = $annonce_mains[(int) $a['id']] ?? null; ?>
@@ -101,7 +129,7 @@ $loggedIn   = current_user() !== null;
 <?php endif; ?>
 
 <?php if (!empty($recently_viewed) || !empty($for_you)): ?>
-<section class="reco-rails">
+<section class="reco-rails afk-block">
     <?php if (!empty($recently_viewed)): ?>
         <?= render_partial('partials/product_rail', ['icon' => '🕒', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains]) ?>
     <?php endif; ?>
@@ -112,8 +140,8 @@ $loggedIn   = current_user() !== null;
 <?php endif; ?>
 
 <?php if ($categories !== []): ?>
-<section class="cat-section">
-    <h2><?= e(t('home.categories_title')) ?></h2>
+<section class="cat-section afk-block">
+    <div class="afk-head"><h2 class="afk-h2"><?= e(t('home.categories_title')) ?></h2></div>
     <div class="cat-tiles">
         <?php foreach ($categories as $c): ?>
             <a class="cat-tile" href="<?= e(url('/explorer?categorie=' . $c)) ?>">
@@ -125,31 +153,34 @@ $loggedIn   = current_user() !== null;
 </section>
 <?php endif; ?>
 
-<section id="verticals" class="verticals">
-    <h2><?= e(t('home.verticals_title')) ?></h2>
-    <div class="vertical-grid">
+<section id="verticals" class="afk-block">
+    <div class="afk-head"><div><span class="afk-kicker"><?= e(t('home.hero_kicker')) ?></span><h2 class="afk-h2"><?= e(t('home.verticals_title')) ?></h2></div></div>
+    <div class="afk-grid afk-grid-4">
         <?php foreach ($verticals as $v): ?>
-            <article class="vertical-card">
-                <div class="vertical-icon" aria-hidden="true"><?= $v['icon'] ?></div>
-                <h3><?= e(t('home.vertical.' . $v['key'] . '.title')) ?></h3>
+            <article class="afk-uni">
+                <div class="afk-uni__ic <?= e($v['alt']) ?>" aria-hidden="true"><?= $v['icon'] ?></div>
+                <h3 class="afk-h3"><?= e(t('home.vertical.' . $v['key'] . '.title')) ?></h3>
                 <p><?= e(t('home.vertical.' . $v['key'] . '.desc')) ?></p>
             </article>
         <?php endforeach; ?>
     </div>
 </section>
 
-<section class="why-afk">
-    <h2><?= e(t('home.why_title')) ?></h2>
-    <div class="why-grid">
-        <div class="why-card"><div class="why-ico" aria-hidden="true">🔒</div><h3><?= e(t('home.why.secure_t')) ?></h3><p><?= e(t('home.why.secure_d')) ?></p></div>
-        <div class="why-card"><div class="why-ico" aria-hidden="true">🌍</div><h3><?= e(t('home.why.ship_t')) ?></h3><p><?= e(t('home.why.ship_d')) ?></p></div>
-        <div class="why-card"><div class="why-ico" aria-hidden="true">💬</div><h3><?= e(t('home.why.support_t')) ?></h3><p><?= e(t('home.why.support_d')) ?></p></div>
-        <div class="why-card"><div class="why-ico" aria-hidden="true">✅</div><h3><?= e(t('home.why.verified_t')) ?></h3><p><?= e(t('home.why.verified_d')) ?></p></div>
+<section class="afk-why afk-block">
+    <span class="afk-kicker"><?= e(t('home.why_kicker')) ?></span>
+    <h2 class="afk-h2"><?= e(t('home.why_title')) ?></h2>
+    <div class="afk-why__grid">
+        <div class="afk-why__item"><div class="afk-why__ic" aria-hidden="true">🔒</div><h3 class="afk-h3"><?= e(t('home.why.secure_t')) ?></h3><p><?= e(t('home.why.secure_d')) ?></p></div>
+        <div class="afk-why__item"><div class="afk-why__ic" aria-hidden="true">🌍</div><h3 class="afk-h3"><?= e(t('home.why.ship_t')) ?></h3><p><?= e(t('home.why.ship_d')) ?></p></div>
+        <div class="afk-why__item"><div class="afk-why__ic" aria-hidden="true">💬</div><h3 class="afk-h3"><?= e(t('home.why.support_t')) ?></h3><p><?= e(t('home.why.support_d')) ?></p></div>
+        <div class="afk-why__item"><div class="afk-why__ic" aria-hidden="true">✅</div><h3 class="afk-h3"><?= e(t('home.why.verified_t')) ?></h3><p><?= e(t('home.why.verified_d')) ?></p></div>
     </div>
 </section>
 
-<section class="seller-band">
-    <h2><?= e(t('home.seller_cta_title')) ?></h2>
-    <p><?= e(t('home.seller_cta_text')) ?></p>
-    <a class="btn btn-primary btn-lg" href="<?= e(url($loggedIn ? '/vendre' : '/register/vendeur')) ?>"><?= e(t('home.seller_cta_btn')) ?></a>
+<section class="afk-seller afk-block">
+    <div>
+        <h2 class="afk-h2"><?= e(t('home.seller_cta_title')) ?></h2>
+        <p><?= e(t('home.seller_cta_text')) ?></p>
+    </div>
+    <a class="afk-btn afk-btn--dark afk-btn--lg" href="<?= e(url($loggedIn ? '/vendre' : '/register/vendeur')) ?>"><?= e(t('home.seller_cta_btn')) ?></a>
 </section>

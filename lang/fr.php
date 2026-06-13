@@ -20,6 +20,8 @@ return [
     // Accueil
     'home.hero_title'      => 'La marketplace qui relie l’Afrique et le monde',
     'home.hero_subtitle'   => 'Boutiques, restaurants, salons et services — vendez et achetez en local et à l’international, en plusieurs langues et devises.',
+    'home.hero_kicker'     => 'Afrique de l’Ouest ↔ Europe',
+    'home.why_kicker'      => 'La confiance d’abord',
     'home.cta_sell'        => 'Devenir vendeur',
     'home.cta_explore'     => 'Explorer les boutiques',
     'home.cta_login'       => 'Connexion',

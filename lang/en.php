@@ -20,6 +20,8 @@ return [
     // Home
     'home.hero_title'      => 'The marketplace connecting Africa and the world',
     'home.hero_subtitle'   => 'Shops, restaurants, salons and services — sell and buy locally and internationally, across languages and currencies.',
+    'home.hero_kicker'     => 'West Africa ↔ Europe',
+    'home.why_kicker'      => 'Trust first',
     'home.cta_sell'        => 'Become a seller',
     'home.cta_explore'     => 'Explore the shops',
     'home.cta_login'       => 'Log in',

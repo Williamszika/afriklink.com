@@ -1,61 +1,67 @@
 :root {
-    --brand: #0a7a4a;
-    --brand-dark: #075f39;
-    --brand-700: #064c2e;
-    --brand-50: #eaf6f0;
-    --brand-100: #cfeadd;
-    --accent: #e2902f;
-    --accent-50: #fdf4e8;
-    --ink: #15201b;
-    --ink-soft: #3a473f;
-    --muted: #687a70;
-    --bg: #f3f6f3;
-    --surface: #ffffff;
-    --card: #ffffff;
-    --border: #e3e8e4;
-    --border-strong: #d2d9d3;
-    --danger: #b42318;
-    --danger-bg: #fef3f2;
-    --success: #027a48;
-    --success-bg: #ecfdf3;
-    --warning: #b54708;
-    --warning-bg: #fffaeb;
-    --radius-sm: 10px;
-    --radius: 14px;
-    --radius-lg: 20px;
-    --shadow-xs: 0 1px 2px rgba(16, 24, 40, .05);
-    --shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .04);
-    --shadow-md: 0 6px 16px rgba(16, 24, 40, .08), 0 2px 5px rgba(16, 24, 40, .04);
-    --shadow-hover: 0 18px 40px rgba(16, 24, 40, .13), 0 6px 14px rgba(16, 24, 40, .07);
-    --ring: 0 0 0 3px rgba(10, 122, 74, .20);
-    --max: 1200px;
-    font-synthesis: none;
+    /* — AfrikLink Design System v1.0 — palette forêt + or + cream — */
+    --afk-cream:#FBF7EF; --afk-cream-2:#F2EBDD;
+    --afk-foret:#103D30; --afk-foret-700:#0B2C22; --afk-foret-300:#3C7A66;
+    --afk-or:#E5A02E; --afk-or-soft:#F5D699; --afk-hibiscus:#C8447A;
+    --afk-encre:#16241F; --afk-plume:#5B6B62; --afk-blanc:#ffffff;
+    --afk-ok:#1E8F6E; --afk-ok-bg:rgba(30,143,110,.12);
+    --afk-warn:#C77A12; --afk-warn-bg:rgba(199,122,18,.12);
+    --afk-err:#C0392B; --afk-err-bg:rgba(192,57,43,.1);
+    --afk-info:#2D6A9F; --afk-info-bg:rgba(45,106,159,.1);
+    --afk-ligne:rgba(16,36,30,.12); --afk-ligne-fort:rgba(16,36,30,.2);
+    --afk-shadow-sm:0 4px 12px -6px rgba(16,36,30,.25);
+    --afk-shadow:0 24px 48px -28px rgba(16,36,30,.45);
+    --afk-shadow-lg:0 30px 60px -24px rgba(16,36,30,.5);
+    --afk-r-sm:10px; --afk-r:14px; --afk-r-lg:18px; --afk-r-xl:26px; --afk-r-pill:100px;
+    --afk-display:"Bricolage Grotesque",system-ui,sans-serif;
+    --afk-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --afk-mono:"Space Mono",ui-monospace,monospace;
+    --afk-wax:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23E5A02E' stroke-opacity='0.5' stroke-width='1.2'%3E%3Cpath d='M22 4 L40 22 L22 40 L4 22 Z'/%3E%3Cpath d='M22 13 L31 22 L22 31 L13 22 Z'/%3E%3C/g%3E%3C/svg%3E");
+
+    /* — Jetons hérités, repointés sur la nouvelle palette (toutes les pages suivent) — */
+    --brand:#103D30; --brand-dark:#0B2C22; --brand-700:#0B2C22; --brand-300:#3C7A66;
+    --brand-50:#eaf2ee; --brand-100:#d4e5dd;
+    --accent:#E5A02E; --accent-50:#fdf4e3;
+    --ink:#16241F; --ink-soft:#3a473f; --muted:#5B6B62;
+    --bg:#FBF7EF; --bg-2:#F2EBDD; --surface:#ffffff; --card:#ffffff;
+    --border:rgba(16,36,30,.12); --border-strong:rgba(16,36,30,.2);
+    --danger:#C0392B; --danger-bg:rgba(192,57,43,.1);
+    --success:#1E8F6E; --success-bg:rgba(30,143,110,.12);
+    --warning:#C77A12; --warning-bg:rgba(199,122,18,.12);
+    --radius-sm:10px; --radius:14px; --radius-lg:18px;
+    --shadow-xs:0 4px 12px -7px rgba(16,36,30,.22);
+    --shadow:0 14px 30px -18px rgba(16,36,30,.32);
+    --shadow-md:0 22px 44px -26px rgba(16,36,30,.42);
+    --shadow-hover:0 28px 56px -26px rgba(16,36,30,.5);
+    --ring:0 0 0 3px rgba(60,122,102,.22);
+    --max:1200px;
+    font-synthesis:none;
 }
 
 * { box-sizing: border-box; }
 
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--afk-body);
     color: var(--ink);
     background: var(--bg);
-    line-height: 1.6;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 }
 
-/* Fond propre et professionnel : surface claire avec une très légère lueur de
-   marque en haut. Les cartes blanches ressortent nettement (look marketplace
-   moderne). Calque fixe ::before plutôt que background-attachment, cassé sur iOS. */
+/* Fond chaud « cream » avec une légère lueur dorée en haut — les surfaces
+   blanches ressortent nettement (look éditorial premium). Calque fixe ::before
+   plutôt que background-attachment (cassé sur iOS). */
 body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
     background:
-        radial-gradient(1200px 520px at 50% -8%, var(--brand-50), rgba(234, 246, 240, 0) 68%),
-        linear-gradient(180deg, #fbfcfb 0%, var(--bg) 30%);
+        radial-gradient(1100px 460px at 50% -6%, rgba(229, 160, 46, .10), rgba(229, 160, 46, 0) 64%),
+        linear-gradient(180deg, #FEFCF7 0%, var(--bg) 26%);
 }
 
 a { color: var(--brand); text-decoration: none; }
@@ -1293,3 +1299,161 @@ h2 { font-weight: 700; }
 
 /* Focus clavier global cohérent */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ================================================================
+   AFRIKLINK · DESIGN SYSTEM v1.0 — couche d'application finale.
+   Forêt + or + cream, motif wax, typographie Bricolage/Inter/Space Mono.
+   Surcharge à spécificité égale ; re-skin des classes existantes +
+   composants .afk-* pour la page d'accueil.
+   ================================================================ */
+
+/* — Typographie — */
+h1,h2,h3,h4,h5{font-family:var(--afk-display);letter-spacing:-.02em;line-height:1.12;color:var(--ink);font-weight:700}
+.product-card-price,.afk-mono,.order-total strong,.menu-item-price,.caisse-total strong{font-family:var(--afk-mono)}
+.afk-h1{font-size:clamp(34px,5vw,58px);font-weight:800;line-height:1.04}
+.afk-h2{font-size:clamp(24px,3vw,34px);font-weight:700}
+.afk-h3{font-size:18px;font-weight:700}
+.afk-lede{font-size:clamp(15.5px,1.3vw,18px);color:var(--afk-plume);line-height:1.55}
+.afk-kicker{display:block;font-family:var(--afk-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--afk-or);font-weight:700;margin-bottom:8px}
+.afk-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--afk-mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--afk-foret-300);font-weight:700;margin-bottom:14px}
+.afk-eyebrow b{color:var(--afk-or)}
+.afk-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:22px;flex-wrap:wrap}
+.afk-head h2{margin:0}
+.afk-link-all{font-weight:700;color:var(--afk-foret);font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;transition:gap .2s;font-family:var(--afk-display)}
+.afk-link-all:hover{gap:9px;text-decoration:none}
+.afk-block{margin:0 0 clamp(30px,5vw,52px)}
+
+/* — Topbar + header — */
+.topbar{background:var(--afk-foret-700)}
+.site-header{background:rgba(251,247,239,.85);-webkit-backdrop-filter:blur(12px) saturate(1.05);backdrop-filter:blur(12px) saturate(1.05);border-bottom:1px solid var(--afk-ligne);box-shadow:0 10px 26px -20px rgba(16,36,30,.5)}
+.brand{font-family:var(--afk-display);font-weight:800;font-size:1.42rem;letter-spacing:-.03em;color:var(--afk-foret)}
+.brand-text span{color:var(--afk-or)}
+.main-nav a{font-weight:600;color:var(--afk-foret)}
+.main-nav a:hover,.main-nav a.is-active{color:var(--afk-foret)}
+.main-nav a.is-active::after{background:var(--afk-or)}
+.header-search{height:44px;border-radius:var(--afk-r-pill);border:1.5px solid var(--afk-ligne-fort);box-shadow:var(--shadow-xs);background:#fff}
+.header-search:focus-within{border-color:var(--afk-foret-300);box-shadow:var(--ring)}
+.header-search button{background:var(--afk-foret);border-radius:0 var(--afk-r-pill) var(--afk-r-pill) 0;padding:0 20px}
+.header-search button:hover{background:var(--afk-foret-700)}
+.nav-actions{gap:8px}
+.nav-icon{width:42px;height:42px;padding:0;border-radius:50%;font-size:1.05rem;background:#fff;border:1px solid var(--afk-ligne-fort)}
+.nav-icon:hover{background:var(--accent-50);border-color:var(--afk-or)}
+.nav-badge{background:var(--afk-hibiscus)}
+
+/* — Boutons — */
+.btn{font-family:var(--afk-display);font-weight:700;border-radius:var(--afk-r-sm);transition:transform .14s ease,box-shadow .2s,background .2s,border-color .2s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--afk-foret);color:#fff;box-shadow:0 10px 22px -14px rgba(16,61,48,.9)}
+.btn-primary:hover{background:var(--afk-foret-700);color:#fff;transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.btn-ghost{background:#fff;color:var(--afk-foret);border-color:var(--afk-ligne-fort);box-shadow:var(--shadow-xs)}
+.btn-ghost:hover{background:var(--afk-cream-2);border-color:var(--afk-foret-300);color:var(--afk-foret)}
+.afk-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--afk-display);font-weight:700;font-size:14.5px;border-radius:var(--afk-r-sm);cursor:pointer;border:1px solid transparent;padding:12px 20px;transition:transform .15s,box-shadow .2s,background .2s;text-decoration:none;white-space:nowrap}
+.afk-btn:active{transform:translateY(1px)}
+.afk-btn--gold{background:var(--afk-or);color:var(--afk-foret-700);box-shadow:0 12px 24px -12px rgba(229,160,46,.85)}
+.afk-btn--gold:hover{transform:translateY(-2px);box-shadow:0 16px 30px -12px rgba(229,160,46,.95);text-decoration:none}
+.afk-btn--green{background:var(--afk-foret);color:#fff}
+.afk-btn--green:hover{transform:translateY(-2px);background:var(--afk-foret-700)}
+.afk-btn--dark{background:var(--afk-foret-700);color:#fff}
+.afk-btn--dark:hover{background:#06201a;transform:translateY(-2px);text-decoration:none}
+.afk-btn--lg{padding:15px 28px;font-size:16px}
+
+/* — Sections (re-skin) — */
+.live-section h2,.cat-section h2,.why-afk h2,.verticals h2{font-family:var(--afk-display);font-weight:800}
+.live-section h2{font-size:clamp(1.2rem,2.4vw,1.6rem);margin-bottom:18px}
+
+/* — Cartes (re-skin) — */
+.panel{border-radius:var(--afk-r-lg);border:1px solid var(--afk-ligne);box-shadow:var(--shadow)}
+.vendor-card,.cat-tile{border-radius:var(--afk-r);border:1px solid var(--afk-ligne);box-shadow:var(--shadow-xs);transition:transform .2s,box-shadow .25s,border-color .2s}
+.vendor-card:hover,.cat-tile:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--afk-or)}
+.vendor-name,.cat-tile-name{font-family:var(--afk-display);font-weight:700}
+.vendor-verified{color:var(--afk-ok);font-weight:700;font-size:.74rem}
+.product-card-img{border-radius:var(--afk-r);border-color:var(--afk-ligne);box-shadow:var(--shadow-xs)}
+.product-card:hover .product-card-img{box-shadow:var(--shadow)}
+.product-card-name{font-weight:600}
+.product-card-price{color:var(--afk-foret);font-weight:700}
+.promo-badge{background:var(--afk-or);color:var(--afk-foret-700);font-family:var(--afk-mono);font-weight:700}
+
+/* — Formulaires (re-skin léger) — */
+form input,form select,form textarea{border-radius:var(--afk-r-sm);border-color:var(--afk-ligne-fort)}
+form input:focus,form select:focus,form textarea:focus{outline:none;border-color:var(--afk-foret-300);box-shadow:var(--ring)}
+
+/* — Badges sémantiques — */
+.badge-ok{background:var(--afk-ok-bg);color:var(--afk-ok);border-color:transparent}
+.badge-warn{background:var(--afk-warn-bg);color:var(--afk-warn);border-color:transparent}
+.badge-neutral{background:var(--afk-cream-2);color:var(--afk-plume);border-color:transparent}
+
+/* — Pied de page (forêt) — */
+.site-footer{background:var(--afk-foret-700);border-top:0;color:rgba(255,255,255,.7);margin-top:56px}
+.site-footer .brand{color:#fff}
+.site-footer .brand-text span{color:var(--afk-or-soft)}
+.footer-top{border-bottom:1px solid rgba(255,255,255,.12)}
+.footer-tag{color:rgba(255,255,255,.62)}
+.footer-nav a{color:rgba(255,255,255,.78);font-weight:600}
+.footer-nav a:hover{color:var(--afk-or-soft)}
+.footer-bottom{border-top:0;color:rgba(255,255,255,.5)}
+
+/* ===== Composants .afk-* (page d'accueil) ===== */
+/* Hero */
+.afk-hero{display:grid;grid-template-columns:1.06fr .94fr;gap:46px;align-items:center;margin:6px 0 clamp(30px,5vw,54px)}
+.afk-hero__text h1{margin:0 0 18px;max-width:15ch}
+.afk-hero .afk-lede{max-width:50ch;margin-bottom:24px}
+.afk-hero-search{display:flex;gap:10px;background:#fff;padding:10px;border-radius:var(--afk-r);box-shadow:var(--shadow);max-width:540px}
+.afk-hero-search .afk-search{flex:1;border:none;box-shadow:none;padding:0 12px;background:transparent}
+.afk-search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--afk-ligne);border-radius:var(--afk-r);padding:10px 14px}
+.afk-search input{border:none;outline:none;flex:1;background:transparent;font-size:14.5px;color:var(--afk-encre);font-family:var(--afk-body)}
+.afk-search .afk-ic{color:var(--afk-plume);flex:none}
+.afk-trust{display:flex;gap:20px;margin-top:22px;flex-wrap:wrap}
+.afk-trust__item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--afk-plume);font-weight:600}
+.afk-waxpanel{position:relative;border-radius:var(--afk-r-xl);background:linear-gradient(150deg,var(--afk-foret),var(--afk-foret-700));overflow:hidden;box-shadow:var(--shadow-md);min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:32px}
+.afk-waxpanel::before{content:"";position:absolute;inset:0;background:var(--afk-wax);opacity:.22}
+.afk-waxpanel>*{position:relative;z-index:1}
+.afk-waxpanel__emblem{width:120px;height:120px;border-radius:30px;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(245,214,153,.3)}
+.afk-waxpanel__emblem .brand-logo{width:64px;height:86px;display:block}
+.afk-waxpanel__verts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:300px}
+.afk-waxpanel__verts span{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--afk-or-soft);font-size:12.5px;font-weight:600;padding:10px 12px;border-radius:12px;font-family:var(--afk-display)}
+
+/* Univers (verticales) */
+.afk-grid{display:grid;gap:20px}
+.afk-grid-4{grid-template-columns:repeat(4,1fr)}
+.afk-uni{position:relative;border-radius:var(--afk-r-lg);padding:24px 22px;overflow:hidden;background:#fff;border:1px solid var(--afk-ligne);transition:transform .2s,box-shadow .25s;display:block}
+.afk-uni:hover{transform:translateY(-5px);box-shadow:var(--shadow);text-decoration:none}
+.afk-uni__ic{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;font-size:26px;margin-bottom:15px;background:rgba(229,160,46,.16)}
+.afk-uni__ic--alt1{background:rgba(200,68,122,.14)}
+.afk-uni__ic--alt2{background:rgba(60,122,102,.16)}
+.afk-uni__ic--alt3{background:rgba(16,61,48,.1)}
+.afk-uni h3{margin:0 0 6px}
+.afk-uni p{font-size:13.5px;color:var(--afk-plume);line-height:1.5;margin:0}
+.afk-uni::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--afk-or);transition:width .3s}
+.afk-uni:hover::after{width:100%}
+
+/* Pourquoi (bande forêt) */
+.afk-why{background:var(--afk-foret);border-radius:var(--afk-r-xl);padding:clamp(30px,5vw,52px);position:relative;overflow:hidden;color:#fff}
+.afk-why::before{content:"";position:absolute;inset:0;background:var(--afk-wax);opacity:.06}
+.afk-why>*{position:relative;z-index:1}
+.afk-why h2,.afk-why h3{color:#fff}
+.afk-why .afk-kicker{color:var(--afk-or-soft)}
+.afk-why__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:26px}
+.afk-why__ic{width:50px;height:50px;border-radius:14px;background:rgba(229,160,46,.18);display:grid;place-items:center;font-size:24px;margin-bottom:13px}
+.afk-why__item h3{margin:0 0 6px;font-size:1.02rem}
+.afk-why__item p{color:rgba(255,255,255,.72);font-size:13.5px;line-height:1.5;margin:0}
+
+/* CTA vendeur */
+.afk-seller{background:linear-gradient(135deg,var(--afk-or),#d68b1c);border-radius:var(--afk-r-xl);padding:clamp(30px,5vw,52px);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;margin:0 0 clamp(20px,4vw,40px)}
+.afk-seller::before{content:"";position:absolute;inset:0;background:var(--afk-wax);opacity:.18}
+.afk-seller>*{position:relative;z-index:1}
+.afk-seller h2{color:var(--afk-foret-700);font-weight:800;margin:0}
+.afk-seller p{color:rgba(11,44,34,.8);font-size:16px;margin:8px 0 0;font-weight:500;max-width:46ch}
+
+/* ===== Responsive ===== */
+@media(max-width:980px){
+  .afk-grid-4{grid-template-columns:repeat(2,1fr)}
+  .afk-why__grid{grid-template-columns:repeat(2,1fr)}
+  .afk-hero{grid-template-columns:1fr;gap:30px}
+  .afk-waxpanel{min-height:300px}
+}
+@media(max-width:640px){
+  .afk-grid-4,.afk-why__grid{grid-template-columns:1fr 1fr}
+  .afk-hero-search{flex-direction:column}
+  .afk-seller{flex-direction:column;align-items:flex-start}
+  .afk-waxpanel{display:none}
+}
