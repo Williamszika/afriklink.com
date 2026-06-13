@@ -243,7 +243,7 @@ final class Boutique
     {
         try {
             $stmt = db()->prepare(
-                "SELECT id, slug, name, tagline, category, logo_public_id
+                "SELECT id, user_id, slug, name, tagline, category, logo_public_id
                    FROM boutiques WHERE status = 'published' ORDER BY id DESC LIMIT " . max(1, min(48, $limit))
             );
             $stmt->execute();

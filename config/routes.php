@@ -126,6 +126,7 @@ return [
     ['GET',  '/annonce/{pid}/modifier',  [ListingController::class, 'edit'],      ['auth']],
     ['POST', '/annonce/{pid}/modifier',  [ListingController::class, 'update'],    ['auth', 'csrf', 'throttle:listing,20,3600']],
     ['POST', '/annonce/{pid}/statut',    [ListingController::class, 'setStatus'], ['auth', 'csrf']],
+    ['POST', '/annonce/{pid}/promouvoir', [ListingController::class, 'promote'],  ['auth', 'csrf', 'throttle:listing,20,3600']],
 
     // Signature des envois médias directs navigateur → Cloudinary
     ['POST', '/api/media/sign',          [MediaController::class, 'sign'],        ['auth', 'csrf', 'throttle:sign,60,3600']],

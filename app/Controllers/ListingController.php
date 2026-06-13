@@ -186,6 +186,19 @@ final class ListingController
         redirect('/annonce/' . $listing['public_id']);
     }
 
+    /** Met en avant (ou retire) une annonce — « sponsorisé », simulation gratuite. */
+    public function promote(Request $request): void
+    {
+        $listing = $this->ownListingOr404((string) $request->param('pid', ''));
+        $action  = whitelist((string) input_string('action', ''), ['promote', 'stop'], null);
+        if ($action === null) {
+            abort(404);
+        }
+        Listing::setPromoted((int) $listing['id'], $action === 'promote' ? 7 : null);
+        flash('success', t($action === 'promote' ? 'ads.promoted_flash' : 'ads.stopped_flash'));
+        redirect('/annonces');
+    }
+
     public function setStatus(Request $request): void
     {
         $listing = $this->ownListingOr404((string) $request->param('pid', ''));

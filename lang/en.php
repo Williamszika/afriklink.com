@@ -38,6 +38,8 @@ return [
     'home.boutiques_title' => 'Online shops',
     'home.restaurants_title' => 'Online restaurants',
     'home.annonces_title' => 'Latest listings',
+    'home.featured_annonces' => 'Featured listings',
+    'home.verified_short' => 'Verified',
     'home.why_title' => 'Why choose Afriklink?',
     'home.why.secure_t' => 'Secure payments',
     'home.why.secure_d' => 'Your transactions are protected at every step.',

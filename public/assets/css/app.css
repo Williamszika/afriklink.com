@@ -1082,3 +1082,6 @@ h2 { letter-spacing:-.01em; }
 
 /* Accueil compact : on remonte le contenu (produits/vitrines/annonces) plus haut */
 .hero--compact { padding-top: 36px; padding-bottom: 32px; }
+
+/* Confiance : badge vendeur vérifié sur les cartes vitrines */
+.vendor-verified { display:inline-flex; align-items:center; gap:3px; font-size:.7rem; font-weight:800; color:#0a7d28; background:#e6f6ea; border:1px solid #b7e2c3; border-radius:999px; padding:1px 7px; }

@@ -100,6 +100,27 @@ final class ProProfile
         ]);
     }
 
+    /** Sous-ensemble vérifié parmi des user_ids. @return array<int,true> map user_id => true */
+    public static function verifiedAmong(array $userIds): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $userIds)));
+        if ($ids === []) {
+            return [];
+        }
+        try {
+            $in = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = db()->prepare("SELECT user_id FROM pro_profiles WHERE verification_status = 'verified' AND user_id IN ($in)");
+            $stmt->execute($ids);
+            $out = [];
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $out[(int) $r['user_id']] = true;
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public static function setVerificationStatus(int $userId, string $status): void
     {
         try {

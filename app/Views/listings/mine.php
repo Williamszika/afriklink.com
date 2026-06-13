@@ -42,6 +42,16 @@ use App\Services\CloudinaryService;
                         </p>
                         <div class="listing-row-actions">
                             <a class="btn btn-ghost btn-sm" href="<?= e(url('/annonce/' . $l['public_id'] . '/modifier')) ?>"><?= e(t('profile.edit')) ?></a>
+                            <?php if ($l['status'] === 'active'): ?>
+                                <form method="post" action="<?= e(url('/annonce/' . $l['public_id'] . '/promouvoir')) ?>" class="inline-form">
+                                    <?= csrf_field() ?>
+                                    <?php if (\App\Models\Listing::isPromoted($l)): ?>
+                                        <button class="btn btn-ghost btn-sm" name="action" value="stop">✨ <?= e(t('ads.stop')) ?></button>
+                                    <?php else: ?>
+                                        <button class="btn btn-primary btn-sm" name="action" value="promote">✨ <?= e(t('ads.promote', ['days' => 7])) ?></button>
+                                    <?php endif; ?>
+                                </form>
+                            <?php endif; ?>
                             <form method="post" action="<?= e(url('/annonce/' . $l['public_id'] . '/statut')) ?>" class="inline-form">
                                 <?= csrf_field() ?>
                                 <?php if ($l['status'] === 'active'): ?>

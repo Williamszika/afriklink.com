@@ -144,10 +144,70 @@ final class Listing
     /** @return list<array> annonces actives récentes (pour la vitrine d'accueil) */
     public static function recentActive(int $limit = 12): array
     {
+        self::migratePromoted();
         try {
             $stmt = db()->prepare(
-                "SELECT id, public_id, title, price_cents, currency, category
-                   FROM listings WHERE status = 'active' ORDER BY id DESC LIMIT " . max(1, min(48, $limit))
+                "SELECT id, public_id, title, price_cents, currency, category, promoted_until
+                   FROM listings WHERE status = 'active'
+                   ORDER BY (promoted_until IS NOT NULL AND promoted_until > NOW()) DESC, id DESC
+                   LIMIT " . max(1, min(48, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Migration idempotente : colonne de mise en avant (« sponsorisé »). */
+    private static function migratePromoted(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            db()->query('SELECT promoted_until FROM listings LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE listings ADD COLUMN promoted_until DATETIME NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+    }
+
+    /** Active (jours) ou retire (null) la mise en avant d'une annonce. */
+    public static function setPromoted(int $id, ?int $days): void
+    {
+        self::migratePromoted();
+        try {
+            if ($days !== null && $days > 0) {
+                db()->prepare('UPDATE listings SET promoted_until = (NOW() + INTERVAL ' . max(1, min(365, $days)) . ' DAY) WHERE id = :id')
+                    ->execute(['id' => $id]);
+            } else {
+                db()->prepare('UPDATE listings SET promoted_until = NULL WHERE id = :id')->execute(['id' => $id]);
+            }
+        } catch (\Throwable) {
+        }
+    }
+
+    public static function isPromoted(array $row): bool
+    {
+        $u = $row['promoted_until'] ?? null;
+        return $u !== null && $u !== '' && strtotime((string) $u) > time();
+    }
+
+    /** @return list<array> annonces actuellement sponsorisées (en vedette) */
+    public static function promotedMarketplace(int $limit = 8): array
+    {
+        self::migratePromoted();
+        try {
+            $stmt = db()->prepare(
+                "SELECT id, public_id, title, price_cents, currency, category, promoted_until
+                   FROM listings WHERE status = 'active' AND promoted_until IS NOT NULL AND promoted_until > NOW()
+                   ORDER BY promoted_until DESC LIMIT " . max(1, min(24, $limit))
             );
             $stmt->execute();
             return $stmt->fetchAll() ?: [];
@@ -181,6 +241,7 @@ final class Listing
     /** @return list<array> annonces d'un vendeur, les plus récentes d'abord */
     public static function forUser(int $userId, int $limit = 50): array
     {
+        self::migratePromoted();
         try {
             $stmt = db()->prepare(
                 'SELECT * FROM listings

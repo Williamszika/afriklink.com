@@ -38,6 +38,8 @@ return [
     'home.boutiques_title' => 'Boutiques en ligne',
     'home.restaurants_title' => 'Restaurants en ligne',
     'home.annonces_title' => 'Annonces récentes',
+    'home.featured_annonces' => 'Annonces en vedette',
+    'home.verified_short' => 'Vérifié',
     'home.why_title' => 'Pourquoi choisir Afriklink ?',
     'home.why.secure_t' => 'Paiements sécurisés',
     'home.why.secure_d' => 'Vos transactions sont protégées à chaque étape.',

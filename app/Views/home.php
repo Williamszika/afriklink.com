@@ -9,6 +9,9 @@ $boutiques       = $boutiques ?? [];
 $restaurants     = $restaurants ?? [];
 $annonces        = $annonces ?? [];
 $annonce_mains   = $annonce_mains ?? [];
+$verified_sellers     = $verified_sellers ?? [];
+$promo_annonces       = $promo_annonces ?? [];
+$promo_annonce_mains  = $promo_annonce_mains ?? [];
 $verticals = [
     ['key' => 'shop',       'icon' => '🛍️'],
     ['key' => 'restaurant', 'icon' => '🍽️'],
@@ -52,6 +55,24 @@ $loggedIn   = current_user() !== null;
 </section>
 <?php endif; ?>
 
+<?php if (!empty($promo_annonces)): ?>
+<section class="live-section">
+    <h2>✨ <?= e(t('home.featured_annonces')) ?></h2>
+    <div class="product-grid">
+        <?php foreach ($promo_annonces as $a): $am = $promo_annonce_mains[(int) $a['id']] ?? null; ?>
+            <a class="product-card" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
+                <span class="product-card-img">
+                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">🏷️</span><?php endif; ?>
+                    <span class="promo-badge"><?= e(t('ads.badge')) ?></span>
+                </span>
+                <span class="product-card-name"><?= e((string) $a['title']) ?></span>
+                <span class="product-card-price"><?= e(format_price((int) $a['price_cents'], (string) $a['currency'])) ?></span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <?php if (!empty($boutiques)): ?>
 <section class="live-section">
     <h2>🏪 <?= e(t('home.boutiques_title')) ?></h2>
@@ -60,6 +81,7 @@ $loggedIn   = current_user() !== null;
             <a class="vendor-card" href="<?= e(url('/boutique/' . $b['slug'])) ?>">
                 <span class="vendor-logo"><?php if (!empty($b['logo_public_id'])): ?><img src="<?= e(CloudinaryService::imageUrl((string) $b['logo_public_id'], 160, 160)) ?>" alt="" loading="lazy"><?php else: ?>🏪<?php endif; ?></span>
                 <span class="vendor-name"><?= e((string) $b['name']) ?></span>
+                <?php if (!empty($verified_sellers[(int) $b['user_id']])): ?><span class="vendor-verified" title="<?= e(t('shop.verified_seller')) ?>">✓ <?= e(t('home.verified_short')) ?></span><?php endif; ?>
                 <?php if (!empty($b['category'])): ?><span class="vendor-sub muted"><?= e(t('listing.cat.' . $b['category'])) ?></span><?php endif; ?>
             </a>
         <?php endforeach; ?>
@@ -88,7 +110,10 @@ $loggedIn   = current_user() !== null;
     <div class="product-grid">
         <?php foreach ($annonces as $a): $am = $annonce_mains[(int) $a['id']] ?? null; ?>
             <a class="product-card" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
-                <span class="product-card-img"><?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">🏷️</span><?php endif; ?></span>
+                <span class="product-card-img">
+                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">🏷️</span><?php endif; ?>
+                    <?php if (\App\Models\Listing::isPromoted($a)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+                </span>
                 <span class="product-card-name"><?= e((string) $a['title']) ?></span>
                 <span class="product-card-price"><?= e(format_price((int) $a['price_cents'], (string) $a['currency'])) ?></span>
             </a>
