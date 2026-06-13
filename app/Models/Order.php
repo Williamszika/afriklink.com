@@ -172,7 +172,7 @@ final class Order
             // Décompte du stock : atomique et borné (jamais négatif). Les produits
             // à stock illimité (stock NULL) ne sont pas touchés.
             $dec = $pdo->prepare(
-                'UPDATE products SET stock = stock - :q WHERE id = :pid AND stock IS NOT NULL AND stock >= :q'
+                'UPDATE products SET stock = stock - :qty WHERE id = :pid AND stock IS NOT NULL AND stock >= :qmin'
             );
             foreach ($lines as $l) {
                 $ins->execute([
@@ -180,7 +180,7 @@ final class Order
                     'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty'],
                 ]);
                 if (!empty($l['product_id'])) {
-                    $dec->execute(['q' => $l['qty'], 'pid' => (int) $l['product_id']]);
+                    $dec->execute(['qty' => $l['qty'], 'qmin' => $l['qty'], 'pid' => (int) $l['product_id']]);
                 }
             }
             $pdo->commit();
