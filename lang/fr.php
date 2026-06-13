@@ -806,6 +806,12 @@ return [
     'bcart.view_cart' => 'Panier',
     'bcart.buy_now' => 'Acheter',
     'bcart.add_to_cart' => 'Ajouter au panier',
+    'bcart.to_checkout' => 'Passer à la caisse',
+    // Caisse (page de validation du panier)
+    'caisse.title' => 'Caisse — :shop',
+    'caisse.continue' => 'Continuer mes achats',
+    'caisse.your_cart' => 'Votre panier',
+    'caisse.validate' => 'Valider le paiement',
     'bcart.method_label' => 'Moyen de paiement',
     'bcart.await_confirm' => 'Commande reçue ! Le vendeur va la confirmer, puis vous recevrez les instructions de paiement.',
     'bcart.pay_on_delivery' => 'À régler à la livraison.',

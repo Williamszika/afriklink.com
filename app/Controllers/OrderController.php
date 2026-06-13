@@ -154,7 +154,7 @@ final class OrderController
             flash('success', t('order.status_flash', ['status' => t('order.status.' . $to)]));
             // À la CONFIRMATION d'une commande en ligne, on prévient le client : soit
             // il doit régler (paiement avant / acompte), soit ce sera à la livraison.
-            if ($action === 'confirm' && (string) $order['source'] === 'online') {
+            if ($action === 'confirm' && (string) $order['source'] === 'online' && (string) ($order['payment_status'] ?? 'unpaid') !== 'paid') {
                 try {
                     OrderNotifier::clientOrderConfirmed(
                         $order,

@@ -409,18 +409,41 @@ document.addEventListener('click', function (ev) {
         });
     });
 
-    // Ouvre le panier : déplie le formulaire de commande si des articles sont
-    // présents, sinon ramène le visiteur vers la grille de produits.
+    // Boutique : « passer à la caisse » poste le panier vers une page dédiée.
+    // Restaurant : pas de caisse → on déplie le formulaire en ligne ([data-cart-form]).
+    var caisseForm = document.querySelector('[data-caisse-form]');
+
+    function currentItems() {
+        var out = [];
+        Object.keys(cart).forEach(function (k) {
+            if (cart[k].qty > 0) { var p = k.split('|'); out.push({ id: p[0], size: p[1], qty: cart[k].qty }); }
+        });
+        return out;
+    }
+    function scrollToProducts() {
+        var grid = document.querySelector('.product-grid') || menu;
+        if (grid) { grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    }
+    function submitCaisse(items) {
+        var hidden = caisseForm.querySelector('[data-cart-json]');
+        if (hidden) { hidden.value = JSON.stringify(items); }
+        caisseForm.submit();
+    }
+    // Ouvre le panier : caisse (boutique) ou formulaire en ligne (restaurant).
     function openCheckout() {
-        var anyQty = Object.keys(cart).some(function (k) { return cart[k].qty > 0; });
-        if (anyQty && form) {
+        var items = currentItems();
+        if (caisseForm) {
+            if (items.length === 0) { scrollToProducts(); return; }
+            submitCaisse(items);
+            return;
+        }
+        if (items.length > 0 && form) {
             form.hidden = false;
             form.scrollIntoView({ behavior: 'smooth', block: 'start' });
             var n = form.querySelector('#cl-name');
             if (n) { setTimeout(function () { n.focus(); }, 350); }
         } else {
-            var grid = document.querySelector('.product-grid') || menu;
-            if (grid) { grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            scrollToProducts();
         }
     }
     if (bar) {
@@ -431,14 +454,15 @@ document.addEventListener('click', function (ev) {
         b.addEventListener('click', openCheckout);
     });
 
-    // « Acheter » (achat express) : garantit au moins 1 unité de ce produit dans
-    // le panier, met à jour son stepper, puis ouvre la commande.
+    // « Acheter » (achat express) : ouvre la caisse directement avec ce seul produit.
     document.querySelectorAll('[data-buy-now]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            var key = btn.getAttribute('data-buy-now') + '|';
+            var id = btn.getAttribute('data-buy-now');
+            if (caisseForm) { submitCaisse([{ id: id, size: '', qty: 1 }]); return; }
+            var key = id + '|';
             if (cart[key]) {
                 if (cart[key].qty < 1) { cart[key].qty = 1; }
-                var stepper = document.querySelector('[data-order-item][data-id="' + btn.getAttribute('data-buy-now') + '"][data-size=""]');
+                var stepper = document.querySelector('[data-order-item][data-id="' + id + '"][data-size=""]');
                 if (stepper) { paint(stepper, cart[key].qty); }
                 render();
             }

@@ -87,54 +87,16 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
     <?php endif; ?>
 
     <?php if ($canOrder): ?>
-        <!-- Commander : panier + coordonnées -->
-        <form id="commander" class="panel resto-checkout" method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/commander')) ?>" data-cart-form hidden>
+        <!-- Le panier (JS) est posté ici, revalidé serveur, puis on passe à la caisse. -->
+        <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/caisse')) ?>" data-caisse-form hidden>
             <?= csrf_field() ?>
-            <h2 class="panel-title">🧺 <?= e(t('rorder.your_order')) ?></h2>
-            <ul class="cart-lines" data-cart-lines></ul>
-            <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong data-cart-total>0</strong></p>
-            <?php if ($methods): ?>
-                <label><?= e(t('bcart.fulfillment')) ?></label>
-                <div class="lang-checks">
-                    <?php foreach ($methods as $i => $mth): ?>
-                        <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-            <?php if ($payTerms): ?>
-                <label><?= e(t('bcart.pay_term')) ?></label>
-                <div class="lang-checks">
-                    <?php foreach ($payTerms as $i => $pt): ?>
-                        <label class="check-pill"><input type="radio" name="payment_term" value="<?= e($pt) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.payterm.' . $pt)) ?></span></label>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-            <?php if ($payMethods): ?>
-                <label><?= e(t('bcart.pay_method')) ?></label>
-                <div class="lang-checks pay-method-checks">
-                    <?php foreach ($payMethods as $i => $pm): ?>
-                        <label class="check-pill"><input type="radio" name="payment_method" value="<?= e($pm) ?>" <?= $i === 0 ? 'checked' : '' ?>><img src="<?= e(asset('img/pay/' . $pm . '.svg')) ?>" alt="" width="30" height="19"><span><?= e(t('shop.paymethod.' . $pm)) ?></span></label>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-            <label for="cl-name"><?= e(t('order.f.client')) ?></label>
-            <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
-            <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
-            <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
-            <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
-            <label for="cl-email"><?= e(t('order.f.email')) ?></label>
-            <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
-            <?php if (has_error('client_email')): ?><p class="field-error"><?= e(error('client_email')) ?></p><?php endif; ?>
-            <label for="cl-note"><?= e(t('order.f.note')) ?></label>
-            <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
             <input type="hidden" name="cart_json" data-cart-json value="[]">
-            <button type="submit" class="btn btn-primary btn-block"><?= e(t('rorder.send')) ?></button>
         </form>
 
         <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
         <div class="cart-bar" data-cart-bar hidden>
             <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
-            <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('rorder.checkout')) ?> →</button>
+            <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
         </div>
     <?php endif; ?>
 </section>

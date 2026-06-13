@@ -269,10 +269,64 @@ final class BoutiqueController
         ]);
     }
 
-    /* ---- Commande en ligne (panier public) ------------------------- */
+    /* ---- Caisse & commande en ligne (panier public) ---------------- */
 
     /**
-     * Le client envoie son panier : on re-valide CHAQUE ligne côté serveur
+     * Le client envoie son panier (depuis la vitrine) ; on revalide chaque
+     * ligne côté serveur, on garde le panier en session, puis on l'emmène à la
+     * caisse (schéma Post/Redirect/Get : la page caisse est rafraîchissable).
+     */
+    public function caisseStore(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || $boutique['status'] !== 'published') {
+            abort(404);
+        }
+        $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
+        $entries = [];
+        foreach (is_array($raw) ? $raw : [] as $e) {
+            $id = (string) ($e['id'] ?? '');
+            if ($id !== '') {
+                $entries[] = ['id' => $id, 'qty' => max(1, min(99, (int) ($e['qty'] ?? 0)))];
+            }
+        }
+        $lines = $this->validateCartLines($boutique, $entries);
+        if ($lines === []) {
+            flash('error', t('rorder.empty'));
+            redirect('/boutique/' . $boutique['slug']);
+        }
+        $_SESSION['caisse'][(int) $boutique['id']] = array_map(
+            static fn (array $l): array => ['id' => $l['public_id'], 'qty' => $l['qty']],
+            $lines
+        );
+        redirect('/boutique/' . $boutique['slug'] . '/caisse');
+    }
+
+    /** La caisse : récapitulatif du panier + moyen / type de paiement + validation. */
+    public function caisse(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || $boutique['status'] !== 'published') {
+            abort(404);
+        }
+        $lines = $this->validatedCart($boutique);
+        if ($lines === []) {
+            redirect('/boutique/' . $boutique['slug']);
+        }
+        $total = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
+        view('boutique/caisse', [
+            'boutique'     => $boutique,
+            'lines'        => $lines,
+            'total'        => $total,
+            'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
+            'pay_methods'  => array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))),
+            'fulfillments' => array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? '')))),
+            'page_title'   => t('caisse.title', ['shop' => (string) $boutique['name']]),
+        ]);
+    }
+
+    /**
+     * Le client valide la caisse : on re-valide le panier (session) côté serveur
      * (produit de la boutique, en ligne, en stock). Prix et disponibilité ne
      * sont jamais lus depuis le client.
      */
@@ -283,32 +337,8 @@ final class BoutiqueController
             abort(404);
         }
         $cur = (string) $boutique['currency'];
-
-        $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
-        $lines = [];
-        foreach (is_array($raw) ? $raw : [] as $entry) {
-            $product = \App\Models\Product::findByPublicId((string) ($entry['id'] ?? ''));
-            if ($product === null
-                || (int) $product['boutique_id'] !== (int) $boutique['id']
-                || $product['status'] !== 'active') {
-                continue;
-            }
-            $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
-            // Stock : null = illimité ; sinon on plafonne (et on saute si épuisé).
-            if ($product['stock'] !== null) {
-                $stock = (int) $product['stock'];
-                if ($stock <= 0) {
-                    continue;
-                }
-                $qty = min($qty, $stock);
-            }
-            $lines[] = [
-                'product_id'       => (int) $product['id'],
-                'title'            => (string) $product['name'],
-                'qty'              => $qty,
-                'unit_price_cents' => (int) $product['price_cents'],
-            ];
-        }
+        // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.
+        $lines = $this->validatedCart($boutique);
 
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));
@@ -344,7 +374,7 @@ final class BoutiqueController
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);
-            redirect('/boutique/' . $boutique['slug'] . '#commander');
+            redirect($lines === [] ? '/boutique/' . $boutique['slug'] : '/boutique/' . $boutique['slug'] . '/caisse');
         }
 
         $publicId = Order::createCart([
@@ -360,6 +390,7 @@ final class BoutiqueController
             'currency'       => $cur,
         ], $lines);
 
+        unset($_SESSION['caisse'][(int) $boutique['id']]); // panier consommé
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
 
         // Notifications (best-effort, n'empêchent jamais la commande) :
@@ -387,7 +418,12 @@ final class BoutiqueController
         }
 
         clear_old();
-        redirect('/boutique/commande/' . $publicId);
+        // « Valider le paiement » : selon le type choisi, on enchaîne directement le
+        // règlement (avance / paiement avant livraison) ou on va à la confirmation
+        // (paiement à la livraison — rien à régler en ligne).
+        $order = Order::findByPublicId($publicId);
+        $payUrl = $order !== null ? $this->beginPayment($order, $boutique) : null;
+        redirect($payUrl ?? ('/boutique/commande/' . $publicId));
     }
 
     /** Confirmation client : récapitulatif + envoi à la boutique via WhatsApp. */
@@ -410,9 +446,9 @@ final class BoutiqueController
         $status = (string) ($order['status'] ?? 'new');
         $payStatus = (string) ($order['payment_status'] ?? 'unpaid');
         $dueCents = Order::amountDue($order);
-        // Le paiement en ligne ne s'ouvre qu'une fois la commande CONFIRMÉE par le
-        // vendeur, et seulement si la condition choisie implique un paiement.
-        $payReady = $dueCents > 0 && $payStatus !== 'paid' && in_array($status, ['confirmed', 'shipped', 'delivered'], true);
+        // Le règlement en ligne est proposé tant qu'il reste un montant dû et non payé
+        // (le client peut payer à la caisse, ou plus tard depuis ce lien).
+        $payReady = $dueCents > 0 && $payStatus !== 'paid';
         view('boutique/order_confirmation', [
             'order'        => $order,
             'items'        => Order::items((int) $order['id']),
@@ -430,7 +466,7 @@ final class BoutiqueController
 
     /* ---- Paiement en ligne de la commande (public) ----------------- */
 
-    /** Démarre le paiement d'une commande : crée l'intention et envoie le client payer. */
+    /** Démarre (ou reprend) le paiement d'une commande depuis la confirmation. */
     public function payStart(Request $request): void
     {
         $order = Order::findByPublicId((string) $request->param('ref', ''));
@@ -440,57 +476,12 @@ final class BoutiqueController
         if (($order['payment_status'] ?? '') === 'paid') {
             redirect('/boutique/commande/' . $order['public_id']);
         }
-        // Le paiement ne s'ouvre qu'après confirmation de la commande par le vendeur.
-        if (!in_array((string) ($order['status'] ?? 'new'), ['confirmed', 'shipped', 'delivered'], true)) {
-            flash('info', t('pay.await_confirm'));
-            redirect('/boutique/commande/' . $order['public_id']);
-        }
-        // Montant dû selon la condition : total, acompte, ou 0 (paiement à la livraison).
-        $amount = Order::amountDue($order);
-        if ($amount <= 0) {
-            redirect('/boutique/commande/' . $order['public_id']);
-        }
         $boutique = $this->boutiqueOf((int) $order['boutique_id']);
         if ($boutique === null) {
             abort(404);
         }
-        $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
-        $provider = PaymentProviders::resolve($boutique['payment_provider'] ?? null);
-        $payRef = Payment::create([
-            'boutique_id'  => (int) $boutique['id'],
-            'order_id'     => (int) $order['id'],
-            'user_id'      => (int) $boutique['user_id'],
-            'provider'     => $provider->key(),
-            'amount_cents' => $amount,
-            'currency'     => (string) $order['currency'],
-            'description'  => t('pay.order_desc', ['ref' => $ref]),
-        ]);
-        Order::setPaymentStatus((int) $order['id'], 'pending', $payRef);
-
-        // Fournisseur « simulation » (pas encore de clés réelles) : page interne publique.
-        if ($provider->key() === 'simulation') {
-            redirect('/boutique/commande/' . $order['public_id'] . '/regler');
-        }
-        // PSP réel : on délègue ; le client revient sur /retour (public).
-        try {
-            $init = $provider->createPayment(new PaymentRequest(
-                reference: $payRef,
-                amountCents: $amount,
-                currency: (string) $order['currency'],
-                description: t('pay.order_desc', ['ref' => $ref]),
-                returnUrl: url('/boutique/commande/' . $order['public_id'] . '/retour'),
-                customerName: (string) $order['client_name'],
-                customerPhone: (string) ($order['client_phone'] ?? ''),
-            ));
-        } catch (PaymentException) {
-            Order::setPaymentStatus((int) $order['id'], 'failed');
-            flash('error', t('pay.provider_unavailable', ['provider' => $provider->label()]));
-            redirect('/boutique/commande/' . $order['public_id']);
-        }
-        if ($init->providerRef !== '') {
-            Payment::setStatus($payRef, PaymentResult::PENDING, $init->providerRef);
-        }
-        redirect($init->redirectUrl);
+        // Rien à régler en ligne (paiement à la livraison) → retour à la confirmation.
+        redirect($this->beginPayment($order, $boutique) ?? ('/boutique/commande/' . $order['public_id']));
     }
 
     /** Page de paiement « bac à sable » (simulation) — publique, tient lieu de PSP. */
@@ -565,6 +556,98 @@ final class BoutiqueController
             Order::setPaymentStatus((int) $order['id'], $res->isPaid() ? 'paid' : ($res->status === 'pending' ? 'pending' : 'unpaid'));
         }
         redirect('/boutique/commande/' . $order['public_id']);
+    }
+
+    /** Panier de la caisse (session) revalidé en lignes prêtes à commander. @return list<array> */
+    private function validatedCart(array $boutique): array
+    {
+        $entries = $_SESSION['caisse'][(int) $boutique['id']] ?? [];
+        return $this->validateCartLines($boutique, is_array($entries) ? $entries : []);
+    }
+
+    /**
+     * Revalide des entrées {id, qty} contre la boutique : produit présent, en
+     * ligne, en stock ; quantité plafonnée ; prix figé au prix courant.
+     * @param list<array{id:string,qty:int}> $entries @return list<array>
+     */
+    private function validateCartLines(array $boutique, array $entries): array
+    {
+        $lines = [];
+        foreach ($entries as $entry) {
+            $product = \App\Models\Product::findByPublicId((string) ($entry['id'] ?? ''));
+            if ($product === null
+                || (int) $product['boutique_id'] !== (int) $boutique['id']
+                || $product['status'] !== 'active') {
+                continue;
+            }
+            $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
+            if ($product['stock'] !== null) {
+                $stock = (int) $product['stock'];
+                if ($stock <= 0) {
+                    continue;
+                }
+                $qty = min($qty, $stock);
+            }
+            $lines[] = [
+                'product_id'       => (int) $product['id'],
+                'public_id'        => (string) $product['public_id'],
+                'title'            => (string) $product['name'],
+                'qty'              => $qty,
+                'unit_price_cents' => (int) $product['price_cents'],
+            ];
+        }
+        return $lines;
+    }
+
+    /**
+     * Démarre le règlement d'une commande selon sa condition de paiement :
+     * crée l'intention et renvoie l'URL où envoyer le client (bac à sable ou
+     * PSP réel), ou null s'il n'y a rien à régler en ligne (paiement à la
+     * livraison) ou en cas d'échec fournisseur.
+     */
+    private function beginPayment(array $order, array $boutique): ?string
+    {
+        if (($order['payment_status'] ?? '') === 'paid') {
+            return null;
+        }
+        $amount = Order::amountDue($order);
+        if ($amount <= 0) {
+            return null; // à la livraison : pas de paiement en ligne
+        }
+        $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
+        $provider = PaymentProviders::resolve($boutique['payment_provider'] ?? null);
+        $payRef = Payment::create([
+            'boutique_id'  => (int) $boutique['id'],
+            'order_id'     => (int) $order['id'],
+            'user_id'      => (int) $boutique['user_id'],
+            'provider'     => $provider->key(),
+            'amount_cents' => $amount,
+            'currency'     => (string) $order['currency'],
+            'description'  => t('pay.order_desc', ['ref' => $ref]),
+        ]);
+        Order::setPaymentStatus((int) $order['id'], 'pending', $payRef);
+
+        if ($provider->key() === 'simulation') {
+            return '/boutique/commande/' . $order['public_id'] . '/regler';
+        }
+        try {
+            $init = $provider->createPayment(new PaymentRequest(
+                reference: $payRef,
+                amountCents: $amount,
+                currency: (string) $order['currency'],
+                description: t('pay.order_desc', ['ref' => $ref]),
+                returnUrl: url('/boutique/commande/' . $order['public_id'] . '/retour'),
+                customerName: (string) $order['client_name'],
+                customerPhone: (string) ($order['client_phone'] ?? ''),
+            ));
+        } catch (PaymentException) {
+            Order::setPaymentStatus((int) $order['id'], 'failed');
+            return null;
+        }
+        if ($init->providerRef !== '') {
+            Payment::setStatus($payRef, PaymentResult::PENDING, $init->providerRef);
+        }
+        return $init->redirectUrl;
     }
 
     /** Charge une boutique par son identifiant (pour les flux de paiement publics). */

@@ -133,7 +133,9 @@ return [
     ['GET',  '/boutique/produits/{pid}/modifier', [ProductController::class, 'edit'],      ['auth']],
     ['POST', '/boutique/produits/{pid}/modifier', [ProductController::class, 'update'],    ['auth', 'csrf', 'throttle:product,60,3600']],
     ['POST', '/boutique/produits/{pid}/statut',   [ProductController::class, 'setStatus'], ['auth', 'csrf']],
-    // Commande en ligne : panier public (client, éventuellement non connecté) + confirmation
+    // Caisse + commande en ligne : panier public (client, éventuellement non connecté)
+    ['POST', '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisseStore'], ['csrf', 'throttle:border,80,3600']],
+    ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      []],
     ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['csrf', 'throttle:border,40,3600']],
     ['GET',  '/boutique/commande/{ref}',   [BoutiqueController::class, 'orderConfirmation'], []],
     // Paiement en ligne de la commande (public ; PSP réel ou bac à sable de simulation)
