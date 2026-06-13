@@ -41,7 +41,7 @@ $tabs = ['new', 'confirmed', 'ready', 'delivered', 'cancelled', 'all'];
                         </ul>
                         <p class="order-line"><strong class="order-total"><?= e(t('rorder.total')) ?> : <?= e(format_price((int) $o['subtotal_cents'], $cur)) ?></strong></p>
                         <p class="order-client">👤 <?= e((string) $o['client_name']) ?>
-                            <?php if ($phone !== ''): ?> · <a href="https://wa.me/<?= e($phone) ?>" target="_blank" rel="noopener">💬 <?= e((string) $o['client_phone']) ?></a><?php endif; ?>
+                            <?php if ($phone !== ''): ?> · <a href="https://wa.me/<?= e($phone) ?>" target="_blank" rel="noopener"><img class="social-logo-sm" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="18" height="18"> <?= e((string) $o['client_phone']) ?></a><?php endif; ?>
                         </p>
                         <?php if (!empty($o['note'])): ?><p class="order-note">📝 <?= e((string) $o['note']) ?></p><?php endif; ?>
                         <?php if (in_array($st, ['new', 'confirmed', 'ready'], true)): ?>

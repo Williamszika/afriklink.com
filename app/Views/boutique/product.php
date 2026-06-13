@@ -48,7 +48,7 @@ $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name'
                 </p>
                 <?php if ($waPhone !== '' && $boutique['status'] === 'published'): ?>
                     <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
-                       href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>">💬 <?= e(t('product.order_whatsapp')) ?></a>
+                       href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('product.order_whatsapp')) ?></a>
                 <?php endif; ?>
                 <?php if (!empty($seller_verified)): ?>
                     <p class="verified-line" title="<?= e(t('shop.verified_hint')) ?>">✅ <?= e(t('shop.verified_seller')) ?></p>

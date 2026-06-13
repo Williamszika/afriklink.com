@@ -159,7 +159,7 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                     </div>
                 <?php elseif ($waPhone !== ''): ?>
                     <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
-                       href="https://wa.me/<?= e($waPhone) ?>">💬 <?= e(t('listing.contact_whatsapp')) ?></a>
+                       href="https://wa.me/<?= e($waPhone) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('listing.contact_whatsapp')) ?></a>
                 <?php endif; ?>
             </div>
         </aside>

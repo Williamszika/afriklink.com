@@ -59,7 +59,7 @@ $waText     = rawurlencode(t('listing.wa_text', ['title' => (string) $listing['t
                 <?php if ($showWa): ?>
                     <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
                        href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>">
-                        💬 <?= e(t('listing.contact_whatsapp')) ?>
+                        <img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('listing.contact_whatsapp')) ?>
                     </a>
                 <?php endif; ?>
 

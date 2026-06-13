@@ -30,7 +30,7 @@ $waText = rawurlencode(
 
     <p class="notice notice-info"><?= e(t('rorder.confirm_note')) ?></p>
     <?php if ($wa !== ''): ?>
-        <p><a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>?text=<?= $waText ?>">💬 <?= e(t('rorder.send_whatsapp')) ?></a></p>
+        <p><a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('rorder.send_whatsapp')) ?></a></p>
     <?php endif; ?>
     <?php if ($resto): ?>
         <p><a class="btn btn-ghost" href="<?= e(url('/restaurant/' . $resto['slug'])) ?>">← <?= e((string) $resto['name']) ?></a></p>

@@ -758,8 +758,9 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .listing-price { margin: 0 0 10px; font-size: 1.6rem; font-weight: 800; color: var(--brand); }
 .listing-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; }
 .listing-tags .badge { margin-left: 0; }
-.btn-wa { background: #25d366; margin-top: 10px; }
-.btn-wa:hover { background: #1ebe5b; }
+/* Bouton WhatsApp : fond vert pâle + bordure verte pour laisser ressortir le logo officiel (cercle vert). */
+.btn-wa { background: #eafaf2; color: #0f7a3c; border: 1.5px solid #25d366; margin-top: 10px; font-weight: 700; }
+.btn-wa:hover { background: #d9f4e7; border-color: #1ebe5b; color: #0b6b34; }
 .listing-owner-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .seller-row { display: flex; gap: 12px; align-items: center; }
 .seller-name { margin: 0; font-weight: 700; }

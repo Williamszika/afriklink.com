@@ -97,7 +97,7 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                     <?php if (!empty($resto['delivery_min_cents'])): ?><dt><?= e(t('resto.f.delivery_min')) ?></dt><dd><?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></dd><?php endif; ?>
                 </dl>
                 <?php if ($wa !== ''): ?>
-                    <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>">💬 <?= e(t('resto.order_whatsapp')) ?></a>
+                    <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('resto.order_whatsapp')) ?></a>
                 <?php endif; ?>
             </div>
 

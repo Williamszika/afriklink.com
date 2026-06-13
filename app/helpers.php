@@ -383,6 +383,25 @@ function dial_code(string $iso): string
     return $map[strtoupper($iso)] ?? '';
 }
 
+/**
+ * URL du logo officiel d'un réseau social (fichiers de public/assets/img/social).
+ * Utilisé partout où une marque sociale est représentée (partage, boutons
+ * WhatsApp, contacts…). '' si le réseau est inconnu.
+ */
+function social_logo(string $network): string
+{
+    $files = [
+        'whatsapp'  => 'whatsapp.svg',
+        'sms'       => 'sms.svg',
+        'telegram'  => 'telegram.svg',
+        'facebook'  => 'facebook.png',
+        'instagram' => 'instagram.svg',
+        'tiktok'    => 'tiktok.png',
+    ];
+    $file = $files[strtolower($network)] ?? null;
+    return $file !== null ? asset('img/social/' . $file) : '';
+}
+
 /** Flag emoji for an ISO-3166 alpha-2 country code ('' if invalid). */
 function flag_emoji(string $iso): string
 {
