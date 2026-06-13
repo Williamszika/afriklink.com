@@ -804,6 +804,8 @@ return [
     'bcart.pay_term' => 'When would you like to pay?',
     'bcart.pay_method' => 'Which payment method?',
     'bcart.view_cart' => 'Cart',
+    'bcart.buy_now' => 'Buy now',
+    'bcart.add_to_cart' => 'Add to cart',
     'bcart.method_label' => 'Payment method',
     'bcart.await_confirm' => 'Order received! The seller will confirm it, then you will get payment instructions.',
     'bcart.pay_on_delivery' => 'To be paid on delivery.',

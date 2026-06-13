@@ -54,7 +54,8 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
                 </p>
                 <?php if ($canOrder): ?>
                     <div class="product-buy">
-                        <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents']]) ?>
+                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e((string) $product['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
+                        <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart')]) ?>
                     </div>
                 <?php endif; ?>
                 <?php if ($waPhone !== '' && $boutique['status'] === 'published'): ?>

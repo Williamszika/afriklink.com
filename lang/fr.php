@@ -804,6 +804,8 @@ return [
     'bcart.pay_term' => 'Quand souhaitez-vous payer ?',
     'bcart.pay_method' => 'Avec quel moyen de paiement ?',
     'bcart.view_cart' => 'Panier',
+    'bcart.buy_now' => 'Acheter',
+    'bcart.add_to_cart' => 'Ajouter au panier',
     'bcart.method_label' => 'Moyen de paiement',
     'bcart.await_confirm' => 'Commande reçue ! Le vendeur va la confirmer, puis vous recevrez les instructions de paiement.',
     'bcart.pay_on_delivery' => 'À régler à la livraison.',

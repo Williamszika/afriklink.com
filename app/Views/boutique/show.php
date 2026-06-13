@@ -75,7 +75,10 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && !empty($products);
                                 <span class="product-card-price"><?= e(format_price((int) $pr['price_cents'], $cur)) ?></span>
                             </a>
                             <?php if ($canOrder && $inStock): ?>
-                                <?= render_partial('partials/cart_stepper', ['id' => (string) $pr['public_id'], 'size' => '', 'name' => (string) $pr['name'], 'price' => (int) $pr['price_cents']]) ?>
+                                <div class="product-actions">
+                                    <button type="button" class="btn btn-primary btn-sm buy-now-btn" data-buy-now="<?= e((string) $pr['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
+                                    <?= render_partial('partials/cart_stepper', ['id' => (string) $pr['public_id'], 'size' => '', 'name' => (string) $pr['name'], 'price' => (int) $pr['price_cents'], 'add_label' => t('bcart.add_to_cart')]) ?>
+                                </div>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>

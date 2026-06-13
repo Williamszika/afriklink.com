@@ -431,6 +431,21 @@ document.addEventListener('click', function (ev) {
         b.addEventListener('click', openCheckout);
     });
 
+    // « Acheter » (achat express) : garantit au moins 1 unité de ce produit dans
+    // le panier, met à jour son stepper, puis ouvre la commande.
+    document.querySelectorAll('[data-buy-now]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var key = btn.getAttribute('data-buy-now') + '|';
+            if (cart[key]) {
+                if (cart[key].qty < 1) { cart[key].qty = 1; }
+                var stepper = document.querySelector('[data-order-item][data-id="' + btn.getAttribute('data-buy-now') + '"][data-size=""]');
+                if (stepper) { paint(stepper, cart[key].qty); }
+                render();
+            }
+            openCheckout();
+        });
+    });
+
     if (form) {
         form.addEventListener('submit', function (ev) {
             var out = [];
