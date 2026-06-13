@@ -89,6 +89,15 @@ $canOrder = $inStock && ($published || $is_owner);
                     'share_url'  => $productUrl,
                     'share_text' => t('share.product_text', ['name' => (string) $product['name']]),
                 ]) ?>
+                <?php if (!empty($aff_link)): ?>
+                    <div class="aff-share">
+                        <p class="aff-share-cta">💸 <?= e(t('aff.share_cta', ['rate' => (int) ($aff_rate ?? 5)])) ?></p>
+                        <div class="aff-link-row">
+                            <input type="text" class="aff-link-input" value="<?= e($aff_link) ?>" readonly aria-label="<?= e(t('aff.your_link')) ?>">
+                            <button type="button" class="btn btn-ghost btn-sm" data-copy="<?= e($aff_link) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= e(t('aff.copy')) ?></button>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <?php if ($is_owner): ?>
                     <div class="listing-owner-actions">
                         <a class="btn btn-ghost btn-sm" href="<?= e(url('/boutique/produits/' . $product['public_id'] . '/modifier')) ?>"><?= e(t('profile.edit')) ?></a>

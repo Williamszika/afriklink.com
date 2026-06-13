@@ -80,7 +80,17 @@ final class SellerController
 
     public function affiliation(Request $request): void
     {
-        $this->soon('affiliation', '🤝', 'seller.affil');
+        $user = current_user() ?? [];
+        $uid  = (int) ($user['id'] ?? 0);
+        $code = \App\Models\Affiliate::codeFor($uid);
+        view('vendeur/affiliation', [
+            'active' => 'affiliation',
+            'code'   => $code,
+            'link'   => $code !== '' ? url('/r/' . $code) : '',
+            'rate'   => \App\Models\Affiliate::RATE_PCT,
+            'stats'  => \App\Models\Affiliate::statsFor($uid),
+            'recent' => \App\Models\Affiliate::recentFor($uid, 10),
+        ] + self::commonData($user));
     }
 
     public function verification(Request $request): void

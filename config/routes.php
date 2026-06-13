@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use App\Controllers\AffiliateController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminKycController;
@@ -40,6 +41,7 @@ return [
     ['GET',  '/robots.txt',        [HomeController::class, 'robots'],         []],
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
+    ['GET',  '/r/{code}',          [AffiliateController::class, 'go'],        ['throttle:aff,180,3600']],
 
     // ---- Authentication (guests) -------------------------------------
     ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],

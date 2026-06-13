@@ -273,6 +273,11 @@ final class BoutiqueController
         // Recommandations : co-achats réels + historique de navigation du visiteur.
         $fbt    = \App\Services\Recommender::frequentlyBoughtTogether((int) $product['id'], 4);
         $recent = \App\Services\Recommender::recentlyViewed(6, (string) $product['public_id']);
+        // Affiliation : lien « partager & gagner » pour un membre connecté (hors propriétaire).
+        $viewerId = (int) (current_user_id() ?? 0);
+        $affLink  = ($viewerId > 0 && !$isOwner && ($boutique['status'] ?? '') === 'published')
+            ? url('/r/' . \App\Models\Affiliate::codeFor($viewerId) . '?to=' . rawurlencode('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']))
+            : null;
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
@@ -287,6 +292,8 @@ final class BoutiqueController
             'fbt'           => $fbt,
             'recently_viewed' => $recent,
             'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($fbt, $recent)),
+            'aff_link'        => $affLink,
+            'aff_rate'        => \App\Models\Affiliate::RATE_PCT,
             'page_title' => (string) $product['name'],
             'meta' => [
                 'description' => $this->ogDescription(
@@ -622,6 +629,8 @@ final class BoutiqueController
 
         unset($_SESSION['caisse'][(int) $boutique['id']]); // panier consommé
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
+        // Affiliation : créditer l'apporteur si le visiteur vient d'un lien /r/{code} (one-shot, hors auto-parrainage).
+        \App\Models\Affiliate::attribute($publicId, (int) $boutique['id'], (int) $boutique['user_id'], $subtotal, $cur);
 
         // Notifications (best-effort, n'empêchent jamais la commande) :
         // le vendeur reçoit l'alerte « nouvelle commande », le client une confirmation.
