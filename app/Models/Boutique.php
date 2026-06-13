@@ -164,6 +164,21 @@ final class Boutique
             }
         }
         try {
+            db()->query('SELECT announcement FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN announcement    VARCHAR(200) NULL,
+                    ADD COLUMN is_vacation     TINYINT(1) NOT NULL DEFAULT 0,
+                    ADD COLUMN vacation_until  DATE NULL,
+                    ADD COLUMN open_hours       VARCHAR(120) NULL,
+                    ADD COLUMN min_order_cents  BIGINT UNSIGNED NULL,
+                    ADD COLUMN accent_color     VARCHAR(9) NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        try {
             db()->query('SELECT contact_primary FROM boutiques LIMIT 1');
         } catch (\Throwable) {
             try {
@@ -420,5 +435,27 @@ final class Boutique
             'pay_provider' => $d['payment_provider'] ?? null,
         ] + self::contactParams($d));
         self::setBanners($id, $banners);
+    }
+
+    /** Met à jour uniquement les colonnes de configuration avancée fournies. */
+    public static function updateConfig(int $id, array $cfg): void
+    {
+        self::ensureTable();
+        $allowed = ['announcement', 'is_vacation', 'vacation_until', 'open_hours', 'min_order_cents', 'accent_color'];
+        $cols = [];
+        $args = ['id' => $id];
+        foreach ($allowed as $c) {
+            if (array_key_exists($c, $cfg)) {
+                $cols[] = "{$c} = :{$c}";
+                $args[$c] = $cfg[$c];
+            }
+        }
+        if ($cols === []) {
+            return;
+        }
+        try {
+            db()->prepare('UPDATE boutiques SET ' . implode(', ', $cols) . ' WHERE id = :id')->execute($args);
+        } catch (\Throwable) {
+        }
     }
 }

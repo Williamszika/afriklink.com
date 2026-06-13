@@ -1158,3 +1158,7 @@ h2 { letter-spacing:-.01em; }
 .readiness-list .is-todo { color:var(--muted); }
 .readiness-list .is-todo .readiness-ico { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
 .readiness-ok { color:var(--success); font-weight:700; margin:10px 0 0; }
+
+/* Boutique : bandeau d'annonce + champ congé */
+.shop-announce { background:linear-gradient(90deg,var(--brand),#0a7d28); color:#fff; font-weight:600; padding:10px 16px; border-radius:12px; margin-bottom:14px; text-align:center; }
+.check-pill--block { display:flex; align-items:center; gap:8px; margin:12px 0 4px; }

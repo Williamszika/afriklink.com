@@ -154,6 +154,20 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 ]) ?>
             </div>
 
+            <div class="panel">
+                <h2 class="panel-title">📣 <?= e(t('shop.cfg.title')) ?></h2>
+                <label for="shop-announce"><?= e(t('shop.cfg.announcement')) ?></label>
+                <input type="text" id="shop-announce" name="announcement" maxlength="200" value="<?= e((string) ($boutique['announcement'] ?? '')) ?>" placeholder="<?= e(t('shop.cfg.announcement_ph')) ?>">
+                <p class="hint"><?= e(t('shop.cfg.announcement_hint')) ?></p>
+                <label class="check-pill check-pill--block">
+                    <input type="checkbox" name="is_vacation" value="1" <?= !empty($boutique['is_vacation']) ? 'checked' : '' ?>>
+                    <span>🏖️ <?= e(t('shop.cfg.vacation')) ?></span>
+                </label>
+                <label for="shop-vac-until"><?= e(t('shop.cfg.vacation_until')) ?></label>
+                <input type="date" id="shop-vac-until" name="vacation_until" value="<?= e((string) ($boutique['vacation_until'] ?? '')) ?>">
+                <p class="hint"><?= e(t('shop.cfg.vacation_hint')) ?></p>
+            </div>
+
             <button type="submit" class="btn btn-primary btn-block"><?= e(t('profile.save')) ?></button>
         </form>
         <p class="auth-alt"><a href="<?= e(url('/boutique/gerer')) ?>">← <?= e(t('shop.back_manage')) ?></a></p>

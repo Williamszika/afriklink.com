@@ -15,9 +15,16 @@ $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' 
 // brouillon, seulement le propriétaire (aperçu — la vraie commande est bloquée).
 $published = ($boutique['status'] ?? '') === 'published';
 $previewOrder = !$published && $is_owner;
-$canOrder = !empty($products) && ($published || $is_owner);
+$onVacation = !empty($boutique['is_vacation']);
+$canOrder = !empty($products) && ($published || $is_owner) && !$onVacation;
 ?>
 <section class="shop-page">
+<?php if (!empty($boutique['announcement'])): ?>
+    <div class="shop-announce">📣 <?= e((string) $boutique['announcement']) ?></div>
+<?php endif; ?>
+<?php if ($onVacation): ?>
+    <div class="notice notice-warning"><p>🏖️ <?= e(!empty($boutique['vacation_until']) ? t('shop.vacation_until', ['date' => date('d/m/Y', strtotime((string) $boutique['vacation_until']))]) : t('shop.vacation_now')) ?></p></div>
+<?php endif; ?>
 <?php if ($previewOrder && $canOrder): ?>
     <div class="notice notice-info"><p>👁️ <?= e(t('shop.preview_note')) ?></p></div>
 <?php endif; ?>

@@ -169,6 +169,16 @@ final class BoutiqueController
             'payment_provider' => $d3['payment_provider'] ?? null,
             'contacts' => $d1['contacts'] ?? [], 'contact_primary' => $d1['contact_primary'] ?? '',
         ]);
+        // Configuration avancée : annonce + mode congé.
+        $announce = trim((string) input_string('announcement', ''));
+        $isVac    = input_string('is_vacation', '') === '1' ? 1 : 0;
+        $vacUntil = (string) input_string('vacation_until', '');
+        $vacUntil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $vacUntil) === 1 ? $vacUntil : null;
+        Boutique::updateConfig((int) $boutique['id'], [
+            'announcement'   => $announce !== '' ? mb_substr($announce, 0, 200) : null,
+            'is_vacation'    => $isVac,
+            'vacation_until' => $isVac ? $vacUntil : null,
+        ]);
         AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
         clear_old();
         flash('success', t('shop.updated_flash'));
@@ -611,6 +621,11 @@ final class BoutiqueController
         if ($boutique['status'] !== 'published') {
             flash('info', t('shop.preview_blocked'));
             redirect('/boutique/' . $boutique['slug'] . '/caisse');
+        }
+        // Mode congé : commandes suspendues.
+        if (!empty($boutique['is_vacation'])) {
+            flash('error', t('shop.vacation_blocked'));
+            redirect('/boutique/' . $boutique['slug']);
         }
         $cur = (string) $boutique['currency'];
         // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.
