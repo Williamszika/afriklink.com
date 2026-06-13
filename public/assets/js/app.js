@@ -2059,3 +2059,28 @@ document.addEventListener('click', function (ev) {
         update();
     });
 })();
+
+/* ---- Caisse boutique : frais de livraison mis à jour selon le mode choisi ---- */
+(function () {
+    var box = document.querySelector('[data-ship-calc]');
+    if (!box) { return; }
+    var subtotal = parseInt(box.getAttribute('data-subtotal'), 10) || 0;
+    var curInt = box.getAttribute('data-cur-int') === '1';
+    var sym = box.getAttribute('data-cur-sym') || '';
+    var shipEl = box.querySelector('[data-ship-amount]');
+    var grandEl = box.querySelector('[data-grand-total]');
+    var radios = document.querySelectorAll('input[name="fulfillment"]');
+    if (!grandEl || !radios.length) { return; }
+    function fmt(c) {
+        var v = curInt ? Math.round(c / 100) : c / 100;
+        return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: curInt ? 0 : 2 }).format(v) + ' ' + sym;
+    }
+    function update() {
+        var sel = document.querySelector('input[name="fulfillment"]:checked');
+        var fee = sel ? (parseInt(sel.getAttribute('data-fee'), 10) || 0) : 0;
+        if (shipEl) { shipEl.textContent = fee > 0 ? fmt(fee) : (shipEl.getAttribute('data-free') || fmt(0)); }
+        grandEl.textContent = fmt(subtotal + fee);
+    }
+    radios.forEach(function (r) { r.addEventListener('change', update); });
+    update();
+})();

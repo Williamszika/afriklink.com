@@ -14,7 +14,11 @@ $selMethods = old('methods') !== '' ? [] : array_filter(explode(',', (string) ($
 $selCat = old('category') ?: (string) ($boutique['category'] ?? '');
 $selCur = old('currency') ?: (string) ($boutique['currency'] ?? 'EUR');
 $selPrep = old('prep_time') ?: (string) ($boutique['prep_time'] ?? '');
-$freeVal = old('free_ship') ?: (!empty($boutique['free_ship_cents']) ? rtrim(rtrim(number_format(((int) $boutique['free_ship_cents']) / 100, 2, '.', ''), '0'), '.') : '');
+$fmtCents = static fn ($c) => !empty($c) ? rtrim(rtrim(number_format(((int) $c) / 100, 2, '.', ''), '0'), '.') : '';
+$freeVal = old('free_ship') ?: $fmtCents($boutique['free_ship_cents'] ?? null);
+$dfeeVal = old('delivery_fee') ?: $fmtCents($boutique['delivery_fee_cents'] ?? null);
+$dintlVal = old('delivery_intl') ?: $fmtCents($boutique['delivery_intl_cents'] ?? null);
+$selDelay = old('delivery_delay') ?: (string) ($boutique['delivery_delay'] ?? '');
 $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?: 'afriklink.com'), '/'));
 ?>
 <div class="seller-shell">
@@ -122,6 +126,23 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <label for="shop-free"><?= e(t('shop.f.free_ship')) ?></label>
                 <input type="text" id="shop-free" name="free_ship" value="<?= e($freeVal) ?>" inputmode="decimal">
                 <?php if (has_error('free_ship')): ?><p class="field-error"><?= e(error('free_ship')) ?></p><?php endif; ?>
+                <div class="grid-2">
+                    <div>
+                        <label for="shop-dfee"><?= e(t('shop.f.delivery_fee')) ?></label>
+                        <input type="text" id="shop-dfee" name="delivery_fee" value="<?= e($dfeeVal) ?>" inputmode="decimal" placeholder="0">
+                    </div>
+                    <div>
+                        <label for="shop-dintl"><?= e(t('shop.f.delivery_intl')) ?></label>
+                        <input type="text" id="shop-dintl" name="delivery_intl" value="<?= e($dintlVal) ?>" inputmode="decimal" placeholder="0">
+                    </div>
+                </div>
+                <label for="shop-ddelay"><?= e(t('shop.f.delivery_delay')) ?></label>
+                <select id="shop-ddelay" name="delivery_delay">
+                    <option value=""><?= e(t('field.choose')) ?></option>
+                    <?php foreach ((array) config('shop.prep_options', []) as $opt): ?>
+                        <option value="<?= e($opt) ?>" <?= $selDelay === $opt ? 'selected' : '' ?>><?= e(t('shop.prep.' . $opt)) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div class="panel">

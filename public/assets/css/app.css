@@ -438,7 +438,9 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .caisse { max-width: 940px; margin: 0 auto; }
 .caisse-title { margin: 0 0 2px; }
 .caisse-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 18px; align-items: start; margin-top: 12px; }
-.caisse-total { font-size: 1.15rem; margin-top: 10px; border-top: 2px solid var(--border); padding-top: 10px; }
+.caisse-totals { display: grid; gap: 2px; margin-top: 8px; }
+.caisse-totals .cart-total-row:not(.caisse-total) { font-size: .92rem; }
+.caisse-total { font-size: 1.15rem; margin-top: 8px; border-top: 2px solid var(--border); padding-top: 10px; }
 .caisse-form label { display: block; margin-top: 10px; font-weight: 600; }
 .caisse-section { margin: 18px 0 2px; font-size: 1.02rem; border-top: 1px solid var(--border); padding-top: 12px; }
 /* Partage de position (caisse) */

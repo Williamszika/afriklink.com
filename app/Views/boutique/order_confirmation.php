@@ -39,6 +39,9 @@ $waText = rawurlencode(
             <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e((string) $it['title']) ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>
         <?php endforeach; ?>
     </ul>
+    <?php if (!empty($order['shipping_cents'])): ?>
+        <p class="hint">🚚 <?= e(t('caisse.shipping')) ?> : <?= e(format_price((int) $order['shipping_cents'], $cur)) ?></p>
+    <?php endif; ?>
     <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong><?= e(format_price((int) $order['total_cents'], $cur)) ?></strong></p>
     <?php if (!empty($order['fulfillment'])): ?>
         <p class="hint"><?= e(t('shop.method.' . $order['fulfillment'])) ?> · <?= e((string) $order['client_name']) ?></p>

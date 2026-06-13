@@ -143,6 +143,18 @@ final class Boutique
             }
         }
         try {
+            db()->query('SELECT delivery_fee_cents FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN delivery_fee_cents  BIGINT UNSIGNED NULL,
+                    ADD COLUMN delivery_intl_cents BIGINT UNSIGNED NULL,
+                    ADD COLUMN delivery_delay      VARCHAR(16) NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        try {
             db()->query('SELECT contact_primary FROM boutiques LIMIT 1');
         } catch (\Throwable) {
             try {
@@ -256,7 +268,7 @@ final class Boutique
                     (public_id, user_id, slug, name, tagline, description, category,
                      logo_public_id, banner_public_id, currency, shop_type, address,
                      city, country_code, continent, geo_lat, geo_lng,
-                     delivery_zones, delivery_methods, free_ship_cents, prep_time, cod_enabled,
+                     delivery_zones, delivery_methods, free_ship_cents, delivery_fee_cents, delivery_intl_cents, delivery_delay, prep_time, cod_enabled,
                      payment_terms, payment_methods, payment_provider,
                      contact_whatsapp, contact_sms, contact_telegram, contact_facebook,
                      contact_instagram, contact_tiktok, contact_primary, status)
@@ -264,7 +276,7 @@ final class Boutique
                     (:public_id, :user_id, :slug, :name, :tagline, :description, :category,
                      :logo, :banner, :currency, :shop_type, :address,
                      :city, :cc, :continent, :lat, :lng,
-                     :zones, :methods, :free, :prep, :cod,
+                     :zones, :methods, :free, :dfee, :dintl, :ddelay, :prep, :cod,
                      :pay_terms, :pay_methods, :pay_provider,
                      :c_whatsapp, :c_sms, :c_telegram, :c_facebook,
                      :c_instagram, :c_tiktok, :c_primary, \'draft\')'
@@ -290,6 +302,9 @@ final class Boutique
                 'zones'      => $d['delivery_zones'],
                 'methods'    => $d['delivery_methods'],
                 'free'       => $d['free_ship_cents'],
+                'dfee'       => $d['delivery_fee_cents'] ?? null,
+                'dintl'      => $d['delivery_intl_cents'] ?? null,
+                'ddelay'     => $d['delivery_delay'] ?? null,
                 'prep'       => $d['prep_time'],
                 'cod'        => $d['cod_enabled'] ? 1 : 0,
                 'pay_terms'  => self::csv($d['payment_terms'] ?? []),
@@ -351,7 +366,9 @@ final class Boutique
                 shop_type = :shop_type, address = :address,
                 city = :city, country_code = :cc, continent = :continent, geo_lat = :lat, geo_lng = :lng,
                 delivery_zones = :zones,
-                delivery_methods = :methods, free_ship_cents = :free, prep_time = :prep, cod_enabled = :cod,
+                delivery_methods = :methods, free_ship_cents = :free,
+                delivery_fee_cents = :dfee, delivery_intl_cents = :dintl, delivery_delay = :ddelay,
+                prep_time = :prep, cod_enabled = :cod,
                 payment_terms = :pay_terms, payment_methods = :pay_methods, payment_provider = :pay_provider,
                 contact_whatsapp = :c_whatsapp, contact_sms = :c_sms, contact_telegram = :c_telegram,
                 contact_facebook = :c_facebook, contact_instagram = :c_instagram, contact_tiktok = :c_tiktok,
@@ -365,6 +382,7 @@ final class Boutique
             'city' => $d['city'] ?? null, 'cc' => $d['country_code'] ?? null,
             'continent' => $d['continent'] ?? null, 'lat' => $d['geo_lat'] ?? null, 'lng' => $d['geo_lng'] ?? null,
             'zones' => $d['delivery_zones'], 'methods' => $d['delivery_methods'], 'free' => $d['free_ship_cents'],
+            'dfee' => $d['delivery_fee_cents'] ?? null, 'dintl' => $d['delivery_intl_cents'] ?? null, 'ddelay' => $d['delivery_delay'] ?? null,
             'prep' => $d['prep_time'], 'cod' => $d['cod_enabled'] ? 1 : 0, 'id' => $id,
             'pay_terms' => self::csv($d['payment_terms'] ?? []), 'pay_methods' => self::csv($d['payment_methods'] ?? []),
             'pay_provider' => $d['payment_provider'] ?? null,

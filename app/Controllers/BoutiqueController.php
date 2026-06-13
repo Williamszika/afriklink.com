@@ -155,6 +155,9 @@ final class BoutiqueController
             'geo_lat' => $d2['geo_lat'], 'geo_lng' => $d2['geo_lng'],
             'delivery_zones' => $d2['delivery_zones'], 'delivery_methods' => $d2['delivery_methods'],
             'free_ship_cents' => $d2['free_ship_cents'], 'prep_time' => $d2['prep_time'],
+            'delivery_fee_cents' => $d2['delivery_fee_cents'] ?? null,
+            'delivery_intl_cents' => $d2['delivery_intl_cents'] ?? null,
+            'delivery_delay' => $d2['delivery_delay'] ?? null,
             'cod_enabled' => $d3['cod_enabled'],
             'payment_terms' => $d3['payment_terms'] ?? [], 'payment_methods' => $d3['payment_methods'] ?? [],
             'payment_provider' => $d3['payment_provider'] ?? null,
@@ -443,14 +446,22 @@ final class BoutiqueController
             redirect('/boutique/' . $boutique['slug']);
         }
         $total = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
+        $fulfillments = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
+        // Frais de livraison par mode (seuil de gratuité appliqué).
+        $shipMap = [];
+        foreach ($fulfillments as $m) {
+            $shipMap[$m] = $this->shippingFor($boutique, $m, $total);
+        }
         view('boutique/caisse', [
             'boutique'     => $boutique,
             'lines'        => $lines,
             'total'        => $total,
+            'ship_map'     => $shipMap,
+            'delivery_delay' => (string) ($boutique['delivery_delay'] ?? ''),
             'preview'      => $boutique['status'] !== 'published',
             'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
             'pay_methods'  => array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))),
-            'fulfillments' => array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? '')))),
+            'fulfillments' => $fulfillments,
             'page_title'   => t('caisse.title', ['shop' => (string) $boutique['name']]),
         ]);
     }
@@ -525,6 +536,8 @@ final class BoutiqueController
             redirect($lines === [] ? '/boutique/' . $boutique['slug'] : '/boutique/' . $boutique['slug'] . '/caisse');
         }
 
+        $subtotal = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
+        $shipping = $this->shippingFor($boutique, $fulfillment, $subtotal);
         $publicId = Order::createCart([
             'boutique_id'  => (int) $boutique['id'],
             'user_id'      => (int) $boutique['user_id'],
@@ -538,6 +551,7 @@ final class BoutiqueController
             'fulfillment'    => $fulfillment,
             'payment_term'   => $paymentTerm,
             'payment_method' => $paymentMethod,
+            'shipping_cents' => $shipping,
             'currency'       => $cur,
         ], $lines);
 
@@ -707,6 +721,21 @@ final class BoutiqueController
             Order::setPaymentStatus((int) $order['id'], $res->isPaid() ? 'paid' : ($res->status === 'pending' ? 'pending' : 'unpaid'));
         }
         redirect('/boutique/commande/' . $order['public_id']);
+    }
+
+    /** Frais de livraison selon le mode choisi + seuil de gratuité. */
+    private function shippingFor(array $boutique, ?string $fulfillment, int $subtotal): int
+    {
+        $fee = match ((string) $fulfillment) {
+            'local'        => (int) ($boutique['delivery_fee_cents'] ?? 0),
+            'international' => (int) ($boutique['delivery_intl_cents'] ?? 0),
+            default        => 0, // retrait / main à main : pas de frais
+        };
+        $free = (int) ($boutique['free_ship_cents'] ?? 0);
+        if ($free > 0 && $subtotal >= $free) {
+            $fee = 0; // livraison offerte au-delà du seuil
+        }
+        return max(0, $fee);
     }
 
     /** Panier de la caisse (session) revalidé en lignes prêtes à commander. @return list<array> */
@@ -941,6 +970,13 @@ final class BoutiqueController
             }
         }
 
+        // Frais & délai de livraison (facultatifs) : local + international + délai.
+        $dfeeRaw = trim((string) input_string('delivery_fee', ''));
+        $dfee = $dfeeRaw !== '' ? parse_price_to_cents($dfeeRaw, $currency) : null;
+        $dintlRaw = trim((string) input_string('delivery_intl', ''));
+        $dintl = $dintlRaw !== '' ? parse_price_to_cents($dintlRaw, $currency) : null;
+        $ddelay = whitelist((string) input_string('delivery_delay', ''), (array) config('shop.prep_options', []), null);
+
         return [[
             'currency' => $currency, 'shop_type' => $shopType, 'address' => $address,
             'city' => $city, 'country_code' => $countryCode, 'continent' => $continent,
@@ -949,6 +985,7 @@ final class BoutiqueController
             'delivery_zones' => implode(',', $zones),
             'delivery_methods' => implode(',', $methods), 'prep_time' => $prep,
             'free_ship_cents' => $freeCents,
+            'delivery_fee_cents' => $dfee, 'delivery_intl_cents' => $dintl, 'delivery_delay' => $ddelay,
         ], $errors];
     }
 
@@ -1016,6 +1053,9 @@ final class BoutiqueController
             'delivery_zones'   => $s2['delivery_zones'],
             'delivery_methods' => $s2['delivery_methods'],
             'free_ship_cents'  => $s2['free_ship_cents'],
+            'delivery_fee_cents'  => $s2['delivery_fee_cents'] ?? null,
+            'delivery_intl_cents' => $s2['delivery_intl_cents'] ?? null,
+            'delivery_delay'      => $s2['delivery_delay'] ?? null,
             'prep_time'        => $s2['prep_time'],
             'cod_enabled'      => $step3['cod_enabled'],
             'payment_terms'    => $step3['payment_terms'] ?? [],

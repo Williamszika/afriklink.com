@@ -1,7 +1,10 @@
 <?php
 /** @var array $boutique  @var list<array> $lines  @var int $total  @var bool $preview
- *  @var list<string> $terms  @var list<string> $pay_methods  @var list<string> $fulfillments */
+ *  @var list<string> $terms  @var list<string> $pay_methods  @var list<string> $fulfillments
+ *  @var array<string,int> $ship_map  @var string $delivery_delay */
 $cur = (string) $boutique['currency'];
+$curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
+$firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments[0]] ?? 0) : 0;
 ?>
 <section class="caisse">
     <h1 class="caisse-title">🧾 <?= e(t('caisse.title', ['shop' => (string) $boutique['name']])) ?></h1>
@@ -21,7 +24,14 @@ $cur = (string) $boutique['currency'];
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <p class="cart-total-row caisse-total"><span><?= e(t('rorder.total')) ?></span> <strong><?= e(format_price($total, $cur)) ?></strong></p>
+            <div class="caisse-totals" data-ship-calc data-subtotal="<?= (int) $total ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
+                <p class="cart-total-row"><span><?= e(t('caisse.subtotal')) ?></span> <strong><?= e(format_price($total, $cur)) ?></strong></p>
+                <?php if ($fulfillments): ?>
+                    <p class="cart-total-row"><span><?= e(t('caisse.shipping')) ?><?php if ($delivery_delay !== ''): ?> · <span class="muted"><?= e(t('shop.prep.' . $delivery_delay)) ?></span><?php endif; ?></span>
+                        <strong data-ship-amount data-free="<?= e(t('caisse.free')) ?>"><?= $firstFee > 0 ? e(format_price($firstFee, $cur)) : e(t('caisse.free')) ?></strong></p>
+                <?php endif; ?>
+                <p class="cart-total-row caisse-total"><span><?= e(t('rorder.total')) ?></span> <strong data-grand-total><?= e(format_price($total + $firstFee, $cur)) ?></strong></p>
+            </div>
         </div>
 
         <form class="panel caisse-form" method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/commander')) ?>">
@@ -30,7 +40,7 @@ $cur = (string) $boutique['currency'];
                 <label><?= e(t('bcart.fulfillment')) ?></label>
                 <div class="lang-checks">
                     <?php foreach ($fulfillments as $i => $mth): ?>
-                        <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
+                        <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" data-fee="<?= (int) ($ship_map[$mth] ?? 0) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>

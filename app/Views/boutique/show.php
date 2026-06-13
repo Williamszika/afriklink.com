@@ -140,6 +140,20 @@ $canOrder = !empty($products) && ($published || $is_owner);
                         <dt><?= e(t('shop.f.methods')) ?></dt>
                         <dd><?= e(implode(' · ', array_map(static fn ($m) => t('shop.method.' . $m), $methods))) ?></dd>
                     <?php endif; ?>
+                    <?php
+                    $dFee = (int) ($boutique['delivery_fee_cents'] ?? 0);
+                    $dIntl = (int) ($boutique['delivery_intl_cents'] ?? 0);
+                    $dDelay = (string) ($boutique['delivery_delay'] ?? '');
+                    if ($dFee > 0 || $dIntl > 0 || $dDelay !== ''):
+                        $rows = [];
+                        if ($dFee > 0) { $rows[] = e(t('shop.method.local')) . ' : <strong>' . e(format_price($dFee, $cur)) . '</strong>'; }
+                        if ($dIntl > 0) { $rows[] = e(t('shop.method.international')) . ' : <strong>' . e(format_price($dIntl, $cur)) . '</strong>'; }
+                        if (!empty($boutique['free_ship_cents'])) { $rows[] = e(t('shop.f.free_ship')) . ' ' . e(format_price((int) $boutique['free_ship_cents'], $cur)); }
+                        if ($dDelay !== '') { $rows[] = '🕒 ' . e(t('shop.prep.' . $dDelay)); }
+                    ?>
+                        <dt><?= e(t('shop.f.delivery_fee')) ?></dt>
+                        <dd>🚚 <?= implode('<br>', $rows) ?></dd>
+                    <?php endif; ?>
                     <?php if (!empty($boutique['prep_time'])): ?>
                         <dt><?= e(t('shop.f.prep')) ?></dt><dd><?= e(t('shop.prep.' . $boutique['prep_time'])) ?></dd>
                     <?php endif; ?>

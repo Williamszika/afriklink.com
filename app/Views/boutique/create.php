@@ -193,6 +193,25 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
                 </div>
             </div>
 
+            <div class="grid-2">
+                <div>
+                    <label for="shop-dfee"><?= e(t('shop.f.delivery_fee')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="shop-dfee" name="delivery_fee" value="<?= old('delivery_fee') ?: ($s2['delivery_fee_cents'] ?? '' ? rtrim(rtrim(number_format(((int) $s2['delivery_fee_cents']) / 100, 2, '.', ''), '0'), '.') : '') ?>" inputmode="decimal" placeholder="0">
+                </div>
+                <div>
+                    <label for="shop-dintl"><?= e(t('shop.f.delivery_intl')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="shop-dintl" name="delivery_intl" value="<?= old('delivery_intl') ?: ($s2['delivery_intl_cents'] ?? '' ? rtrim(rtrim(number_format(((int) $s2['delivery_intl_cents']) / 100, 2, '.', ''), '0'), '.') : '') ?>" inputmode="decimal" placeholder="0">
+                </div>
+            </div>
+            <label for="shop-ddelay"><?= e(t('shop.f.delivery_delay')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <select id="shop-ddelay" name="delivery_delay">
+                <option value=""><?= e(t('field.choose')) ?></option>
+                <?php $selDelay = old('delivery_delay') ?: (string) ($s2['delivery_delay'] ?? ''); ?>
+                <?php foreach ($preps as $pp): ?>
+                    <option value="<?= e($pp) ?>" <?= $selDelay === $pp ? 'selected' : '' ?>><?= e(t('shop.prep.' . $pp)) ?></option>
+                <?php endforeach; ?>
+            </select>
+
             <div class="wizard-nav">
                 <a class="btn btn-ghost" href="<?= e(url('/boutique/creer?etape=1')) ?>">← <?= e(t('pro.back')) ?></a>
                 <button type="submit" class="btn btn-primary"><?= e(t('pro.next')) ?> →</button>
