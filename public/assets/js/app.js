@@ -125,20 +125,7 @@
         // The user chose their location manually after unlocking — respect it.
         if (!iso || (country && country.dataset.unlocked === '1')) { return; }
         lockSelect('country_code', iso);
-        // Phone dial code: show the detected country's flag + indicatif FIRST.
-        // If the dial is a server-locked select (hidden submit input present), keep
-        // it locked and just update it; otherwise pre-select it but leave it
-        // editable — the user's phone number may belong to another country.
-        var dial = document.getElementById('dial_country');
-        if (dial && dial.dataset.unlocked !== '1') {
-            if (document.getElementById('dial_country_value')) {
-                lockSelect('dial_country', iso);
-            } else if (dial.querySelector('option[value="' + iso + '"]')) {
-                dial.value = iso;
-                var opt = dial.querySelector('option[value="' + iso + '"]');
-                if (opt && dial.firstElementChild !== opt) { dial.insertBefore(opt, dial.firstElementChild); } // bring it to the top
-            }
-        }
+        prioritizeDial(iso); // phone country selector → detected country first (shared convention)
     }
 
     function conclude() {
@@ -589,6 +576,27 @@ document.addEventListener('click', function (ev) {
     }
 })();
 
+/* ---- Convention réutilisable : sélecteur d'indicatif téléphonique ----
+   Tout <select class="dial-select"> affiche EN PREMIER le pays détecté (option
+   pré-sélectionnée + remontée en tête de liste). Un indicatif verrouillé côté
+   serveur (champ caché #<id>_value) est mis à jour et reste verrouillé ; un
+   indicatif éditable reste éditable (le numéro peut appartenir à un autre pays).
+   Appelé par les DEUX flux de géoloc (inscription + boutons [data-geolocate]),
+   donc tout futur champ téléphone n'a qu'à porter class="dial-select". */
+function prioritizeDial(iso) {
+    iso = (iso || '').toUpperCase();
+    if (!iso) { return; }
+    document.querySelectorAll('select.dial-select').forEach(function (dial) {
+        if (dial.dataset.unlocked === '1') { return; }
+        var opt = dial.querySelector('option[value="' + iso + '"]');
+        if (!opt) { return; }
+        var hidden = dial.id ? document.getElementById(dial.id + '_value') : null;
+        if (hidden) { hidden.value = iso; dial.value = iso; return; } // verrouillé : maj valeur + champ caché
+        dial.value = iso;
+        if (dial.firstElementChild !== opt) { dial.insertBefore(opt, dial.firstElementChild); } // remonter en tête
+    });
+}
+
 /* ---- Géolocalisation générique (boutons [data-geolocate]) ----
    Méthode standard : navigator.geolocation demande la permission, fournit
    latitude/longitude ; notre serveur (/api/geo/reverse) convertit en ville,
@@ -645,6 +653,8 @@ function runGeolocate(btn, silent) {
                 var opt = country.querySelector('option[value="' + geo.country_code + '"]');
                 if (opt) { country.value = geo.country_code; }
             }
+            // Indicatif téléphonique : pays détecté en tête (convention .dial-select).
+            prioritizeDial(geo.country_code);
             var cont = el('data-geo-continent');
             if (cont && geo.continent_label) {
                 cont.textContent = (cont.getAttribute('data-prefix') || '') + ' ' + geo.continent_label;
