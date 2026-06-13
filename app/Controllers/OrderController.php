@@ -35,18 +35,27 @@ final class OrderController
         if ($boutique === null) {
             view('vendeur/commandes', $common + [
                 'boutique' => null, 'orders' => [], 'counts' => [],
-                'filter' => 'a_traiter', 'products' => [],
+                'filter' => 'a_traiter', 'products' => [], 'items_by_order' => [],
             ]);
             return;
         }
 
         $filter = whitelist((string) input_string('filtre', 'a_traiter'), array_keys(self::FILTERS), 'a_traiter');
+        $orders = Order::forBoutique((int) $boutique['id'], self::FILTERS[$filter]);
+        // Lignes détaillées des commandes en ligne (panier multi-produits).
+        $itemsByOrder = [];
+        foreach ($orders as $o) {
+            if (($o['source'] ?? '') === 'online') {
+                $itemsByOrder[(int) $o['id']] = Order::items((int) $o['id']);
+            }
+        }
         view('vendeur/commandes', $common + [
-            'boutique' => $boutique,
-            'orders'   => Order::forBoutique((int) $boutique['id'], self::FILTERS[$filter]),
-            'counts'   => Order::countFor((int) $boutique['id']),
-            'filter'   => $filter,
-            'products' => Product::forBoutique((int) $boutique['id']),
+            'boutique'       => $boutique,
+            'orders'         => $orders,
+            'counts'         => Order::countFor((int) $boutique['id']),
+            'filter'         => $filter,
+            'products'       => Product::forBoutique((int) $boutique['id']),
+            'items_by_order' => $itemsByOrder,
         ]);
     }
 

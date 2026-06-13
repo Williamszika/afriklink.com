@@ -7,8 +7,12 @@ $banners = $banners ?? array_filter([$boutique['banner_public_id'] ?? null]);
 $cc     = strtoupper((string) ($seller['country_code'] ?? ''));
 $waPhone = preg_replace('/\D+/', '', (string) ($seller['phone'] ?? ''));
 $zones = array_filter(explode(',', (string) ($boutique['delivery_zones'] ?? '')));
-$methods = array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? '')));
+$methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
 $shopUrl = url('/boutique/' . $boutique['slug']);
+$cur = (string) $boutique['currency'];
+$curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
+// Commande en ligne possible uniquement sur une vitrine publiée et avec des produits.
+$canOrder = ($boutique['status'] ?? '') === 'published' && !empty($products);
 ?>
 <section class="shop-page">
     <?php if ($is_owner && ($boutique['status'] ?? '') !== 'published'): ?>
@@ -43,23 +47,32 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
     </div>
 
     <div class="shop-body">
-        <div class="panel">
+        <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
             <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?></h2>
             <?php if (empty($products)): ?>
                 <div class="empty-state"><p><?= e(t('shop.no_products_public')) ?></p></div>
             <?php else: ?>
                 <div class="product-grid">
                     <?php foreach ($products as $pr): ?>
-                        <?php $m = $mains[(int) $pr['id']] ?? null; ?>
-                        <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $pr['public_id'])) ?>">
-                            <span class="product-card-img">
-                                <?php if ($m !== null): ?>
-                                    <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
-                                <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
-                            </span>
-                            <span class="product-card-name"><?= e((string) $pr['name']) ?></span>
-                            <span class="product-card-price"><?= e(format_price((int) $pr['price_cents'], (string) $boutique['currency'])) ?></span>
-                        </a>
+                        <?php
+                        $m = $mains[(int) $pr['id']] ?? null;
+                        $inStock = $pr['stock'] === null || (int) $pr['stock'] > 0;
+                        ?>
+                        <div class="product-cell">
+                            <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $pr['public_id'])) ?>">
+                                <span class="product-card-img">
+                                    <?php if ($m !== null): ?>
+                                        <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
+                                    <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                                    <?php if (!$inStock): ?><span class="card-out-badge"><?= e(t('product.out_of_stock')) ?></span><?php endif; ?>
+                                </span>
+                                <span class="product-card-name"><?= e((string) $pr['name']) ?></span>
+                                <span class="product-card-price"><?= e(format_price((int) $pr['price_cents'], $cur)) ?></span>
+                            </a>
+                            <?php if ($canOrder && $inStock): ?>
+                                <?= render_partial('partials/cart_stepper', ['id' => (string) $pr['public_id'], 'size' => '', 'name' => (string) $pr['name'], 'price' => (int) $pr['price_cents']]) ?>
+                            <?php endif; ?>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -162,6 +175,42 @@ $shopUrl = url('/boutique/' . $boutique['slug']);
                        href="https://wa.me/<?= e($waPhone) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('listing.contact_whatsapp')) ?></a>
                 <?php endif; ?>
             </div>
+
+            <?php if ($canOrder): ?>
+                <!-- Commander : panier + coordonnées -->
+                <form id="commander" class="panel resto-checkout" method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/commander')) ?>" data-cart-form hidden>
+                    <?= csrf_field() ?>
+                    <h2 class="panel-title">🧺 <?= e(t('rorder.your_order')) ?></h2>
+                    <ul class="cart-lines" data-cart-lines></ul>
+                    <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong data-cart-total>0</strong></p>
+
+                    <?php if ($methods): ?>
+                        <label><?= e(t('bcart.fulfillment')) ?></label>
+                        <div class="lang-checks">
+                            <?php foreach ($methods as $i => $mth): ?>
+                                <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <label for="cl-name"><?= e(t('order.f.client')) ?></label>
+                    <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+                    <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
+                    <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
+                    <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
+                    <label for="cl-note"><?= e(t('order.f.note')) ?></label>
+                    <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
+                    <input type="hidden" name="cart_json" data-cart-json value="[]">
+                    <button type="submit" class="btn btn-primary btn-block"><?= e(t('rorder.send')) ?></button>
+                </form>
+            <?php endif; ?>
         </aside>
     </div>
+
+    <?php if ($canOrder): ?>
+        <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
+        <div class="cart-bar" data-cart-bar hidden>
+            <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
+            <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('rorder.checkout')) ?> →</button>
+        </div>
+    <?php endif; ?>
 </section>

@@ -1,7 +1,7 @@
 <?php
 /** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url
  *  @var ?array $boutique  @var list<array> $orders  @var array<string,int> $counts
- *  @var string $filter  @var list<array> $products */
+ *  @var string $filter  @var list<array> $products  @var array<int,list<array>> $items_by_order */
 
 $statusBadge = static fn (string $s): string => match ($s) {
     'new'       => 'badge-warn',
@@ -116,17 +116,28 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                         $phone = preg_replace('/\D+/', '', (string) ($o['client_phone'] ?? ''));
                         $ref = strtoupper(substr((string) $o['public_id'], 0, 6));
                         ?>
+                        <?php $oItems = $items_by_order[(int) $o['id']] ?? []; ?>
                         <div class="panel order-row">
                             <div class="order-row-head">
                                 <span class="order-ref">#<?= e($ref) ?></span>
                                 <span class="badge <?= $statusBadge($st) ?>"><?= e(t('order.status.' . $st)) ?></span>
                                 <span class="order-source"><?= e(t('order.source.' . (string) $o['source'])) ?></span>
+                                <?php if (!empty($o['fulfillment'])): ?><span class="order-source"><?= e(t('shop.method.' . $o['fulfillment'])) ?></span><?php endif; ?>
                                 <span class="order-date"><?= e(date('d/m/Y H:i', strtotime((string) $o['created_at']))) ?></span>
                             </div>
-                            <p class="order-line">
-                                <strong><?= e((string) $o['product_name']) ?></strong> × <?= (int) $o['qty'] ?>
-                                · <strong class="order-total"><?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></strong>
-                            </p>
+                            <?php if ($oItems !== []): ?>
+                                <ul class="cart-lines">
+                                    <?php foreach ($oItems as $li): ?>
+                                        <li class="cart-line"><span><?= (int) $li['qty'] ?>× <?= e((string) $li['title']) ?></span> <strong><?= e(format_price((int) $li['line_total_cents'], (string) $o['currency'])) ?></strong></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                                <p class="order-line"><strong class="order-total"><?= e(t('rorder.total')) ?> : <?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></strong></p>
+                            <?php else: ?>
+                                <p class="order-line">
+                                    <strong><?= e((string) $o['product_name']) ?></strong> × <?= (int) $o['qty'] ?>
+                                    · <strong class="order-total"><?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></strong>
+                                </p>
+                            <?php endif; ?>
                             <p class="order-client">
                                 👤 <?= e((string) $o['client_name']) ?>
                                 <?php if ($phone !== ''): ?>

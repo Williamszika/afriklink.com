@@ -336,12 +336,12 @@ document.addEventListener('click', function (ev) {
     apply();
 })();
 
-/* ---- Carte restaurant : panier de commande ----
-   Chaque plat / contenance de boisson est sélectionnable (stepper). Le total
-   est calculé en direct ; à l'envoi, le panier est sérialisé (le serveur
-   re-vérifie prix et disponibilité). */
+/* ---- Panier de commande (restaurant ET boutique) ----
+   Chaque article sélectionnable porte un stepper. Le total est calculé en
+   direct ; à l'envoi, le panier est sérialisé (le serveur re-vérifie prix et
+   disponibilité). Activé dès qu'un élément [data-cart-root] est présent. */
 (function () {
-    var menu = document.querySelector('[data-resto-menu]');
+    var menu = document.querySelector('[data-cart-root]');
     if (!menu) { return; }
     var curInt = menu.getAttribute('data-cur-int') === '1';
     var sym = menu.getAttribute('data-cur-sym') || '';

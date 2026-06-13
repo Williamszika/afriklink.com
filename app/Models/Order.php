@@ -38,6 +38,7 @@ final class Order
                 client_name      VARCHAR(80) NOT NULL,
                 client_phone     VARCHAR(24) NULL,
                 note             VARCHAR(500) NULL,
+                fulfillment      VARCHAR(16) NULL,
                 source           VARCHAR(12) NOT NULL DEFAULT \'manual\',
                 status           VARCHAR(12) NOT NULL DEFAULT \'new\',
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -46,6 +47,43 @@ final class Order
                 KEY idx_orders_user (user_id, status)
             )'
         );
+        self::migrate();
+    }
+
+    /** Lignes d'une commande passée en ligne (panier multi-produits). */
+    public static function ensureItemsTable(): void
+    {
+        db()->exec(
+            'CREATE TABLE IF NOT EXISTS order_items (
+                id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                order_id         BIGINT UNSIGNED NOT NULL,
+                product_id       BIGINT UNSIGNED NULL,
+                title            VARCHAR(150) NOT NULL,
+                qty              INT UNSIGNED NOT NULL DEFAULT 1,
+                unit_price_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                line_total_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                KEY idx_oitems_order (order_id)
+            )'
+        );
+    }
+
+    /** Ajoute la colonne fulfillment sur une table déjà créée (mode de réception). */
+    private static function migrate(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            db()->query('SELECT fulfillment FROM orders LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE orders ADD COLUMN fulfillment VARCHAR(16) NULL AFTER note');
+            } catch (\Throwable) {
+                // colonne déjà présente ou ALTER indisponible : on ignore
+            }
+        }
     }
 
     public static function create(array $d): string
@@ -65,6 +103,72 @@ final class Order
             'note' => $d['note'], 'source' => $d['source'] ?? 'manual',
         ]);
         return $publicId;
+    }
+
+    /**
+     * Commande passée en ligne (panier multi-produits). L'en-tête garde le
+     * total et un résumé ; chaque ligne (produit + prix figé) va dans
+     * order_items. Lignes déjà revalidées côté serveur.
+     * @param list<array{product_id:?int,title:string,qty:int,unit_price_cents:int}> $lines
+     */
+    public static function createCart(array $header, array $lines): string
+    {
+        self::ensureTable();
+        self::ensureItemsTable();
+        $pdo = db();
+        $publicId = uuid();
+        $count = 0;
+        $subtotal = 0;
+        foreach ($lines as $l) {
+            $count += $l['qty'];
+            $subtotal += $l['qty'] * $l['unit_price_cents'];
+        }
+        // Étiquette de repli (l'affichage détaillé se fait via order_items).
+        $first = (string) ($lines[0]['title'] ?? '');
+        $summary = count($lines) > 1 ? $first . ' +' . (count($lines) - 1) : $first;
+
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
+                    unit_price_cents, qty, total_cents, currency, client_name, client_phone, note, fulfillment, source, status)
+                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :note, :ful, \'online\', \'new\')'
+            );
+            $stmt->execute([
+                'pid' => $publicId, 'bid' => $header['boutique_id'], 'uid' => $header['user_id'],
+                'pname' => mb_substr($summary, 0, 150), 'qty' => $count, 'total' => $subtotal,
+                'cur' => $header['currency'], 'cname' => $header['client_name'],
+                'cphone' => $header['client_phone'], 'note' => $header['note'], 'ful' => $header['fulfillment'],
+            ]);
+            $orderId = (int) $pdo->lastInsertId();
+            $ins = $pdo->prepare(
+                'INSERT INTO order_items (order_id, product_id, title, qty, unit_price_cents, line_total_cents)
+                 VALUES (:o, :p, :t, :q, :u, :lt)'
+            );
+            foreach ($lines as $l) {
+                $ins->execute([
+                    'o' => $orderId, 'p' => $l['product_id'], 't' => mb_substr($l['title'], 0, 150),
+                    'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty'],
+                ]);
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+        return $publicId;
+    }
+
+    /** @return list<array> lignes d'une commande en ligne (vide pour les commandes manuelles) */
+    public static function items(int $orderId): array
+    {
+        try {
+            $stmt = db()->prepare('SELECT * FROM order_items WHERE order_id = :o ORDER BY id');
+            $stmt->execute(['o' => $orderId]);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /** @return list<array> commandes de la boutique (les plus récentes d'abord) */

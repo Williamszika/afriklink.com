@@ -262,6 +262,111 @@ final class BoutiqueController
         ]);
     }
 
+    /* ---- Commande en ligne (panier public) ------------------------- */
+
+    /**
+     * Le client envoie son panier : on re-valide CHAQUE ligne côté serveur
+     * (produit de la boutique, en ligne, en stock). Prix et disponibilité ne
+     * sont jamais lus depuis le client.
+     */
+    public function checkout(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || $boutique['status'] !== 'published') {
+            abort(404);
+        }
+        $cur = (string) $boutique['currency'];
+
+        $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
+        $lines = [];
+        foreach (is_array($raw) ? $raw : [] as $entry) {
+            $product = \App\Models\Product::findByPublicId((string) ($entry['id'] ?? ''));
+            if ($product === null
+                || (int) $product['boutique_id'] !== (int) $boutique['id']
+                || $product['status'] !== 'active') {
+                continue;
+            }
+            $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
+            // Stock : null = illimité ; sinon on plafonne (et on saute si épuisé).
+            if ($product['stock'] !== null) {
+                $stock = (int) $product['stock'];
+                if ($stock <= 0) {
+                    continue;
+                }
+                $qty = min($qty, $stock);
+            }
+            $lines[] = [
+                'product_id'       => (int) $product['id'],
+                'title'            => (string) $product['name'],
+                'qty'              => $qty,
+                'unit_price_cents' => (int) $product['price_cents'],
+            ];
+        }
+
+        $name = trim((string) input_string('client_name', ''));
+        $phone = trim((string) input_string('client_phone', ''));
+        $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
+        $fulfillment = $methods !== []
+            ? whitelist((string) input_string('fulfillment', ''), $methods, $methods[0])
+            : null;
+
+        $errors = [];
+        if ($lines === []) {
+            $errors['cart'] = t('rorder.empty');
+        }
+        if (mb_strlen($name) < 2 || mb_strlen($name) > 80) {
+            $errors['client_name'] = t('order.err_client');
+        }
+        if ($phone !== '' && !preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone)) {
+            $errors['client_phone'] = t('order.err_phone');
+        }
+        if ($errors !== []) {
+            keep_old($_POST);
+            set_errors($errors);
+            redirect('/boutique/' . $boutique['slug'] . '#commander');
+        }
+
+        $publicId = \App\Models\Order::createCart([
+            'boutique_id'  => (int) $boutique['id'],
+            'user_id'      => (int) $boutique['user_id'],
+            'client_name'  => $name,
+            'client_phone' => $phone !== '' ? $phone : null,
+            'note'         => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
+            'fulfillment'  => $fulfillment,
+            'currency'     => $cur,
+        ], $lines);
+
+        AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
+        clear_old();
+        redirect('/boutique/commande/' . $publicId);
+    }
+
+    /** Confirmation client : récapitulatif + envoi à la boutique via WhatsApp. */
+    public function orderConfirmation(Request $request): void
+    {
+        $order = \App\Models\Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $boutique = null;
+        try {
+            $stmt = db()->prepare('SELECT * FROM boutiques WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => (int) $order['boutique_id']]);
+            $boutique = $stmt->fetch() ?: null;
+        } catch (\Throwable) {
+        }
+        $sellerPhone = $boutique !== null
+            ? (string) (User::findById((int) $boutique['user_id'])['phone'] ?? '')
+            : '';
+        view('boutique/order_confirmation', [
+            'order'        => $order,
+            'items'        => \App\Models\Order::items((int) $order['id']),
+            'boutique'     => $boutique,
+            'seller_phone' => $sellerPhone,
+            'page_title'   => t('rorder.confirm_title'),
+        ]);
+    }
+
     /* ---- Validation des étapes ------------------------------------- */
 
     private function validateStep1(int $userId): array

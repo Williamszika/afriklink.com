@@ -10,6 +10,10 @@ $waPhone = preg_replace('/\D+/', '', (string) ($boutique['contact_whatsapp'] ?? 
 $inStock = $product['stock'] === null || (int) $product['stock'] > 0;
 $productUrl = url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']);
 $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name']]) . ' ' . $productUrl);
+$curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
+$methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
+// Commande en ligne possible si la vitrine est publiée et le produit en stock.
+$canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
 ?>
 <section class="listing-page">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
@@ -36,7 +40,7 @@ $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name'
         </div>
 
         <div class="listing-side">
-            <div class="panel">
+            <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
                 <p class="listing-price"><?= e(format_price((int) $product['price_cents'], $cur)) ?></p>
                 <p class="listing-tags">
@@ -46,8 +50,13 @@ $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name'
                         <span class="badge badge-warn"><?= e(t('product.out_of_stock')) ?></span>
                     <?php endif; ?>
                 </p>
+                <?php if ($canOrder): ?>
+                    <div class="product-buy">
+                        <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents']]) ?>
+                    </div>
+                <?php endif; ?>
                 <?php if ($waPhone !== '' && $boutique['status'] === 'published'): ?>
-                    <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
+                    <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank"
                        href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('product.order_whatsapp')) ?></a>
                 <?php endif; ?>
                 <?php if (!empty($seller_verified)): ?>
@@ -71,6 +80,39 @@ $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name'
         <div class="panel">
             <h2 class="panel-title"><?= e(t('product.f.description')) ?></h2>
             <p class="listing-description"><?= nl2br(e((string) $product['description'])) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($canOrder): ?>
+        <!-- Commander : panier + coordonnées -->
+        <form id="commander" class="panel resto-checkout" method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/commander')) ?>" data-cart-form hidden>
+            <?= csrf_field() ?>
+            <h2 class="panel-title">🧺 <?= e(t('rorder.your_order')) ?></h2>
+            <ul class="cart-lines" data-cart-lines></ul>
+            <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong data-cart-total>0</strong></p>
+            <?php if ($methods): ?>
+                <label><?= e(t('bcart.fulfillment')) ?></label>
+                <div class="lang-checks">
+                    <?php foreach ($methods as $i => $mth): ?>
+                        <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <label for="cl-name"><?= e(t('order.f.client')) ?></label>
+            <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+            <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
+            <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
+            <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
+            <label for="cl-note"><?= e(t('order.f.note')) ?></label>
+            <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
+            <input type="hidden" name="cart_json" data-cart-json value="[]">
+            <button type="submit" class="btn btn-primary btn-block"><?= e(t('rorder.send')) ?></button>
+        </form>
+
+        <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
+        <div class="cart-bar" data-cart-bar hidden>
+            <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
+            <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('rorder.checkout')) ?> →</button>
         </div>
     <?php endif; ?>
 </section>

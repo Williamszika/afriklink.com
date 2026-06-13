@@ -759,6 +759,13 @@ return [
     'rorder.st.delivered' => 'Livrée', 'rorder.st.cancelled' => 'Annulée',
     'rorder.act.confirm' => 'Confirmer', 'rorder.act.ready' => 'Prête', 'rorder.act.deliver' => 'Livrée', 'rorder.act.cancel' => 'Annuler',
     'rorder.status_flash' => 'Commande mise à jour : :status.',
+
+    // Panier & commande en ligne d'une boutique
+    'bcart.fulfillment' => 'Mode de réception',
+    'bcart.confirm_sub' => 'Référence #:ref. La boutique va vous recontacter.',
+    'bcart.confirm_note' => 'La boutique a bien reçu votre commande. Pour aller plus vite, envoyez-lui le récapitulatif sur WhatsApp.',
+    'bcart.send_whatsapp' => 'Envoyer à la boutique sur WhatsApp',
+    'bcart.wa_intro' => 'Bonjour ! Commande #:ref sur Afriklink :',
     'resto.cat_delete_confirm' => 'Supprimer cette catégorie et tous ses plats ?',
     'resto.cat_empty' => 'Aucun plat dans cette catégorie.',
     'resto.item_add_title' => 'Ajouter un plat',

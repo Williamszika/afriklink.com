@@ -759,6 +759,13 @@ return [
     'rorder.st.delivered' => 'Delivered', 'rorder.st.cancelled' => 'Cancelled',
     'rorder.act.confirm' => 'Confirm', 'rorder.act.ready' => 'Ready', 'rorder.act.deliver' => 'Delivered', 'rorder.act.cancel' => 'Cancel',
     'rorder.status_flash' => 'Order updated: :status.',
+
+    // Online shop cart & order
+    'bcart.fulfillment' => 'How to receive it',
+    'bcart.confirm_sub' => 'Reference #:ref. The shop will get back to you.',
+    'bcart.confirm_note' => 'The shop has received your order. To speed things up, send it the summary on WhatsApp.',
+    'bcart.send_whatsapp' => 'Send to the shop on WhatsApp',
+    'bcart.wa_intro' => 'Hello! Order #:ref on Afriklink:',
     'resto.cat_delete_confirm' => 'Delete this category and all its dishes?',
     'resto.cat_empty' => 'No dishes in this category.',
     'resto.item_add_title' => 'Add a dish',
