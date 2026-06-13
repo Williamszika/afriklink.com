@@ -1162,3 +1162,17 @@ h2 { letter-spacing:-.01em; }
 /* Boutique : bandeau d'annonce + champ congé */
 .shop-announce { background:linear-gradient(90deg,var(--brand),#0a7d28); color:#fff; font-weight:600; padding:10px 16px; border-radius:12px; margin-bottom:14px; text-align:center; }
 .check-pill--block { display:flex; align-items:center; gap:8px; margin:12px 0 4px; }
+
+/* Centre de notifications (cloche) */
+.notif-page { max-width:720px; margin:0 auto; }
+.notif-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.notif-list { list-style:none; margin:14px 0; padding:0; display:grid; gap:8px; }
+.notif-item { display:flex; align-items:flex-start; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:var(--card,#fff); color:var(--ink); position:relative; }
+.notif-item:hover { border-color:var(--brand); text-decoration:none; }
+.notif-item.is-unread { border-left:3px solid var(--brand); background:#f6fbf7; }
+.notif-ico { font-size:1.4rem; flex:none; line-height:1.2; }
+.notif-body { display:grid; gap:2px; min-width:0; flex:1; }
+.notif-title { font-weight:700; }
+.notif-text { font-size:.9rem; }
+.notif-time { font-size:.78rem; }
+.notif-dot { color:var(--brand); font-size:.7rem; position:absolute; top:12px; right:14px; }

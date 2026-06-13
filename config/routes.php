@@ -6,6 +6,7 @@ use App\Controllers\LegalController;
 use App\Controllers\WishlistController;
 use App\Controllers\CompareController;
 use App\Controllers\CartController;
+use App\Controllers\NotificationController;
 use App\Controllers\MessageController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
@@ -100,6 +101,9 @@ return [
     ['POST', '/vendeur/commandes',                [OrderController::class, 'store'],     ['auth', 'csrf', 'throttle:order,80,3600']],
     ['POST', '/vendeur/commandes/{oid}/statut',   [OrderController::class, 'setStatus'], ['auth', 'csrf']],
     ['GET',  '/vendeur/messages',  [SellerController::class, 'messages'],     ['auth']],
+    ['GET',  '/notifications',            [NotificationController::class, 'index'],   ['auth']],
+    ['GET',  '/notifications/{id}/ouvrir', [NotificationController::class, 'open'],   ['auth']],
+    ['POST', '/notifications/lus',        [NotificationController::class, 'markAll'], ['auth', 'csrf']],
     ['GET',  '/messages',                 [MessageController::class, 'inbox'],  ['auth']],
     ['POST', '/messages/demarrer',        [MessageController::class, 'start'],  ['auth', 'csrf', 'throttle:msg,40,3600']],
     ['GET',  '/messages/{id}',            [MessageController::class, 'thread'], ['auth']],

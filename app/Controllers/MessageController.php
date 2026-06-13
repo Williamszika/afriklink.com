@@ -103,17 +103,18 @@ final class MessageController
         redirect('/messages/' . $conv['public_id']);
     }
 
-    /** Prévient le destinataire par e-mail (ne bloque jamais l'envoi du message). */
+    /** Prévient le destinataire : notification (cloche) + e-mail. Ne bloque jamais l'envoi. */
     private function notify(int $recipientId, int $senderId, string $convPublicId, string $body): void
     {
+        $from = User::findById($senderId) ?? [];
+        $name = Conversation::displayName($from['full_name'] ?? null, $from['nickname'] ?? null);
+        \App\Models\Notification::push($recipientId, 'message', t('notif.msg', ['name' => $name]), $body, '/messages/' . $convPublicId);
         try {
             $to    = User::findById($recipientId) ?? [];
-            $from  = User::findById($senderId) ?? [];
             $email = trim((string) ($to['email'] ?? ''));
             if ($email === '') {
                 return;
             }
-            $name = Conversation::displayName($from['full_name'] ?? null, $from['nickname'] ?? null);
             $link = url('/messages/' . $convPublicId);
             $html = '<p>' . e(t('msg.mail_intro', ['name' => $name])) . '</p>'
                 . '<blockquote style="border-left:3px solid #ccc;padding-left:10px;color:#444">'

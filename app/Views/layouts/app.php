@@ -102,8 +102,8 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 <?php if (is_staff($user)): ?>
                     <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>">🛡️ <?= e(t('nav.moderation')) ?></a>
                 <?php endif; ?>
-                <?php $msgUnread = \App\Models\Conversation::unreadCountFor((int) $user['id']); ?>
-                <a class="btn btn-ghost nav-msg" href="<?= e(url('/messages')) ?>" title="<?= e(t('msg.title')) ?>" aria-label="<?= e(t('msg.title')) ?>">💬<?php if ($msgUnread > 0): ?> <span class="nav-msg-badge"><?= (int) $msgUnread ?></span><?php endif; ?></a>
+                <?php $notifUnread = \App\Models\Notification::unreadCount((int) $user['id']); ?>
+                <a class="btn btn-ghost nav-icon" href="<?= e(url('/notifications')) ?>" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>">🔔<span class="nav-badge" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
                 <a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
                 <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form">
                     <?= csrf_field() ?>

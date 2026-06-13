@@ -477,6 +477,7 @@ final class BoutiqueController
             'verified'    => $verified,
         ]);
         AuditLog::record((int) ($boutique['user_id']), 'review.posted', 'product', (int) $product['id'], ['rating' => $rating, 'verified' => $verified ? 1 : 0], $request->ipBinary());
+        \App\Models\Notification::push((int) $boutique['user_id'], 'review', t('notif.review'), $name . ' · ' . $rating . '★', $back);
         flash('success', t('review.thanks'));
         redirect($back . '#avis');
     }
@@ -715,6 +716,8 @@ final class BoutiqueController
             $total += $l['qty'] * $l['unit_price_cents'];
             $notifyLines[] = ['qty' => $l['qty'], 'title' => $l['title'], 'line_total_cents' => $l['qty'] * $l['unit_price_cents']];
         }
+        // Notification (cloche) au vendeur : nouvelle commande.
+        \App\Models\Notification::push((int) $boutique['user_id'], 'order', t('notif.order'), '#' . $ref . ' · ' . $name, '/vendeur/commandes');
         try {
             OrderNotifier::sellerNewOrder(
                 User::findById((int) $boutique['user_id']) ?? [],
