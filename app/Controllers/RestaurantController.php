@@ -217,35 +217,8 @@ final class RestaurantController
             abort(404);
         }
         $cur = (string) $resto['currency'];
-
-        // Panier reçu (JSON) : [{id, size?, qty}] — prix/dispo IGNORÉS du client.
-        $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
-        $lines = [];
-        foreach (is_array($raw) ? $raw : [] as $entry) {
-            $item = MenuItem::findItem((string) ($entry['id'] ?? ''));
-            if ($item === null || (int) $item['restaurant_id'] !== (int) $resto['id'] || (int) $item['is_available'] !== 1) {
-                continue;
-            }
-            $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
-            $size = isset($entry['size']) ? (string) $entry['size'] : '';
-            if ($size !== '') {
-                // Contenance de boisson : doit exister et ne pas être épuisée.
-                $variant = null;
-                foreach (MenuItem::variants($item['variants'] ?? null) as $vr) {
-                    if ($vr['v'] === $size && !$vr['out']) { $variant = $vr; break; }
-                }
-                if ($variant === null) { continue; }
-                $lines[] = [
-                    'title' => (string) $item['name'] . ' — ' . rtrim(rtrim($size, '0'), '.') . ' L',
-                    'qty' => $qty, 'unit_price_cents' => (int) $variant['p'],
-                ];
-            } else {
-                $lines[] = [
-                    'title' => (string) $item['name'],
-                    'qty' => $qty, 'unit_price_cents' => (int) $item['price_cents'],
-                ];
-            }
-        }
+        // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.
+        $lines = $this->validatedCart($resto);
 
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));
@@ -258,7 +231,7 @@ final class RestaurantController
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);
-            redirect('/restaurant/' . $resto['slug'] . '#commander');
+            redirect($lines === [] ? '/restaurant/' . $resto['slug'] : '/restaurant/' . $resto['slug'] . '/caisse');
         }
 
         $publicId = RestaurantOrder::create([
@@ -296,8 +269,101 @@ final class RestaurantController
             // notification best-effort
         }
 
+        unset($_SESSION['rcaisse'][(int) $resto['id']]); // panier consommé
         clear_old();
         redirect('/restaurant/commande/' . $publicId);
+    }
+
+    /* ---- Caisse (panier sur une page dédiée) ----------------------- */
+
+    /**
+     * Le client envoie son panier (depuis la carte) : on revalide chaque ligne
+     * côté serveur, on le garde en session, puis on l'emmène à la caisse
+     * (Post/Redirect/Get : la page caisse est rafraîchissable).
+     */
+    public function caisseStore(Request $request): void
+    {
+        $resto = Restaurant::findBySlug((string) $request->param('slug', ''));
+        if ($resto === null || $resto['status'] !== 'published') {
+            abort(404);
+        }
+        $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
+        $entries = [];
+        foreach (is_array($raw) ? $raw : [] as $e) {
+            $id = (string) ($e['id'] ?? '');
+            if ($id !== '') {
+                $entries[] = ['id' => $id, 'size' => (string) ($e['size'] ?? ''), 'qty' => max(1, min(99, (int) ($e['qty'] ?? 0)))];
+            }
+        }
+        if ($this->validateCartLines($resto, $entries) === []) {
+            flash('error', t('rorder.empty'));
+            redirect('/restaurant/' . $resto['slug']);
+        }
+        $_SESSION['rcaisse'][(int) $resto['id']] = $entries;
+        redirect('/restaurant/' . $resto['slug'] . '/caisse');
+    }
+
+    /** La caisse : récapitulatif du panier + service + coordonnées + validation. */
+    public function caisse(Request $request): void
+    {
+        $resto = Restaurant::findBySlug((string) $request->param('slug', ''));
+        if ($resto === null || $resto['status'] !== 'published') {
+            abort(404);
+        }
+        $lines = $this->validatedCart($resto);
+        if ($lines === []) {
+            redirect('/restaurant/' . $resto['slug']);
+        }
+        $services = array_filter(explode(',', (string) ($resto['services'] ?? '')));
+        view('restaurant/caisse', [
+            'resto'      => $resto,
+            'lines'      => $lines,
+            'total'      => array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines)),
+            'services'   => $services !== [] ? array_values($services) : ['takeaway'],
+            'page_title' => t('caisse.title', ['shop' => (string) $resto['name']]),
+        ]);
+    }
+
+    /** Panier de la caisse (session) revalidé. @return list<array> */
+    private function validatedCart(array $resto): array
+    {
+        $entries = $_SESSION['rcaisse'][(int) $resto['id']] ?? [];
+        return $this->validateCartLines($resto, is_array($entries) ? $entries : []);
+    }
+
+    /**
+     * Revalide des entrées {id, size?, qty} contre la carte : plat/boisson de ce
+     * restaurant, disponible, contenance non épuisée ; prix figé au prix courant.
+     * @param list<array{id:string,size?:string,qty:int}> $entries @return list<array>
+     */
+    private function validateCartLines(array $resto, array $entries): array
+    {
+        $lines = [];
+        foreach ($entries as $entry) {
+            $item = MenuItem::findItem((string) ($entry['id'] ?? ''));
+            if ($item === null || (int) $item['restaurant_id'] !== (int) $resto['id'] || (int) $item['is_available'] !== 1) {
+                continue;
+            }
+            $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
+            $size = isset($entry['size']) ? (string) $entry['size'] : '';
+            if ($size !== '') {
+                $variant = null;
+                foreach (MenuItem::variants($item['variants'] ?? null) as $vr) {
+                    if ($vr['v'] === $size && !$vr['out']) { $variant = $vr; break; }
+                }
+                if ($variant === null) { continue; }
+                $lines[] = [
+                    'title' => (string) $item['name'] . ' — ' . rtrim(rtrim($size, '0'), '.') . ' L',
+                    'qty' => $qty, 'unit_price_cents' => (int) $variant['p'],
+                ];
+            } else {
+                $lines[] = [
+                    'title' => (string) $item['name'],
+                    'qty' => $qty, 'unit_price_cents' => (int) $item['price_cents'],
+                ];
+            }
+        }
+        return $lines;
     }
 
     /** Confirmation client : récapitulatif + envoi au restaurant via WhatsApp. */

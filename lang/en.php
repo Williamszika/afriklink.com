@@ -812,6 +812,7 @@ return [
     'caisse.continue' => 'Continue shopping',
     'caisse.your_cart' => 'Your cart',
     'caisse.validate' => 'Confirm & pay',
+    'caisse.validate_order' => 'Place the order',
     'bcart.method_label' => 'Payment method',
     'bcart.await_confirm' => 'Order received! The seller will confirm it, then you will get payment instructions.',
     'bcart.pay_on_delivery' => 'To be paid on delivery.',

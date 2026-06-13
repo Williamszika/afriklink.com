@@ -101,28 +101,10 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                 <?php endif; ?>
             </div>
 
-            <!-- Commander : panier + coordonnées -->
-            <form id="commander" class="panel resto-checkout" method="post" action="<?= e(url('/restaurant/' . $resto['slug'] . '/commander')) ?>" data-cart-form hidden>
+            <!-- Le panier (JS) est posté ici, revalidé serveur, puis on passe à la caisse. -->
+            <form method="post" action="<?= e(url('/restaurant/' . $resto['slug'] . '/caisse')) ?>" data-caisse-form hidden>
                 <?= csrf_field() ?>
-                <h2 class="panel-title">🧺 <?= e(t('rorder.your_order')) ?></h2>
-                <ul class="cart-lines" data-cart-lines></ul>
-                <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong data-cart-total>0</strong></p>
-
-                <label><?= e(t('rorder.service')) ?></label>
-                <div class="lang-checks">
-                    <?php foreach ($offered as $i => $s): ?>
-                        <label class="check-pill"><input type="radio" name="service" value="<?= e($s) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('resto.service.' . $s)) ?></span></label>
-                    <?php endforeach; ?>
-                </div>
-                <label for="cl-name"><?= e(t('order.f.client')) ?></label>
-                <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
-                <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
-                <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
-                <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
-                <label for="cl-note"><?= e(t('order.f.note')) ?></label>
-                <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('rorder.note_ph')) ?>">
                 <input type="hidden" name="cart_json" data-cart-json value="[]">
-                <button type="submit" class="btn btn-primary btn-block"><?= e(t('rorder.send')) ?></button>
             </form>
         </aside>
     </div>
@@ -130,6 +112,6 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
     <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
     <div class="cart-bar" data-cart-bar hidden>
         <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
-        <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('rorder.checkout')) ?> →</button>
+        <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
     </div>
 </section>

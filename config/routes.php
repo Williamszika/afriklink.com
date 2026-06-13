@@ -161,6 +161,8 @@ return [
     // Commandes restaurant : panier public + suivi côté restaurateur
     ['GET',  '/restaurant/commandes',            [RestaurantController::class, 'orders'],          ['auth']],
     ['POST', '/restaurant/commandes/{ref}/statut', [RestaurantController::class, 'setOrderStatus'], ['auth', 'csrf']],
+    ['POST', '/restaurant/{slug}/caisse',         [RestaurantController::class, 'caisseStore'],     ['csrf', 'throttle:rorder,80,3600']],
+    ['GET',  '/restaurant/{slug}/caisse',         [RestaurantController::class, 'caisse'],          []],
     ['POST', '/restaurant/{slug}/commander',      [RestaurantController::class, 'checkout'],        ['csrf', 'throttle:rorder,40,3600']],
     ['GET',  '/restaurant/commande/{ref}',        [RestaurantController::class, 'orderConfirmation'], []],
     ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
