@@ -79,6 +79,11 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
             <span class="brand-text">Afrik<span>link</span></span>
         </a>
 
+        <form class="header-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
+            <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
+            <button type="submit" aria-label="<?= e(t('explore.search_btn')) ?>">🔎</button>
+        </form>
+
         <nav class="main-nav" aria-label="<?= e(t('nav.primary')) ?>">
             <a href="<?= e(url('/')) ?>" class="<?= $navPath === '/' ? 'is-active' : '' ?>"><?= e(t('nav.home')) ?></a>
             <a href="<?= e(url('/explorer')) ?>" class="<?= str_starts_with($navPath, '/explorer') ? 'is-active' : '' ?>"><?= e(t('nav.explore')) ?></a>
