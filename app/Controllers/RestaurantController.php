@@ -289,10 +289,15 @@ final class RestaurantController
             $restoRow = $stmt->fetch() ?: null;
         } catch (\Throwable) {
         }
+        $sellerPhone = '';
+        if ($restoRow !== null) {
+            $sellerPhone = (string) (User::findById((int) $restoRow['user_id'])['phone'] ?? '');
+        }
         view('restaurant/order_confirmation', [
             'order' => $order,
             'items' => RestaurantOrder::items((int) $order['id']),
             'resto' => $restoRow,
+            'seller_phone' => $sellerPhone,
             'page_title' => t('rorder.confirm_title'),
         ]);
     }

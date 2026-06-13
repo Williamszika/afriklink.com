@@ -1,9 +1,9 @@
 <?php
-/** @var array $order  @var list<array> $items  @var ?array $resto */
+/** @var array $order  @var list<array> $items  @var ?array $resto  @var string $seller_phone */
 $cur = (string) $order['currency'];
 $ref = strtoupper(substr((string) $order['public_id'], 0, 6));
-// Message WhatsApp récapitulatif pour le restaurant.
-$wa = $resto ? preg_replace('/\D+/', '', (string) ($resto['contact_whatsapp'] ?? '')) : '';
+// Message WhatsApp récapitulatif pour le restaurant (WhatsApp boutique, sinon téléphone vendeur).
+$wa = preg_replace('/\D+/', '', (string) (($resto['contact_whatsapp'] ?? '') ?: ($seller_phone ?? '')));
 $lines = [];
 foreach ($items as $it) {
     $lines[] = $it['qty'] . '× ' . $it['title'] . ' (' . format_price((int) $it['line_total_cents'], $cur) . ')';
