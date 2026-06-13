@@ -689,6 +689,26 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .forecast-soon { color:#9a6b00; }
 .forecast-ok { color:#0a7d28; }
 .restock-summary { margin:2px 0 10px; font-weight:700; color:#c43d10; background:#fff3e9; border:1px solid #f7d4bd; border-radius:10px; padding:7px 12px; font-size:.92rem; }
+
+/* Assistant d'achat (chatbot) */
+.assistant { position:fixed; right:16px; bottom:16px; z-index:60; }
+.assistant-toggle { background:var(--brand); color:#fff; border:0; border-radius:999px; padding:11px 16px; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.22); cursor:pointer; }
+.assistant-toggle:hover { filter:brightness(1.05); }
+.assistant-panel { position:absolute; right:0; bottom:54px; width:min(92vw,340px); background:var(--card,#fff); border:1px solid var(--border); border-radius:14px; box-shadow:0 14px 40px rgba(0,0,0,.26); display:flex; flex-direction:column; overflow:hidden; }
+.assistant-head { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--border); background:var(--bg); }
+.assistant-beta { font-size:.62rem; font-weight:700; color:#fff; background:var(--brand); border-radius:999px; padding:1px 6px; vertical-align:middle; text-transform:uppercase; letter-spacing:.04em; }
+.assistant-close { border:0; background:none; font-size:1rem; cursor:pointer; color:var(--muted); line-height:1; }
+.assistant-log { padding:12px; display:flex; flex-direction:column; gap:8px; max-height:46vh; overflow-y:auto; }
+.assistant-msg { padding:8px 11px; border-radius:12px; font-size:.92rem; line-height:1.35; max-width:90%; white-space:pre-wrap; word-wrap:break-word; }
+.assistant-msg.bot { background:var(--bg); align-self:flex-start; border-bottom-left-radius:4px; }
+.assistant-msg.user { background:var(--brand); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+.assistant-msg.thinking { opacity:.6; font-style:italic; }
+.assistant-wa { align-self:flex-start; text-decoration:none; font-weight:700; font-size:.88rem; color:#0a7d28; background:#e6f6ea; border:1px solid #b7e2c3; border-radius:10px; padding:6px 10px; }
+.assistant-suggest { display:flex; flex-wrap:wrap; gap:6px; padding:0 12px 10px; }
+.assistant-chip { border:1px solid var(--border); background:var(--card,#fff); border-radius:999px; padding:5px 11px; font-size:.82rem; cursor:pointer; color:var(--ink); }
+.assistant-chip:hover { border-color:var(--brand); color:var(--brand); }
+.assistant-form { display:flex; gap:6px; padding:10px 12px; border-top:1px solid var(--border); }
+.assistant-form input { flex:1; min-width:0; }
 .product-row-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .product-row-actions .inline-form { display:flex; gap:8px; flex-wrap:wrap; }
 .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }

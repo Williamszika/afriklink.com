@@ -2084,3 +2084,93 @@ document.addEventListener('click', function (ev) {
     radios.forEach(function (r) { r.addEventListener('change', update); });
     update();
 })();
+
+/* ---- Assistant d'achat (chatbot règles + repli vendeur) ----
+   Aucun JS inline (CSP stricte) ; le token CSRF est ajouté automatiquement aux
+   requêtes fetch par le wrapper en tête de ce fichier. */
+(function () {
+    'use strict';
+    var root = document.querySelector('[data-assistant]');
+    if (!root) { return; }
+    var panel    = root.querySelector('[data-assistant-panel]');
+    var toggle   = root.querySelector('[data-assistant-toggle]');
+    var closeBtn = root.querySelector('[data-assistant-close]');
+    var log      = root.querySelector('[data-assistant-log]');
+    var suggest  = root.querySelector('[data-assistant-suggest]');
+    var form     = root.querySelector('[data-assistant-form]');
+    var input    = root.querySelector('[data-assistant-input]');
+    var endpoint = root.getAttribute('data-endpoint');
+    var waLink   = root.getAttribute('data-wa') || '';
+    var waLabel  = root.getAttribute('data-wa-label') || 'WhatsApp';
+    var errText  = root.getAttribute('data-err') || 'Error';
+    var thinking = root.getAttribute('data-thinking') || '…';
+    var busy = false;
+
+    function openPanel(open) {
+        panel.hidden = !open;
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open && input) { input.focus(); }
+    }
+    function addMsg(cls, text) {
+        var d = document.createElement('div');
+        d.className = 'assistant-msg ' + cls;
+        d.textContent = text;            // textContent : neutralise tout HTML
+        log.appendChild(d);
+        log.scrollTop = log.scrollHeight;
+        return d;
+    }
+    function addWa() {
+        if (!waLink) { return; }
+        var a = document.createElement('a');
+        a.className = 'assistant-wa';
+        a.href = waLink; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = '🟢 ' + waLabel;
+        log.appendChild(a);
+        log.scrollTop = log.scrollHeight;
+    }
+    function renderSuggest(list) {
+        if (!suggest) { return; }
+        suggest.innerHTML = '';
+        (list || []).forEach(function (s) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'assistant-chip';
+            b.textContent = s;
+            b.addEventListener('click', function () { ask(s); });
+            suggest.appendChild(b);
+        });
+    }
+    function ask(text) {
+        text = (text || '').trim();
+        if (!text || busy) { return; }
+        busy = true;
+        addMsg('user', text);
+        var wait = addMsg('bot thinking', thinking);
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'question=' + encodeURIComponent(text)
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            wait.remove();
+            addMsg('bot', (data && data.text) ? data.text : errText);
+            if (data && data.handoff) { addWa(); }
+            if (data && data.suggestions) { renderSuggest(data.suggestions); }
+        }).catch(function () {
+            wait.remove();
+            addMsg('bot', errText);
+        }).then(function () { busy = false; });
+    }
+
+    toggle.addEventListener('click', function () { openPanel(panel.hidden); });
+    if (closeBtn) { closeBtn.addEventListener('click', function () { openPanel(false); }); }
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            ask(input.value);
+            input.value = '';
+        });
+    }
+    root.querySelectorAll('[data-assistant-q]').forEach(function (chip) {
+        chip.addEventListener('click', function () { ask(chip.textContent); });
+    });
+})();

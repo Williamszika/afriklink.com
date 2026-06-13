@@ -335,6 +335,34 @@ final class BoutiqueController
 
     /* ---- Avis & notes ---------------------------------------------- */
 
+    /**
+     * Assistant d'achat (chatbot) : répond aux questions fréquentes à partir des
+     * infos réelles de la boutique, sinon oriente vers le vendeur. Renvoie du JSON.
+     */
+    public function assistant(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || !$this->canShop($boutique)) {
+            json_response(['error' => 'not_found'], 404);
+        }
+        $question = trim((string) input_string('question', ''));
+        if ($question === '' || mb_strlen($question) > 500) {
+            json_response(['error' => 'invalid'], 422);
+        }
+        $seller = User::findById((int) $boutique['user_id']) ?? [];
+        $wa = preg_replace('/\D+/', '', (string) ($boutique['contact_whatsapp'] ?? '') ?: (string) ($seller['phone'] ?? ''));
+        $reply = \App\Services\Assistant::answer($question, [
+            'shop'             => (string) $boutique['name'],
+            'delivery_delay'   => (string) ($boutique['delivery_delay'] ?? ''),
+            'delivery_methods' => array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? '')))),
+            'payment_terms'    => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
+            'payment_methods'  => array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))),
+            'return_policy'    => (string) ($boutique['return_policy'] ?? ''),
+            'wa'               => (string) $wa,
+        ]);
+        json_response($reply);
+    }
+
     /** Un client dépose un avis sur un produit (public, anti-spam par throttle). */
     public function storeReview(Request $request): void
     {

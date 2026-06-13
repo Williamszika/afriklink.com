@@ -199,4 +199,6 @@ $canOrder = $inStock && ($published || $is_owner);
             <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
         </div>
     <?php endif; ?>
+
+    <?= render_partial('partials/assistant', ['boutique' => $boutique, 'wa' => $waPhone]) ?>
 </section>
