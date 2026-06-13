@@ -322,6 +322,11 @@ final class BoutiqueController
         $paymentTerm = $terms !== []
             ? whitelist((string) input_string('payment_term', ''), $terms, $terms[0])
             : null;
+        // Moyen de paiement (« mode ») choisi par le client, parmi ceux acceptés.
+        $payMethods = array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))));
+        $paymentMethod = $payMethods !== []
+            ? whitelist((string) input_string('payment_method', ''), $payMethods, $payMethods[0])
+            : null;
 
         $errors = [];
         if ($lines === []) {
@@ -348,10 +353,11 @@ final class BoutiqueController
             'client_name'  => $name,
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
-            'note'         => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
-            'fulfillment'  => $fulfillment,
-            'payment_term' => $paymentTerm,
-            'currency'     => $cur,
+            'note'           => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
+            'fulfillment'    => $fulfillment,
+            'payment_term'   => $paymentTerm,
+            'payment_method' => $paymentMethod,
+            'currency'       => $cur,
         ], $lines);
 
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());

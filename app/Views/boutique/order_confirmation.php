@@ -39,6 +39,9 @@ $waText = rawurlencode(
     <?php if ($term !== ''): ?>
         <p class="hint"><?= e(t('shop.f.payment_terms')) ?> : <strong><?= e(t('shop.payterm.' . $term)) ?></strong></p>
     <?php endif; ?>
+    <?php if (!empty($order['payment_method'])): ?>
+        <p class="hint"><?= e(t('bcart.method_label')) ?> : <img class="pay-logo-inline" src="<?= e(asset('img/pay/' . $order['payment_method'] . '.svg')) ?>" alt="" width="26" height="16"> <strong><?= e(t('shop.paymethod.' . $order['payment_method'])) ?></strong></p>
+    <?php endif; ?>
 
     <?php if ($payStatus === 'paid'): ?>
         <?php if ($term === 'deposit'): ?>

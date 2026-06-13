@@ -13,6 +13,7 @@ $waText  = rawurlencode(t('product.wa_text', ['name' => (string) $product['name'
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
 $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
 $payTerms = array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))));
+$payMethods = array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))));
 // Commande en ligne possible si la vitrine est publiée et le produit en stock.
 $canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
 ?>
@@ -104,6 +105,14 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && $inStock;
                 <div class="lang-checks">
                     <?php foreach ($payTerms as $i => $pt): ?>
                         <label class="check-pill"><input type="radio" name="payment_term" value="<?= e($pt) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.payterm.' . $pt)) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($payMethods): ?>
+                <label><?= e(t('bcart.pay_method')) ?></label>
+                <div class="lang-checks pay-method-checks">
+                    <?php foreach ($payMethods as $i => $pm): ?>
+                        <label class="check-pill"><input type="radio" name="payment_method" value="<?= e($pm) ?>" <?= $i === 0 ? 'checked' : '' ?>><img src="<?= e(asset('img/pay/' . $pm . '.svg')) ?>" alt="" width="30" height="19"><span><?= e(t('shop.paymethod.' . $pm)) ?></span></label>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>

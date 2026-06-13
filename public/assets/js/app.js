@@ -409,17 +409,27 @@ document.addEventListener('click', function (ev) {
         });
     });
 
-    if (bar) {
-        var go = bar.querySelector('[data-cart-checkout]');
-        if (go && form) {
-            go.addEventListener('click', function () {
-                form.hidden = false;
-                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                var n = form.querySelector('#cl-name');
-                if (n) { setTimeout(function () { n.focus(); }, 350); }
-            });
+    // Ouvre le panier : déplie le formulaire de commande si des articles sont
+    // présents, sinon ramène le visiteur vers la grille de produits.
+    function openCheckout() {
+        var anyQty = Object.keys(cart).some(function (k) { return cart[k].qty > 0; });
+        if (anyQty && form) {
+            form.hidden = false;
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            var n = form.querySelector('#cl-name');
+            if (n) { setTimeout(function () { n.focus(); }, 350); }
+        } else {
+            var grid = document.querySelector('.product-grid') || menu;
+            if (grid) { grid.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         }
     }
+    if (bar) {
+        var go = bar.querySelector('[data-cart-checkout]');
+        if (go) { go.addEventListener('click', openCheckout); }
+    }
+    document.querySelectorAll('[data-cart-open]').forEach(function (b) {
+        b.addEventListener('click', openCheckout);
+    });
 
     if (form) {
         form.addEventListener('submit', function (ev) {

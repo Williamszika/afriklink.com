@@ -44,6 +44,7 @@ final class Order
                 payment_status   VARCHAR(12) NOT NULL DEFAULT \'unpaid\',
                 payment_ref      CHAR(36) NULL,
                 payment_term     VARCHAR(16) NULL,
+                payment_method   VARCHAR(16) NULL,
                 status           VARCHAR(12) NOT NULL DEFAULT \'new\',
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -84,6 +85,7 @@ final class Order
             'payment_status' => "ADD COLUMN payment_status VARCHAR(12) NOT NULL DEFAULT 'unpaid' AFTER source",
             'payment_ref'    => "ADD COLUMN payment_ref CHAR(36) NULL AFTER payment_status",
             'payment_term'   => "ADD COLUMN payment_term VARCHAR(16) NULL AFTER payment_ref",
+            'payment_method' => "ADD COLUMN payment_method VARCHAR(16) NULL AFTER payment_term",
             'client_email'   => "ADD COLUMN client_email VARCHAR(120) NULL AFTER client_phone",
         ];
         foreach ($columns as $col => $ddl) {
@@ -160,9 +162,9 @@ final class Order
             $stmt = $pdo->prepare(
                 'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
                     unit_price_cents, qty, total_cents, currency, client_name, client_phone, client_email,
-                    note, fulfillment, payment_term, source, status)
+                    note, fulfillment, payment_term, payment_method, source, status)
                  VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :cemail,
-                    :note, :ful, :term, \'online\', \'new\')'
+                    :note, :ful, :term, :method, \'online\', \'new\')'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $header['boutique_id'], 'uid' => $header['user_id'],
@@ -170,6 +172,7 @@ final class Order
                 'cur' => $header['currency'], 'cname' => $header['client_name'],
                 'cphone' => $header['client_phone'], 'cemail' => $header['client_email'] ?? null,
                 'note' => $header['note'], 'ful' => $header['fulfillment'], 'term' => $header['payment_term'] ?? null,
+                'method' => $header['payment_method'] ?? null,
             ]);
             $orderId = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare(

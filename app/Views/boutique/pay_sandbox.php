@@ -13,6 +13,9 @@ $amount = (int) ($amount_cents ?? $order['total_cents']);
     <?php if (!empty($is_deposit)): ?>
         <p class="hint"><?= e(t('pay.deposit_hint', ['rest' => format_price(max(0, (int) $order['total_cents'] - $amount), $cur)])) ?></p>
     <?php endif; ?>
+    <?php if (!empty($order['payment_method'])): ?>
+        <p class="hint"><?= e(t('bcart.method_label')) ?> : <img class="pay-logo-inline" src="<?= e(asset('img/pay/' . $order['payment_method'] . '.svg')) ?>" alt="" width="26" height="16"> <strong><?= e(t('shop.paymethod.' . $order['payment_method'])) ?></strong></p>
+    <?php endif; ?>
     <p class="notice notice-info"><?= e(t('pay.sandbox_note')) ?></p>
 
     <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/regler')) ?>" class="pay-sandbox-form">

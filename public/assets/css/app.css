@@ -428,6 +428,12 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .pay-now-form { margin: 12px 0 4px; }
 .pay-sandbox-form { display: grid; gap: 10px; margin-top: 16px; }
 .pay-paid-badge { display: inline-block; margin: 12px 0 6px; padding: 8px 16px; background: #eafaf2; color: #0f7a3c; border: 1px solid #9fdcbe; border-radius: 999px; font-weight: 700; }
+/* Bouton panier de la vitrine + moyens de paiement (pastilles à logo) */
+.cart-hero-btn { margin-top: 10px; }
+.cart-hero-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 4px; background: #fff; color: var(--brand); border-radius: 999px; font-weight: 800; font-size: .85em; }
+.pay-method-checks .check-pill { gap: 6px; }
+.pay-method-checks .check-pill img { display: block; border-radius: 3px; }
+.pay-logo-inline { vertical-align: -3px; border-radius: 3px; }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
 .menu-item-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); }

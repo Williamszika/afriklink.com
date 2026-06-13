@@ -42,6 +42,11 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && !empty($products);
                     'share_url'  => $shopUrl,
                     'share_text' => t('share.shop_text', ['name' => (string) $boutique['name']]),
                 ]) ?>
+                <?php if ($canOrder): ?>
+                    <button type="button" class="btn btn-primary cart-hero-btn" data-cart-open>
+                        🛒 <?= e(t('bcart.view_cart')) ?> <span class="cart-hero-count" data-cart-count>0</span>
+                    </button>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -197,6 +202,14 @@ $canOrder = ($boutique['status'] ?? '') === 'published' && !empty($products);
                         <div class="lang-checks">
                             <?php foreach ($payTermList as $i => $pt): ?>
                                 <label class="check-pill"><input type="radio" name="payment_term" value="<?= e($pt) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.payterm.' . $pt)) ?></span></label>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php $payMethodList = array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))); if ($payMethodList): ?>
+                        <label><?= e(t('bcart.pay_method')) ?></label>
+                        <div class="lang-checks pay-method-checks">
+                            <?php foreach ($payMethodList as $i => $pm): ?>
+                                <label class="check-pill"><input type="radio" name="payment_method" value="<?= e($pm) ?>" <?= $i === 0 ? 'checked' : '' ?>><img src="<?= e(asset('img/pay/' . $pm . '.svg')) ?>" alt="" width="30" height="19"><span><?= e(t('shop.paymethod.' . $pm)) ?></span></label>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>

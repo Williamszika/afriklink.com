@@ -124,6 +124,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                 <span class="order-source"><?= e(t('order.source.' . (string) $o['source'])) ?></span>
                                 <?php if (!empty($o['fulfillment'])): ?><span class="order-source"><?= e(t('shop.method.' . $o['fulfillment'])) ?></span><?php endif; ?>
                                 <?php if (!empty($o['payment_term'])): ?><span class="order-source">💳 <?= e(t('shop.payterm.' . $o['payment_term'])) ?></span><?php endif; ?>
+                                <?php if (!empty($o['payment_method'])): ?><span class="order-source"><img class="pay-logo-inline" src="<?= e(asset('img/pay/' . $o['payment_method'] . '.svg')) ?>" alt="" width="22" height="14"> <?= e(t('shop.paymethod.' . $o['payment_method'])) ?></span><?php endif; ?>
                                 <?php if (($o['source'] ?? '') === 'online'): $ps = (string) ($o['payment_status'] ?? 'unpaid'); ?>
                                     <span class="badge <?= $ps === 'paid' ? 'badge-ok' : 'badge-neutral' ?>"><?= e(t('order.pay.' . ($ps === 'paid' ? 'paid' : 'unpaid'))) ?></span>
                                 <?php endif; ?>
