@@ -5,9 +5,12 @@ namespace App\Controllers;
 
 use App\Models\Boutique;
 use App\Models\Product;
+use App\Models\StockAlert;
 use App\Request;
 use App\Services\AuditLog;
 use App\Services\CloudinaryService;
+use App\Services\MailService;
+use App\Services\Notifier;
 
 /**
  * Catalogue de la boutique — ajout, modification, retrait des produits.
@@ -57,15 +60,65 @@ final class ProductController
             set_errors($errors);
             redirect('/boutique/produits/' . $p['public_id'] . '/modifier');
         }
+        // Détecte un retour en stock : produit épuisé avant, disponible après.
+        $wasOut = $p['stock'] !== null && (int) $p['stock'] <= 0;
+        $nowIn  = $data['stock'] === null || (int) $data['stock'] > 0;
+
         Product::update((int) $p['id'], $data);
         // On ne remplace les photos que si le formulaire en a renvoyé (sinon on garde).
         if ($photos !== null) {
             Product::setPhotos((int) $p['id'], $photos);
         }
         AuditLog::record((int) current_user_id(), 'product.updated', 'product', (int) $p['id'], [], $request->ipBinary());
+
+        if ($wasOut && $nowIn) {
+            try {
+                $this->notifyRestock($p, $b);
+            } catch (\Throwable) {
+                // notification best-effort
+            }
+        }
         clear_old();
         flash('success', t('product.updated_flash'));
         redirect('/boutique/gerer');
+    }
+
+    /** Prévient les abonnés « retour en stock » (e-mail + SMS/WhatsApp), puis purge la liste. */
+    private function notifyRestock(array $product, array $boutique): void
+    {
+        $subs = StockAlert::pendingForProduct((int) $product['id']);
+        if ($subs === []) {
+            return;
+        }
+        $url = url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']);
+        $name = (string) $product['name'];
+        $shop = (string) $boutique['name'];
+        $subject = t('stock.mail_subject', ['name' => $name]);
+        $body = t('stock.mail_body', ['name' => $name, 'shop' => $shop]);
+        foreach ($subs as $s) {
+            $email = trim((string) ($s['email'] ?? ''));
+            if ($email !== '') {
+                try {
+                    MailService::send(
+                        $email,
+                        $subject,
+                        '<p>' . e($body) . '</p>'
+                        . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">' . e(t('stock.mail_cta')) . '</a></p>'
+                        . '<p style="color:#666;font-size:13px">' . e($url) . '</p>',
+                        $body . "\n" . $url
+                    );
+                } catch (\Throwable) {
+                }
+            }
+            $phone = Notifier::normalize((string) ($s['phone'] ?? ''));
+            if ($phone !== '') {
+                try {
+                    Notifier::send($phone, t('stock.sms', ['name' => $name, 'shop' => $shop]) . ' ' . $url);
+                } catch (\Throwable) {
+                }
+            }
+        }
+        StockAlert::clearForProduct((int) $product['id']);
     }
 
     public function setStatus(Request $request): void

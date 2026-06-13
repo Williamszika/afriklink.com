@@ -1052,6 +1052,15 @@ return [
     'product.in_stock' => 'En stock',
     'product.related' => 'Vous aimerez aussi',
     'product.zoom' => 'Agrandir la photo',
+    // Alerte « retour en stock »
+    'stock.cta' => 'Épuisé ? Soyez prévenu(e) dès son retour (e-mail ou téléphone).',
+    'stock.subscribe_btn' => 'M’avertir',
+    'stock.subscribed' => 'C’est noté ! Vous serez prévenu(e) dès le retour en stock.',
+    'stock.already_in' => 'Ce produit est déjà disponible.',
+    'stock.mail_subject' => '🎉 :name est de nouveau disponible',
+    'stock.mail_body' => 'Bonne nouvelle ! :name est de nouveau en stock chez :shop.',
+    'stock.mail_cta' => 'Voir le produit',
+    'stock.sms' => ':name est de nouveau dispo sur :shop :',
     // Avis & notes
     'review.title' => 'Avis clients',
     'review.empty' => 'Pas encore d’avis. Soyez le premier à donner votre avis !',

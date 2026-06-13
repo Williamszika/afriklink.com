@@ -61,6 +61,17 @@ $canOrder = $inStock && ($published || $is_owner);
                         <span class="badge badge-warn"><?= e(t('product.out_of_stock')) ?></span>
                     <?php endif; ?>
                 </p>
+                <?php if (!$inStock && $published): ?>
+                    <div class="stock-alert" id="stock-alert">
+                        <p class="stock-alert-cta">🔔 <?= e(t('stock.cta')) ?></p>
+                        <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/alerte-stock')) ?>" class="stock-alert-form">
+                            <?= csrf_field() ?>
+                            <input type="email" name="email" maxlength="120" value="<?= old('email') ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
+                            <input type="tel" name="phone" maxlength="22" value="<?= old('phone') ?>" placeholder="+221 …">
+                            <button type="submit" class="btn btn-primary btn-sm"><?= e(t('stock.subscribe_btn')) ?></button>
+                        </form>
+                    </div>
+                <?php endif; ?>
                 <?php if ($canOrder): ?>
                     <div class="product-buy">
                         <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e((string) $product['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>

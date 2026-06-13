@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\ProProfile;
 use App\Models\Review;
 use App\Models\ShopView;
+use App\Models\StockAlert;
 use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
@@ -365,6 +366,36 @@ final class BoutiqueController
         flash('success', t('review.hidden'));
         $back = (string) input_string('back', '/boutique/gerer');
         redirect(str_starts_with($back, '/boutique/') ? $back : '/boutique/gerer');
+    }
+
+    /** Un client demande à être prévenu du retour en stock d'un produit épuisé. */
+    public function storeStockAlert(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || $boutique['status'] !== 'published') {
+            abort(404);
+        }
+        $product = \App\Models\Product::findByPublicId((string) $request->param('pid', ''));
+        if ($product === null || (int) $product['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        $back = '/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'];
+        if ($product['stock'] === null || (int) $product['stock'] > 0) {
+            flash('info', t('stock.already_in'));
+            redirect($back);
+        }
+        $email = trim((string) input_string('email', ''));
+        $phone = trim((string) input_string('phone', ''));
+        $emailOk = $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+        $phoneOk = $phone !== '' && preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone) === 1;
+        if (!$emailOk && !$phoneOk) {
+            keep_old($_POST);
+            flash('error', t('order.err_contact'));
+            redirect($back . '#stock-alert');
+        }
+        StockAlert::subscribe((int) $product['id'], (int) $boutique['id'], $emailOk ? $email : null, $phoneOk ? $phone : null);
+        flash('success', t('stock.subscribed'));
+        redirect($back);
     }
 
     /* ---- Caisse & commande en ligne (panier public) ---------------- */

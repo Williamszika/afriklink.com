@@ -143,8 +143,9 @@ return [
     ['GET',  '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySandbox'], []],
     ['POST', '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySettle'],  ['csrf', 'throttle:bpay,30,3600']],
     ['GET',  '/boutique/commande/{ref}/retour', [BoutiqueController::class, 'payReturn'],  []],
-    // Avis & notes
-    ['POST', '/boutique/{slug}/p/{pid}/avis', [BoutiqueController::class, 'storeReview'], ['csrf', 'throttle:review,10,3600']],
+    // Avis & notes + alerte retour en stock
+    ['POST', '/boutique/{slug}/p/{pid}/avis',         [BoutiqueController::class, 'storeReview'],      ['csrf', 'throttle:review,10,3600']],
+    ['POST', '/boutique/{slug}/p/{pid}/alerte-stock', [BoutiqueController::class, 'storeStockAlert'],  ['csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/avis/{rid}/masquer',  [BoutiqueController::class, 'hideReview'],  ['auth', 'csrf']],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],

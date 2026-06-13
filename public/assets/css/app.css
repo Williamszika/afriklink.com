@@ -734,6 +734,11 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.15); border:0; color:#fff; font-size:2.6rem; line-height:1; width:52px; height:72px; cursor:pointer; border-radius:8px; }
 .lightbox-prev { left:14px; } .lightbox-next { right:14px; }
 .lightbox-nav:hover, .lightbox-close:hover { color:#f5b301; }
+/* Alerte retour en stock */
+.stock-alert { margin:8px 0; padding:12px; background:#fff8ec; border:1px solid #f5d9a0; border-radius:10px; }
+.stock-alert-cta { margin:0 0 8px; font-weight:600; font-size:.9rem; }
+.stock-alert-form { display:grid; gap:6px; }
+.stock-alert-form .btn { justify-self:start; }
 @media (max-width:700px){ .product-row { flex-direction:column; } }
 
 /* Catalogue produits : gestion + vitrine — fin */

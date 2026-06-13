@@ -1052,6 +1052,15 @@ return [
     'product.in_stock' => 'In stock',
     'product.related' => 'You may also like',
     'product.zoom' => 'Zoom photo',
+    // Back-in-stock alert
+    'stock.cta' => 'Out of stock? Get notified when it’s back (email or phone).',
+    'stock.subscribe_btn' => 'Notify me',
+    'stock.subscribed' => 'Done! You’ll be notified as soon as it’s back in stock.',
+    'stock.already_in' => 'This product is already available.',
+    'stock.mail_subject' => '🎉 :name is back in stock',
+    'stock.mail_body' => 'Good news! :name is back in stock at :shop.',
+    'stock.mail_cta' => 'View the product',
+    'stock.sms' => ':name is back in stock at :shop:',
     // Reviews & ratings
     'review.title' => 'Customer reviews',
     'review.empty' => 'No reviews yet. Be the first to leave one!',
