@@ -269,6 +269,41 @@ final class Order
         }
     }
 
+    /**
+     * Unités vendues par produit sur les $days derniers jours (commandes non
+     * annulées) — base de la prévision de stock / réassort.
+     * @param list<int> $productIds
+     * @return array<int,int> id produit -> unités vendues
+     */
+    public static function soldSince(array $productIds, int $days = 30): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $productIds)));
+        if ($ids === []) {
+            return [];
+        }
+        $days = max(1, min(365, $days)); // borne sûre, interpolée (jamais liée)
+        try {
+            $in   = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = db()->prepare(
+                "SELECT oi.product_id AS pid, COALESCE(SUM(oi.qty), 0) AS units
+                   FROM order_items oi
+                   JOIN orders o ON o.id = oi.order_id
+                  WHERE o.status <> 'cancelled'
+                    AND o.created_at >= (NOW() - INTERVAL $days DAY)
+                    AND oi.product_id IN ($in)
+                  GROUP BY oi.product_id"
+            );
+            $stmt->execute($ids);
+            $out = [];
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $out[(int) $r['pid']] = (int) $r['units'];
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** @return list<array> lignes d'une commande en ligne (vide pour les commandes manuelles) */
     public static function items(int $orderId): array
     {

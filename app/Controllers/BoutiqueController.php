@@ -101,11 +101,15 @@ final class BoutiqueController
         }
         $products = \App\Models\Product::forBoutique((int) $boutique['id']);
         $filter = whitelist((string) input_string('filtre', 'tous'), ['tous', 'en_ligne', 'masques'], 'tous');
+        // Prévision de stock / réassort (algorithmique, à partir des ventes réelles).
+        $forecasts = \App\Services\StockForecast::forProducts($products);
         view('boutique/manage', [
             'active'   => 'vitrines',
             'boutique' => $boutique,
             'products' => $products,
             'filter'   => $filter,
+            'forecasts'     => $forecasts,
+            'restock_count' => \App\Services\StockForecast::restockCount($forecasts),
             'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
             'counts'   => \App\Models\Product::countFor((int) $boutique['id']),
             'orders_pending' => \App\Models\Order::countFor((int) $boutique['id'])['new'],

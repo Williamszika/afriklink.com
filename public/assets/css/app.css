@@ -682,6 +682,13 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .product-row-body { display:grid; gap:5px; min-width:0; flex:1; }
 .product-row-title { margin:0; font-weight:700; }
 .product-row-meta { margin:0; color:var(--muted); font-size:.92rem; }
+.product-forecast { margin:0; font-size:.86rem; font-weight:600; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.product-forecast .forecast-rate { font-weight:400; }
+.forecast-out { color:#b3261e; }
+.forecast-critical { color:#c43d10; }
+.forecast-soon { color:#9a6b00; }
+.forecast-ok { color:#0a7d28; }
+.restock-summary { margin:2px 0 10px; font-weight:700; color:#c43d10; background:#fff3e9; border:1px solid #f7d4bd; border-radius:10px; padding:7px 12px; font-size:.92rem; }
 .product-row-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .product-row-actions .inline-form { display:flex; gap:8px; flex-wrap:wrap; }
 .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
