@@ -88,7 +88,6 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
         <nav class="main-nav" aria-label="<?= e(t('nav.primary')) ?>">
             <a href="<?= e(url('/')) ?>" class="<?= $navPath === '/' ? 'is-active' : '' ?>"><?= e(t('nav.home')) ?></a>
             <a href="<?= e(url('/explorer')) ?>" class="<?= str_starts_with($navPath, '/explorer') ? 'is-active' : '' ?>"><?= e(t('nav.explore')) ?></a>
-            <a href="<?= e(url('/mise-en-avant')) ?>" class="<?= str_starts_with($navPath, '/mise-en-avant') ? 'is-active' : '' ?>"><?= e(t('nav.spotlight')) ?></a>
         </nav>
 
         <div class="nav-actions">

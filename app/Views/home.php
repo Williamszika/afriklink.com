@@ -55,15 +55,22 @@ $loggedIn   = current_user() !== null;
     </aside>
 </section>
 
-<?php if (!empty($sponsored)): ?>
 <section class="afk-spotlight afk-block">
     <div class="afk-spotlight__bar">
         <span class="afk-ad-tag">📣 <?= e(t('ads.label')) ?></span>
-        <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+        <?php if (!empty($sponsored)): ?>
+            <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+        <?php endif; ?>
     </div>
-    <?= render_partial('partials/product_rail', ['icon' => '✨', 'title' => t('reco.sponsored'), 'products' => $sponsored, 'mains' => $reco_mains]) ?>
+    <?php if (!empty($sponsored)): ?>
+        <?= render_partial('partials/product_rail', ['icon' => '✨', 'title' => t('reco.sponsored'), 'products' => $sponsored, 'mains' => $reco_mains]) ?>
+    <?php else: ?>
+        <div class="afk-spotlight__empty">
+            <p><?= e(t('spotlight.home_empty')) ?></p>
+            <a class="afk-btn afk-btn--gold" href="<?= e(url('/vendeur/publicite')) ?>"><?= e(t('spotlight.seller_cta_btn')) ?></a>
+        </div>
+    <?php endif; ?>
 </section>
-<?php endif; ?>
 
 <?php if (!empty($promo_annonces)): ?>
 <section class="live-section afk-block">

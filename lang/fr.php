@@ -1252,6 +1252,7 @@ return [
     'spotlight.title' => 'Mise en avant',
     'spotlight.lead' => 'Les offres sponsorisées du moment : boutiques à la une, produits et annonces mis en avant par leurs vendeurs.',
     'spotlight.see_all' => 'Voir tout',
+    'spotlight.home_empty' => 'Sponsorisez votre boutique, vos produits ou vos annonces pour apparaître ici, en tête de la page d’accueil.',
     'spotlight.boutiques' => 'Boutiques à la une',
     'spotlight.products' => 'Produits sponsorisés',
     'spotlight.annonces' => 'Annonces sponsorisées',

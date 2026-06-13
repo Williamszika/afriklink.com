@@ -1516,6 +1516,8 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .afk-spotlight{background:linear-gradient(180deg,var(--accent-50),#fff 72%);border:1px solid #efdcb2;border-radius:var(--afk-r-lg);padding:16px 18px 10px;box-shadow:var(--shadow-xs)}
 .afk-spotlight__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
 .afk-ad-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--afk-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a5a08;background:#fff7e6;border:1px solid #f0c674;padding:4px 10px;border-radius:99px;font-weight:700}
+.afk-spotlight__empty{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:4px 2px 8px}
+.afk-spotlight__empty p{margin:0;color:var(--afk-plume);font-weight:600;max-width:62ch}
 .spotlight-head{margin:4px 0 clamp(22px,4vw,36px)}
 .spotlight-head .afk-ad-tag{margin-bottom:14px}
 .spotlight-head h1{margin:0 0 10px}

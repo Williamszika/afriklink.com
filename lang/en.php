@@ -1252,6 +1252,7 @@ return [
     'spotlight.title' => 'Spotlight',
     'spotlight.lead' => 'Today’s sponsored offers: featured shops, plus products and listings promoted by their sellers.',
     'spotlight.see_all' => 'See all',
+    'spotlight.home_empty' => 'Sponsor your shop, products or listings to appear here, at the top of the homepage.',
     'spotlight.boutiques' => 'Featured shops',
     'spotlight.products' => 'Sponsored products',
     'spotlight.annonces' => 'Sponsored listings',
