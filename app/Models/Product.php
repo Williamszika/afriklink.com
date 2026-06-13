@@ -43,6 +43,7 @@ final class Product
                 KEY idx_pphotos_product (product_id, position)
             )'
         );
+        ProductVariant::ensureTable();
     }
 
     /** @param list<array{public_id:string,width:?int,height:?int}> $photos */
@@ -70,6 +71,11 @@ final class Product
         } catch (\Throwable $e) {
             $pdo->rollBack();
             throw $e;
+        }
+        // Variante par défaut (hors transaction : CREATE TABLE = commit implicite).
+        // Reprend le stock/prix du produit ; base du stock partagé online + POS.
+        if ($productId > 0) {
+            ProductVariant::ensureDefault($productId, $boutiqueId, $data['stock'] ?? null, (int) ($data['price_cents'] ?? 0));
         }
         return $publicId;
     }
@@ -140,6 +146,9 @@ final class Product
                 // déjà migré
             }
         }
+        // Couche variantes (stock partagé online + POS) : création idempotente,
+        // protégée pour ne jamais casser une page publique si elle échoue.
+        try { ProductVariant::ensureTable(); } catch (\Throwable) {}
     }
 
     /** @return list<array> produits d'une boutique (sponsorisés en tête, puis récents) */
