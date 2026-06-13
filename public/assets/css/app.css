@@ -400,6 +400,30 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .vol-tag.is-out::before { content: "⛔"; }
 .vol-out-btn { font-size: .72rem; color: var(--muted); }
 .vol-out-btn:hover { color: var(--brand); }
+
+/* Carte commandable : steppers + panier */
+.menu-item-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.order-sizes { display: grid; gap: 6px; margin-top: 6px; }
+.order-size { display: flex; align-items: center; gap: 10px; justify-content: space-between; flex-wrap: wrap; }
+.order-size.is-out { opacity: .6; }
+.order-size-label { font-size: .9rem; }
+.qty-stepper { display: inline-flex; align-items: center; gap: 4px; }
+.qty-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 9px; border: 1.5px solid var(--brand); border-radius: 999px; background: #fff; color: var(--brand); font-weight: 800; cursor: pointer; line-height: 1; }
+.qty-btn.qty-add { gap: 4px; }
+.qty-btn.is-compact { padding: 0; min-width: 30px; }
+.qty-btn:hover { background: #ecfdf3; }
+.qty-val { min-width: 22px; text-align: center; font-weight: 800; }
+.qty-stepper.is-active .qty-btn { background: var(--brand); color: #fff; }
+.qty-stepper.is-active .qty-val { color: var(--ink); }
+
+.cart-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 30; display: flex; align-items: center; gap: 16px; padding: 10px 16px; background: var(--ink, #14241d); color: #fff; border-radius: 999px; box-shadow: 0 6px 24px rgba(0,0,0,.28); max-width: 94vw; }
+.cart-bar-info strong { margin-left: 4px; }
+.cart-lines { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 6px; }
+.cart-line { display: flex; justify-content: space-between; gap: 12px; font-size: .92rem; border-bottom: 1px dashed var(--border); padding-bottom: 5px; }
+.cart-total-row { display: flex; justify-content: space-between; font-size: 1.05rem; }
+.cart-total-row strong { color: var(--brand); }
+.resto-checkout label { margin-top: 8px; }
+.confirm-lines { max-width: 420px; margin: 14px auto; }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
 .menu-item-row { display: flex; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--border); }

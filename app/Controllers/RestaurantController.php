@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Models\MenuItem;
 use App\Models\Restaurant;
+use App\Models\RestaurantOrder;
 use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
@@ -203,6 +204,140 @@ final class RestaurantController
             flash('success', t($action === 'out' ? 'resto.size_marked_out' : 'resto.size_marked_in', ['vol' => $vol]));
         }
         redirect('/restaurant/gerer');
+    }
+
+    /* ---- Commande (panier public) --------------------------------- */
+
+    /** Le client envoie son panier : on re-valide chaque ligne côté serveur. */
+    public function checkout(Request $request): void
+    {
+        $resto = Restaurant::findBySlug((string) $request->param('slug', ''));
+        if ($resto === null || $resto['status'] !== 'published') {
+            abort(404);
+        }
+        $cur = (string) $resto['currency'];
+
+        // Panier reçu (JSON) : [{id, size?, qty}] — prix/dispo IGNORÉS du client.
+        $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
+        $lines = [];
+        foreach (is_array($raw) ? $raw : [] as $entry) {
+            $item = MenuItem::findItem((string) ($entry['id'] ?? ''));
+            if ($item === null || (int) $item['restaurant_id'] !== (int) $resto['id'] || (int) $item['is_available'] !== 1) {
+                continue;
+            }
+            $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
+            $size = isset($entry['size']) ? (string) $entry['size'] : '';
+            if ($size !== '') {
+                // Contenance de boisson : doit exister et ne pas être épuisée.
+                $variant = null;
+                foreach (MenuItem::variants($item['variants'] ?? null) as $vr) {
+                    if ($vr['v'] === $size && !$vr['out']) { $variant = $vr; break; }
+                }
+                if ($variant === null) { continue; }
+                $lines[] = [
+                    'title' => (string) $item['name'] . ' — ' . rtrim(rtrim($size, '0'), '.') . ' L',
+                    'qty' => $qty, 'unit_price_cents' => (int) $variant['p'],
+                ];
+            } else {
+                $lines[] = [
+                    'title' => (string) $item['name'],
+                    'qty' => $qty, 'unit_price_cents' => (int) $item['price_cents'],
+                ];
+            }
+        }
+
+        $name = trim((string) input_string('client_name', ''));
+        $phone = trim((string) input_string('client_phone', ''));
+        $service = whitelist((string) input_string('service', ''), RestaurantOrder::SERVICES, 'takeaway');
+        $errors = [];
+        if ($lines === []) { $errors['cart'] = t('rorder.empty'); }
+        if (mb_strlen($name) < 2 || mb_strlen($name) > 80) { $errors['client_name'] = t('order.err_client'); }
+        if ($phone !== '' && !preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone)) { $errors['client_phone'] = t('order.err_phone'); }
+
+        if ($errors !== []) {
+            keep_old($_POST);
+            set_errors($errors);
+            redirect('/restaurant/' . $resto['slug'] . '#commander');
+        }
+
+        $publicId = RestaurantOrder::create([
+            'restaurant_id' => (int) $resto['id'],
+            'seller_id' => (int) $resto['user_id'],
+            'client_name' => $name,
+            'client_phone' => $phone !== '' ? $phone : null,
+            'service' => $service,
+            'note' => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
+            'currency' => $cur,
+        ], $lines);
+
+        AuditLog::record((int) $resto['user_id'], 'rorder.placed', 'restaurant', (int) $resto['id'], ['order' => $publicId], $request->ipBinary());
+        clear_old();
+        redirect('/restaurant/commande/' . $publicId);
+    }
+
+    /** Confirmation client : récapitulatif + envoi au restaurant via WhatsApp. */
+    public function orderConfirmation(Request $request): void
+    {
+        $order = RestaurantOrder::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $restoRow = null;
+        try {
+            $stmt = db()->prepare('SELECT * FROM restaurants WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => (int) $order['restaurant_id']]);
+            $restoRow = $stmt->fetch() ?: null;
+        } catch (\Throwable) {
+        }
+        view('restaurant/order_confirmation', [
+            'order' => $order,
+            'items' => RestaurantOrder::items((int) $order['id']),
+            'resto' => $restoRow,
+            'page_title' => t('rorder.confirm_title'),
+        ]);
+    }
+
+    /* ---- Commandes côté restaurateur ------------------------------ */
+
+    public function orders(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $resto = Restaurant::findByUserId((int) $user['id']);
+        if ($resto === null) {
+            redirect('/restaurant/creer');
+        }
+        $filter = whitelist((string) input_string('filtre', 'new'), array_merge(RestaurantOrder::STATUSES, ['all']), 'new');
+        $orders = RestaurantOrder::forRestaurant((int) $resto['id'], $filter === 'all' ? null : $filter);
+        $itemsByOrder = [];
+        foreach ($orders as $o) {
+            $itemsByOrder[(int) $o['id']] = RestaurantOrder::items((int) $o['id']);
+        }
+        view('restaurant/orders', [
+            'active' => 'commandes',
+            'resto' => $resto,
+            'orders' => $orders,
+            'items_by_order' => $itemsByOrder,
+            'filter' => $filter,
+        ] + SellerController::commonData($user));
+    }
+
+    public function setOrderStatus(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $resto = Restaurant::findByUserId((int) $user['id']);
+        $order = RestaurantOrder::findByPublicId((string) $request->param('ref', ''));
+        if ($resto === null || $order === null || (int) $order['restaurant_id'] !== (int) $resto['id']) {
+            abort(404);
+        }
+        $action = whitelist((string) input_string('action', ''), ['confirm', 'ready', 'deliver', 'cancel'], null);
+        if ($action !== null) {
+            $to = RestaurantOrder::applyAction((int) $order['id'], (string) $order['status'], $action);
+            if ($to !== null) {
+                AuditLog::record((int) $user['id'], 'rorder.' . $action, 'rorder', (int) $order['id'], [], $request->ipBinary());
+                flash('success', t('rorder.status_flash', ['status' => t('rorder.st.' . $to)]));
+            }
+        }
+        redirect('/restaurant/commandes?filtre=' . whitelist((string) input_string('retour', 'new'), array_merge(RestaurantOrder::STATUSES, ['all']), 'new'));
     }
 
     /* ---- Page publique -------------------------------------------- */

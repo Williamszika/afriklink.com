@@ -148,6 +148,11 @@ return [
     ['POST', '/restaurant/plat',                 [RestaurantController::class, 'storeItem'],      ['auth', 'csrf', 'throttle:product,120,3600']],
     ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
     ['POST', '/restaurant/plat/{mid}/contenance', [RestaurantController::class, 'setVariantStatus'], ['auth', 'csrf']],
+    // Commandes restaurant : panier public + suivi côté restaurateur
+    ['GET',  '/restaurant/commandes',            [RestaurantController::class, 'orders'],          ['auth']],
+    ['POST', '/restaurant/commandes/{ref}/statut', [RestaurantController::class, 'setOrderStatus'], ['auth', 'csrf']],
+    ['POST', '/restaurant/{slug}/commander',      [RestaurantController::class, 'checkout'],        ['csrf', 'throttle:rorder,40,3600']],
+    ['GET',  '/restaurant/commande/{ref}',        [RestaurantController::class, 'orderConfirmation'], []],
     ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
 
     // Signalement « ce n'était pas moi » (lien reçu par e-mail, sans connexion)

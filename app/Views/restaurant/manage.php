@@ -24,6 +24,8 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                 </p>
             </div>
             <div class="shop-admin-actions">
+                <?php $rPending = \App\Models\RestaurantOrder::pendingForUser((int) $user['id']); ?>
+                <a class="btn btn-ghost btn-sm<?= $rPending > 0 ? ' stat-card--urgent' : '' ?>" href="<?= e(url('/restaurant/commandes')) ?>">🧾 <?= e(t('rorder.nav')) ?><?= $rPending > 0 ? ' (' . $rPending . ')' : '' ?></a>
                 <form method="post" action="<?= e(url('/restaurant/publier')) ?>" class="inline-form">
                     <?= csrf_field() ?>
                     <?php if ($published): ?>

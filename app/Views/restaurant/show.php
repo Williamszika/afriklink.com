@@ -30,13 +30,16 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
         </div>
     </div>
 
+    <?php
+    $hasItems = false;
+    foreach ($categories as $c) { if (!empty($by_cat[(int) $c['id']])) { $hasItems = true; break; } }
+    $offered = $services !== [] ? $services : ['takeaway'];
+    ?>
     <div class="shop-body">
-        <div class="panel">
+        <div class="panel" data-resto-menu
+             data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>"
+             data-cur-sym="<?= e(['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur) ?>">
             <h2 class="panel-title">📋 <?= e(t('resto.menu_title')) ?></h2>
-            <?php
-            $hasItems = false;
-            foreach ($categories as $c) { if (!empty($by_cat[(int) $c['id']])) { $hasItems = true; break; } }
-            ?>
             <?php if (!$hasItems): ?>
                 <div class="empty-state"><p><?= e(t('resto.menu_empty')) ?></p></div>
             <?php else: ?>
@@ -45,21 +48,36 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                     <div class="menu-cat">
                         <h3 class="menu-cat-title"><?= e((string) $c['name']) ?></h3>
                         <?php foreach ($list as $it): ?>
-                            <?php $vars = \App\Models\MenuItem::variants($it['variants'] ?? null); ?>
+                            <?php $vars = \App\Models\MenuItem::variants($it['variants'] ?? null); $iid = (string) $it['public_id']; ?>
                             <div class="menu-item-row">
                                 <div class="menu-item-main">
                                     <span class="menu-item-name"><?= e((string) $it['name']) ?>
                                         <?php foreach (array_filter(explode(',', (string) ($it['diets'] ?? ''))) as $dt): ?><span class="diet-badge"><?= e(t('resto.diet.' . $dt)) ?></span><?php endforeach; ?>
                                     </span>
                                     <?php if (!empty($it['description'])): ?><span class="menu-item-desc"><?= e((string) $it['description']) ?></span><?php endif; ?>
-                                    <?php if ($vars !== []): ?><span class="menu-item-vars"><?php foreach ($vars as $vr): $vOut = !empty($vr['out']); ?><span class="vol-tag<?= $vOut ? ' is-out' : '' ?>"><?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?></span><?php endforeach; ?></span><?php endif; ?>
+                                    <?php if ($vars !== []): ?>
+                                        <div class="order-sizes">
+                                            <?php foreach ($vars as $vr): $vOut = !empty($vr['out']); $lbl = rtrim(rtrim((string) $vr['v'], '0'), '.'); ?>
+                                                <div class="order-size<?= $vOut ? ' is-out' : '' ?>">
+                                                    <span class="order-size-label"><?= e($lbl) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?></span>
+                                                    <?php if (!$vOut): ?>
+                                                        <?= render_partial('restaurant/_stepper', ['id' => $iid, 'size' => (string) $vr['v'], 'name' => (string) $it['name'] . ' — ' . $lbl . ' L', 'price' => (int) $vr['p']]) ?>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
-                                <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
+                                <div class="menu-item-side">
+                                    <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
+                                    <?php if ($vars === []): ?>
+                                        <?= render_partial('restaurant/_stepper', ['id' => $iid, 'size' => '', 'name' => (string) $it['name'], 'price' => (int) $it['price_cents']]) ?>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         <?php endforeach; ?>
                     </div>
                 <?php endforeach; ?>
-                <p class="hint">🧺 <?= e(t('resto.cart_soon')) ?></p>
             <?php endif; ?>
         </div>
 
@@ -79,9 +97,39 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                     <?php if (!empty($resto['delivery_min_cents'])): ?><dt><?= e(t('resto.f.delivery_min')) ?></dt><dd><?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></dd><?php endif; ?>
                 </dl>
                 <?php if ($wa !== ''): ?>
-                    <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>">💬 <?= e(t('resto.order_whatsapp')) ?></a>
+                    <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>">💬 <?= e(t('resto.order_whatsapp')) ?></a>
                 <?php endif; ?>
             </div>
+
+            <!-- Commander : panier + coordonnées -->
+            <form id="commander" class="panel resto-checkout" method="post" action="<?= e(url('/restaurant/' . $resto['slug'] . '/commander')) ?>" data-cart-form hidden>
+                <?= csrf_field() ?>
+                <h2 class="panel-title">🧺 <?= e(t('rorder.your_order')) ?></h2>
+                <ul class="cart-lines" data-cart-lines></ul>
+                <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong data-cart-total>0</strong></p>
+
+                <label><?= e(t('rorder.service')) ?></label>
+                <div class="lang-checks">
+                    <?php foreach ($offered as $i => $s): ?>
+                        <label class="check-pill"><input type="radio" name="service" value="<?= e($s) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('resto.service.' . $s)) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <label for="cl-name"><?= e(t('order.f.client')) ?></label>
+                <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+                <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
+                <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
+                <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
+                <label for="cl-note"><?= e(t('order.f.note')) ?></label>
+                <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('rorder.note_ph')) ?>">
+                <input type="hidden" name="cart_json" data-cart-json value="[]">
+                <button type="submit" class="btn btn-primary btn-block"><?= e(t('rorder.send')) ?></button>
+            </form>
         </aside>
+    </div>
+
+    <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
+    <div class="cart-bar" data-cart-bar hidden>
+        <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
+        <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('rorder.checkout')) ?> →</button>
     </div>
 </section>

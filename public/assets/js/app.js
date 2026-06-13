@@ -336,6 +336,108 @@ document.addEventListener('click', function (ev) {
     apply();
 })();
 
+/* ---- Carte restaurant : panier de commande ----
+   Chaque plat / contenance de boisson est sélectionnable (stepper). Le total
+   est calculé en direct ; à l'envoi, le panier est sérialisé (le serveur
+   re-vérifie prix et disponibilité). */
+(function () {
+    var menu = document.querySelector('[data-resto-menu]');
+    if (!menu) { return; }
+    var curInt = menu.getAttribute('data-cur-int') === '1';
+    var sym = menu.getAttribute('data-cur-sym') || '';
+    var form = document.querySelector('[data-cart-form]');
+    var bar = document.querySelector('[data-cart-bar]');
+    var cart = {}; // clé id|size -> {name, price, qty}
+
+    function fmt(cents) {
+        var val = curInt ? Math.round(cents / 100) : cents / 100;
+        var s = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: curInt ? 0 : 2 }).format(val);
+        return s + ' ' + sym;
+    }
+
+    function render() {
+        var count = 0, total = 0;
+        var lines = form ? form.querySelector('[data-cart-lines]') : null;
+        if (lines) { lines.textContent = ''; }
+        Object.keys(cart).forEach(function (k) {
+            var c = cart[k];
+            if (c.qty <= 0) { return; }
+            count += c.qty;
+            total += c.qty * c.price;
+            if (lines) {
+                var li = document.createElement('li');
+                li.className = 'cart-line';
+                var l = document.createElement('span');
+                l.textContent = c.qty + '× ' + c.name;
+                var r = document.createElement('strong');
+                r.textContent = fmt(c.qty * c.price);
+                li.appendChild(l); li.appendChild(r);
+                lines.appendChild(li);
+            }
+        });
+        document.querySelectorAll('[data-cart-count]').forEach(function (e) { e.textContent = String(count); });
+        document.querySelectorAll('[data-cart-total]').forEach(function (e) { e.textContent = fmt(total); });
+        if (bar) { bar.hidden = count === 0; }
+        if (form && count === 0) { form.hidden = true; }
+    }
+
+    function paint(stepper, qty) {
+        var dec = stepper.querySelector('[data-qty-dec]');
+        var val = stepper.querySelector('[data-qty-val]');
+        var add = stepper.querySelector('[data-qty-inc]');
+        if (val) { val.textContent = String(qty); val.hidden = qty === 0; }
+        if (dec) { dec.hidden = qty === 0; }
+        if (add) { add.classList.toggle('is-compact', qty > 0); add.textContent = qty > 0 ? '＋' : add.getAttribute('data-add-label'); }
+        stepper.classList.toggle('is-active', qty > 0);
+    }
+
+    document.querySelectorAll('[data-order-item]').forEach(function (stepper) {
+        var add = stepper.querySelector('[data-qty-inc]');
+        if (add && !add.getAttribute('data-add-label')) { add.setAttribute('data-add-label', add.textContent.trim()); }
+        var key = stepper.getAttribute('data-id') + '|' + stepper.getAttribute('data-size');
+        cart[key] = { name: stepper.getAttribute('data-name'), price: parseInt(stepper.getAttribute('data-price'), 10) || 0, qty: 0 };
+
+        stepper.addEventListener('click', function (ev) {
+            var inc = ev.target.closest && ev.target.closest('[data-qty-inc]');
+            var dec = ev.target.closest && ev.target.closest('[data-qty-dec]');
+            if (!inc && !dec) { return; }
+            ev.preventDefault();
+            var c = cart[key];
+            c.qty = Math.max(0, Math.min(99, c.qty + (inc ? 1 : -1)));
+            paint(stepper, c.qty);
+            render();
+        });
+    });
+
+    if (bar) {
+        var go = bar.querySelector('[data-cart-checkout]');
+        if (go && form) {
+            go.addEventListener('click', function () {
+                form.hidden = false;
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                var n = form.querySelector('#cl-name');
+                if (n) { setTimeout(function () { n.focus(); }, 350); }
+            });
+        }
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (ev) {
+            var out = [];
+            Object.keys(cart).forEach(function (k) {
+                var c = cart[k];
+                if (c.qty > 0) {
+                    var parts = k.split('|');
+                    out.push({ id: parts[0], size: parts[1], qty: c.qty });
+                }
+            });
+            if (out.length === 0) { ev.preventDefault(); return; }
+            var hidden = form.querySelector('[data-cart-json]');
+            if (hidden) { hidden.value = JSON.stringify(out); }
+        });
+    }
+})();
+
 /* ---- Géolocalisation générique (boutons [data-geolocate]) ----
    Méthode standard : navigator.geolocation demande la permission, fournit
    latitude/longitude ; notre serveur (/api/geo/reverse) convertit en ville,
