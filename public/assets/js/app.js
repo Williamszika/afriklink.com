@@ -348,6 +348,24 @@ document.addEventListener('click', function (ev) {
     var form = document.querySelector('[data-cart-form]');
     var bar = document.querySelector('[data-cart-bar]');
     var cart = {}; // clé id|size -> {name, price, qty}
+    var shopSlug = menu.getAttribute('data-shop-slug') || '';
+
+    // Synchronise le panier persistant (serveur) + le compteur d'en-tête (boutique).
+    function syncServer(pid, qty) {
+        if (!shopSlug) { return; }
+        fetch('/panier/ajouter', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'slug=' + encodeURIComponent(shopSlug) + '&pid=' + encodeURIComponent(pid) + '&qty=' + qty
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            if (data && typeof data.count === 'number') {
+                document.querySelectorAll('[data-global-cart-count]').forEach(function (b) {
+                    b.textContent = String(data.count);
+                    if (data.count > 0) { b.removeAttribute('hidden'); } else { b.setAttribute('hidden', ''); }
+                });
+            }
+        }).catch(function () {});
+    }
 
     function fmt(cents) {
         var val = curInt ? Math.round(cents / 100) : cents / 100;
@@ -395,7 +413,7 @@ document.addEventListener('click', function (ev) {
         var add = stepper.querySelector('[data-qty-inc]');
         if (add && !add.getAttribute('data-add-label')) { add.setAttribute('data-add-label', add.textContent.trim()); }
         var key = stepper.getAttribute('data-id') + '|' + stepper.getAttribute('data-size');
-        cart[key] = { name: stepper.getAttribute('data-name'), price: parseInt(stepper.getAttribute('data-price'), 10) || 0, qty: 0 };
+        cart[key] = { name: stepper.getAttribute('data-name'), price: parseInt(stepper.getAttribute('data-price'), 10) || 0, qty: parseInt(stepper.getAttribute('data-qty'), 10) || 0 };
 
         stepper.addEventListener('click', function (ev) {
             var inc = ev.target.closest && ev.target.closest('[data-qty-inc]');
@@ -406,8 +424,10 @@ document.addEventListener('click', function (ev) {
             c.qty = Math.max(0, Math.min(99, c.qty + (inc ? 1 : -1)));
             paint(stepper, c.qty);
             render();
+            syncServer(stepper.getAttribute('data-id'), c.qty);
         });
     });
+    render();
 
     // Boutique : « passer à la caisse » poste le panier vers une page dédiée.
     // Restaurant : pas de caisse → on déplie le formulaire en ligne ([data-cart-form]).

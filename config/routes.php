@@ -5,6 +5,7 @@ use App\Controllers\AffiliateController;
 use App\Controllers\LegalController;
 use App\Controllers\WishlistController;
 use App\Controllers\CompareController;
+use App\Controllers\CartController;
 use App\Controllers\MessageController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
@@ -54,6 +55,10 @@ return [
     ['POST', '/favoris/{pid}/basculer', [WishlistController::class, 'toggle'], ['csrf', 'throttle:wish,180,3600']],
     ['GET',  '/comparer',               [CompareController::class, 'index'],   []],
     ['POST', '/comparer/{pid}/basculer', [CompareController::class, 'toggle'], ['csrf', 'throttle:compare,180,3600']],
+    ['GET',  '/panier',                 [CartController::class, 'index'],     []],
+    ['POST', '/panier/ajouter',         [CartController::class, 'add'],       ['csrf', 'throttle:cart,400,3600']],
+    ['POST', '/panier/modifier',        [CartController::class, 'update'],    ['csrf']],
+    ['POST', '/panier/{slug}/caisse',   [CartController::class, 'checkout'],  ['csrf']],
 
     // ---- Authentication (guests) -------------------------------------
     ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],

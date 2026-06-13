@@ -644,6 +644,7 @@ final class BoutiqueController
         ], $lines);
 
         unset($_SESSION['caisse'][(int) $boutique['id']]); // panier consommé
+        \App\Services\Cart::clearBoutique((int) $boutique['id']); // vide aussi le panier persistant
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
         // Affiliation : créditer l'apporteur si le visiteur vient d'un lien /r/{code} (one-shot, hors auto-parrainage).
         \App\Models\Affiliate::attribute($publicId, (int) $boutique['id'], (int) $boutique['user_id'], $subtotal, $cur);

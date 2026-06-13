@@ -48,7 +48,7 @@ $canOrder = $inStock && ($published || $is_owner);
         </div>
 
         <div class="listing-side">
-            <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
+            <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
                 <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line">✨ <?= e(t('ads.badge')) ?></p><?php endif; ?>
                 <?php if (($rating['count'] ?? 0) > 0): ?>
@@ -76,7 +76,7 @@ $canOrder = $inStock && ($published || $is_owner);
                 <?php if ($canOrder): ?>
                     <div class="product-buy">
                         <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e((string) $product['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
-                        <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart')]) ?>
+                        <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
                     </div>
                 <?php endif; ?>
                 <div class="product-wish-line">

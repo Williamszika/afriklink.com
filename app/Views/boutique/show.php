@@ -61,7 +61,7 @@ $canOrder = !empty($products) && ($published || $is_owner);
     </div>
 
     <div class="shop-body">
-        <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
+        <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
             <div class="shop-toolbar">
                 <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?>
                     <span class="shop-count muted"><?= e(t('shop.count', ['n' => count($products)])) ?></span>
@@ -104,7 +104,7 @@ $canOrder = !empty($products) && ($published || $is_owner);
                             <?php if ($canOrder && $inStock): ?>
                                 <div class="product-actions">
                                     <button type="button" class="btn btn-primary btn-sm buy-now-btn" data-buy-now="<?= e((string) $pr['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
-                                    <?= render_partial('partials/cart_stepper', ['id' => (string) $pr['public_id'], 'size' => '', 'name' => (string) $pr['name'], 'price' => (int) $pr['price_cents'], 'add_label' => t('bcart.add_to_cart')]) ?>
+                                    <?= render_partial('partials/cart_stepper', ['id' => (string) $pr['public_id'], 'size' => '', 'name' => (string) $pr['name'], 'price' => (int) $pr['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $pr['public_id'])]) ?>
                                 </div>
                             <?php endif; ?>
                         </div>
