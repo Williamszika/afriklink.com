@@ -125,7 +125,7 @@ final class ProductController
     {
         $b = $this->boutiqueOrRedirect();
         $p = $this->ownProductOr404($request, $b);
-        $action = whitelist((string) input_string('action', ''), ['activate', 'hide', 'delete'], null);
+        $action = whitelist((string) input_string('action', ''), ['activate', 'hide', 'delete', 'pin', 'unpin'], null);
         if ($action === null) {
             abort(404);
         }
@@ -135,6 +135,9 @@ final class ProductController
             }
             Product::delete((int) $p['id']);
             flash('success', t('product.deleted_flash'));
+        } elseif ($action === 'pin' || $action === 'unpin') {
+            Product::setPinned((int) $p['id'], $action === 'pin');
+            flash('success', t($action === 'pin' ? 'product.pinned_flash' : 'product.unpinned_flash'));
         } else {
             Product::setStatus((int) $p['id'], $action === 'activate' ? 'active' : 'hidden');
             flash('success', t('product.status_flash'));

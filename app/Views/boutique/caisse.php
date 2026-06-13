@@ -5,6 +5,8 @@
 $cur = (string) $boutique['currency'];
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
 $firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments[0]] ?? 0) : 0;
+$minOrder = (int) ($boutique['min_order_cents'] ?? 0);
+$belowMin = $minOrder > 0 && $total < $minOrder;
 ?>
 <section class="caisse">
     <h1 class="caisse-title">🧾 <?= e(t('caisse.title', ['shop' => (string) $boutique['name']])) ?></h1>
@@ -31,6 +33,13 @@ $firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments
                         <strong data-ship-amount data-free="<?= e(t('caisse.free')) ?>"><?= $firstFee > 0 ? e(format_price($firstFee, $cur)) : e(t('caisse.free')) ?></strong></p>
                 <?php endif; ?>
                 <p class="cart-total-row caisse-total"><span><?= e(t('rorder.total')) ?></span> <strong data-grand-total><?= e(format_price($total + $firstFee, $cur)) ?></strong></p>
+                <?php if ($minOrder > 0): ?>
+                    <p class="caisse-minorder<?= $belowMin ? ' is-below' : '' ?>">
+                        <?= $belowMin
+                            ? '⚠️ ' . e(t('shop.min_order_blocked', ['min' => format_price($minOrder, $cur)]))
+                            : '✓ ' . e(t('shop.min_order_ok', ['min' => format_price($minOrder, $cur)])) ?>
+                    </p>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -79,7 +88,7 @@ $firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments
             <?php if (has_error('client_address')): ?><p class="field-error"><?= e(error('client_address')) ?></p><?php endif; ?>
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
-            <button type="submit" class="btn btn-primary btn-block btn-lg">✅ <?= e(t('caisse.validate')) ?></button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg"<?= $belowMin ? ' disabled' : '' ?>>✅ <?= e(t('caisse.validate')) ?></button>
         </form>
     </div>
 </section>

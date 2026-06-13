@@ -166,6 +166,26 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <label for="shop-vac-until"><?= e(t('shop.cfg.vacation_until')) ?></label>
                 <input type="date" id="shop-vac-until" name="vacation_until" value="<?= e((string) ($boutique['vacation_until'] ?? '')) ?>">
                 <p class="hint"><?= e(t('shop.cfg.vacation_hint')) ?></p>
+
+                <label for="shop-hours">🕒 <?= e(t('shop.cfg.hours')) ?></label>
+                <input type="text" id="shop-hours" name="open_hours" maxlength="120" value="<?= e((string) ($boutique['open_hours'] ?? '')) ?>" placeholder="<?= e(t('shop.cfg.hours_ph')) ?>">
+                <p class="hint"><?= e(t('shop.cfg.hours_hint')) ?></p>
+
+                <label for="shop-minorder">🧺 <?= e(t('shop.cfg.min_order')) ?> (<?= e($selCur) ?>)</label>
+                <input type="text" id="shop-minorder" name="min_order" inputmode="decimal" value="<?= e($fmtCents($boutique['min_order_cents'] ?? null)) ?>" placeholder="0">
+                <p class="hint"><?= e(t('shop.cfg.min_order_hint')) ?></p>
+            </div>
+
+            <div class="panel">
+                <h2 class="panel-title">🎨 <?= e(t('shop.cfg.custom_title')) ?></h2>
+                <label class="check-pill check-pill--block">
+                    <input type="checkbox" name="accent_on" value="1" <?= !empty($boutique['accent_color']) ? 'checked' : '' ?>>
+                    <span><?= e(t('shop.cfg.accent')) ?></span>
+                </label>
+                <div class="accent-row">
+                    <input type="color" id="shop-accent" name="accent_color" value="<?= e((string) ($boutique['accent_color'] ?: '#0b7a4b')) ?>" aria-label="<?= e(t('shop.cfg.accent')) ?>">
+                    <p class="hint"><?= e(t('shop.cfg.accent_hint')) ?></p>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary btn-block"><?= e(t('profile.save')) ?></button>

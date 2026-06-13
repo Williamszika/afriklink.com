@@ -130,6 +130,16 @@ final class Product
                 // déjà migré
             }
         }
+        // Produit épinglé : le vendeur le met en avant en tête de sa propre vitrine.
+        try {
+            db()->query('SELECT pinned FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products ADD COLUMN pinned TINYINT(1) NOT NULL DEFAULT 0');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
     }
 
     /** @return list<array> produits d'une boutique (sponsorisés en tête, puis récents) */
@@ -139,8 +149,9 @@ final class Product
         try {
             $sql = 'SELECT * FROM products WHERE boutique_id = :bid';
             if ($activeOnly) { $sql .= ' AND status = \'active\''; }
-            // Produits sponsorisés (mise en avant non expirée) remontés en tête.
-            $sql .= ' ORDER BY (promoted_until IS NOT NULL AND promoted_until > NOW()) DESC, position DESC, id DESC';
+            // Épinglés d'abord (choix du vendeur), puis sponsorisés (mise en avant
+            // non expirée), puis les plus récents.
+            $sql .= ' ORDER BY pinned DESC, (promoted_until IS NOT NULL AND promoted_until > NOW()) DESC, position DESC, id DESC';
             $stmt = db()->prepare($sql);
             $stmt->execute(['bid' => $boutiqueId]);
             return $stmt->fetchAll() ?: [];
@@ -169,6 +180,17 @@ final class Product
     {
         $u = $row['promoted_until'] ?? null;
         return $u !== null && $u !== '' && strtotime((string) $u) > time();
+    }
+
+    /** Épingle (ou retire) un produit en tête de la vitrine du vendeur. */
+    public static function setPinned(int $id, bool $pinned): void
+    {
+        self::migrate();
+        try {
+            db()->prepare('UPDATE products SET pinned = :p WHERE id = :id')
+                ->execute(['p' => $pinned ? 1 : 0, 'id' => $id]);
+        } catch (\Throwable) {
+        }
     }
 
     /** Produits sponsorisés du marketplace (vitrines publiées). @return list<array> */

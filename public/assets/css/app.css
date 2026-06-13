@@ -826,6 +826,13 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .card-out-badge { position:absolute; top:6px; left:6px; background:rgba(20,36,29,.82); color:#fff; font-size:.68rem; font-weight:700; padding:2px 7px; border-radius:6px; }
 .promo-badge { position:absolute; top:6px; right:6px; background:linear-gradient(135deg,#ffb020,#ff7a00); color:#fff; font-size:.66rem; font-weight:800; padding:2px 7px; border-radius:6px; letter-spacing:.02em; box-shadow:0 1px 4px rgba(0,0,0,.25); }
 .promo-badge--inline { position:static; display:inline-block; vertical-align:middle; margin-left:6px; }
+.pin-badge { position:absolute; bottom:6px; left:6px; background:rgba(11,122,75,.92); color:#fff; font-size:.72rem; line-height:1; padding:3px 6px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.25); }
+.badge-pin { background:#fff7e6; color:#9a6700; border:1px solid #f0c674; }
+.caisse-minorder { margin:6px 0 0; font-size:.86rem; font-weight:700; color:var(--brand); }
+.caisse-minorder.is-below { color:#b42318; }
+.accent-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.accent-row .hint { margin:0; flex:1; min-width:180px; }
+input[type=color] { width:54px; height:38px; padding:3px; border:1.5px solid var(--border); border-radius:9px; background:#fff; cursor:pointer; flex:none; }
 .promo-line { margin:2px 0 0; font-weight:800; font-size:.8rem; color:#c85800; letter-spacing:.02em; }
 .product-cell .qty-stepper { width:100%; }
 .product-cell .qty-add { flex:1; justify-content:center; font-size:.76rem; padding:0 6px; }

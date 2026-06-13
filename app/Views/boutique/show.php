@@ -17,8 +17,22 @@ $published = ($boutique['status'] ?? '') === 'published';
 $previewOrder = !$published && $is_owner;
 $onVacation = !empty($boutique['is_vacation']);
 $canOrder = !empty($products) && ($published || $is_owner) && !$onVacation;
+// Couleur d'accent de la boutique : on redéfinit --brand (et une nuance plus
+// foncée pour le survol) sur la vitrine. Ignorée si trop claire (texte blanc
+// des boutons sinon illisible).
+$accentStyle = '';
+$accentHex = (string) ($boutique['accent_color'] ?? '');
+if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
+    $rr = (int) hexdec(substr($accentHex, 1, 2));
+    $gg = (int) hexdec(substr($accentHex, 3, 2));
+    $bb = (int) hexdec(substr($accentHex, 5, 2));
+    if (0.2126 * $rr + 0.7152 * $gg + 0.0722 * $bb < 200) {
+        $dark = sprintf('#%02x%02x%02x', max(0, $rr - 30), max(0, $gg - 30), max(0, $bb - 30));
+        $accentStyle = '--brand:' . $accentHex . ';--brand-dark:' . $dark;
+    }
+}
 ?>
-<section class="shop-page">
+<section class="shop-page"<?= $accentStyle !== '' ? ' style="' . e($accentStyle) . '"' : '' ?>>
 <?php if (!empty($boutique['announcement'])): ?>
     <div class="shop-announce">📣 <?= e((string) $boutique['announcement']) ?></div>
 <?php endif; ?>
@@ -97,6 +111,7 @@ $canOrder = !empty($products) && ($published || $is_owner) && !$onVacation;
                                     <?php if ($m !== null): ?>
                                         <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
                                     <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                                    <?php if (!empty($pr['pinned'])): ?><span class="pin-badge" title="<?= e(t('product.pinned')) ?>">📌</span><?php endif; ?>
                                     <?php if (\App\Models\Product::isPromoted($pr)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                                     <?php if (!$inStock): ?><span class="card-out-badge"><?= e(t('product.out_of_stock')) ?></span><?php endif; ?>
                                 </span>
@@ -184,6 +199,12 @@ $canOrder = !empty($products) && ($published || $is_owner) && !$onVacation;
                     <?php endif; ?>
                     <?php if (!empty($boutique['prep_time'])): ?>
                         <dt><?= e(t('shop.f.prep')) ?></dt><dd><?= e(t('shop.prep.' . $boutique['prep_time'])) ?></dd>
+                    <?php endif; ?>
+                    <?php if (!empty($boutique['open_hours'])): ?>
+                        <dt><?= e(t('shop.cfg.hours')) ?></dt><dd>🕒 <?= nl2br(e((string) $boutique['open_hours'])) ?></dd>
+                    <?php endif; ?>
+                    <?php if (!empty($boutique['min_order_cents'])): ?>
+                        <dt><?= e(t('shop.cfg.min_order')) ?></dt><dd>🧺 <?= e(format_price((int) $boutique['min_order_cents'], $cur)) ?></dd>
                     <?php endif; ?>
                     <?php $payTerms = array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))); ?>
                     <?php if ($payTerms): ?>

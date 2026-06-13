@@ -169,15 +169,25 @@ final class BoutiqueController
             'payment_provider' => $d3['payment_provider'] ?? null,
             'contacts' => $d1['contacts'] ?? [], 'contact_primary' => $d1['contact_primary'] ?? '',
         ]);
-        // Configuration avancée : annonce + mode congé.
+        // Configuration avancée : annonce + mode congé + horaires + commande
+        // minimum + couleur d'accent.
         $announce = trim((string) input_string('announcement', ''));
         $isVac    = input_string('is_vacation', '') === '1' ? 1 : 0;
         $vacUntil = (string) input_string('vacation_until', '');
         $vacUntil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $vacUntil) === 1 ? $vacUntil : null;
+        $hours    = trim((string) input_string('open_hours', ''));
+        $minRaw   = trim((string) input_string('min_order', ''));
+        $minCents = $minRaw !== '' ? parse_price_to_cents($minRaw, (string) $boutique['currency']) : null;
+        // Couleur d'accent : appliquée seulement si activée ET au format #rrggbb.
+        $accent    = strtolower(trim((string) input_string('accent_color', '')));
+        $useAccent = input_string('accent_on', '') === '1' && preg_match('/^#[0-9a-f]{6}$/', $accent) === 1;
         Boutique::updateConfig((int) $boutique['id'], [
-            'announcement'   => $announce !== '' ? mb_substr($announce, 0, 200) : null,
-            'is_vacation'    => $isVac,
-            'vacation_until' => $isVac ? $vacUntil : null,
+            'announcement'    => $announce !== '' ? mb_substr($announce, 0, 200) : null,
+            'is_vacation'     => $isVac,
+            'vacation_until'  => $isVac ? $vacUntil : null,
+            'open_hours'      => $hours !== '' ? mb_substr($hours, 0, 120) : null,
+            'min_order_cents' => $minCents !== null && $minCents > 0 ? $minCents : null,
+            'accent_color'    => $useAccent ? $accent : null,
         ]);
         AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
         clear_old();
@@ -631,6 +641,17 @@ final class BoutiqueController
         $cur = (string) $boutique['currency'];
         // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.
         $lines = $this->validatedCart($boutique);
+
+        // Commande minimum : on bloque tant que le sous-total n'atteint pas le seuil.
+        $minOrder = (int) ($boutique['min_order_cents'] ?? 0);
+        if ($minOrder > 0 && $lines !== []) {
+            $sub = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
+            if ($sub < $minOrder) {
+                keep_old($_POST);
+                flash('error', t('shop.min_order_blocked', ['min' => format_price($minOrder, $cur)]));
+                redirect('/boutique/' . $boutique['slug'] . '/caisse');
+            }
+        }
 
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));

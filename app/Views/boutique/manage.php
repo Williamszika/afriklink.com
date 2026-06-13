@@ -178,6 +178,7 @@ $publicPath = '/boutique/' . $boutique['slug'];
                             <div class="product-row-body">
                                 <p class="product-row-title"><?= e((string) $p['name']) ?>
                                     <span class="badge <?= $active2 ? 'badge-ok' : 'badge-neutral' ?>"><?= e(t($active2 ? 'product.status.active' : 'product.status.hidden')) ?></span>
+                                    <?php if (!empty($p['pinned'])): ?><span class="badge badge-pin">📌 <?= e(t('product.pinned')) ?></span><?php endif; ?>
                                 </p>
                                 <p class="product-row-meta">
                                     <strong><?= e(format_price((int) $p['price_cents'], $cur)) ?></strong>
@@ -203,6 +204,11 @@ $publicPath = '/boutique/' . $boutique['slug'];
                                         <?= csrf_field() ?>
                                         <?php if ($active2): ?>
                                             <button class="btn btn-ghost btn-sm" name="action" value="hide"><?= e(t('product.hide')) ?></button>
+                                            <?php if (!empty($p['pinned'])): ?>
+                                                <button class="btn btn-ghost btn-sm" name="action" value="unpin">📌 <?= e(t('product.unpin')) ?></button>
+                                            <?php else: ?>
+                                                <button class="btn btn-ghost btn-sm" name="action" value="pin">📌 <?= e(t('product.pin')) ?></button>
+                                            <?php endif; ?>
                                         <?php else: ?>
                                             <button class="btn btn-ghost btn-sm" name="action" value="activate"><?= e(t('product.show')) ?></button>
                                         <?php endif; ?>
