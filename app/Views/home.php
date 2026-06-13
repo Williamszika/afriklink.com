@@ -26,28 +26,6 @@ $catIcons = [
 $categories = config('listings.categories', []);
 $loggedIn   = current_user() !== null;
 ?>
-<section class="hero hero--compact">
-    <div class="hero-logo"><?= render_partial('partials/logo', ['uid' => 'hero']) ?></div>
-    <p class="hero-wordmark">Afrik<span>link</span></p>
-    <h1><?= e(t('home.hero_title')) ?></h1>
-    <p class="lead"><?= e(t('home.hero_subtitle')) ?></p>
-
-    <form class="home-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
-        <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
-        <button type="submit" class="btn btn-primary">🔎 <?= e(t('explore.search_btn')) ?></button>
-    </form>
-
-    <div class="hero-actions">
-        <?php if ($loggedIn): ?>
-            <a class="btn btn-primary btn-lg" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
-            <a class="btn btn-ghost btn-lg" href="<?= e(url('/vendre')) ?>"><?= e(t('dash.action.sell_title')) ?></a>
-        <?php else: ?>
-            <a class="btn btn-primary btn-lg" href="<?= e(url('/register')) ?>"><?= e(t('home.cta_register')) ?></a>
-            <a class="btn btn-ghost btn-lg" href="<?= e(url('/login')) ?>"><?= e(t('home.cta_login')) ?></a>
-        <?php endif; ?>
-    </div>
-</section>
-
 <?php /* On tombe directement sur le contenu réel : produits en vedette, vitrines, restaurants, annonces. */ ?>
 <?php if (!empty($sponsored)): ?>
 <section class="reco-rails">

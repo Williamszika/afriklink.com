@@ -79,6 +79,10 @@ $canOrder = $inStock && ($published || $is_owner);
                         <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart')]) ?>
                     </div>
                 <?php endif; ?>
+                <div class="product-wish-line">
+                    <?= render_partial('partials/wish_heart', ['pid' => (string) $product['public_id']]) ?>
+                    <span class="muted"><?= e(t('wish.add')) ?></span>
+                </div>
                 <?php if ($waPhone !== '' && $boutique['status'] === 'published'): ?>
                     <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank"
                        href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('product.order_whatsapp')) ?></a>

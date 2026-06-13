@@ -90,6 +90,18 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
         </nav>
 
         <div class="nav-actions">
+            <?php
+            $wishCount = \App\Services\Wishlist::count();
+            $cartCount = 0;
+            foreach (($_SESSION['caisse'] ?? []) as $cItems) {
+                foreach ((array) $cItems as $cIt) { $cartCount += (int) ($cIt['qty'] ?? 0); }
+            }
+            $cartShop = (string) ($_SESSION['cart_shop'] ?? '');
+            ?>
+            <a class="btn btn-ghost nav-icon" href="<?= e(url('/favoris')) ?>" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>">❤️<span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
+            <?php if ($cartCount > 0 && $cartShop !== ''): ?>
+                <a class="btn btn-ghost nav-icon" href="<?= e(url('/boutique/' . $cartShop . '/caisse')) ?>" title="<?= e(t('bcart.view_cart')) ?>" aria-label="<?= e(t('bcart.view_cart')) ?>">🛒<span class="nav-badge"><?= (int) $cartCount ?></span></a>
+            <?php endif; ?>
             <?php if ($user !== null): ?>
                 <?php if (is_staff($user)): ?>
                     <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>">🛡️ <?= e(t('nav.moderation')) ?></a>

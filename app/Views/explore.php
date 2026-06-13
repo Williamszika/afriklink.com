@@ -53,18 +53,21 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
     <?php else: ?>
         <div class="product-grid explore-results">
             <?php foreach ($products as $p): $m = $mains[(int) $p['id']] ?? null; $r = $ratings[(int) $p['id']] ?? null; ?>
-                <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
-                    <span class="product-card-img">
-                        <?php if ($m !== null): ?><img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
-                        <?php if (Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
-                    </span>
-                    <span class="product-card-name"><?= e((string) $p['name']) ?></span>
-                    <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
-                    <span class="muted explore-card-shop"><?= e(t('explore.by', ['shop' => (string) $p['boutique_name']])) ?></span>
-                    <?php if (!empty($r['count'])): ?>
-                        <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $r['avg'], 'count' => $r['count'], 'small' => true]) ?></span>
-                    <?php endif; ?>
-                </a>
+                <div class="product-card-wrap">
+                    <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
+                        <span class="product-card-img">
+                            <?php if ($m !== null): ?><img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                            <?php if (Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+                        </span>
+                        <span class="product-card-name"><?= e((string) $p['name']) ?></span>
+                        <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
+                        <span class="muted explore-card-shop"><?= e(t('explore.by', ['shop' => (string) $p['boutique_name']])) ?></span>
+                        <?php if (!empty($r['count'])): ?>
+                            <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $r['avg'], 'count' => $r['count'], 'small' => true]) ?></span>
+                        <?php endif; ?>
+                    </a>
+                    <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
+                </div>
             <?php endforeach; ?>
         </div>
 

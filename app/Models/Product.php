@@ -313,6 +313,37 @@ final class Product
         }
     }
 
+    /** Produits en ligne par identifiants publics, dans l'ordre fourni. @return list<array> */
+    public static function onlineByPublicIds(array $publicIds): array
+    {
+        $publicIds = array_values(array_filter($publicIds));
+        if ($publicIds === []) {
+            return [];
+        }
+        try {
+            $in   = implode(',', array_fill(0, count($publicIds), '?'));
+            $stmt = db()->prepare(
+                "SELECT p.*, b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency
+                   FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE p.status = 'active' AND b.status = 'published' AND p.public_id IN ($in)"
+            );
+            $stmt->execute($publicIds);
+            $byPid = [];
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $byPid[(string) $r['public_id']] = $r;
+            }
+            $out = [];
+            foreach ($publicIds as $pid) {
+                if (isset($byPid[$pid])) {
+                    $out[] = $byPid[$pid];
+                }
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public static function setStatus(int $id, string $status): void
     {
         db()->prepare('UPDATE products SET status = :s WHERE id = :id')->execute(['s' => $status, 'id' => $id]);

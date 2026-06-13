@@ -13,14 +13,17 @@ if (empty($products)) {
     <h2 class="panel-title"><?= e($icon) ?> <?= e($title) ?></h2>
     <div class="product-grid">
         <?php foreach ($products as $p): $m = $mains[(int) $p['id']] ?? null; ?>
-            <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
-                <span class="product-card-img">
-                    <?php if ($m !== null): ?><img src="<?= e(\App\Services\CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
-                    <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
-                </span>
-                <span class="product-card-name"><?= e((string) $p['name']) ?></span>
-                <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
-            </a>
+            <div class="product-card-wrap">
+                <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
+                    <span class="product-card-img">
+                        <?php if ($m !== null): ?><img src="<?= e(\App\Services\CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                        <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+                    </span>
+                    <span class="product-card-name"><?= e((string) $p['name']) ?></span>
+                    <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
+                </a>
+                <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
+            </div>
         <?php endforeach; ?>
     </div>
 </div>

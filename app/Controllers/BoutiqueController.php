@@ -518,6 +518,7 @@ final class BoutiqueController
             static fn (array $l): array => ['id' => $l['public_id'], 'qty' => $l['qty']],
             $lines
         );
+        $_SESSION['cart_shop'] = (string) $boutique['slug']; // pour l'icône panier de l'en-tête
         redirect('/boutique/' . $boutique['slug'] . '/caisse');
     }
 
