@@ -1,11 +1,16 @@
 <?php
 /** @var array $resto  @var list<array> $categories  @var array<int,list<array>> $by_cat
  *  @var bool $is_owner  @var array $seller */
+use App\Services\CloudinaryService;
+
 $cur = (string) $resto['currency'];
 $cc = strtoupper((string) ($resto['country_code'] ?? ''));
 $services = array_filter(explode(',', (string) ($resto['services'] ?? '')));
 $wa = preg_replace('/\D+/', '', (string) ($resto['contact_whatsapp'] ?? '') ?: (string) ($seller['phone'] ?? ''));
 $shopUrl = url('/restaurant/' . $resto['slug']);
+$bannerImgs = array_values(array_filter([$resto['banner_public_id'] ?? null]));
+$hoursLabel = resto_hours_label($resto['open_days'] ?? null, $resto['open_time'] ?? null, $resto['close_time'] ?? null, $resto['hours'] ?? null);
+$catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty($by_cat[(int) $c['id']])));
 ?>
 <section class="shop-page">
     <?php if ($is_owner && ($resto['status'] ?? '') !== 'published'): ?>
@@ -13,9 +18,13 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
     <?php endif; ?>
 
     <div class="shop-hero">
-        <div class="resto-hero-band">🍽️</div>
+        <?= render_partial('partials/shop_banner', ['images' => $bannerImgs, 'w' => 1100, 'h' => 280]) ?>
         <div class="shop-hero-id">
-            <div class="shop-logo shop-logo--empty" aria-hidden="true">🍽️</div>
+            <?php if (!empty($resto['logo_public_id'])): ?>
+                <img class="shop-logo" src="<?= e(CloudinaryService::imageUrl((string) $resto['logo_public_id'], 160, 160)) ?>" alt="" width="80" height="80">
+            <?php else: ?>
+                <div class="shop-logo shop-logo--empty" aria-hidden="true">🍽️</div>
+            <?php endif; ?>
             <div>
                 <h1><?= e((string) $resto['name']) ?></h1>
                 <?php if (!empty($resto['tagline'])): ?><p class="lead"><?= e((string) $resto['tagline']) ?></p><?php endif; ?>
@@ -25,6 +34,12 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                     <?php endforeach; ?>
                     <?php if (!empty($resto['city']) || $cc !== ''): ?> 🌍 <?= e(trim(($resto['city'] ?? '') . ' ' . ($cc !== '' ? flag_emoji($cc) : ''))) ?><?php endif; ?>
                 </p>
+                <div class="resto-info-strip">
+                    <?php if (!empty($resto['prep_minutes'])): ?><span>⏱️ ~<?= (int) $resto['prep_minutes'] ?> min</span><?php endif; ?>
+                    <?php if (!empty($resto['delivery_fee_cents'])): ?><span>🛵 <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></span><?php endif; ?>
+                    <?php if (!empty($resto['delivery_min_cents'])): ?><span>🧾 <?= e(t('resto.f.delivery_min')) ?> <?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></span><?php endif; ?>
+                    <?php if ($hoursLabel !== ''): ?><span>🕒 <?= e($hoursLabel) ?></span><?php endif; ?>
+                </div>
                 <?= render_partial('partials/share_row', ['share_url' => $shopUrl, 'share_text' => t('resto.share_text', ['name' => (string) $resto['name']])]) ?>
             </div>
         </div>
@@ -40,12 +55,19 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
              data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>"
              data-cur-sym="<?= e(['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur) ?>">
             <h2 class="panel-title">📋 <?= e(t('resto.menu_title')) ?></h2>
+            <?php if (count($catsWithItems) >= 2): ?>
+                <nav class="menu-nav" aria-label="<?= e(t('resto.menu_title')) ?>">
+                    <?php foreach ($catsWithItems as $c): ?>
+                        <a class="chip-filter" href="#mcat-<?= (int) $c['id'] ?>"><?= e((string) $c['name']) ?></a>
+                    <?php endforeach; ?>
+                </nav>
+            <?php endif; ?>
             <?php if (!$hasItems): ?>
                 <div class="empty-state"><p><?= e(t('resto.menu_empty')) ?></p></div>
             <?php else: ?>
                 <?php foreach ($categories as $c): $list = $by_cat[(int) $c['id']] ?? []; ?>
                     <?php if ($list === []) { continue; } ?>
-                    <div class="menu-cat">
+                    <div class="menu-cat" id="mcat-<?= (int) $c['id'] ?>">
                         <h3 class="menu-cat-title"><?= e((string) $c['name']) ?></h3>
                         <?php foreach ($list as $it): ?>
                             <?php $vars = \App\Models\MenuItem::variants($it['variants'] ?? null); $iid = (string) $it['public_id']; ?>
@@ -69,6 +91,9 @@ $shopUrl = url('/restaurant/' . $resto['slug']);
                                     <?php endif; ?>
                                 </div>
                                 <div class="menu-item-side">
+                                    <?php if (!empty($it['photo_public_id'])): ?>
+                                        <span class="menu-item-thumb"><img src="<?= e(CloudinaryService::imageUrl((string) $it['photo_public_id'], 200, 200)) ?>" alt="" loading="lazy"></span>
+                                    <?php endif; ?>
                                     <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
                                     <?php if ($vars === []): ?>
                                         <?= render_partial('restaurant/_stepper', ['id' => $iid, 'size' => '', 'name' => (string) $it['name'], 'price' => (int) $it['price_cents']]) ?>
