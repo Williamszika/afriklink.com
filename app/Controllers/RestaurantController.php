@@ -233,6 +233,7 @@ final class RestaurantController
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));
         $email = trim((string) input_string('client_email', ''));
+        $address = trim((string) input_string('client_address', ''));
         $service = whitelist((string) input_string('service', ''), RestaurantOrder::SERVICES, 'takeaway');
         // Condition + moyen de paiement choisis (parmi ceux acceptés par le restaurant).
         $terms = array_values(array_filter(explode(',', (string) ($resto['payment_terms'] ?? ''))));
@@ -245,6 +246,7 @@ final class RestaurantController
         if (mb_strlen($name) < 2 || mb_strlen($name) > 80) { $errors['client_name'] = t('order.err_client'); }
         if ($phone !== '' && !preg_match('/^\+?[0-9 .\-]{6,22}$/', $phone)) { $errors['client_phone'] = t('order.err_phone'); }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors['client_email'] = t('order.err_email'); }
+        if ($phone === '' && $email === '') { $errors['contact'] = t('order.err_contact'); }
 
         if ($errors !== []) {
             keep_old($_POST);
@@ -258,6 +260,7 @@ final class RestaurantController
             'client_name' => $name,
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
+            'client_address' => $address !== '' ? mb_substr($address, 0, 220) : null,
             'service' => $service,
             'note' => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
             'currency' => $cur,

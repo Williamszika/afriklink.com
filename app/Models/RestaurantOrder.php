@@ -36,6 +36,7 @@ final class RestaurantOrder
                 subtotal_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
                 currency      CHAR(3) NOT NULL DEFAULT \'XOF\',
                 client_email   VARCHAR(120) NULL,
+                client_address VARCHAR(220) NULL,
                 payment_status VARCHAR(12) NOT NULL DEFAULT \'unpaid\',
                 payment_ref    CHAR(36) NULL,
                 payment_term   VARCHAR(16) NULL,
@@ -71,6 +72,7 @@ final class RestaurantOrder
         $done = true;
         foreach ([
             'client_email'   => "ADD COLUMN client_email VARCHAR(120) NULL AFTER currency",
+            'client_address' => "ADD COLUMN client_address VARCHAR(220) NULL AFTER client_email",
             'payment_status' => "ADD COLUMN payment_status VARCHAR(12) NOT NULL DEFAULT 'unpaid' AFTER currency",
             'payment_ref'    => "ADD COLUMN payment_ref CHAR(36) NULL AFTER payment_status",
             'payment_term'   => "ADD COLUMN payment_term VARCHAR(16) NULL AFTER payment_ref",
@@ -134,14 +136,14 @@ final class RestaurantOrder
         try {
             $stmt = $pdo->prepare(
                 'INSERT INTO restaurant_orders
-                    (public_id, restaurant_id, seller_id, client_name, client_phone, client_email, service, note,
+                    (public_id, restaurant_id, seller_id, client_name, client_phone, client_email, client_address, service, note,
                      subtotal_cents, currency, payment_term, payment_method, status)
-                 VALUES (:pid, :rid, :sid, :cname, :cphone, :cemail, :service, :note, :sub, :cur, :term, :method, \'new\')'
+                 VALUES (:pid, :rid, :sid, :cname, :cphone, :cemail, :caddr, :service, :note, :sub, :cur, :term, :method, \'new\')'
             );
             $stmt->execute([
                 'pid' => $publicId, 'rid' => $header['restaurant_id'], 'sid' => $header['seller_id'],
                 'cname' => $header['client_name'], 'cphone' => $header['client_phone'],
-                'cemail' => $header['client_email'] ?? null,
+                'cemail' => $header['client_email'] ?? null, 'caddr' => $header['client_address'] ?? null,
                 'service' => $header['service'], 'note' => $header['note'],
                 'sub' => $subtotal, 'cur' => $header['currency'],
                 'term' => $header['payment_term'] ?? null, 'method' => $header['payment_method'] ?? null,

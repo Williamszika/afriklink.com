@@ -50,15 +50,20 @@ $cur = (string) $boutique['currency'];
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+            <h3 class="caisse-section">📇 <?= e(t('order.f.your_details')) ?></h3>
             <label for="cl-name"><?= e(t('order.f.client')) ?></label>
             <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
             <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
+            <p class="hint"><?= e(t('order.f.contact_hint')) ?></p>
+            <?php if (has_error('contact')): ?><p class="field-error"><?= e(error('contact')) ?></p><?php endif; ?>
             <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
             <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
             <?php if (has_error('client_phone')): ?><p class="field-error"><?= e(error('client_phone')) ?></p><?php endif; ?>
             <label for="cl-email"><?= e(t('order.f.email')) ?></label>
             <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
             <?php if (has_error('client_email')): ?><p class="field-error"><?= e(error('client_email')) ?></p><?php endif; ?>
+            <label for="cl-addr"><?= e(t('order.f.address')) ?></label>
+            <input type="text" id="cl-addr" name="client_address" maxlength="220" value="<?= old('client_address') ?>" placeholder="<?= e(t('order.f.address_ph')) ?>">
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
             <button type="submit" class="btn btn-primary btn-block btn-lg">✅ <?= e(t('caisse.validate')) ?></button>

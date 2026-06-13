@@ -149,6 +149,9 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                     · <a href="https://wa.me/<?= e($phone) ?>" target="_blank" rel="noopener"><img class="social-logo-sm" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="18" height="18"> <?= e((string) $o['client_phone']) ?></a>
                                 <?php endif; ?>
                             </p>
+                            <?php if (!empty($o['client_address'])): ?>
+                                <p class="order-note">📍 <?= e((string) $o['client_address']) ?></p>
+                            <?php endif; ?>
                             <?php if (!empty($o['note'])): ?>
                                 <p class="order-note">📝 <?= e((string) $o['note']) ?></p>
                             <?php endif; ?>

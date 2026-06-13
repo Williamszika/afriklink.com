@@ -349,6 +349,7 @@ final class BoutiqueController
         $name = trim((string) input_string('client_name', ''));
         $phone = trim((string) input_string('client_phone', ''));
         $email = trim((string) input_string('client_email', ''));
+        $address = trim((string) input_string('client_address', ''));
         $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
         $fulfillment = $methods !== []
             ? whitelist((string) input_string('fulfillment', ''), $methods, $methods[0])
@@ -377,6 +378,10 @@ final class BoutiqueController
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['client_email'] = t('order.err_email');
         }
+        // Le client doit laisser au moins un moyen d'être recontacté.
+        if ($phone === '' && $email === '') {
+            $errors['contact'] = t('order.err_contact');
+        }
         if ($errors !== []) {
             keep_old($_POST);
             set_errors($errors);
@@ -389,6 +394,7 @@ final class BoutiqueController
             'client_name'  => $name,
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
+            'client_address' => $address !== '' ? mb_substr($address, 0, 220) : null,
             'note'           => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
             'fulfillment'    => $fulfillment,
             'payment_term'   => $paymentTerm,

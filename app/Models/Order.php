@@ -38,6 +38,7 @@ final class Order
                 client_name      VARCHAR(80) NOT NULL,
                 client_phone     VARCHAR(24) NULL,
                 client_email     VARCHAR(120) NULL,
+                client_address   VARCHAR(220) NULL,
                 note             VARCHAR(500) NULL,
                 fulfillment      VARCHAR(16) NULL,
                 source           VARCHAR(12) NOT NULL DEFAULT \'manual\',
@@ -87,6 +88,7 @@ final class Order
             'payment_term'   => "ADD COLUMN payment_term VARCHAR(16) NULL AFTER payment_ref",
             'payment_method' => "ADD COLUMN payment_method VARCHAR(16) NULL AFTER payment_term",
             'client_email'   => "ADD COLUMN client_email VARCHAR(120) NULL AFTER client_phone",
+            'client_address' => "ADD COLUMN client_address VARCHAR(220) NULL AFTER client_email",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -161,9 +163,9 @@ final class Order
         try {
             $stmt = $pdo->prepare(
                 'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
-                    unit_price_cents, qty, total_cents, currency, client_name, client_phone, client_email,
+                    unit_price_cents, qty, total_cents, currency, client_name, client_phone, client_email, client_address,
                     note, fulfillment, payment_term, payment_method, source, status)
-                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :cemail,
+                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, :cphone, :cemail, :caddr,
                     :note, :ful, :term, :method, \'online\', \'new\')'
             );
             $stmt->execute([
@@ -171,6 +173,7 @@ final class Order
                 'pname' => mb_substr($summary, 0, 150), 'qty' => $count, 'total' => $subtotal,
                 'cur' => $header['currency'], 'cname' => $header['client_name'],
                 'cphone' => $header['client_phone'], 'cemail' => $header['client_email'] ?? null,
+                'caddr' => $header['client_address'] ?? null,
                 'note' => $header['note'], 'ful' => $header['fulfillment'], 'term' => $header['payment_term'] ?? null,
                 'method' => $header['payment_method'] ?? null,
             ]);

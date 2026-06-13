@@ -440,6 +440,7 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .caisse-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 18px; align-items: start; margin-top: 12px; }
 .caisse-total { font-size: 1.15rem; margin-top: 10px; border-top: 2px solid var(--border); padding-top: 10px; }
 .caisse-form label { display: block; margin-top: 10px; font-weight: 600; }
+.caisse-section { margin: 18px 0 2px; font-size: 1.02rem; border-top: 1px solid var(--border); padding-top: 12px; }
 @media (max-width: 760px) { .caisse-grid { grid-template-columns: 1fr; } }
 .menu-cat-head h3, .menu-cat-title { margin: 0; font-size: 1.05rem; }
 .menu-cat-title { border-bottom: 2px solid var(--border); padding-bottom: 6px; margin: 0 0 8px; }
