@@ -105,6 +105,12 @@ $canOrder = !empty($products) && ($published || $is_owner);
                     <p class="listing-description"><?= nl2br(e((string) $boutique['description'])) ?></p>
                 </div>
             <?php endif; ?>
+            <?php if (!empty($boutique['return_policy'])): ?>
+                <div class="panel">
+                    <h2 class="panel-title">↩️ <?= e(t('shop.policy_title')) ?></h2>
+                    <p class="listing-description"><?= nl2br(e((string) $boutique['return_policy'])) ?></p>
+                </div>
+            <?php endif; ?>
             <div class="panel">
                 <h2 class="panel-title"><?= e(t('shop.infos')) ?></h2>
                 <dl class="meta">

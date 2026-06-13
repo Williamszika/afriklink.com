@@ -183,5 +183,16 @@ $publicPath = '/boutique/' . $boutique['slug'];
             <?php endif; ?>
         </div>
 
+        <!-- Politique de retour & remboursement -->
+        <div class="panel">
+            <h2 class="panel-title">↩️ <?= e(t('shop.policy_title')) ?></h2>
+            <p class="muted"><?= e(t('shop.policy_hint')) ?></p>
+            <form method="post" action="<?= e(url('/boutique/politique')) ?>">
+                <?= csrf_field() ?>
+                <textarea name="return_policy" rows="4" maxlength="2000" placeholder="<?= e(t('shop.policy_ph')) ?>"><?= e((string) ($boutique['return_policy'] ?? '')) ?></textarea>
+                <button type="submit" class="btn btn-primary"><?= e(t('shop.policy_save')) ?></button>
+            </form>
+        </div>
+
     </div>
 </div>

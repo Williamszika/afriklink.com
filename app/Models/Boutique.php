@@ -155,6 +155,15 @@ final class Boutique
             }
         }
         try {
+            db()->query('SELECT return_policy FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques ADD COLUMN return_policy TEXT NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        try {
             db()->query('SELECT contact_primary FROM boutiques LIMIT 1');
         } catch (\Throwable) {
             try {
@@ -183,6 +192,14 @@ final class Boutique
         } catch (\Throwable) {
             // information_schema indisponible : on tentera plus tard
         }
+    }
+
+    /** Met à jour la politique de retour (panneau « gérer », sans toucher au reste). */
+    public static function updatePolicy(int $id, ?string $returnPolicy): void
+    {
+        self::ensureTable();
+        db()->prepare('UPDATE boutiques SET return_policy = :rp WHERE id = :id')
+            ->execute(['rp' => $returnPolicy, 'id' => $id]);
     }
 
     /**

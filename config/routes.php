@@ -36,6 +36,8 @@ return [
     // ---- Public -------------------------------------------------------
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
     ['GET',  '/explorer',          [HomeController::class, 'explore'],        []],
+    ['GET',  '/sitemap.xml',       [HomeController::class, 'sitemap'],        ['throttle:sitemap,60,3600']],
+    ['GET',  '/robots.txt',        [HomeController::class, 'robots'],         []],
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
 
@@ -147,6 +149,7 @@ return [
     ['POST', '/boutique/{slug}/p/{pid}/avis',         [BoutiqueController::class, 'storeReview'],      ['csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/{slug}/p/{pid}/alerte-stock', [BoutiqueController::class, 'storeStockAlert'],  ['csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/avis/{rid}/masquer',  [BoutiqueController::class, 'hideReview'],  ['auth', 'csrf']],
+    ['POST', '/boutique/politique',           [BoutiqueController::class, 'updatePolicy'], ['auth', 'csrf']],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
     ['GET',  '/boutique/{slug}',         [BoutiqueController::class, 'show'],    []],

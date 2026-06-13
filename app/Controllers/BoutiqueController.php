@@ -401,6 +401,20 @@ final class BoutiqueController
         redirect($back);
     }
 
+    /** Le vendeur enregistre sa politique de retour (panneau « gérer »). */
+    public function updatePolicy(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $policy = trim((string) input_string('return_policy', ''));
+        Boutique::updatePolicy((int) $boutique['id'], $policy !== '' ? mb_substr($policy, 0, 2000) : null);
+        flash('success', t('shop.policy_saved'));
+        redirect('/boutique/gerer');
+    }
+
     /* ---- Caisse & commande en ligne (panier public) ---------------- */
 
     /**

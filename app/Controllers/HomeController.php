@@ -150,4 +150,58 @@ final class HomeController
 
         back('/');
     }
+
+    /** Plan du site (sitemap.xml) : vitrines, produits, restaurants et annonces publiés. */
+    public function sitemap(Request $request): void
+    {
+        $urls = [url('/'), url('/explorer')];
+        try {
+            foreach (db()->query("SELECT id, slug FROM boutiques WHERE status = 'published' ORDER BY id DESC LIMIT 2000")->fetchAll() ?: [] as $s) {
+                $urls[] = url('/boutique/' . $s['slug']);
+                $stmt = db()->prepare("SELECT public_id FROM products WHERE boutique_id = :b AND status = 'active' LIMIT 500");
+                $stmt->execute(['b' => (int) $s['id']]);
+                foreach ($stmt->fetchAll() ?: [] as $p) {
+                    $urls[] = url('/boutique/' . $s['slug'] . '/p/' . $p['public_id']);
+                }
+            }
+        } catch (\Throwable) {
+        }
+        try {
+            foreach (db()->query("SELECT slug FROM restaurants WHERE status = 'published' LIMIT 1000")->fetchAll() ?: [] as $r) {
+                $urls[] = url('/restaurant/' . $r['slug']);
+            }
+        } catch (\Throwable) {
+        }
+        try {
+            foreach (db()->query("SELECT public_id FROM listings WHERE status = 'active' ORDER BY id DESC LIMIT 5000")->fetchAll() ?: [] as $l) {
+                $urls[] = url('/annonce/' . $l['public_id']);
+            }
+        } catch (\Throwable) {
+        }
+
+        header('Content-Type: application/xml; charset=utf-8');
+        header('X-Content-Type-Options: nosniff');
+        $out = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        foreach (array_values(array_unique($urls)) as $u) {
+            $out .= '  <url><loc>' . htmlspecialchars((string) $u, ENT_QUOTES | ENT_XML1, 'UTF-8') . '</loc></url>' . "\n";
+        }
+        $out .= '</urlset>';
+        echo $out;
+        exit;
+    }
+
+    /** robots.txt : autorise l'indexation et pointe vers le sitemap. */
+    public function robots(Request $request): void
+    {
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "User-agent: *\n"
+            . "Allow: /\n"
+            . "Disallow: /vendeur/\n"
+            . "Disallow: /api/\n"
+            . "Disallow: /boutique/gerer\n"
+            . "Disallow: /restaurant/gerer\n"
+            . "Sitemap: " . url('/sitemap.xml') . "\n";
+        exit;
+    }
 }
