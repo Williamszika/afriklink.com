@@ -222,6 +222,20 @@ final class BoutiqueController
         }
         $this->countView($boutique, $isOwner);
         $products = \App\Models\Product::forBoutique((int) $boutique['id'], true);
+        $ids      = array_map(static fn (array $p): int => (int) $p['id'], $products);
+        $ratings  = Review::summaryForProducts($ids);
+        // Tri choisi via la barre d'outils de la vitrine (défaut = ordre recommandé/sponsorisé).
+        $sort = whitelist((string) input_string('tri', ''), ['recent', 'price_asc', 'price_desc', 'rating'], '');
+        if ($sort !== '' && $products !== []) {
+            usort($products, static function (array $a, array $b) use ($sort, $ratings): int {
+                return match ($sort) {
+                    'price_asc'  => (int) $a['price_cents'] <=> (int) $b['price_cents'],
+                    'price_desc' => (int) $b['price_cents'] <=> (int) $a['price_cents'],
+                    'rating'     => ($ratings[(int) $b['id']]['avg'] ?? 0) <=> ($ratings[(int) $a['id']]['avg'] ?? 0),
+                    default      => (int) $b['id'] <=> (int) $a['id'],
+                };
+            });
+        }
         $banners  = Boutique::banners((int) $boutique['id']);
         $ogImage  = $banners[0] ?? ($boutique['logo_public_id'] ?? null);
         view('boutique/show', [
@@ -231,8 +245,9 @@ final class BoutiqueController
             'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
             'is_owner' => $isOwner,
             'products' => $products,
-            'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
-            'ratings'  => Review::summaryForProducts(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'sort'     => $sort,
+            'mains'    => \App\Models\Product::mainPhotos($ids),
+            'ratings'  => $ratings,
             'shop_rating' => Review::summaryForBoutique((int) $boutique['id']),
             'page_title' => (string) $boutique['name'],
             'meta' => [

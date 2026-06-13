@@ -974,6 +974,8 @@ return [
     'explore.sort.recent' => 'Plus récents',
     'explore.sort.price_asc' => 'Prix croissant',
     'explore.sort.price_desc' => 'Prix décroissant',
+    'explore.sort.rating' => 'Mieux notés',
+    'shop.count' => ':n produit(s)',
     'explore.search_btn' => 'Rechercher',
     'explore.empty' => 'Aucun produit ne correspond à votre recherche.',
     'explore.reset' => 'Réinitialiser la recherche',

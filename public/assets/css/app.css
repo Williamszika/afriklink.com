@@ -1061,3 +1061,9 @@ h2 { letter-spacing:-.01em; }
 .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
 .section-head h2 { margin:0; }
 .section-head .see-all { font-size:.9rem; font-weight:700; white-space:nowrap; }
+
+/* Vitrine boutique — barre d'outils produits (tri + nombre) */
+.shop-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+.shop-toolbar .panel-title { margin:0; }
+.shop-count { font-size:.85rem; font-weight:500; }
+.shop-sort { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:.85rem; }

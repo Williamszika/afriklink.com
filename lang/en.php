@@ -974,6 +974,8 @@ return [
     'explore.sort.recent' => 'Newest',
     'explore.sort.price_asc' => 'Price: low to high',
     'explore.sort.price_desc' => 'Price: high to low',
+    'explore.sort.rating' => 'Top rated',
+    'shop.count' => ':n product(s)',
     'explore.search_btn' => 'Search',
     'explore.empty' => 'No product matches your search.',
     'explore.reset' => 'Reset search',

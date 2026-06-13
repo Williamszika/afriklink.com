@@ -62,7 +62,19 @@ $canOrder = !empty($products) && ($published || $is_owner);
 
     <div class="shop-body">
         <div class="panel" data-cart-root data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
-            <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?></h2>
+            <div class="shop-toolbar">
+                <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?>
+                    <span class="shop-count muted"><?= e(t('shop.count', ['n' => count($products)])) ?></span>
+                </h2>
+                <?php if (!empty($products)): $sort = $sort ?? ''; ?>
+                    <div class="shop-sort">
+                        <span class="muted"><?= e(t('explore.sort_label')) ?> :</span>
+                        <?php foreach (['recent' => 'explore.sort.recent', 'price_asc' => 'explore.sort.price_asc', 'price_desc' => 'explore.sort.price_desc', 'rating' => 'explore.sort.rating'] as $sk => $lk): ?>
+                            <a class="chip-filter<?= $sort === $sk ? ' is-active' : '' ?>" href="<?= e(url('/boutique/' . $boutique['slug'] . '?tri=' . $sk)) ?>"><?= e(t($lk)) ?></a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
             <?php if (empty($products)): ?>
                 <div class="empty-state"><p><?= e(t('shop.no_products_public')) ?></p></div>
             <?php else: ?>
