@@ -178,6 +178,14 @@ $canOrder = $inStock && ($published || $is_owner);
         </div>
     <?php endif; ?>
 
+    <!-- Recommandations : souvent achetés ensemble (co-achats) + vu récemment (historique). -->
+    <?php if (!empty($fbt)): ?>
+        <?= render_partial('partials/product_rail', ['icon' => '🧩', 'title' => t('reco.fbt'), 'products' => $fbt, 'mains' => $reco_mains ?? []]) ?>
+    <?php endif; ?>
+    <?php if (!empty($recently_viewed)): ?>
+        <?= render_partial('partials/product_rail', ['icon' => '🕒', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains ?? []]) ?>
+    <?php endif; ?>
+
     <?php if ($canOrder): ?>
         <!-- Le panier (JS) est posté ici, revalidé serveur, puis on passe à la caisse. -->
         <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/caisse')) ?>" data-caisse-form hidden>

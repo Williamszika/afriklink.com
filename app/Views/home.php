@@ -1,4 +1,7 @@
 <?php
+$recently_viewed = $recently_viewed ?? [];
+$for_you         = $for_you ?? [];
+$reco_mains      = $reco_mains ?? [];
 $verticals = [
     ['key' => 'shop',       'icon' => '🛍️'],
     ['key' => 'restaurant', 'icon' => '🍽️'],
@@ -35,6 +38,17 @@ $verticals = [
         <?php endforeach; ?>
     </div>
 </section>
+
+<?php if (!empty($recently_viewed) || !empty($for_you)): ?>
+<section class="reco-rails">
+    <?php if (!empty($recently_viewed)): ?>
+        <?= render_partial('partials/product_rail', ['icon' => '🕒', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains]) ?>
+    <?php endif; ?>
+    <?php if (!empty($for_you)): ?>
+        <?= render_partial('partials/product_rail', ['icon' => '✨', 'title' => t('reco.for_you'), 'products' => $for_you, 'mains' => $reco_mains]) ?>
+    <?php endif; ?>
+</section>
+<?php endif; ?>
 
 <section class="trust">
     <p><?= e(t('home.trust')) ?></p>

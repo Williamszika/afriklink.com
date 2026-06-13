@@ -9,7 +9,17 @@ final class HomeController
 {
     public function index(Request $request): void
     {
-        view('home');
+        // Recommandations personnalisées (algorithmiques, par cookie de navigation).
+        $recent = \App\Services\Recommender::recentlyViewed(6);
+        $forYou = \App\Services\Recommender::forYou(
+            8,
+            array_map(static fn (array $p): string => (string) $p['public_id'], $recent)
+        );
+        view('home', [
+            'recently_viewed' => $recent,
+            'for_you'         => $forYou,
+            'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($recent, $forYou)),
+        ]);
     }
 
     /** Explorer public — page d'attente élégante jusqu'à la découverte complète. */

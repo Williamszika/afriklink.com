@@ -255,6 +255,8 @@ final class BoutiqueController
             abort(404);
         }
         $this->countView($boutique, $isOwner, (int) $product['id']);
+        // Personnalisation : mémorise la consultation pour « Vu récemment » / « Recommandé pour vous ».
+        \App\Services\Recommender::recordView((string) $product['public_id']);
         $photos = \App\Models\Product::photos((int) $product['id']);
         $main   = $photos[0]['cloud_public_id'] ?? null;
         // Produits recommandés : autres produits en ligne de la même boutique.
@@ -264,6 +266,9 @@ final class BoutiqueController
         ));
         $related = array_slice($related, 0, 4);
         $rating = Review::summaryForProduct((int) $product['id']);
+        // Recommandations : co-achats réels + historique de navigation du visiteur.
+        $fbt    = \App\Services\Recommender::frequentlyBoughtTogether((int) $product['id'], 4);
+        $recent = \App\Services\Recommender::recentlyViewed(6, (string) $product['public_id']);
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
@@ -275,6 +280,9 @@ final class BoutiqueController
             'rating'   => $rating,
             'related'  => $related,
             'related_mains' => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $related)),
+            'fbt'           => $fbt,
+            'recently_viewed' => $recent,
+            'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($fbt, $recent)),
             'page_title' => (string) $product['name'],
             'meta' => [
                 'description' => $this->ogDescription(

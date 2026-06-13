@@ -1062,6 +1062,9 @@ return [
     'product.stock_n' => ':n en stock',
     'product.in_stock' => 'En stock',
     'product.related' => 'Vous aimerez aussi',
+    'reco.recent' => 'Vu récemment',
+    'reco.for_you' => 'Recommandé pour vous',
+    'reco.fbt' => 'Souvent achetés ensemble',
     'product.zoom' => 'Agrandir la photo',
     // Alerte « retour en stock »
     'stock.cta' => 'Épuisé ? Soyez prévenu(e) dès son retour (e-mail ou téléphone).',

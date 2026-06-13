@@ -156,6 +156,8 @@ a:hover { text-decoration: underline; }
 .vertical-card p { margin: 0; color: var(--muted); font-size: .95rem; }
 .vertical-icon { font-size: 1.8rem; }
 .trust { text-align: center; color: var(--muted); padding: 28px 0; max-width: 720px; margin: 0 auto; }
+.reco-rails { display: grid; gap: 18px; padding: 4px 0 12px; }
+.reco-rail .panel-title { font-size: 1.15rem; }
 
 /* Cards / panels / auth */
 .auth-card, .panel {

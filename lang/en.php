@@ -1062,6 +1062,9 @@ return [
     'product.stock_n' => ':n in stock',
     'product.in_stock' => 'In stock',
     'product.related' => 'You may also like',
+    'reco.recent' => 'Recently viewed',
+    'reco.for_you' => 'Recommended for you',
+    'reco.fbt' => 'Frequently bought together',
     'product.zoom' => 'Zoom photo',
     // Back-in-stock alert
     'stock.cta' => 'Out of stock? Get notified when it’s back (email or phone).',
