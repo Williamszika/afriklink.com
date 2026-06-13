@@ -268,6 +268,28 @@ final class Boutique
         }
     }
 
+    /**
+     * Boutiques « à la une » de l'espace publicitaire : vitrines publiées ayant
+     * au moins un produit actuellement sponsorisé (mise en avant non expirée).
+     * @return list<array>
+     */
+    public static function spotlight(int $limit = 12): array
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT DISTINCT b.id, b.user_id, b.slug, b.name, b.tagline, b.category, b.logo_public_id
+                   FROM boutiques b JOIN products p ON p.boutique_id = b.id
+                  WHERE b.status = 'published' AND p.status = 'active'
+                    AND p.promoted_until IS NOT NULL AND p.promoted_until > NOW()
+                  ORDER BY b.id DESC LIMIT " . max(1, min(24, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** Le slug est-il libre ? (hors la boutique de $exceptUserId, pour l'édition) */
     public static function slugAvailable(string $slug, ?int $exceptUserId = null): bool
     {

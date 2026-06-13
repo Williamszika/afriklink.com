@@ -36,6 +36,28 @@ final class HomeController
         ]);
     }
 
+    /**
+     * Espace publicitaire public — « Mise en avant » : regroupe les offres
+     * sponsorisées (simulation) que voient les visiteurs : boutiques à la une,
+     * produits et annonces promus.
+     */
+    public function spotlight(Request $request): void
+    {
+        $products  = \App\Models\Product::promotedMarketplace(24);
+        $annonces  = \App\Models\Listing::promotedMarketplace(24);
+        $boutiques = \App\Models\Boutique::spotlight(12);
+        view('spotlight', [
+            'page_title'  => t('spotlight.title'),
+            'meta'        => ['description' => t('spotlight.lead')],
+            'products'    => $products,
+            'product_mains' => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'annonces'    => $annonces,
+            'annonce_mains' => \App\Models\Listing::mainPhotos(array_map(static fn (array $a): int => (int) $a['id'], $annonces)),
+            'boutiques'   => $boutiques,
+            'verified_sellers' => \App\Models\ProProfile::verifiedAmong(array_map(static fn (array $b): int => (int) $b['user_id'], $boutiques)),
+        ]);
+    }
+
     /** Explorer public — recherche marketplace (mot-clé, catégorie, prix, tri). */
     public function explore(Request $request): void
     {

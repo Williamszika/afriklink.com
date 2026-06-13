@@ -56,7 +56,11 @@ $loggedIn   = current_user() !== null;
 </section>
 
 <?php if (!empty($sponsored)): ?>
-<section class="reco-rails afk-block">
+<section class="afk-spotlight afk-block">
+    <div class="afk-spotlight__bar">
+        <span class="afk-ad-tag">📣 <?= e(t('ads.label')) ?></span>
+        <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+    </div>
     <?= render_partial('partials/product_rail', ['icon' => '✨', 'title' => t('reco.sponsored'), 'products' => $sponsored, 'mains' => $reco_mains]) ?>
 </section>
 <?php endif; ?>

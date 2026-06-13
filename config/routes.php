@@ -43,6 +43,7 @@ return [
     // ---- Public -------------------------------------------------------
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
     ['GET',  '/explorer',          [HomeController::class, 'explore'],        []],
+    ['GET',  '/mise-en-avant',     [HomeController::class, 'spotlight'],      []],
     ['GET',  '/sitemap.xml',       [HomeController::class, 'sitemap'],        ['throttle:sitemap,60,3600']],
     ['GET',  '/robots.txt',        [HomeController::class, 'robots'],         []],
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
