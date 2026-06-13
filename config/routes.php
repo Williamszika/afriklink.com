@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Controllers\AffiliateController;
+use App\Controllers\LegalController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminKycController;
@@ -42,6 +43,10 @@ return [
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
     ['GET',  '/r/{code}',          [AffiliateController::class, 'go'],        ['throttle:aff,180,3600']],
+    ['GET',  '/mentions-legales',  [LegalController::class, 'notice'],        []],
+    ['GET',  '/confidentialite',   [LegalController::class, 'privacy'],       []],
+    ['GET',  '/cgv',               [LegalController::class, 'terms'],         []],
+    ['GET',  '/consentement/{choice}', [LegalController::class, 'consent'],   ['throttle:consent,60,3600']],
 
     // ---- Authentication (guests) -------------------------------------
     ['GET',  '/register',               [AuthController::class, 'showRegisterChoice'],     ['guest']],

@@ -39,6 +39,17 @@ return [
     'footer.impressum' => 'Mentions légales',
     'footer.terms'     => 'Conditions',
     'footer.privacy'   => 'Confidentialité',
+    'footer.cookies'   => 'Cookies',
+    'legal.updated' => 'Dernière mise à jour : :date',
+    'legal.disclaimer' => 'Modèle fourni à titre indicatif — à faire valider par un conseil juridique avant exploitation commerciale.',
+    'legal.notice.title' => 'Mentions légales',
+    'legal.privacy.title' => 'Politique de confidentialité',
+    'legal.terms.title' => 'Conditions générales (CGU / CGV)',
+    'cookie.aria' => 'Bandeau de consentement aux cookies',
+    'cookie.text' => 'Nous utilisons des cookies essentiels au fonctionnement du site ; avec votre accord, nous pourrons aussi mesurer l’audience pour améliorer Afriklink.',
+    'cookie.learn' => 'En savoir plus',
+    'cookie.accept' => 'Tout accepter',
+    'cookie.refuse' => 'Continuer sans accepter',
 
     // Champs
     'field.email'            => 'Adresse e-mail',

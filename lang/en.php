@@ -39,6 +39,17 @@ return [
     'footer.impressum' => 'Legal notice',
     'footer.terms'     => 'Terms',
     'footer.privacy'   => 'Privacy',
+    'footer.cookies'   => 'Cookies',
+    'legal.updated' => 'Last updated: :date',
+    'legal.disclaimer' => 'Template provided for guidance — have it reviewed by legal counsel before commercial use.',
+    'legal.notice.title' => 'Legal notice',
+    'legal.privacy.title' => 'Privacy policy',
+    'legal.terms.title' => 'Terms & conditions',
+    'cookie.aria' => 'Cookie consent banner',
+    'cookie.text' => 'We use cookies that are essential to run the site; with your consent, we may also measure traffic to improve Afriklink.',
+    'cookie.learn' => 'Learn more',
+    'cookie.accept' => 'Accept all',
+    'cookie.refuse' => 'Continue without accepting',
 
     // Fields
     'field.email'            => 'Email address',

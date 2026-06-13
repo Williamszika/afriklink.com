@@ -121,13 +121,15 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
     <div class="container footer-inner">
         <p>&copy; <?= date('Y') ?> <?= e(config('app.name', 'AfrikaLink')) ?></p>
         <nav class="footer-nav" aria-label="legal">
-            <a href="<?= e(url('/')) ?>"><?= e(t('footer.impressum')) ?></a>
-            <a href="<?= e(url('/')) ?>"><?= e(t('footer.terms')) ?></a>
-            <a href="<?= e(url('/')) ?>"><?= e(t('footer.privacy')) ?></a>
+            <a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a>
+            <a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a>
+            <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>
+            <a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a>
         </nav>
     </div>
 </footer>
 
+<?= render_partial('partials/cookie_consent') ?>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>
 </html>

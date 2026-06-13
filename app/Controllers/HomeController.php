@@ -167,7 +167,7 @@ final class HomeController
     /** Plan du site (sitemap.xml) : vitrines, produits, restaurants et annonces publiés. */
     public function sitemap(Request $request): void
     {
-        $urls = [url('/'), url('/explorer')];
+        $urls = [url('/'), url('/explorer'), url('/mentions-legales'), url('/confidentialite'), url('/cgv')];
         try {
             foreach (db()->query("SELECT id, slug FROM boutiques WHERE status = 'published' ORDER BY id DESC LIMIT 2000")->fetchAll() ?: [] as $s) {
                 $urls[] = url('/boutique/' . $s['slug']);
