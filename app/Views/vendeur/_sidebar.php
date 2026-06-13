@@ -4,15 +4,17 @@ $companyName = (string) ($profile['company_name'] ?? ($user['full_name'] ?? ''))
 $verified    = ($profile['verification_status'] ?? 'pending') === 'verified';
 
 $soon = t('dash.soon');
-// Commandes « à traiter » : pastille en direct sur l'entrée du menu.
+// Pastilles en direct : commandes « à traiter » + messages non lus.
 $ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
+$msgUnread     = \App\Models\Conversation::unreadCountFor((int) ($user['id'] ?? 0));
 $groups = [
     ['label' => null, 'items' => [
         ['key' => 'overview',  'icon' => '🏠', 'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
         ['key' => 'vitrines',  'icon' => '🏪', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
         ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),
          'chip' => $ordersPending > 0 ? (string) $ordersPending : null, 'chip_class' => 'chip-pending'],
-        ['key' => 'messages',  'icon' => '💬', 'href' => url('/vendeur/messages'),  'label' => t('seller.nav.messages'),    'chip' => $soon],
+        ['key' => 'messages',  'icon' => '💬', 'href' => url('/messages'),  'label' => t('seller.nav.messages'),
+         'chip' => $msgUnread > 0 ? (string) $msgUnread : null, 'chip_class' => 'chip-pending'],
     ]],
     ['label' => t('seller.group.develop'), 'items' => [
         ['key' => 'gains',       'icon' => '💸', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],

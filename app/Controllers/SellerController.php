@@ -58,7 +58,8 @@ final class SellerController
 
     public function messages(Request $request): void
     {
-        view('vendeur/messages', ['active' => 'messages'] + self::commonData(current_user() ?? []));
+        // La messagerie est unifiée (acheteur ↔ vendeur) sur /messages.
+        redirect('/messages');
     }
 
     public function settings(Request $request): void

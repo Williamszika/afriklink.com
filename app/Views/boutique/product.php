@@ -99,6 +99,22 @@ $canOrder = $inStock && ($published || $is_owner);
                         </div>
                     </div>
                 <?php endif; ?>
+                <?php if ($published && !$is_owner): ?>
+                    <?php if ((int) (current_user_id() ?? 0) > 0): ?>
+                        <details class="msg-ask">
+                            <summary>💬 <?= e(t('msg.ask_seller')) ?></summary>
+                            <form method="post" action="<?= e(url('/messages/demarrer')) ?>" class="msg-ask-form">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="slug" value="<?= e($boutique['slug']) ?>">
+                                <input type="hidden" name="product" value="<?= e($product['public_id']) ?>">
+                                <textarea name="body" rows="3" maxlength="2000" required placeholder="<?= e(t('msg.ask_ph')) ?>"></textarea>
+                                <button type="submit" class="btn btn-ghost btn-block"><?= e(t('msg.send_seller')) ?></button>
+                            </form>
+                        </details>
+                    <?php else: ?>
+                        <a class="btn btn-ghost btn-block" href="<?= e(url('/login')) ?>">💬 <?= e(t('msg.login_to_ask')) ?></a>
+                    <?php endif; ?>
+                <?php endif; ?>
                 <?php if ($is_owner): ?>
                     <div class="listing-owner-actions">
                         <a class="btn btn-ghost btn-sm" href="<?= e(url('/boutique/produits/' . $product['public_id'] . '/modifier')) ?>"><?= e(t('profile.edit')) ?></a>

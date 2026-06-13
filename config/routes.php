@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use App\Controllers\AffiliateController;
 use App\Controllers\LegalController;
+use App\Controllers\MessageController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminKycController;
@@ -88,6 +89,10 @@ return [
     ['POST', '/vendeur/commandes',                [OrderController::class, 'store'],     ['auth', 'csrf', 'throttle:order,80,3600']],
     ['POST', '/vendeur/commandes/{oid}/statut',   [OrderController::class, 'setStatus'], ['auth', 'csrf']],
     ['GET',  '/vendeur/messages',  [SellerController::class, 'messages'],     ['auth']],
+    ['GET',  '/messages',                 [MessageController::class, 'inbox'],  ['auth']],
+    ['POST', '/messages/demarrer',        [MessageController::class, 'start'],  ['auth', 'csrf', 'throttle:msg,40,3600']],
+    ['GET',  '/messages/{id}',            [MessageController::class, 'thread'], ['auth']],
+    ['POST', '/messages/{id}/repondre',   [MessageController::class, 'reply'],  ['auth', 'csrf', 'throttle:msg,60,3600']],
 
     // Encaissement en ligne (ossature multi-fournisseurs + simulation testable)
     ['GET',  '/paiement/tester',              [PaymentController::class, 'tester'],           ['auth']],
