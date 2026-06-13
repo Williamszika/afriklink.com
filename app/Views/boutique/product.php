@@ -168,7 +168,10 @@ $canOrder = $inStock && ($published || $is_owner);
             </ul>
         <?php endif; ?>
 
-        <?php if ($published): ?>
+        <?php if ($published && (int) (current_user_id() ?? 0) === 0): ?>
+            <p class="review-login-cta">🔒 <a href="<?= e(url('/login')) ?>"><?= e(t('review.login_to_post')) ?></a></p>
+        <?php endif; ?>
+        <?php if ($published && (int) (current_user_id() ?? 0) > 0): ?>
             <details class="review-form-box" <?= has_error('review') ? 'open' : '' ?>>
                 <summary>✍️ <?= e(t('review.cta')) ?></summary>
                 <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/avis')) ?>" class="review-form">

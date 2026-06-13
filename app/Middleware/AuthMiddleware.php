@@ -18,6 +18,13 @@ final class AuthMiddleware implements Middleware
     public function handle(Request $request): void
     {
         if (!auth_check()) {
+            // Mémorise la page demandée (GET interne) pour y revenir après connexion.
+            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+                $to = (string) ($_SERVER['REQUEST_URI'] ?? '');
+                if ($to !== '' && $to[0] === '/' && !str_starts_with($to, '//') && !preg_match('/[\x00-\x1f]/', $to)) {
+                    $_SESSION['intended'] = mb_substr($to, 0, 300);
+                }
+            }
             flash('error', t('auth.login_required'));
             redirect('/login');
         }

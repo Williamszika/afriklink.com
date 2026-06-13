@@ -170,8 +170,8 @@ return [
     ['POST', '/boutique/produits/{pid}/statut',   [ProductController::class, 'setStatus'], ['auth', 'csrf']],
     // Caisse + commande en ligne : panier public (client, éventuellement non connecté)
     ['POST', '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisseStore'], ['csrf', 'throttle:border,80,3600']],
-    ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      []],
-    ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['csrf', 'throttle:border,40,3600']],
+    ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      ['auth']],
+    ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['auth', 'csrf', 'throttle:border,40,3600']],
     ['GET',  '/boutique/commande/{ref}',   [BoutiqueController::class, 'orderConfirmation'], []],
     // Paiement en ligne de la commande (public ; PSP réel ou bac à sable de simulation)
     ['POST', '/boutique/commande/{ref}/payer',  [BoutiqueController::class, 'payStart'],   ['csrf', 'throttle:bpay,30,3600']],
@@ -179,7 +179,7 @@ return [
     ['POST', '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySettle'],  ['csrf', 'throttle:bpay,30,3600']],
     ['GET',  '/boutique/commande/{ref}/retour', [BoutiqueController::class, 'payReturn'],  []],
     // Avis & notes + alerte retour en stock
-    ['POST', '/boutique/{slug}/p/{pid}/avis',         [BoutiqueController::class, 'storeReview'],      ['csrf', 'throttle:review,10,3600']],
+    ['POST', '/boutique/{slug}/p/{pid}/avis',         [BoutiqueController::class, 'storeReview'],      ['auth', 'csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/{slug}/p/{pid}/alerte-stock', [BoutiqueController::class, 'storeStockAlert'],  ['csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/{slug}/assistant',            [BoutiqueController::class, 'assistant'],        ['csrf', 'throttle:assistant,30,3600']],
     ['POST', '/boutique/avis/{rid}/masquer',  [BoutiqueController::class, 'hideReview'],  ['auth', 'csrf']],
@@ -204,8 +204,8 @@ return [
     ['GET',  '/restaurant/commandes',            [RestaurantController::class, 'orders'],          ['auth']],
     ['POST', '/restaurant/commandes/{ref}/statut', [RestaurantController::class, 'setOrderStatus'], ['auth', 'csrf']],
     ['POST', '/restaurant/{slug}/caisse',         [RestaurantController::class, 'caisseStore'],     ['csrf', 'throttle:rorder,80,3600']],
-    ['GET',  '/restaurant/{slug}/caisse',         [RestaurantController::class, 'caisse'],          []],
-    ['POST', '/restaurant/{slug}/commander',      [RestaurantController::class, 'checkout'],        ['csrf', 'throttle:rorder,40,3600']],
+    ['GET',  '/restaurant/{slug}/caisse',         [RestaurantController::class, 'caisse'],          ['auth']],
+    ['POST', '/restaurant/{slug}/commander',      [RestaurantController::class, 'checkout'],        ['auth', 'csrf', 'throttle:rorder,40,3600']],
     ['GET',  '/restaurant/commande/{ref}',        [RestaurantController::class, 'orderConfirmation'], []],
     ['POST', '/restaurant/commande/{ref}/payer',  [RestaurantController::class, 'payStart'],        ['csrf', 'throttle:rorder,30,3600']],
     ['GET',  '/restaurant/commande/{ref}/regler', [RestaurantController::class, 'paySandbox'],      []],

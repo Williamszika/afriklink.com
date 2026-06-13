@@ -1263,6 +1263,7 @@ return [
     'review.title' => 'Avis clients',
     'review.empty' => 'Pas encore d’avis. Soyez le premier à donner votre avis !',
     'review.cta' => 'Laisser un avis',
+    'review.login_to_post' => 'Connectez-vous pour laisser un avis',
     'review.comment' => 'Votre avis (facultatif)',
     'review.comment_ph' => 'Qu’avez-vous pensé de ce produit ?',
     'review.submit' => 'Publier mon avis',

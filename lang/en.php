@@ -1263,6 +1263,7 @@ return [
     'review.title' => 'Customer reviews',
     'review.empty' => 'No reviews yet. Be the first to leave one!',
     'review.cta' => 'Write a review',
+    'review.login_to_post' => 'Log in to leave a review',
     'review.comment' => 'Your review (optional)',
     'review.comment_ph' => 'What did you think of this product?',
     'review.submit' => 'Post my review',

@@ -167,7 +167,13 @@ final class AuthController
         // Genre passé explicitement : current_user() a été mémoïsé « invité »
         // par le middleware avant la connexion.
         flash('success', t('flash.logged_in', ['fe' => ($user['gender'] ?? '') === 'femme' ? 'e' : '']));
-        redirect('/dashboard');
+        // Retour sur la page initialement demandée (ex. la caisse), sinon le tableau de bord.
+        $to = (string) ($_SESSION['intended'] ?? '');
+        unset($_SESSION['intended']);
+        if ($to === '' || $to[0] !== '/' || str_starts_with($to, '//') || preg_match('/[\x00-\x1f]/', $to)) {
+            $to = '/dashboard';
+        }
+        redirect($to);
     }
 
     public function logout(Request $request): void
