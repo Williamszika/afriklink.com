@@ -735,6 +735,18 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .cookie-text a { color:#fff; text-decoration:underline; }
 .cookie-actions { display:flex; gap:8px; flex-shrink:0; }
 .cookie-banner .btn-ghost { color:#fff; border-color:rgba(255,255,255,.55); background:rgba(255,255,255,.10); }
+
+/* Explorer — recherche marketplace */
+.explore-h1 { margin-bottom:2px; }
+.explore-search { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:14px 0 18px; padding:12px; background:var(--card,#fff); border:1px solid var(--border); border-radius:14px; }
+.explore-q { flex:1 1 220px; min-width:160px; }
+.explore-filter { flex:0 0 auto; }
+.explore-price { width:96px; }
+.explore-results { margin-top:6px; }
+.explore-card-shop { font-size:.8rem; }
+.explore-pager { display:flex; gap:12px; align-items:center; justify-content:center; margin:22px 0; }
+.explore-page-num { font-weight:700; }
+@media (max-width:560px){ .explore-q { flex-basis:100%; } .explore-price { flex:1 1 0; width:auto; } }
 .product-row-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .product-row-actions .inline-form { display:flex; gap:8px; flex-wrap:wrap; }
 .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }

@@ -25,10 +25,33 @@ final class HomeController
         ]);
     }
 
-    /** Explorer public — page d'attente élégante jusqu'à la découverte complète. */
+    /** Explorer public — recherche marketplace (mot-clé, catégorie, prix, tri). */
     public function explore(Request $request): void
     {
-        view('explore_soon', ['page_title' => t('nav.explore')]);
+        $cats  = config('listings.categories', []);
+        $page  = max(1, (int) input_string('page', '1'));
+        $limit = 24;
+        $f = [
+            'q'        => trim((string) input_string('q', '')),
+            'category' => whitelist((string) input_string('categorie', ''), $cats, ''),
+            'min'      => preg_replace('/\D+/', '', (string) input_string('min', '')),
+            'max'      => preg_replace('/\D+/', '', (string) input_string('max', '')),
+            'sort'     => whitelist((string) input_string('tri', 'recent'), ['recent', 'price_asc', 'price_desc'], 'recent'),
+            'limit'    => $limit,
+            'offset'   => ($page - 1) * $limit,
+        ];
+        $products = \App\Models\Product::search($f);
+        $ids = array_map(static fn (array $p): int => (int) $p['id'], $products);
+        view('explore', [
+            'page_title' => t('explore.title'),
+            'categories' => $cats,
+            'f'          => $f,
+            'page'       => $page,
+            'has_next'   => count($products) === $limit,
+            'products'   => $products,
+            'mains'      => \App\Models\Product::mainPhotos($ids),
+            'ratings'    => \App\Models\Review::summaryForProducts($ids),
+        ]);
     }
 
     /**

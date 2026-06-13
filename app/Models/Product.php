@@ -245,6 +245,53 @@ final class Product
         }
     }
 
+    /**
+     * Recherche marketplace : produits en ligne des vitrines publiées, par
+     * mot-clé / catégorie / fourchette de prix, triés (sponsorisés en tête).
+     * @return list<array> produits + boutique_slug/name/currency/category
+     */
+    public static function search(array $f): array
+    {
+        self::migrate();
+        $q   = trim((string) ($f['q'] ?? ''));
+        $cat = (string) ($f['category'] ?? '');
+        $min = ($f['min'] ?? '') !== '' ? (int) $f['min'] : null;
+        $max = ($f['max'] ?? '') !== '' ? (int) $f['max'] : null;
+        $limit  = max(1, min(48, (int) ($f['limit'] ?? 24)));
+        $offset = max(0, (int) ($f['offset'] ?? 0));
+
+        $where = ["p.status = 'active'", "b.status = 'published'"];
+        $args  = [];
+        if ($q !== '') {
+            // Placeholders distincts (EMULATE_PREPARES=false interdit la réutilisation).
+            $where[] = '(p.name LIKE :q OR p.description LIKE :q2 OR b.name LIKE :q3)';
+            $like = '%' . $q . '%';
+            $args['q'] = $like; $args['q2'] = $like; $args['q3'] = $like;
+        }
+        if ($cat !== '') { $where[] = 'b.category = :cat'; $args['cat'] = $cat; }
+        if ($min !== null) { $where[] = 'p.price_cents >= :pmin'; $args['pmin'] = $min * 100; }
+        if ($max !== null) { $where[] = 'p.price_cents <= :pmax'; $args['pmax'] = $max * 100; }
+
+        $order = match ((string) ($f['sort'] ?? 'recent')) {
+            'price_asc'  => 'p.price_cents ASC',
+            'price_desc' => 'p.price_cents DESC',
+            default      => 'p.id DESC',
+        };
+
+        try {
+            $sql = "SELECT p.*, b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency, b.category AS boutique_category
+                      FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                     WHERE " . implode(' AND ', $where) . "
+                     ORDER BY (p.promoted_until IS NOT NULL AND p.promoted_until > NOW()) DESC, $order
+                     LIMIT $limit OFFSET $offset";
+            $stmt = db()->prepare($sql);
+            $stmt->execute($args);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public static function setStatus(int $id, string $status): void
     {
         db()->prepare('UPDATE products SET status = :s WHERE id = :id')->execute(['s' => $status, 'id' => $id]);
