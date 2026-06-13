@@ -78,7 +78,7 @@
 
     var city = document.getElementById('city');
     var country = document.getElementById('country_code');
-    if (!city || !country || !('geolocation' in navigator) || !window.fetch) {
+    if (!city || !('geolocation' in navigator) || !window.fetch) {
         return;
     }
 
@@ -95,22 +95,37 @@
         statusEl.classList.toggle('is-error', !!isError);
     }
 
-    // Update a (possibly locked/disabled) <select> + its hidden submit input, so a
-    // precise GPS fix corrects the locked country/flag/indicatif to the real one.
-    function setLocked(id, iso) {
+    // Lock a <select> on a precise fix: set its value + a hidden submit input.
+    // If it's still editable (no existing hidden — e.g. pro signup / profile /
+    // annonce), disable it and create the hidden input so the precise country
+    // can't be desynced. The "unlock" link reverses this. No-op if absent
+    // (annonce forms have a city but no country select).
+    function lockSelect(id, iso) {
         var sel = document.getElementById(id);
-        if (sel && sel.querySelector('option[value="' + iso + '"]')) { sel.value = iso; }
+        if (!sel) { return; }
+        if (sel.querySelector('option[value="' + iso + '"]')) { sel.value = iso; }
         var hidden = document.getElementById(id + '_value');
-        if (hidden) { hidden.value = iso; }
+        if (!hidden) {
+            hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.id = id + '_value';
+            hidden.name = sel.getAttribute('name') || id;
+            sel.insertAdjacentElement('afterend', hidden);
+            sel.removeAttribute('name');
+            sel.disabled = true;
+            sel.setAttribute('aria-disabled', 'true');
+            sel.setAttribute('tabindex', '-1');
+            sel.classList.add('is-locked', 'locked-field');
+        }
+        hidden.value = iso;
     }
 
     function applyCountry(iso) {
         iso = (iso || '').toUpperCase();
-        if (!iso) { return; }
-        // The user chose their country manually after unlocking — respect it.
-        if (country.dataset.unlocked === '1') { return; }
-        setLocked('country_code', iso);
-        setLocked('dial_country', iso);
+        // The user chose their location manually after unlocking — respect it.
+        if (!iso || (country && country.dataset.unlocked === '1')) { return; }
+        lockSelect('country_code', iso);
+        lockSelect('dial_country', iso);
     }
 
     function conclude() {
@@ -203,8 +218,10 @@
         btn.hidden = false;
         btn.addEventListener('click', function () { refine('manual'); });
     }
-    // Silent attempt on load (no-op on browsers that need a gesture).
-    refine('silent');
+    // Silent attempt on load — only when the city is empty, so we never overwrite
+    // a value already typed or saved (profile / annonce editing). The button
+    // always (re)detects on demand.
+    if (!city.value.trim()) { refine('silent'); }
 })();
 
 /* ---- Photo de profil : réduction côté navigateur avant envoi ----

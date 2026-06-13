@@ -53,6 +53,7 @@ $selDial    = old('dial_country') ?: $selCountry;
             <div>
                 <label for="city"><?= e(t('field.city')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <input type="text" id="city" name="city" value="<?= old('city') ?>" maxlength="120">
+                <?= render_partial('partials/geo_lock_controls') ?>
             </div>
         </div>
 

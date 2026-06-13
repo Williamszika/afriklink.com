@@ -97,6 +97,7 @@ $avatarUrl = avatar_url($user, $avatar_version ?? null);
                 <div>
                     <label for="city"><?= e(t('field.city')) ?></label>
                     <input type="text" id="city" name="city" value="<?= e($city) ?>" autocomplete="address-level2">
+                    <?= render_partial('partials/geo_lock_controls') ?>
                 </div>
             </div>
 

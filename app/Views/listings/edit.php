@@ -67,6 +67,7 @@ $user = current_user() ?? [];
 
         <label for="city"><?= e(t('field.city')) ?></label>
         <input type="text" id="city" name="city" value="<?= old('city') ?: e((string) ($listing['city'] ?? '')) ?>" maxlength="120">
+        <?= render_partial('partials/geo_lock_controls') ?>
 
         <?php if (!empty($user['phone'])): ?>
             <label class="check-row">

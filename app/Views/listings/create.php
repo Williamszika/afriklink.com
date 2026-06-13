@@ -86,6 +86,7 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
 
         <label for="city"><?= e(t('field.city')) ?></label>
         <input type="text" id="city" name="city" value="<?= e($city) ?>" maxlength="120">
+        <?= render_partial('partials/geo_lock_controls') ?>
 
         <!-- Photos : fichiers, appareil photo, glisser-déposer ou coller -->
         <label><?= e(t('listing.field.photos', ['max' => $maxPhotos])) ?></label>
