@@ -1051,6 +1051,7 @@ return [
     'product.stock_n' => ':n in stock',
     'product.in_stock' => 'In stock',
     'product.related' => 'You may also like',
+    'product.zoom' => 'Zoom photo',
     // Reviews & ratings
     'review.title' => 'Customer reviews',
     'review.empty' => 'No reviews yet. Be the first to leave one!',

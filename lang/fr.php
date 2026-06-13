@@ -1051,6 +1051,7 @@ return [
     'product.stock_n' => ':n en stock',
     'product.in_stock' => 'En stock',
     'product.related' => 'Vous aimerez aussi',
+    'product.zoom' => 'Agrandir la photo',
     // Avis & notes
     'review.title' => 'Avis clients',
     'review.empty' => 'Pas encore d’avis. Soyez le premier à donner votre avis !',

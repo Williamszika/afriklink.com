@@ -259,6 +259,7 @@ final class BoutiqueController
             static fn (array $p): bool => (int) $p['id'] !== (int) $product['id']
         ));
         $related = array_slice($related, 0, 4);
+        $rating = Review::summaryForProduct((int) $product['id']);
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
@@ -267,7 +268,7 @@ final class BoutiqueController
             'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
             'is_owner' => $isOwner,
             'reviews'  => Review::forProduct((int) $product['id']),
-            'rating'   => Review::summaryForProduct((int) $product['id']),
+            'rating'   => $rating,
             'related'  => $related,
             'related_mains' => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $related)),
             'page_title' => (string) $product['name'],
@@ -278,8 +279,42 @@ final class BoutiqueController
                 ),
                 'image' => $main !== null ? CloudinaryService::imageUrl((string) $main, 1200, 630) : null,
                 'url'   => url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']),
+                'type'  => 'product',
+                'jsonld' => $this->productJsonLd($product, $boutique, $main, $rating),
             ],
         ]);
+    }
+
+    /** Données structurées Schema.org (Product) : étoiles + prix dans Google. */
+    private function productJsonLd(array $product, array $boutique, ?string $mainImage, array $rating): string
+    {
+        $cur = (string) $boutique['currency'];
+        $inStock = $product['stock'] === null || (int) $product['stock'] > 0;
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type'    => 'Product',
+            'name'     => (string) $product['name'],
+            'description' => mb_substr(trim((string) ($product['description'] ?? '')), 0, 500) ?: (string) $boutique['name'],
+            'brand'    => ['@type' => 'Brand', 'name' => (string) $boutique['name']],
+            'offers'   => [
+                '@type'         => 'Offer',
+                'price'         => number_format((int) $product['price_cents'] / 100, currency_is_integer($cur) ? 0 : 2, '.', ''),
+                'priceCurrency' => $cur,
+                'availability'  => 'https://schema.org/' . ($inStock ? 'InStock' : 'OutOfStock'),
+                'url'           => url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']),
+            ],
+        ];
+        if ($mainImage !== null && $mainImage !== '') {
+            $data['image'] = [CloudinaryService::imageUrl($mainImage, 1200, 1200)];
+        }
+        if (($rating['count'] ?? 0) > 0) {
+            $data['aggregateRating'] = [
+                '@type'       => 'AggregateRating',
+                'ratingValue' => (string) $rating['avg'],
+                'reviewCount' => (int) $rating['count'],
+            ];
+        }
+        return (string) json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /* ---- Avis & notes ---------------------------------------------- */

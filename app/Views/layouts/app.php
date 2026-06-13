@@ -36,6 +36,9 @@ $metaImage = (string) ($meta['image'] ?? '');
     <?php endif; ?>
     <link rel="icon" type="image/svg+xml" href="<?= e(asset('img/logo-cauri.svg')) ?>">
     <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
+    <?php if (!empty($meta['jsonld'])): ?>
+        <script type="application/ld+json"><?= $meta['jsonld'] /* JSON déjà encodé ; bloc de données, exempt de CSP script-src */ ?></script>
+    <?php endif; ?>
 </head>
 <?php
 // Auto-activation de la position précise : une fois juste après connexion

@@ -723,6 +723,17 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .star-input label { color:#d6d9e0; cursor:pointer; line-height:1; transition:color .1s; }
 .star-input input:checked ~ label, .star-input label:hover, .star-input label:hover ~ label { color:#f5b301; }
 .star-input input:focus-visible + label { outline:2px solid var(--brand); outline-offset:2px; }
+/* Zoom photo produit (lightbox) */
+.listing-main-zoom { display:block; width:100%; padding:0; border:0; background:none; cursor:zoom-in; position:relative; }
+.listing-main-zoom img { display:block; width:100%; height:auto; border-radius:12px; }
+.zoom-hint { position:absolute; bottom:10px; right:10px; background:rgba(20,36,29,.72); color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+.lightbox { position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.92); display:none; align-items:center; justify-content:center; }
+.lightbox.is-open { display:flex; }
+.lightbox-img { max-width:94vw; max-height:90vh; object-fit:contain; border-radius:6px; }
+.lightbox-close { position:absolute; top:14px; right:18px; background:none; border:0; color:#fff; font-size:2.4rem; line-height:1; cursor:pointer; }
+.lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.15); border:0; color:#fff; font-size:2.6rem; line-height:1; width:52px; height:72px; cursor:pointer; border-radius:8px; }
+.lightbox-prev { left:14px; } .lightbox-next { right:14px; }
+.lightbox-nav:hover, .lightbox-close:hover { color:#f5b301; }
 @media (max-width:700px){ .product-row { flex-direction:column; } }
 
 /* Catalogue produits : gestion + vitrine — fin */

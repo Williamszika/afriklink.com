@@ -733,6 +733,61 @@ document.addEventListener('click', function (ev) {
     if (btn && main) { main.src = btn.getAttribute('data-gallery-full'); }
 });
 
+/* ---- Fiche produit boutique : zoom plein écran (lightbox) ----
+   La grande photo s'ouvre en plein écran ; flèches/Échap pour naviguer/fermer. */
+(function () {
+    var gallery = document.querySelector('[data-gallery]');
+    if (!gallery) { return; }
+    var photos = [];
+    try { photos = JSON.parse(gallery.getAttribute('data-photos') || '[]'); } catch (e) { photos = []; }
+    var zoomBtn = gallery.querySelector('[data-zoom-open]');
+    var current = 0;
+
+    // Suit la photo affichée (le swap de la vignette est géré au-dessus).
+    gallery.querySelectorAll('.thumb[data-index]').forEach(function (th) {
+        th.addEventListener('click', function () {
+            current = parseInt(th.getAttribute('data-index'), 10) || 0;
+            if (zoomBtn) { zoomBtn.setAttribute('data-index', String(current)); }
+        });
+    });
+
+    if (!zoomBtn || !photos.length) { return; }
+    var ov, imgEl;
+    function show(i) {
+        current = ((i % photos.length) + photos.length) % photos.length;
+        if (imgEl) { imgEl.src = photos[current]; }
+    }
+    function close() { if (ov) { ov.classList.remove('is-open'); document.body.style.overflow = ''; } }
+    function open() {
+        if (!ov) {
+            ov = document.createElement('div');
+            ov.className = 'lightbox';
+            ov.innerHTML = '<button class="lightbox-close" type="button" aria-label="Fermer">×</button>'
+                + (photos.length > 1 ? '<button class="lightbox-nav lightbox-prev" type="button" aria-label="Précédent">‹</button>' : '')
+                + '<img class="lightbox-img" alt="">'
+                + (photos.length > 1 ? '<button class="lightbox-nav lightbox-next" type="button" aria-label="Suivant">›</button>' : '');
+            document.body.appendChild(ov);
+            imgEl = ov.querySelector('.lightbox-img');
+            ov.addEventListener('click', function (e) {
+                var t = e.target;
+                if (t === ov || t.classList.contains('lightbox-close')) { close(); }
+                else if (t.classList.contains('lightbox-next')) { show(current + 1); }
+                else if (t.classList.contains('lightbox-prev')) { show(current - 1); }
+            });
+        }
+        show(parseInt(zoomBtn.getAttribute('data-index'), 10) || 0);
+        ov.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+    zoomBtn.addEventListener('click', open);
+    document.addEventListener('keydown', function (e) {
+        if (!ov || !ov.classList.contains('is-open')) { return; }
+        if (e.key === 'Escape') { close(); }
+        else if (e.key === 'ArrowRight') { show(current + 1); }
+        else if (e.key === 'ArrowLeft') { show(current - 1); }
+    });
+})();
+
 /* ---- Dépôt d'annonce : envoi direct navigateur → Cloudinary ----
    1. demande une signature au serveur (/api/media/sign) ;
    2. envoie le fichier directement à Cloudinary (la limite Vercel ne s'applique pas) ;
