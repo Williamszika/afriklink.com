@@ -17,11 +17,17 @@ final class HomeController
         );
         // Produits sponsorisés (mise en avant payante — simulation).
         $sponsored = \App\Models\Product::promotedMarketplace(8);
+        // Vitrine vivante : boutiques, restaurants et annonces actuellement en ligne.
+        $annonces = \App\Models\Listing::recentActive(12);
         view('home', [
             'sponsored'       => $sponsored,
             'recently_viewed' => $recent,
             'for_you'         => $forYou,
             'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($sponsored, $recent, $forYou)),
+            'boutiques'       => \App\Models\Boutique::recentPublished(12),
+            'restaurants'     => \App\Models\Restaurant::recentPublished(12),
+            'annonces'        => $annonces,
+            'annonce_mains'   => \App\Models\Listing::mainPhotos(array_map(static fn (array $a): int => (int) $a['id'], $annonces)),
         ]);
     }
 

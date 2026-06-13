@@ -238,6 +238,21 @@ final class Boutique
         return $out;
     }
 
+    /** @return list<array> boutiques publiées récentes (pour la vitrine d'accueil) */
+    public static function recentPublished(int $limit = 12): array
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT id, slug, name, tagline, category, logo_public_id
+                   FROM boutiques WHERE status = 'published' ORDER BY id DESC LIMIT " . max(1, min(48, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** Le slug est-il libre ? (hors la boutique de $exceptUserId, pour l'édition) */
     public static function slugAvailable(string $slug, ?int $exceptUserId = null): bool
     {

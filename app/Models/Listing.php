@@ -141,6 +141,21 @@ final class Listing
     }
 
     /** Première photo de chaque annonce d'une liste d'ids. @return array<int,string> */
+    /** @return list<array> annonces actives récentes (pour la vitrine d'accueil) */
+    public static function recentActive(int $limit = 12): array
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT id, public_id, title, price_cents, currency, category
+                   FROM listings WHERE status = 'active' ORDER BY id DESC LIMIT " . max(1, min(48, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public static function mainPhotos(array $listingIds): array
     {
         if ($listingIds === []) {
