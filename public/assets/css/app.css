@@ -1079,3 +1079,6 @@ h2 { letter-spacing:-.01em; }
 /* Explorer — filtres avancés (ville, en stock) */
 .explore-city { width:120px; }
 .explore-check { display:inline-flex; align-items:center; gap:6px; font-size:.88rem; white-space:nowrap; cursor:pointer; }
+
+/* Accueil compact : on remonte le contenu (produits/vitrines/annonces) plus haut */
+.hero--compact { padding-top: 36px; padding-bottom: 32px; }
