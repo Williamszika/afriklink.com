@@ -29,7 +29,7 @@ $selDial    = old('dial_country') ?: $selCountry;
 
         <label><?= e(t('pro.field.phone')) ?></label>
         <div class="phone-row">
-            <select name="dial_country" class="dial-select" aria-label="<?= e(t('field.dial_code')) ?>">
+            <select id="dial_country" name="dial_country" class="dial-select" aria-label="<?= e(t('field.dial_code')) ?>">
                 <?php foreach ($countries as $code => $name): $dc = dial_code($code); if ($dc === '') { continue; } ?>
                     <option value="<?= e($code) ?>" <?= $selDial === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?> (+<?= e($dc) ?>)</option>
                 <?php endforeach; ?>

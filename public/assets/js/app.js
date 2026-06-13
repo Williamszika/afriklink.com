@@ -125,7 +125,20 @@
         // The user chose their location manually after unlocking — respect it.
         if (!iso || (country && country.dataset.unlocked === '1')) { return; }
         lockSelect('country_code', iso);
-        lockSelect('dial_country', iso);
+        // Phone dial code: show the detected country's flag + indicatif FIRST.
+        // If the dial is a server-locked select (hidden submit input present), keep
+        // it locked and just update it; otherwise pre-select it but leave it
+        // editable — the user's phone number may belong to another country.
+        var dial = document.getElementById('dial_country');
+        if (dial && dial.dataset.unlocked !== '1') {
+            if (document.getElementById('dial_country_value')) {
+                lockSelect('dial_country', iso);
+            } else if (dial.querySelector('option[value="' + iso + '"]')) {
+                dial.value = iso;
+                var opt = dial.querySelector('option[value="' + iso + '"]');
+                if (opt && dial.firstElementChild !== opt) { dial.insertBefore(opt, dial.firstElementChild); } // bring it to the top
+            }
+        }
     }
 
     function conclude() {
