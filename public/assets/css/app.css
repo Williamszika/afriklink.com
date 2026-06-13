@@ -1,23 +1,34 @@
 :root {
-    --brand: #0b7a4b;
-    --brand-dark: #095c39;
-    --accent: #f5a623;
-    --ink: #1c2127;
-    --muted: #6b7280;
-    --bg: #f7f8f7;
+    --brand: #0a7a4a;
+    --brand-dark: #075f39;
+    --brand-700: #064c2e;
+    --brand-50: #eaf6f0;
+    --brand-100: #cfeadd;
+    --accent: #e2902f;
+    --accent-50: #fdf4e8;
+    --ink: #15201b;
+    --ink-soft: #3a473f;
+    --muted: #687a70;
+    --bg: #f3f6f3;
+    --surface: #ffffff;
     --card: #ffffff;
-    --border: #e5e7eb;
+    --border: #e3e8e4;
+    --border-strong: #d2d9d3;
     --danger: #b42318;
     --danger-bg: #fef3f2;
     --success: #027a48;
     --success-bg: #ecfdf3;
     --warning: #b54708;
     --warning-bg: #fffaeb;
-    --radius: 12px;
-    --shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .06);
-    --shadow-hover: 0 12px 28px rgba(16, 24, 40, .14), 0 4px 10px rgba(16, 24, 40, .07);
-    --ring: 0 0 0 3px rgba(11, 122, 75, .18);
-    --max: 1080px;
+    --radius-sm: 10px;
+    --radius: 14px;
+    --radius-lg: 20px;
+    --shadow-xs: 0 1px 2px rgba(16, 24, 40, .05);
+    --shadow: 0 1px 3px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .04);
+    --shadow-md: 0 6px 16px rgba(16, 24, 40, .08), 0 2px 5px rgba(16, 24, 40, .04);
+    --shadow-hover: 0 18px 40px rgba(16, 24, 40, .13), 0 6px 14px rgba(16, 24, 40, .07);
+    --ring: 0 0 0 3px rgba(10, 122, 74, .20);
+    --max: 1200px;
     font-synthesis: none;
 }
 
@@ -28,20 +39,23 @@ body {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--ink);
     background: var(--bg);
-    line-height: 1.55;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
-/* Photo de fond sur tout le site : calque fixe sous le contenu, voilé de clair
-   pour garder les textes lisibles (les cartes blanches flottent au-dessus).
-   ::before fixe plutôt que background-attachment:fixed, cassé sur iOS. */
+/* Fond propre et professionnel : surface claire avec une très légère lueur de
+   marque en haut. Les cartes blanches ressortent nettement (look marketplace
+   moderne). Calque fixe ::before plutôt que background-attachment, cassé sur iOS. */
 body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
     background:
-        linear-gradient(rgba(247, 248, 247, .84), rgba(247, 248, 247, .84)),
-        url('../img/hero-bg.jpg') center 30% / cover no-repeat;
+        radial-gradient(1200px 520px at 50% -8%, var(--brand-50), rgba(234, 246, 240, 0) 68%),
+        linear-gradient(180deg, #fbfcfb 0%, var(--bg) 30%);
 }
 
 a { color: var(--brand); text-decoration: none; }
@@ -1203,3 +1217,79 @@ h2 { letter-spacing:-.01em; }
 .nav-dd-all { display:block; text-align:center; font-weight:700; padding:9px; border-top:1px solid var(--border); color:var(--brand); }
 .nav-dd-all:hover { background:var(--bg); text-decoration:none; }
 @media (max-width:760px){ .nav-dd-panel { position:fixed; right:8px; left:8px; width:auto; max-width:none; top:58px; } }
+
+/* ================================================================
+   Refonte « pro » — couche de finition. Surcharge à spécificité
+   égale les règles ci-dessus : typographie, profondeur, états,
+   rythme. Aucune image lourde ; tout en surfaces propres.
+   ================================================================ */
+html { scroll-behavior: smooth; }
+::selection { background: var(--brand-100); color: var(--brand-700); }
+
+h1, h2, h3, h4 { color: var(--ink); letter-spacing: -.02em; line-height: 1.18; }
+h1 { font-weight: 800; }
+h2 { font-weight: 700; }
+
+/* Boutons — profondeur discrète + états accessibles */
+.btn { border-radius: 10px; font-weight: 600; transition: transform .12s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease; }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.btn-primary { background: linear-gradient(180deg, #0d8a55, var(--brand)); box-shadow: 0 1px 2px rgba(6,76,46,.30), inset 0 1px 0 rgba(255,255,255,.16); }
+.btn-primary:hover { background: linear-gradient(180deg, var(--brand), var(--brand-dark)); box-shadow: var(--shadow-md); color: #fff; }
+.btn-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--ink-soft); box-shadow: var(--shadow-xs); }
+.btn-ghost:hover { background: var(--brand-50); border-color: var(--brand-100); color: var(--brand-dark); }
+.btn-lg { border-radius: 12px; padding: 13px 24px; }
+
+/* En-tête — net, posé, professionnel */
+.site-header { background: rgba(255,255,255,.84); border-bottom: 1px solid var(--border); box-shadow: 0 8px 22px -16px rgba(16,24,40,.28); }
+.header-inner { min-height: 68px; gap: 18px; }
+.brand { font-size: 1.4rem; letter-spacing: -.03em; }
+.main-nav a { font-weight: 600; color: var(--ink-soft); }
+.main-nav a:hover, .main-nav a.is-active { color: var(--brand); }
+
+/* Recherche — pilule soignée */
+.header-search { height: 44px; border-radius: 999px; border:1.5px solid var(--border-strong); box-shadow: var(--shadow-xs); }
+.header-search:focus-within { border-color: var(--brand); box-shadow: var(--ring); }
+.header-search button { border-radius: 0 999px 999px 0; padding: 0 20px; }
+
+/* Icônes d'en-tête (🛒 ❤️ ⇄ 🔔) — ronds et cohérents */
+.nav-actions { gap: 8px; }
+.nav-icon { width: 42px; height: 42px; padding: 0; border-radius: 50%; font-size: 1.06rem; }
+.nav-icon:hover { background: var(--brand-50); border-color: var(--brand-100); }
+
+/* Rythme vertical & titres de section */
+.live-section, .reco-rails, .cat-section, .verticals, .why-afk { margin: 0 0 clamp(26px, 4.5vw, 46px); }
+.live-section h2 { display: flex; align-items: center; gap: 6px; font-size: clamp(1.2rem, 2.4vw, 1.55rem); font-weight: 800; margin: 0 0 16px; }
+.cat-section h2, .why-afk h2, .verticals h2 { font-size: clamp(1.3rem, 2.6vw, 1.7rem); font-weight: 800; margin-bottom: 22px; }
+
+/* Cartes — bord doux, profondeur, survol premium */
+.panel { border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.vertical-card, .why-card, .vendor-card, .cat-tile { border-radius: var(--radius); box-shadow: var(--shadow); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.vertical-card:hover, .why-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: var(--brand-100); }
+.vendor-card:hover, .cat-tile:hover { box-shadow: var(--shadow-hover); border-color: var(--brand-100); }
+.vendor-logo { box-shadow: var(--shadow-xs); }
+
+/* Carte produit */
+.product-card-img { border-radius: var(--radius); border-color: var(--border); box-shadow: var(--shadow-xs); }
+.product-card:hover .product-card-img { box-shadow: var(--shadow-hover); }
+.product-card-price { color: var(--brand-dark); letter-spacing: -.01em; }
+
+/* Bandeau vendeur — dégradé riche */
+.seller-band { border-radius: var(--radius-lg); padding: 42px 24px; background: radial-gradient(120% 150% at 0% 0%, #0f9159, transparent 58%), linear-gradient(135deg, var(--brand-dark), var(--brand)); box-shadow: 0 18px 44px -20px rgba(7,95,57,.65); }
+.seller-band h2 { color: #fff; font-size: clamp(1.4rem, 3vw, 1.9rem); }
+.seller-band .btn-primary { background: #fff; color: var(--brand-dark); box-shadow: var(--shadow-md); }
+.seller-band .btn-primary:hover { background: #f3faf6; color: var(--brand-dark); }
+
+/* Pied de page — structuré, professionnel */
+.site-footer { background: var(--surface); border-top: 1px solid var(--border); padding: 0; margin-top: 48px; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.footer-inner { flex-direction: column; align-items: stretch; gap: 0; }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; flex-wrap: wrap; padding: 32px 0 24px; }
+.footer-brand { display: flex; flex-direction: column; gap: 8px; max-width: 380px; }
+.footer-tag { color: var(--muted); font-size: .9rem; margin: 0; line-height: 1.5; }
+.footer-nav { gap: 22px; flex-wrap: wrap; }
+.footer-nav a { font-weight: 600; color: var(--ink-soft); }
+.footer-nav a:hover { color: var(--brand); }
+.footer-bottom { border-top: 1px solid var(--border); padding: 14px 0; color: var(--muted); font-size: .85rem; margin: 0; }
+
+/* Focus clavier global cohérent */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; box-shadow: var(--ring); }

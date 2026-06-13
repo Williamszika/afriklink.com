@@ -146,13 +146,22 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
 
 <footer class="site-footer">
     <div class="container footer-inner">
-        <p>&copy; <?= date('Y') ?> <?= e(config('app.name', 'AfrikaLink')) ?></p>
-        <nav class="footer-nav" aria-label="legal">
-            <a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a>
-            <a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a>
-            <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>
-            <a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a>
-        </nav>
+        <div class="footer-top">
+            <div class="footer-brand">
+                <a class="brand" href="<?= e(url('/')) ?>">
+                    <span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'ftr']) ?></span>
+                    <span class="brand-text">Afrik<span>link</span></span>
+                </a>
+                <p class="footer-tag"><?= e(t('home.hero_subtitle')) ?></p>
+            </div>
+            <nav class="footer-nav" aria-label="legal">
+                <a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a>
+                <a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a>
+                <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>
+                <a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a>
+            </nav>
+        </div>
+        <p class="footer-bottom">&copy; <?= date('Y') ?> <?= e(config('app.name', 'Afriklink')) ?></p>
     </div>
 </footer>
 
