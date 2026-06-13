@@ -234,6 +234,41 @@ final class Order
         return max(0, (int) ($order['total_cents'] ?? 0) - self::amountDue($order));
     }
 
+    /** Existe-t-il une commande (non annulée) de ce produit au nom de cet e-mail / téléphone ? */
+    public static function hasPurchase(int $productId, ?string $email, ?string $phone): bool
+    {
+        $email = trim((string) $email);
+        $phone = trim((string) $phone);
+        if ($email === '' && $phone === '') {
+            return false;
+        }
+        try {
+            // Placeholders non réutilisables (EMULATE_PREPARES=false) : on construit la
+            // condition selon ce qui est fourni, chaque nom n'apparaissant qu'une fois.
+            $conds = [];
+            $args = ['p' => $productId];
+            if ($email !== '') {
+                $conds[] = 'o.client_email = :e';
+                $args['e'] = $email;
+            }
+            if ($phone !== '') {
+                $conds[] = 'o.client_phone = :ph';
+                $args['ph'] = $phone;
+            }
+            $stmt = db()->prepare(
+                "SELECT 1 FROM order_items oi
+                   JOIN orders o ON o.id = oi.order_id
+                  WHERE oi.product_id = :p AND o.status <> 'cancelled'
+                    AND (" . implode(' OR ', $conds) . ")
+                  LIMIT 1"
+            );
+            $stmt->execute($args);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     /** @return list<array> lignes d'une commande en ligne (vide pour les commandes manuelles) */
     public static function items(int $orderId): array
     {

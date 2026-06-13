@@ -343,6 +343,16 @@ final class BoutiqueController
             keep_old($_POST);
             redirect($back . '#avis');
         }
+        // « Achat vérifié » : l'auteur fournit (optionnellement) l'e-mail ou le téléphone
+        // utilisé pour une commande. Si une commande non annulée de ce produit existe à ce
+        // contact, l'avis reçoit le badge de confiance.
+        $contact = trim((string) input_string('purchase_contact', ''));
+        $isEmail = $contact !== '' && filter_var($contact, FILTER_VALIDATE_EMAIL) !== false;
+        $verified = $contact !== '' && Order::hasPurchase(
+            (int) $product['id'],
+            $isEmail ? $contact : null,
+            $isEmail ? null : $contact
+        );
         Review::create([
             'boutique_id' => (int) $boutique['id'],
             'product_id'  => (int) $product['id'],
@@ -350,8 +360,9 @@ final class BoutiqueController
             'author_name' => $name,
             'rating'      => $rating,
             'comment'     => $comment !== '' ? $comment : null,
+            'verified'    => $verified,
         ]);
-        AuditLog::record((int) ($boutique['user_id']), 'review.posted', 'product', (int) $product['id'], ['rating' => $rating], $request->ipBinary());
+        AuditLog::record((int) ($boutique['user_id']), 'review.posted', 'product', (int) $product['id'], ['rating' => $rating, 'verified' => $verified ? 1 : 0], $request->ipBinary());
         flash('success', t('review.thanks'));
         redirect($back . '#avis');
     }

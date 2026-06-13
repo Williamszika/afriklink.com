@@ -120,6 +120,7 @@ $canOrder = $inStock && ($published || $is_owner);
                         <div class="review-head">
                             <?= render_partial('partials/stars', ['avg' => (int) $rv['rating'], 'count' => 0, 'small' => true]) ?>
                             <strong class="review-author"><?= e((string) $rv['author_name']) ?></strong>
+                            <?php if (!empty($rv['verified'])): ?><span class="review-verified" title="<?= e(t('review.verified_hint')) ?>">✓ <?= e(t('review.verified')) ?></span><?php endif; ?>
                             <span class="review-date muted"><?= e(date('d/m/Y', strtotime((string) $rv['created_at']))) ?></span>
                             <?php if ($is_owner): ?>
                                 <form method="post" action="<?= e(url('/boutique/avis/' . $rv['public_id'] . '/masquer')) ?>" class="inline-form review-hide">
@@ -148,6 +149,9 @@ $canOrder = $inStock && ($published || $is_owner);
                     </div>
                     <label for="rv-name"><?= e(t('order.f.client')) ?></label>
                     <input type="text" id="rv-name" name="author_name" maxlength="80" required value="<?= old('author_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+                    <label for="rv-contact"><?= e(t('review.verify_label')) ?></label>
+                    <input type="text" id="rv-contact" name="purchase_contact" maxlength="120" value="<?= old('purchase_contact') ?>" placeholder="<?= e(t('review.verify_ph')) ?>">
+                    <p class="form-hint muted">✓ <?= e(t('review.verify_hint')) ?></p>
                     <label for="rv-comment"><?= e(t('review.comment')) ?></label>
                     <textarea id="rv-comment" name="comment" maxlength="1000" rows="3" placeholder="<?= e(t('review.comment_ph')) ?>"><?= old('comment') ?></textarea>
                     <button type="submit" class="btn btn-primary"><?= e(t('review.submit')) ?></button>

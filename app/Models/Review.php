@@ -22,12 +22,22 @@ final class Review
                 author_name VARCHAR(80) NOT NULL,
                 rating      TINYINT UNSIGNED NOT NULL DEFAULT 5,
                 comment     VARCHAR(1000) NULL,
+                verified    TINYINT(1) NOT NULL DEFAULT 0,
                 status      VARCHAR(12) NOT NULL DEFAULT \'approved\',
                 created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_reviews_product (product_id, status, id),
                 KEY idx_reviews_boutique (boutique_id, status)
             )'
         );
+        try {
+            db()->query('SELECT verified FROM reviews LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE reviews ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0 AFTER comment');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
     }
 
     public static function create(array $d): string
@@ -35,8 +45,8 @@ final class Review
         self::ensureTable();
         $pid = uuid();
         db()->prepare(
-            'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, status)
-             VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, \'approved\')'
+            'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, verified, status)
+             VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, :verified, \'approved\')'
         )->execute([
             'pid' => $pid,
             'bid' => $d['boutique_id'],
@@ -45,6 +55,7 @@ final class Review
             'name' => mb_substr((string) $d['author_name'], 0, 80),
             'rating' => max(1, min(5, (int) $d['rating'])),
             'comment' => $d['comment'] !== null && $d['comment'] !== '' ? mb_substr((string) $d['comment'], 0, 1000) : null,
+            'verified' => !empty($d['verified']) ? 1 : 0,
         ]);
         return $pid;
     }

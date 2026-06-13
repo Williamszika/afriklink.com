@@ -712,6 +712,7 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .review-item { border-bottom:1px solid var(--border); padding-bottom:10px; }
 .review-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .review-author { font-weight:700; }
+.review-verified { display:inline-flex; align-items:center; gap:3px; font-size:.74rem; font-weight:700; color:#0a7d28; background:#e6f6ea; border:1px solid #b7e2c3; border-radius:999px; padding:1px 8px; letter-spacing:.01em; }
 .review-date { font-size:.82rem; }
 .review-comment { margin:6px 0 0; }
 .review-hide { margin-left:auto; }
