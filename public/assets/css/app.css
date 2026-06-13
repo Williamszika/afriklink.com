@@ -1144,3 +1144,17 @@ h2 { letter-spacing:-.01em; }
 .cart-group-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:12px; padding-top:10px; border-top:2px solid var(--border); }
 .cart-subtotal { font-size:1.05rem; }
 @media (max-width:560px){ .cart-item { flex-wrap:wrap; } .cart-item-total { min-width:0; text-align:left; } }
+
+/* Boutique : panneau de complétion / préparation */
+.readiness-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.readiness-head .panel-title { margin:0; }
+.readiness-score { font-weight:800; color:var(--brand); font-size:1.1rem; }
+.readiness-bar { height:8px; border-radius:999px; background:var(--border); overflow:hidden; margin:10px 0 12px; }
+.readiness-bar > span { display:block; height:100%; background:linear-gradient(90deg,var(--brand),#0a7d28); border-radius:999px; transition:width .4s ease; }
+.readiness-list { list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+.readiness-list li { display:flex; align-items:center; gap:8px; }
+.readiness-list .readiness-ico { width:20px; height:20px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; }
+.readiness-list .is-done .readiness-ico { background:var(--success-bg); color:var(--success); }
+.readiness-list .is-todo { color:var(--muted); }
+.readiness-list .is-todo .readiness-ico { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+.readiness-ok { color:var(--success); font-weight:700; margin:10px 0 0; }

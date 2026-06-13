@@ -47,6 +47,30 @@ $publicPath = '/boutique/' . $boutique['slug'];
             <div class="notice notice-info"><p><?= e(t('shop.draft_banner')) ?></p></div>
         <?php endif; ?>
 
+        <?php if (isset($readiness)): ?>
+        <div class="panel readiness-panel">
+            <div class="readiness-head">
+                <h2 class="panel-title">✅ <?= e(t('shop.ready.title')) ?></h2>
+                <span class="readiness-score"><?= (int) $readiness['score'] ?>%</span>
+            </div>
+            <div class="readiness-bar"><span style="width:<?= (int) $readiness['score'] ?>%"></span></div>
+            <ul class="readiness-list">
+                <?php foreach ($readiness['items'] as $it): ?>
+                    <li class="<?= $it['done'] ? 'is-done' : 'is-todo' ?>">
+                        <span class="readiness-ico" aria-hidden="true"><?= $it['done'] ? '✓' : '○' ?></span>
+                        <?= e(t('shop.ready.' . $it['key'])) ?>
+                        <?php if (!$it['req']): ?> <span class="muted">(<?= e(t('shop.ready.optional')) ?>)</span><?php endif; ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php if (!$readiness['ready']): ?>
+                <p class="hint"><?= e(t('shop.ready.hint')) ?></p>
+            <?php elseif (!$published): ?>
+                <p class="readiness-ok">🎉 <?= e(t('shop.ready.ok')) ?></p>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Indicateurs -->
         <?php $nActive = (int) ($counts['active'] ?? 0); $nTotal = (int) ($counts['total'] ?? 0); ?>
         <div class="stat-grid cols-4">

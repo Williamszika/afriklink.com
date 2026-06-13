@@ -103,6 +103,7 @@ final class BoutiqueController
         $filter = whitelist((string) input_string('filtre', 'tous'), ['tous', 'en_ligne', 'masques'], 'tous');
         // Prévision de stock / réassort (algorithmique, à partir des ventes réelles).
         $forecasts = \App\Services\StockForecast::forProducts($products);
+        $counts    = \App\Models\Product::countFor((int) $boutique['id']);
         view('boutique/manage', [
             'active'   => 'vitrines',
             'boutique' => $boutique,
@@ -110,8 +111,9 @@ final class BoutiqueController
             'filter'   => $filter,
             'forecasts'     => $forecasts,
             'restock_count' => \App\Services\StockForecast::restockCount($forecasts),
+            'readiness' => $this->shopReadiness($boutique, (int) $counts['active']),
             'mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
-            'counts'   => \App\Models\Product::countFor((int) $boutique['id']),
+            'counts'   => $counts,
             'orders_pending' => \App\Models\Order::countFor((int) $boutique['id'])['new'],
             'views_total'    => ShopView::totals((int) $boutique['id'])['total'],
         ] + SellerController::commonData($user));
@@ -173,6 +175,37 @@ final class BoutiqueController
         redirect('/boutique/gerer');
     }
 
+    /**
+     * État de complétion de la boutique : checklist + score + « prêt à publier ».
+     * @return array{items:list<array{key:string,done:bool,req:bool}>,score:int,ready:bool,missing:list<string>}
+     */
+    private function shopReadiness(array $boutique, int $activeProducts): array
+    {
+        $bid       = (int) $boutique['id'];
+        $hasMedia  = !empty($boutique['logo_public_id']) || !empty($boutique['banner_public_id']) || Boutique::banners($bid) !== [];
+        $contacts  = ($boutique['contact_whatsapp'] ?? '') . ($boutique['contact_sms'] ?? '') . ($boutique['contact_telegram'] ?? '')
+            . ($boutique['contact_facebook'] ?? '') . ($boutique['contact_instagram'] ?? '') . ($boutique['contact_tiktok'] ?? '');
+        $items = [
+            ['key' => 'media',    'done' => $hasMedia,                                              'req' => true],
+            ['key' => 'product',  'done' => $activeProducts > 0,                                     'req' => true],
+            ['key' => 'contact',  'done' => trim($contacts) !== '',                                  'req' => true],
+            ['key' => 'delivery', 'done' => trim((string) ($boutique['delivery_methods'] ?? '')) !== '', 'req' => true],
+            ['key' => 'payment',  'done' => trim((string) ($boutique['payment_methods'] ?? '')) !== '' || !empty($boutique['cod_enabled']), 'req' => false],
+            ['key' => 'desc',     'done' => trim((string) ($boutique['description'] ?? '')) !== '',  'req' => false],
+        ];
+        $done = 0;
+        $missing = [];
+        foreach ($items as $it) {
+            if ($it['done']) { $done++; } elseif ($it['req']) { $missing[] = (string) $it['key']; }
+        }
+        return [
+            'items'   => $items,
+            'score'   => (int) round($done * 100 / count($items)),
+            'ready'   => $missing === [],
+            'missing' => $missing,
+        ];
+    }
+
     public function publish(Request $request): void
     {
         $user     = $this->sellerOrRedirect();
@@ -183,6 +216,15 @@ final class BoutiqueController
         $action = whitelist((string) input_string('action', ''), ['publish', 'unpublish'], null);
         if ($action === null) {
             abort(404);
+        }
+        // Contrôle avant publication : on bloque tant que le minimum n'est pas réuni.
+        if ($action === 'publish') {
+            $readiness = $this->shopReadiness($boutique, (int) \App\Models\Product::countFor((int) $boutique['id'])['active']);
+            if (!$readiness['ready']) {
+                $labels = array_map(static fn (string $k): string => t('shop.ready.' . $k), $readiness['missing']);
+                flash('error', t('shop.ready.blocked', ['list' => implode(', ', $labels)]));
+                redirect('/boutique/gerer');
+            }
         }
         Boutique::setStatus((int) $boutique['id'], $action === 'publish' ? 'published' : 'draft');
         flash('success', t($action === 'publish' ? 'shop.published_flash' : 'shop.unpublished_flash'));
