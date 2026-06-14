@@ -186,7 +186,12 @@ if (PHP_SAPI !== 'cli') {
     set_locale((string) (
         $_COOKIE['locale'] ?? config('app.default_locale', 'fr')
     ));
+    // Devise d'affichage : choix explicite (cookie) > devise du pays géolocalisé
+    // (visiteurs compris) > défaut. Les prix s'affichent ainsi dans la devise du
+    // pays détecté pour TOUT le monde.
     set_currency((string) (
-        $_COOKIE['currency'] ?? config('app.default_currency', 'EUR')
+        $_COOKIE['currency']
+        ?? currency_for_country(detect_country_code())
+        ?? config('app.default_currency', 'EUR')
     ));
 }

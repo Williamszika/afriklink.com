@@ -149,6 +149,33 @@ function set_currency(string $currency): void
         : config('app.default_currency', 'EUR');
 }
 
+/**
+ * Devise d'affichage par défaut pour un pays (ISO-3166). Sert à initialiser la
+ * devise du VISITEUR depuis sa géolocalisation : un Ivoirien voit les prix en
+ * XOF, un Français en EUR, etc. Ne renvoie qu'une devise réellement supportée,
+ * ou null si le pays n'a pas de correspondance (l'appelant utilise le défaut).
+ */
+function currency_for_country(?string $cc): ?string
+{
+    $cc = strtoupper(trim((string) $cc));
+    static $map = [
+        'NG' => 'NGN', 'GB' => 'GBP', 'US' => 'USD',
+        // UEMOA — franc CFA Ouest (XOF)
+        'BJ' => 'XOF', 'BF' => 'XOF', 'CI' => 'XOF', 'GW' => 'XOF',
+        'ML' => 'XOF', 'NE' => 'XOF', 'SN' => 'XOF', 'TG' => 'XOF',
+        // Zone euro
+        'FR' => 'EUR', 'DE' => 'EUR', 'IT' => 'EUR', 'ES' => 'EUR', 'PT' => 'EUR',
+        'BE' => 'EUR', 'NL' => 'EUR', 'IE' => 'EUR', 'AT' => 'EUR', 'FI' => 'EUR',
+        'GR' => 'EUR', 'LU' => 'EUR', 'SK' => 'EUR', 'SI' => 'EUR', 'EE' => 'EUR',
+        'LV' => 'EUR', 'LT' => 'EUR', 'CY' => 'EUR', 'MT' => 'EUR',
+    ];
+    $cur = $map[$cc] ?? null;
+    if ($cur === null) {
+        return null;
+    }
+    return in_array($cur, config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']), true) ? $cur : null;
+}
+
 /* ------------------------------------------------------------------ */
 /* Identifiers                                                         */
 /* ------------------------------------------------------------------ */
