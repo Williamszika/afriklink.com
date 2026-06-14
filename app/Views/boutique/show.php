@@ -95,15 +95,6 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 <?php if (!empty($shop_rating['count'])): ?>
                     <p class="shop-rating"><?= render_partial('partials/stars', ['avg' => $shop_rating['avg'], 'count' => $shop_rating['count']]) ?></p>
                 <?php endif; ?>
-                <?= render_partial('partials/share_row', [
-                    'share_url'  => $shopUrl,
-                    'share_text' => t('share.shop_text', ['name' => (string) $boutique['name']]),
-                ]) ?>
-                <?php if ($canOrder): ?>
-                    <button type="button" class="btn btn-primary cart-hero-btn" data-cart-open>
-                        <?= icon('cart', ['size' => 18]) ?> <?= e(t('bcart.view_cart')) ?> <span class="cart-hero-count" data-cart-count>0</span>
-                    </button>
-                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -324,14 +315,6 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
             <?php endif; ?>
         </aside>
     </div>
-
-    <?php if ($canOrder): ?>
-        <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
-        <div class="cart-bar" data-cart-bar hidden>
-            <span class="cart-bar-info"><?= icon('cart', ['size' => 16]) ?> <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
-            <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
-        </div>
-    <?php endif; ?>
 
     <?= render_partial('partials/assistant', ['boutique' => $boutique, 'wa' => $waPhone]) ?>
 </section>
