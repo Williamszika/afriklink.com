@@ -766,6 +766,14 @@ return [
     'notify.client.pay_sms' => 'Commande #:ref confirmée. Réglez :amount pour valider :',
     'notify.client.cod_line' => 'C’est noté : vous réglerez à la livraison.',
     'notify.client.cod_sms' => 'Commande #:ref confirmée. Paiement à la livraison.',
+    'notify.client.shipped_subject' => 'Commande #:ref expédiée',
+    'notify.client.shipped_intro' => 'Votre commande #:ref chez :shop a été expédiée. Vous pouvez suivre son acheminement.',
+    'notify.client.shipped_sms' => 'Commande #:ref expédiée par :shop. Suivi :',
+    'notify.client.track_cta' => 'Suivre ma commande',
+    'notify.client.delivered_subject' => 'Commande #:ref livrée',
+    'notify.client.delivered_intro' => 'Votre commande #:ref chez :shop a été livrée. Merci pour votre achat !',
+    'notify.client.delivered_review' => 'Votre avis aide les autres acheteurs — laissez-en un sur la fiche produit.',
+    'notify.client.delivered_sms' => 'Commande #:ref livrée. Merci ! Donnez votre avis :',
 
     // Restaurant
     'pro.vertical.restaurant' => 'Restaurant',

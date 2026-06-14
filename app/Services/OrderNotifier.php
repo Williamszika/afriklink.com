@@ -164,6 +164,81 @@ final class OrderNotifier
         }
     }
 
+    /** Le vendeur a EXPÉDIÉ la commande : on invite le client à la suivre. */
+    public static function clientOrderShipped(array $order, string $shopName, string $url): void
+    {
+        $ref = self::ref($order);
+        $html = '<p>' . e(t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
+            . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
+            . e(t('notify.client.track_cta')) . '</a></p>'
+            . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+        $text = t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n" . $url;
+        $sms  = t('notify.client.shipped_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
+        self::client(
+            trim((string) ($order['client_email'] ?? '')),
+            (string) ($order['client_phone'] ?? ''),
+            t('notify.client.shipped_subject', ['ref' => $ref]),
+            $html,
+            $text,
+            $sms,
+        );
+        self::clientInApp($order, t('notify.client.shipped_subject', ['ref' => $ref]), $shopName);
+    }
+
+    /** Le vendeur a LIVRÉ la commande : remerciement + invitation à laisser un avis. */
+    public static function clientOrderDelivered(array $order, string $shopName, string $url): void
+    {
+        $ref = self::ref($order);
+        $html = '<p>' . e(t('notify.client.delivered_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
+            . '<p>' . e(t('notify.client.delivered_review')) . '</p>'
+            . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+        $text = t('notify.client.delivered_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n"
+            . t('notify.client.delivered_review') . "\n" . $url;
+        $sms  = t('notify.client.delivered_sms', ['ref' => $ref]) . ' ' . $url;
+        self::client(
+            trim((string) ($order['client_email'] ?? '')),
+            (string) ($order['client_phone'] ?? ''),
+            t('notify.client.delivered_subject', ['ref' => $ref]),
+            $html,
+            $text,
+            $sms,
+        );
+        self::clientInApp($order, t('notify.client.delivered_subject', ['ref' => $ref]), $shopName);
+    }
+
+    /** Réf. courte et lisible d'une commande (les 6 premiers du public_id). */
+    private static function ref(array $order): string
+    {
+        return strtoupper(substr((string) ($order['public_id'] ?? ''), 0, 6));
+    }
+
+    /**
+     * Notification IN-APP côté client — seulement si l'acheteur a un compte
+     * (e-mail de la commande reconnu). Les invités ne reçoivent que e-mail/SMS.
+     * Best-effort : ne lève jamais.
+     */
+    private static function clientInApp(array $order, string $title, string $shopName): void
+    {
+        try {
+            $email = trim((string) ($order['client_email'] ?? ''));
+            if ($email === '') {
+                return;
+            }
+            $buyer = \App\Models\User::findByEmail($email);
+            if ($buyer === null) {
+                return;
+            }
+            \App\Models\Notification::push(
+                (int) $buyer['id'],
+                'order_status',
+                $title,
+                $shopName,
+                '/boutique/commande/' . (string) ($order['public_id'] ?? ''),
+            );
+        } catch (\Throwable) {
+        }
+    }
+
     /** Envoi au client : e-mail (si fourni) + SMS/WhatsApp (si téléphone). Best-effort. */
     private static function client(string $email, string $phone, string $subject, string $html, string $text, string $sms): void
     {

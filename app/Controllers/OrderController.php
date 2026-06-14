@@ -152,15 +152,20 @@ final class OrderController
         } else {
             AuditLog::record((int) $user['id'], 'order.' . $action, 'order', (int) $order['id'], [], $request->ipBinary());
             flash('success', t('order.status_flash', ['status' => t('order.status.' . $to)]));
-            // À la CONFIRMATION d'une commande en ligne, on prévient le client : soit
-            // il doit régler (paiement avant / acompte), soit ce sera à la livraison.
-            if ($action === 'confirm' && (string) $order['source'] === 'online' && (string) ($order['payment_status'] ?? 'unpaid') !== 'paid') {
+            // Commande EN LIGNE : on tient le client informé à chaque étape
+            // (confirmée → expédiée → livrée), par e-mail + SMS/WhatsApp, et en
+            // in-app s'il a un compte. Best-effort : ne bloque jamais le vendeur.
+            if ((string) $order['source'] === 'online') {
+                $clientUrl = url('/boutique/commande/' . $order['public_id']);
+                $shopName  = (string) $boutique['name'];
                 try {
-                    OrderNotifier::clientOrderConfirmed(
-                        $order,
-                        (string) $boutique['name'],
-                        url('/boutique/commande/' . $order['public_id']),
-                    );
+                    if ($action === 'confirm' && (string) ($order['payment_status'] ?? 'unpaid') !== 'paid') {
+                        OrderNotifier::clientOrderConfirmed($order, $shopName, $clientUrl);
+                    } elseif ($action === 'ship') {
+                        OrderNotifier::clientOrderShipped($order, $shopName, $clientUrl);
+                    } elseif ($action === 'deliver') {
+                        OrderNotifier::clientOrderDelivered($order, $shopName, $clientUrl);
+                    }
                 } catch (\Throwable) {
                     // notification best-effort
                 }

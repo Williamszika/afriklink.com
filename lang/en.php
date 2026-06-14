@@ -766,6 +766,14 @@ return [
     'notify.client.pay_sms' => 'Order #:ref confirmed. Pay :amount to validate:',
     'notify.client.cod_line' => 'All set: you will pay on delivery.',
     'notify.client.cod_sms' => 'Order #:ref confirmed. Payment on delivery.',
+    'notify.client.shipped_subject' => 'Order #:ref shipped',
+    'notify.client.shipped_intro' => 'Your order #:ref from :shop has shipped. You can track its delivery.',
+    'notify.client.shipped_sms' => 'Order #:ref shipped by :shop. Track:',
+    'notify.client.track_cta' => 'Track my order',
+    'notify.client.delivered_subject' => 'Order #:ref delivered',
+    'notify.client.delivered_intro' => 'Your order #:ref from :shop has been delivered. Thank you for your purchase!',
+    'notify.client.delivered_review' => 'Your review helps other buyers — leave one on the product page.',
+    'notify.client.delivered_sms' => 'Order #:ref delivered. Thanks! Leave a review:',
 
     // Restaurant
     'pro.vertical.restaurant' => 'Restaurant',
