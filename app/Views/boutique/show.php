@@ -1,5 +1,6 @@
 <?php
 /** @var array $boutique  @var array $seller  @var bool $is_owner  @var bool $seller_verified  @var list<string> $banners */
+use App\Services\BusinessHours;
 use App\Services\CloudinaryService;
 
 $logo   = $boutique['logo_public_id'] ?? null;
@@ -16,7 +17,14 @@ $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' 
 $published = ($boutique['status'] ?? '') === 'published';
 $previewOrder = !$published && $is_owner;
 $onVacation = !empty($boutique['is_vacation']);
-$canOrder = !empty($products) && ($published || $is_owner) && !$onVacation;
+// Horaires structurés : « ouvert / fermé maintenant » à l'heure locale du pays.
+$hoursStruct = BusinessHours::decode($boutique['hours_json'] ?? null);
+$hoursTz     = BusinessHours::timezoneFor($boutique['country_code'] ?? ($seller['country_code'] ?? null));
+$openNow     = BusinessHours::isOpenNow($hoursStruct, $hoursTz);
+$hoursToday  = $hoursStruct !== [] ? BusinessHours::todayKey($hoursTz) : '';
+// Commandes suspendues hors horaires (si le commerçant l'a activé).
+$enforceClosed = !empty($boutique['orders_within_hours']) && $openNow === false;
+$canOrder = !empty($products) && ($published || $is_owner) && !$onVacation && !$enforceClosed;
 // Couleur d'accent de la boutique : on redéfinit --brand (et une nuance plus
 // foncée pour le survol) sur la vitrine. Ignorée si trop claire (texte blanc
 // des boutons sinon illisible).
@@ -38,6 +46,8 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
 <?php endif; ?>
 <?php if ($onVacation): ?>
     <div class="notice notice-warning"><p>🏖️ <?= e(!empty($boutique['vacation_until']) ? t('shop.vacation_until', ['date' => date('d/m/Y', strtotime((string) $boutique['vacation_until']))]) : t('shop.vacation_now')) ?></p></div>
+<?php elseif ($enforceClosed): ?>
+    <div class="notice notice-warning"><p><?= icon('clock', ['size' => 16]) ?> <?= e(t('shop.hours.closed_now_note')) ?></p></div>
 <?php endif; ?>
 <?php if ($previewOrder && $canOrder): ?>
     <div class="notice notice-info"><p><?= icon('eye', ['size' => 16]) ?> <?= e(t('shop.preview_note')) ?></p></div>
@@ -64,6 +74,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 <p class="muted">
                     <?php if (!empty($boutique['category'])): ?><span class="badge badge-neutral"><?= e(t('listing.cat.' . $boutique['category'])) ?></span><?php endif; ?>
                     <?php if ($cc !== ''): ?> <?= flag_emoji($cc) ?> <?= e(country_name($cc)) ?><?php endif; ?>
+                    <?php if ($openNow !== null): ?> <span class="hours-badge <?= $openNow ? 'is-open' : 'is-closed' ?>"><?= icon('clock', ['size' => 12]) ?> <?= e($openNow ? t('shop.open_now') : t('shop.closed_now')) ?></span><?php endif; ?>
                 </p>
                 <?php if (!empty($shop_rating['count'])): ?>
                     <p class="shop-rating"><?= render_partial('partials/stars', ['avg' => $shop_rating['avg'], 'count' => $shop_rating['count']]) ?></p>
@@ -213,7 +224,24 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     <?php if (!empty($boutique['prep_time'])): ?>
                         <dt><?= e(t('shop.f.prep')) ?></dt><dd><?= e(t('shop.prep.' . $boutique['prep_time'])) ?></dd>
                     <?php endif; ?>
-                    <?php if (!empty($boutique['open_hours'])): ?>
+                    <?php if ($hoursStruct !== []): ?>
+                        <dt>
+                            <?= e(t('shop.cfg.hours')) ?>
+                            <?php if ($openNow !== null): ?>
+                                <span class="hours-badge <?= $openNow ? 'is-open' : 'is-closed' ?>"><?= e($openNow ? t('shop.open_now') : t('shop.closed_now')) ?></span>
+                            <?php endif; ?>
+                        </dt>
+                        <dd>
+                            <ul class="hours-list">
+                                <?php foreach (BusinessHours::DAYS as $day): $s = $hoursStruct[$day] ?? null; ?>
+                                    <li<?= $day === $hoursToday ? ' class="is-today"' : '' ?>>
+                                        <span class="hours-list-day"><?= e(t('shop.hours.day.' . $day)) ?></span>
+                                        <span class="hours-list-time"><?= $s !== null ? e($s['o'] . ' – ' . $s['c']) : e(t('shop.hours.closed')) ?></span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </dd>
+                    <?php elseif (!empty($boutique['open_hours'])): ?>
                         <dt><?= e(t('shop.cfg.hours')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= nl2br(e((string) $boutique['open_hours'])) ?></dd>
                     <?php endif; ?>
                     <?php if (!empty($boutique['min_order_cents'])): ?>

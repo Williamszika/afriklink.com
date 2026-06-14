@@ -178,6 +178,18 @@ final class Boutique
                 // déjà migré
             }
         }
+        // Horaires structurés (JSON par jour) + pause des commandes hors horaires.
+        try {
+            db()->query('SELECT hours_json FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN hours_json          VARCHAR(400) NULL,
+                    ADD COLUMN orders_within_hours TINYINT(1) NOT NULL DEFAULT 0');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
         try {
             db()->query('SELECT contact_primary FROM boutiques LIMIT 1');
         } catch (\Throwable) {
@@ -463,7 +475,7 @@ final class Boutique
     public static function updateConfig(int $id, array $cfg): void
     {
         self::ensureTable();
-        $allowed = ['announcement', 'is_vacation', 'vacation_until', 'open_hours', 'min_order_cents', 'accent_color'];
+        $allowed = ['announcement', 'is_vacation', 'vacation_until', 'open_hours', 'min_order_cents', 'accent_color', 'hours_json', 'orders_within_hours'];
         $cols = [];
         $args = ['id' => $id];
         foreach ($allowed as $c) {

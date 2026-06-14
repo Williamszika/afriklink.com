@@ -1,5 +1,6 @@
 <?php
 /** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url  @var array $boutique  @var bool $media_ready  @var list<string> $banners */
+use App\Services\BusinessHours;
 use App\Services\CloudinaryService;
 
 $cats = config('listings.categories', []);
@@ -167,9 +168,29 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <input type="date" id="shop-vac-until" name="vacation_until" value="<?= e((string) ($boutique['vacation_until'] ?? '')) ?>">
                 <p class="hint"><?= e(t('shop.cfg.vacation_hint')) ?></p>
 
-                <label for="shop-hours">🕒 <?= e(t('shop.cfg.hours')) ?></label>
-                <input type="text" id="shop-hours" name="open_hours" maxlength="120" value="<?= e((string) ($boutique['open_hours'] ?? '')) ?>" placeholder="<?= e(t('shop.cfg.hours_ph')) ?>">
-                <p class="hint"><?= e(t('shop.cfg.hours_hint')) ?></p>
+                <?php $hoursStruct = BusinessHours::decode($boutique['hours_json'] ?? null); ?>
+                <fieldset class="hours-editor">
+                    <legend>🕒 <?= e(t('shop.cfg.hours')) ?></legend>
+                    <p class="hint"><?= e(t('shop.hours.hint')) ?></p>
+                    <?php foreach (BusinessHours::DAYS as $day): $slot = $hoursStruct[$day] ?? null; ?>
+                        <div class="hours-row">
+                            <label class="hours-day">
+                                <input type="checkbox" name="h_<?= $day ?>" value="1" <?= $slot !== null ? 'checked' : '' ?>>
+                                <span><?= e(t('shop.hours.day.' . $day)) ?></span>
+                            </label>
+                            <span class="hours-times">
+                                <input type="time" name="h_<?= $day ?>_o" value="<?= e($slot['o'] ?? '09:00') ?>" aria-label="<?= e(t('shop.hours.from')) ?>">
+                                <span aria-hidden="true">–</span>
+                                <input type="time" name="h_<?= $day ?>_c" value="<?= e($slot['c'] ?? '18:00') ?>" aria-label="<?= e(t('shop.hours.to')) ?>">
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
+                </fieldset>
+                <label class="check-pill check-pill--block">
+                    <input type="checkbox" name="orders_within_hours" value="1" <?= !empty($boutique['orders_within_hours']) ? 'checked' : '' ?>>
+                    <span><?= e(t('shop.hours.enforce')) ?></span>
+                </label>
+                <p class="hint"><?= e(t('shop.hours.enforce_hint')) ?></p>
 
                 <label for="shop-minorder">🧺 <?= e(t('shop.cfg.min_order')) ?> (<?= e($selCur) ?>)</label>
                 <input type="text" id="shop-minorder" name="min_order" inputmode="decimal" value="<?= e($fmtCents($boutique['min_order_cents'] ?? null)) ?>" placeholder="0">

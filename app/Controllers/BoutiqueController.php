@@ -13,6 +13,7 @@ use App\Models\StockAlert;
 use App\Models\User;
 use App\Request;
 use App\Services\AuditLog;
+use App\Services\BusinessHours;
 use App\Services\CloudinaryService;
 use App\Services\OrderNotifier;
 use App\Services\Payment\PaymentException;
@@ -177,20 +178,27 @@ final class BoutiqueController
         $isVac    = input_string('is_vacation', '') === '1' ? 1 : 0;
         $vacUntil = (string) input_string('vacation_until', '');
         $vacUntil = preg_match('/^\d{4}-\d{2}-\d{2}$/', $vacUntil) === 1 ? $vacUntil : null;
-        $hours    = trim((string) input_string('open_hours', ''));
+        $hoursJson    = BusinessHours::parseForm($_POST);
+        $ordersWithin = input_string('orders_within_hours', '') === '1' ? 1 : 0;
         $minRaw   = trim((string) input_string('min_order', ''));
         $minCents = $minRaw !== '' ? parse_price_to_cents($minRaw, (string) $boutique['currency']) : null;
         // Couleur d'accent : appliquée seulement si activée ET au format #rrggbb.
         $accent    = strtolower(trim((string) input_string('accent_color', '')));
         $useAccent = input_string('accent_on', '') === '1' && preg_match('/^#[0-9a-f]{6}$/', $accent) === 1;
-        Boutique::updateConfig((int) $boutique['id'], [
-            'announcement'    => $announce !== '' ? mb_substr($announce, 0, 200) : null,
-            'is_vacation'     => $isVac,
-            'vacation_until'  => $isVac ? $vacUntil : null,
-            'open_hours'      => $hours !== '' ? mb_substr($hours, 0, 120) : null,
-            'min_order_cents' => $minCents !== null && $minCents > 0 ? $minCents : null,
-            'accent_color'    => $useAccent ? $accent : null,
-        ]);
+        $cfg = [
+            'announcement'        => $announce !== '' ? mb_substr($announce, 0, 200) : null,
+            'is_vacation'         => $isVac,
+            'vacation_until'      => $isVac ? $vacUntil : null,
+            'hours_json'          => $hoursJson,
+            'orders_within_hours' => $hoursJson !== null ? $ordersWithin : 0,
+            'min_order_cents'     => $minCents !== null && $minCents > 0 ? $minCents : null,
+            'accent_color'        => $useAccent ? $accent : null,
+        ];
+        // Les horaires structurés remplacent l'ancienne note en texte libre.
+        if ($hoursJson !== null) {
+            $cfg['open_hours'] = null;
+        }
+        Boutique::updateConfig((int) $boutique['id'], $cfg);
         AuditLog::record((int) $user['id'], 'shop.updated', 'boutique', (int) $boutique['id'], [], $request->ipBinary());
         clear_old();
         flash('success', t('shop.updated_flash'));
@@ -773,6 +781,16 @@ final class BoutiqueController
         if (!empty($boutique['is_vacation'])) {
             flash('error', t('shop.vacation_blocked'));
             redirect('/boutique/' . $boutique['slug']);
+        }
+        // Horaires : si la boutique n'accepte les commandes que pendant ses heures
+        // d'ouverture et qu'elle est fermée maintenant, la commande est suspendue.
+        if (!empty($boutique['orders_within_hours'])) {
+            $hours = BusinessHours::decode($boutique['hours_json'] ?? null);
+            $tz    = BusinessHours::timezoneFor($boutique['country_code'] ?? null);
+            if (BusinessHours::isOpenNow($hours, $tz) === false) {
+                flash('error', t('shop.hours.closed_blocked'));
+                redirect('/boutique/' . $boutique['slug']);
+            }
         }
         $cur = (string) $boutique['currency'];
         // Le panier est tenu côté caisse (session), validé serveur ; jamais lu du client.

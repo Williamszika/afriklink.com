@@ -1257,6 +1257,27 @@ h2 { letter-spacing:-.01em; }
 .shop-announce { background:linear-gradient(90deg,var(--brand),#0a7d28); color:#fff; font-weight:600; padding:10px 16px; border-radius:12px; margin-bottom:14px; text-align:center; }
 .check-pill--block { display:flex; align-items:center; gap:8px; margin:12px 0 4px; }
 
+/* Boutique : horaires d'ouverture structurés + badge ouvert/fermé */
+.hours-editor { border:1px solid var(--border); border-radius:12px; padding:10px 14px 14px; margin:12px 0 6px; }
+.hours-editor legend { font-weight:600; padding:0 6px; }
+.hours-editor .hint { margin:0 0 8px; }
+.hours-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 0; border-top:1px solid var(--border); }
+.hours-row:first-of-type { border-top:0; }
+.hours-day { display:flex; align-items:center; gap:8px; cursor:pointer; min-width:120px; margin:0; }
+.hours-day input { width:auto; }
+.hours-times { display:inline-flex; align-items:center; gap:6px; transition:opacity .15s; }
+.hours-times input[type=time] { width:auto; padding:4px 6px; }
+.hours-row:has(.hours-day input:not(:checked)) .hours-times { opacity:.4; }
+.hours-badge { display:inline-flex; align-items:center; gap:3px; font-size:.72em; font-weight:600; border-radius:999px; padding:2px 8px; vertical-align:middle; border:1px solid transparent; }
+.hours-badge.is-open { background:#eafaf2; color:#0f7a3c; border-color:#9fdcbe; }
+.hours-badge.is-closed { background:#fdeaea; color:#b42318; border-color:#f3b9b4; }
+.hours-list { list-style:none; margin:4px 0 0; padding:0; display:grid; gap:3px; font-size:.92rem; }
+.hours-list li { display:flex; justify-content:space-between; gap:16px; }
+.hours-list-time { white-space:nowrap; }
+.hours-list-day { color:var(--muted,#667085); }
+.hours-list .is-today { font-weight:600; color:var(--brand); }
+.hours-list .is-today .hours-list-day { color:inherit; }
+
 /* Centre de notifications (cloche) */
 .notif-page { max-width:720px; margin:0 auto; }
 .notif-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
