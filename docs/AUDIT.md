@@ -198,8 +198,9 @@ Ossature **multi-fournisseurs**, chacun activé dès que ses clés d'env existen
 - **Catégories vivantes** (tendance + cache) au lieu d'une liste figée.
 
 ### Points d'attention (à traiter)
-1. **Incohérence de commission** : `config/payment.php` → `platform_commission_pct = 5 %`,
-   mais `config/app.php` → `platform_fee_bps = 1000` (**10 %**). À **réconcilier** (une seule source).
+1. ~~Incohérence de commission~~ → ✅ **résolu** : source unique = `config/payment.php`
+   (`platform_commission_pct`, défaut **5 %**, env `PLATFORM_COMMISSION_PCT`), calcul via le helper
+   `platform_commission_cents()` ; le doublon `platform_fee_bps` (app.php + `.env.example`) a été retiré.
 2. **PSP réels non branchés** : seul `simulation` fonctionne ; CinetPay/Stripe/PayPal sont
    **scaffoldés** (activation par clés d'env) mais l'intégration API + **webhook signé = vérité**
    reste à implémenter avant tout encaissement réel.

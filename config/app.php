@@ -32,8 +32,8 @@ return [
     // Zero-decimal currencies (no minor unit) — never blindly /100 these.
     'zero_decimal_currencies' => ['XOF', 'XAF', 'JPY', 'KRW'],
 
-    // Marketplace commission, basis points (1000 = 10%).
-    'platform_fee_bps' => (int) ($_ENV['PLATFORM_FEE_BPS'] ?? 1000),
+    // Commission plateforme : SOURCE UNIQUE dans config/payment.php
+    // ('platform_commission_pct' + helper platform_commission_cents()).
 
     // Token lifetimes (seconds).
     'email_verification_ttl' => 86400,   // 24h

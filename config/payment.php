@@ -13,6 +13,7 @@ declare(strict_types=1);
  */
 return [
     // Commission de la plateforme prélevée sur chaque transaction (%).
+    // SOURCE UNIQUE de la commission marketplace — calcul via platform_commission_cents().
     'platform_commission_pct' => (float) env('PLATFORM_COMMISSION_PCT', 5.0),
 
     // Fournisseur par défaut proposé au vendeur.

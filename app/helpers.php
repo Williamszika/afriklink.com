@@ -486,6 +486,22 @@ function parse_price_to_cents(string $raw, string $currency): ?int
     return (int) round(((float) $raw) * 100);
 }
 
+/**
+ * Commission de la plateforme (en centimes) sur un sous-total donné.
+ * SOURCE UNIQUE : config('payment.platform_commission_pct') (env PLATFORM_COMMISSION_PCT,
+ * défaut 5 %). Bornée à [0 ; sous-total]. C'est ICI — et nulle part ailleurs — que se
+ * calcule la part Afriklink, à brancher sur application_fee (Stripe) / split (CinetPay)
+ * lors de l'encaissement réel.
+ */
+function platform_commission_cents(int $subtotalCents): int
+{
+    if ($subtotalCents <= 0) {
+        return 0;
+    }
+    $pct = max(0.0, min(100.0, (float) config('payment.platform_commission_pct', 5.0)));
+    return (int) min($subtotalCents, (int) round($subtotalCents * $pct / 100));
+}
+
 /** Formate des centimes en prix lisible : « 12,50 € », « 15 000 F CFA ». */
 function format_price(int $cents, string $currency): string
 {
