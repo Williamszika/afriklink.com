@@ -7,15 +7,15 @@
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1><?= $icon ?> <?= e(t($prefix . '_title')) ?> <span class="chip-soon"><?= e(t('dash.soon')) ?></span></h1>
+            <h1><?= icon($icon, ['size' => 22]) ?> <?= e(t($prefix . '_title')) ?> <span class="chip-soon"><?= e(t('dash.soon')) ?></span></h1>
             <p class="muted"><?= e(t($prefix . '_lead')) ?></p>
         </div>
 
         <div class="panel">
             <ul class="tips">
-                <li>✅ <?= e(t($prefix . '_b1')) ?></li>
-                <li>✅ <?= e(t($prefix . '_b2')) ?></li>
-                <li>✅ <?= e(t($prefix . '_b3')) ?></li>
+                <li><?= icon('check', ['size' => 16]) ?> <?= e(t($prefix . '_b1')) ?></li>
+                <li><?= icon('check', ['size' => 16]) ?> <?= e(t($prefix . '_b2')) ?></li>
+                <li><?= icon('check', ['size' => 16]) ?> <?= e(t($prefix . '_b3')) ?></li>
             </ul>
         </div>
 

@@ -152,7 +152,7 @@ final class SellerController
 
     public function earnings(Request $request): void
     {
-        $this->soon('gains', '💸', 'seller.earnings');
+        $this->soon('gains', 'wallet', 'seller.earnings');
     }
 
     public function advertising(Request $request): void

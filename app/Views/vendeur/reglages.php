@@ -11,7 +11,7 @@ $currencies = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>⚙️ <?= e(t('settings.title')) ?></h1>
+            <h1><?= icon('settings', ['size' => 24]) ?> <?= e(t('settings.title')) ?></h1>
             <p class="muted"><?= e(t('settings.subtitle')) ?></p>
         </div>
 

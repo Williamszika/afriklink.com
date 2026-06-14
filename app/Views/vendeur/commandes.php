@@ -25,14 +25,14 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>🧾 <?= e(t('order.title')) ?></h1>
+            <h1><?= icon('receipt', ['size' => 24]) ?> <?= e(t('order.title')) ?></h1>
             <p class="muted"><?= e(t('order.subtitle')) ?></p>
         </div>
 
         <?php if ($boutique === null): ?>
             <div class="panel">
                 <div class="empty-state">
-                    <p style="font-size:2rem;margin:0 0 6px" aria-hidden="true">🛍️</p>
+                    <p style="margin:0 0 6px" aria-hidden="true"><?= icon('store', ['size' => 34]) ?></p>
                     <p><?= e(t('order.need_shop')) ?></p>
                     <a class="btn btn-primary" href="<?= e(url('/boutique/creer')) ?>"><?= e(t('shop.cta_create')) ?></a>
                 </div>
@@ -41,7 +41,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
 
             <!-- Enregistrer une commande (ventes WhatsApp / téléphone / sur place) -->
             <details class="panel order-record" <?= has_error('product') || has_error('client_name') || has_error('qty') || has_error('total') || has_error('client_phone') ? 'open' : '' ?>>
-                <summary class="order-record-summary">➕ <?= e(t('order.record_cta')) ?></summary>
+                <summary class="order-record-summary"><?= icon('plus', ['size' => 16]) ?> <?= e(t('order.record_cta')) ?></summary>
                 <p class="muted"><?= e(t('order.record_hint')) ?></p>
                 <?php if ($products === []): ?>
                     <p class="muted"><?= e(t('order.no_products')) ?> — <a href="<?= e(url('/boutique/produits/nouveau')) ?>"><?= e(t('product.add')) ?></a></p>
@@ -104,7 +104,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
             <?php if ($orders === []): ?>
                 <div class="panel">
                     <div class="empty-state">
-                        <p style="font-size:2rem;margin:0 0 6px" aria-hidden="true">🧾</p>
+                        <p style="margin:0 0 6px" aria-hidden="true"><?= icon('receipt', ['size' => 34]) ?></p>
                         <p><?= e(t('order.empty.' . $filter)) ?></p>
                     </div>
                 </div>
@@ -123,7 +123,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                 <span class="badge <?= $statusBadge($st) ?>"><?= e(t('order.status.' . $st)) ?></span>
                                 <span class="order-source"><?= e(t('order.source.' . (string) $o['source'])) ?></span>
                                 <?php if (!empty($o['fulfillment'])): ?><span class="order-source"><?= e(t('shop.method.' . $o['fulfillment'])) ?></span><?php endif; ?>
-                                <?php if (!empty($o['payment_term'])): ?><span class="order-source">💳 <?= e(t('shop.payterm.' . $o['payment_term'])) ?></span><?php endif; ?>
+                                <?php if (!empty($o['payment_term'])): ?><span class="order-source"><?= icon('card', ['size' => 14]) ?> <?= e(t('shop.payterm.' . $o['payment_term'])) ?></span><?php endif; ?>
                                 <?php if (!empty($o['payment_method'])): ?><span class="order-source"><img class="pay-logo-inline" src="<?= e(asset('img/pay/' . $o['payment_method'] . '.svg')) ?>" alt="" width="22" height="14"> <?= e(t('shop.paymethod.' . $o['payment_method'])) ?></span><?php endif; ?>
                                 <?php if (($o['source'] ?? '') === 'online'): $ps = (string) ($o['payment_status'] ?? 'unpaid'); ?>
                                     <span class="badge <?= $ps === 'paid' ? 'badge-ok' : 'badge-neutral' ?>"><?= e(t('order.pay.' . ($ps === 'paid' ? 'paid' : 'unpaid'))) ?></span>
@@ -144,30 +144,30 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                 </p>
                             <?php endif; ?>
                             <p class="order-client">
-                                👤 <?= e((string) $o['client_name']) ?>
+                                <?= icon('user', ['size' => 15]) ?> <?= e((string) $o['client_name']) ?>
                                 <?php if ($phone !== ''): ?>
                                     · <a href="https://wa.me/<?= e($phone) ?>" target="_blank" rel="noopener"><img class="social-logo-sm" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="18" height="18"> <?= e((string) $o['client_phone']) ?></a>
                                 <?php endif; ?>
                             </p>
                             <?php if (!empty($o['client_address'])): ?>
-                                <p class="order-note">📍 <?= e((string) $o['client_address']) ?></p>
+                                <p class="order-note"><?= icon('pin', ['size' => 15]) ?> <?= e((string) $o['client_address']) ?></p>
                             <?php endif; ?>
                             <?php if (!empty($o['geo_lat']) && !empty($o['geo_lng'])): ?>
-                                <p class="order-note">🗺️ <a href="https://www.google.com/maps?q=<?= e((string) $o['geo_lat']) ?>,<?= e((string) $o['geo_lng']) ?>" target="_blank" rel="noopener"><?= e(t('order.map_link')) ?></a></p>
+                                <p class="order-note"><?= icon('pin', ['size' => 15]) ?> <a href="https://www.google.com/maps?q=<?= e((string) $o['geo_lat']) ?>,<?= e((string) $o['geo_lng']) ?>" target="_blank" rel="noopener"><?= e(t('order.map_link')) ?></a></p>
                             <?php endif; ?>
                             <?php if (!empty($o['note'])): ?>
-                                <p class="order-note">📝 <?= e((string) $o['note']) ?></p>
+                                <p class="order-note"><?= icon('pencil', ['size' => 14]) ?> <?= e((string) $o['note']) ?></p>
                             <?php endif; ?>
                             <?php if (in_array($st, ['new', 'confirmed', 'shipped'], true)): ?>
                                 <form method="post" action="<?= e(url('/vendeur/commandes/' . $o['public_id'] . '/statut')) ?>" class="order-actions">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="retour" value="<?= e($filter) ?>">
                                     <?php if ($st === 'new'): ?>
-                                        <button class="btn btn-primary btn-sm" name="action" value="confirm">✅ <?= e(t('order.act.confirm')) ?></button>
+                                        <button class="btn btn-primary btn-sm" name="action" value="confirm"><?= icon('check', ['size' => 16]) ?> <?= e(t('order.act.confirm')) ?></button>
                                     <?php elseif ($st === 'confirmed'): ?>
-                                        <button class="btn btn-primary btn-sm" name="action" value="ship">📦 <?= e(t('order.act.ship')) ?></button>
+                                        <button class="btn btn-primary btn-sm" name="action" value="ship"><?= icon('package', ['size' => 16]) ?> <?= e(t('order.act.ship')) ?></button>
                                     <?php else: ?>
-                                        <button class="btn btn-primary btn-sm" name="action" value="deliver">🏁 <?= e(t('order.act.deliver')) ?></button>
+                                        <button class="btn btn-primary btn-sm" name="action" value="deliver"><?= icon('flag', ['size' => 16]) ?> <?= e(t('order.act.deliver')) ?></button>
                                     <?php endif; ?>
                                     <?php if ($st !== 'shipped'): ?>
                                         <button class="btn btn-ghost btn-sm btn-danger" name="action" value="cancel"

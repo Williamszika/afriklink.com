@@ -45,5 +45,10 @@ return [
     'globe'      => '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>',
     'truck'      => '<path d="M3 6h11v9H3z"/><path d="M14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/>',
     'clock'      => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    'check'      => '<path d="M5 12.5 10 17 19.5 7"/>',
+    'plus'       => '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    'card'       => '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/>',
+    'user'       => '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
+    'flag'       => '<path d="M5 21V4"/><path d="M5 4h11l-1.4 4L16 12H5"/>',
     'utensils'   => '<path d="M6 3v5a2 2 0 0 0 4 0V3"/><path d="M8 8v13"/><path d="M16 3c-1.66 0-3 2.24-3 5s1.34 4 3 4"/><path d="M16 3v18"/>',
 ];
