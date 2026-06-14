@@ -95,6 +95,22 @@ $waText = rawurlencode(
     <?php if ($wa !== ''): ?>
         <p><a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('bcart.send_whatsapp')) ?></a></p>
     <?php endif; ?>
+    <?php /* ---- Actions acheteur : annulation / retour ---- */ ?>
+    <?php $retReq = !empty($order['return_requested_at']); ?>
+    <?php if (in_array($status, ['new', 'confirmed'], true)): ?>
+        <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/annuler')) ?>" data-confirm="<?= e(t('buyer.cancel_confirm')) ?>">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-ghost btn-block btn-danger"><?= e(t('buyer.cancel_cta')) ?></button>
+        </form>
+    <?php elseif ($status === 'delivered' && !$retReq): ?>
+        <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/retour')) ?>" data-confirm="<?= e(t('buyer.return_confirm')) ?>">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-ghost btn-block">↩️ <?= e(t('buyer.return_cta')) ?></button>
+        </form>
+    <?php elseif ($retReq): ?>
+        <p class="notice notice-info">↩️ <?= e(t('buyer.return_pending')) ?></p>
+    <?php endif; ?>
+
     <?php if ($boutique && ($boutique['status'] ?? '') === 'published'): ?>
         <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/recommander')) ?>">
             <?= csrf_field() ?>

@@ -118,6 +118,8 @@ final class Order
             'delivered_at'    => "ADD COLUMN delivered_at DATETIME NULL AFTER shipped_at",
             // Acheteur connecté (≠ user_id qui pointe le vendeur) : historique d'achat.
             'buyer_user_id'   => "ADD COLUMN buyer_user_id BIGINT UNSIGNED NULL AFTER user_id",
+            // Demande de retour par l'acheteur (après livraison).
+            'return_requested_at' => "ADD COLUMN return_requested_at DATETIME NULL AFTER delivered_at",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -607,6 +609,16 @@ final class Order
             return (int) $stmt->fetchColumn();
         } catch (\Throwable) {
             return 0;
+        }
+    }
+
+    /** L'acheteur demande un retour (après livraison). Best-effort. */
+    public static function requestReturn(int $id): void
+    {
+        try {
+            db()->prepare('UPDATE orders SET return_requested_at = COALESCE(return_requested_at, NOW()) WHERE id = :id')
+                ->execute(['id' => $id]);
+        } catch (\Throwable) {
         }
     }
 

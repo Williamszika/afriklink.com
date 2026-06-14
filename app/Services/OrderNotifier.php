@@ -106,6 +106,33 @@ final class OrderNotifier
         MailService::send($to, t('notify.order.mail_subject', ['shop' => $vitrineName, 'ref' => $orderRef]), $html, $text);
     }
 
+    /**
+     * Mise à jour générique côté VENDEUR (annulation / retour par l'acheteur),
+     * e-mail + SMS selon ses préférences. Best-effort.
+     */
+    public static function sellerOrderUpdate(array $seller, string $subject, string $line, string $url): void
+    {
+        $prefs = \App\Models\ProProfile::sellerPrefs((int) ($seller['id'] ?? 0));
+        $email = trim((string) ($seller['email'] ?? ''));
+        if ($email !== '' && $prefs['notify_email']) {
+            $html = '<p>' . e($line) . '</p>'
+                . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
+                . e(t('notify.order.mail_cta')) . '</a></p>'
+                . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+            try {
+                MailService::send($email, $subject, $html, $line . "\n" . $url);
+            } catch (\Throwable) {
+            }
+        }
+        $phone = Notifier::normalize((string) ($seller['phone'] ?? ''));
+        if ($phone !== '' && $prefs['notify_sms']) {
+            try {
+                Notifier::send($phone, $line . ' ' . $url);
+            } catch (\Throwable) {
+            }
+        }
+    }
+
     /* ---- Côté client -------------------------------------------------- */
 
     /**

@@ -210,6 +210,8 @@ return [
     ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['csrf', 'throttle:border,40,3600']],
     ['GET',  '/boutique/commande/{ref}',   [BoutiqueController::class, 'orderConfirmation'], []],
     ['POST', '/boutique/commande/{ref}/recommander', [BoutiqueController::class, 'reorder'], ['csrf', 'throttle:border,40,3600']],
+    ['POST', '/boutique/commande/{ref}/annuler',     [BoutiqueController::class, 'cancelOrder'],   ['csrf', 'throttle:border,40,3600']],
+    ['POST', '/boutique/commande/{ref}/retour',      [BoutiqueController::class, 'requestReturn'], ['csrf', 'throttle:border,40,3600']],
     // Paiement en ligne de la commande (public ; PSP réel ou bac à sable de simulation)
     ['POST', '/boutique/commande/{ref}/payer',  [BoutiqueController::class, 'payStart'],   ['csrf', 'throttle:bpay,30,3600']],
     ['GET',  '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySandbox'], []],

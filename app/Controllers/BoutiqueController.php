@@ -764,6 +764,80 @@ final class BoutiqueController
         redirect('/boutique/' . $boutique['slug'] . '/caisse');
     }
 
+    /** L'acheteur annule sa commande (tant qu'elle n'est pas expédiée). */
+    public function cancelOrder(Request $request): void
+    {
+        $order = $this->ownedOrderOrAbort((string) $request->param('ref', ''));
+        $status = (string) ($order['status'] ?? '');
+        if (!in_array($status, ['new', 'confirmed'], true)) {
+            flash('error', t('buyer.cancel_too_late'));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        Order::applyAction((int) $order['id'], $status, 'cancel');
+        $this->notifySellerOrderEvent($order, 'cancelled');
+        flash('success', t('buyer.cancel_done'));
+        redirect('/boutique/commande/' . $order['public_id']);
+    }
+
+    /** L'acheteur demande un retour (après livraison). */
+    public function requestReturn(Request $request): void
+    {
+        $order = $this->ownedOrderOrAbort((string) $request->param('ref', ''));
+        if ((string) ($order['status'] ?? '') !== 'delivered') {
+            flash('error', t('buyer.return_not_delivered'));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        Order::requestReturn((int) $order['id']);
+        $this->notifySellerOrderEvent($order, 'return');
+        flash('success', t('buyer.return_done'));
+        redirect('/boutique/commande/' . $order['public_id']);
+    }
+
+    /**
+     * Charge une commande par sa réf et vérifie que l'utilisateur connecté a le
+     * droit d'agir dessus : si la commande est rattachée à un compte acheteur,
+     * seul cet acheteur peut agir ; une commande d'invité reste pilotable via sa
+     * réf (lien privé reçu par e-mail).
+     */
+    private function ownedOrderOrAbort(string $ref): array
+    {
+        $order = Order::findByPublicId($ref);
+        if ($order === null) {
+            abort(404);
+        }
+        $buyer = (int) ($order['buyer_user_id'] ?? 0);
+        if ($buyer > 0 && $buyer !== (int) (current_user_id() ?? 0)) {
+            abort(403);
+        }
+        return $order;
+    }
+
+    /** Prévient le vendeur (cloche + e-mail/SMS selon ses préférences) d'un événement acheteur. */
+    private function notifySellerOrderEvent(array $order, string $event): void
+    {
+        try {
+            $boutique = $this->boutiqueOf((int) $order['boutique_id']);
+            if ($boutique === null) {
+                return;
+            }
+            $ref  = strtoupper(substr((string) $order['public_id'], 0, 6));
+            $seller = User::findById((int) $boutique['user_id']) ?? [];
+            $titleKey = $event === 'cancelled' ? 'notif.order_cancelled' : 'notif.order_return';
+            \App\Models\Notification::push(
+                (int) $boutique['user_id'], 'order', t($titleKey),
+                '#' . $ref . ' · ' . (string) ($order['client_name'] ?? ''), '/vendeur/commandes'
+            );
+            \App\Services\OrderNotifier::sellerOrderUpdate(
+                $seller,
+                t('notify.seller.' . $event . '_subject', ['ref' => $ref]),
+                t('notify.seller.' . $event . '_line', ['ref' => $ref, 'shop' => (string) $boutique['name']]),
+                url('/vendeur/commandes'),
+            );
+        } catch (\Throwable) {
+            // notification best-effort
+        }
+    }
+
     /** La caisse : récapitulatif du panier + moyen / type de paiement + validation. */
     public function caisse(Request $request): void
     {
