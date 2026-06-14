@@ -82,7 +82,9 @@ final class HomeController
         $ids = array_map(static fn (array $p): int => (int) $p['id'], $products);
         view('explore', [
             'page_title' => t('explore.title'),
-            'categories' => $cats,
+            // Filtre : toutes les catégories restent sélectionnables ($cats sert à la
+            // validation), mais on les ORDONNE par volume de contenu publié.
+            'categories' => \App\Services\Categories::ordered(),
             'countries'  => $countries,
             'f'          => $f,
             'page'       => $page,
