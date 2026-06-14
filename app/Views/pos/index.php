@@ -25,7 +25,29 @@ $cur = (string) $boutique['currency'];
                 </form>
             </div>
         <?php else: ?>
-            <!-- Session ouverte : récap + mouvements + clôture -->
+            <!-- Session ouverte : vente rapide + récap + mouvements + clôture -->
+            <div class="panel pos-sale">
+                <h2 class="panel-title">🛒 <?= e(t('pos.sale_title')) ?></h2>
+                <?php if (empty($units)): ?>
+                    <p class="muted"><?= e(t('shop.products_empty')) ?></p>
+                <?php else: ?>
+                    <form method="post" action="<?= e(url('/vendeur/point-de-vente/vente')) ?>">
+                        <?= csrf_field() ?>
+                        <label for="pos-unit"><?= e(t('pos.f.unit')) ?></label>
+                        <select id="pos-unit" name="unit" required>
+                            <?php foreach ($units as $u): $out = $u['stock'] !== null && (int) $u['stock'] <= 0; ?>
+                                <option value="<?= e((string) $u['id']) ?>" <?= $out ? 'disabled' : '' ?>><?= e((string) $u['label']) ?> — <?= e(format_price((int) $u['price'], $cur)) ?><?php if ($u['stock'] !== null): ?> · <?= (int) $u['stock'] ?> <?= e(t('pos.in_stock')) ?><?php endif; ?><?php if ($out): ?> · <?= e(t('product.out_of_stock')) ?><?php endif; ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="grid-2">
+                            <div><label for="pos-qty"><?= e(t('pos.f.qty')) ?></label><input type="text" id="pos-qty" name="qty" inputmode="numeric" value="1" required></div>
+                            <div><label for="pos-received"><?= e(t('pos.f.received', ['cur' => $cur])) ?></label><input type="text" id="pos-received" name="received" inputmode="decimal" placeholder="0" required></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">💵 <?= e(t('pos.sale_btn')) ?></button>
+                    </form>
+                    <p class="hint">🔁 <?= e(t('pos.shared_note')) ?></p>
+                <?php endif; ?>
+            </div>
             <div class="stat-grid cols-3">
                 <div class="stat-card"><div class="num afk-mono"><?= e(format_price((int) $session['opening_float_cents'], $cur)) ?></div><div class="lbl"><?= e(t('pos.k.float')) ?></div></div>
                 <div class="stat-card"><div class="num afk-mono"><?= e(format_price($expected, $cur)) ?></div><div class="lbl"><?= e(t('pos.k.expected')) ?></div></div>

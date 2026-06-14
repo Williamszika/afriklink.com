@@ -125,6 +125,7 @@ return [
     ['GET',  '/vendeur/gains',       [SellerController::class, 'earnings'],     ['auth']],
     ['GET',  '/vendeur/point-de-vente',           [PosController::class, 'index'],    ['auth']],
     ['POST', '/vendeur/point-de-vente/ouvrir',    [PosController::class, 'open'],     ['auth', 'csrf']],
+    ['POST', '/vendeur/point-de-vente/vente',     [PosController::class, 'sale'],     ['auth', 'csrf']],
     ['POST', '/vendeur/point-de-vente/mouvement', [PosController::class, 'movement'], ['auth', 'csrf']],
     ['POST', '/vendeur/point-de-vente/fermer',    [PosController::class, 'close'],    ['auth', 'csrf']],
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],

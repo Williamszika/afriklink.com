@@ -5,6 +5,9 @@ namespace App\Controllers;
 
 use App\Models\Boutique;
 use App\Models\CashMovement;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Register;
 use App\Models\RegisterSession;
 use App\Request;
@@ -37,6 +40,7 @@ final class PosController
             'session'   => $session,
             'movements' => $movements,
             'expected'  => $session !== null ? RegisterSession::expectedCash($session) : 0,
+            'units'     => $session !== null ? $this->sellableUnits((int) $boutique['id']) : [],
             'sessions'  => RegisterSession::forRegister((int) $register['id'], 8),
         ] + SellerController::commonData($user));
     }
@@ -94,6 +98,43 @@ final class PosController
         redirect('/vendeur/point-de-vente');
     }
 
+    /** Vente rapide en caisse réglée en espèces — décrémente le stock PARTAGÉ. */
+    public function sale(Request $request): void
+    {
+        [$user, $boutique] = $this->sellerShop();
+        $register = $this->register($boutique);
+        $session  = RegisterSession::findOpen((int) $register['id']);
+        if ($session === null) {
+            flash('error', t('pos.err_no_session'));
+            redirect('/vendeur/point-de-vente');
+        }
+        $cur  = (string) $boutique['currency'];
+        $qty  = max(1, (int) input_string('qty', '1'));
+        $line = $this->resolveLine($boutique, (string) input_string('unit', ''), $qty);
+        if ($line === null) {
+            flash('error', t('pos.err_unit'));
+            redirect('/vendeur/point-de-vente');
+        }
+        $total    = $line['qty'] * $line['unit_price_cents'];
+        $received = (int) (parse_price_to_cents(trim((string) input_string('received', '')), $cur) ?? 0);
+        if ($received < $total) {
+            flash('error', t('pos.err_received'));
+            redirect('/vendeur/point-de-vente');
+        }
+        $change   = $received - $total;
+        $publicId = Order::createPosSale([
+            'boutique_id' => (int) $boutique['id'], 'user_id' => (int) $boutique['user_id'],
+            'register_session_id' => (int) $session['id'], 'currency' => $cur,
+        ], [$line], ['method' => 'cash', 'amount_cents' => $received, 'change_given_cents' => $change]);
+        if ($publicId === null) {
+            flash('error', t('pos.err_stock'));
+            redirect('/vendeur/point-de-vente');
+        }
+        AuditLog::record((int) $user['id'], 'pos.sale', 'register_session', (int) $session['id'], ['order' => $publicId, 'total' => $total], $request->ipBinary());
+        flash('success', t('pos.sale_done', ['change' => format_price($change, $cur)]));
+        redirect('/vendeur/point-de-vente');
+    }
+
     /* ---- Helpers ---- */
 
     /** @return array{0:array,1:array} [user, boutique] ; redirige sinon. */
@@ -118,5 +159,46 @@ final class PosController
             $registers = Register::forBoutique((int) $boutique['id']);
         }
         return $registers[0];
+    }
+
+    /** Unités vendables : produit simple OU chaque variante réelle (stock partagé). */
+    private function sellableUnits(int $boutiqueId): array
+    {
+        $units = [];
+        foreach (Product::forBoutique($boutiqueId, true) as $p) {
+            $variants = ProductVariant::forProduct((int) $p['id']);
+            $real = array_values(array_filter($variants, static fn (array $v): bool =>
+                trim((string) ($v['label'] ?? '')) !== '' || count($variants) > 1));
+            if ($real !== []) {
+                foreach ($real as $v) {
+                    $units[] = ['id' => (string) $v['public_id'], 'label' => (string) $p['name'] . ' — ' . ($v['label'] ?: '—'),
+                        'price' => $v['price_cents'] !== null ? (int) $v['price_cents'] : (int) $p['price_cents'], 'stock' => $v['stock']];
+                }
+            } else {
+                $units[] = ['id' => (string) $p['public_id'], 'label' => (string) $p['name'], 'price' => (int) $p['price_cents'], 'stock' => $p['stock']];
+            }
+        }
+        return $units;
+    }
+
+    /** Résout un identifiant public (produit ou variante) en ligne de vente vérifiée. */
+    private function resolveLine(array $boutique, string $publicId, int $qty): ?array
+    {
+        $variant = ProductVariant::findByPublicId($publicId);
+        $product = $variant !== null ? Product::findById((int) $variant['product_id']) : Product::findByPublicId($publicId);
+        if ($product === null || (int) $product['boutique_id'] !== (int) $boutique['id'] || $product['status'] !== 'active') {
+            return null;
+        }
+        $stock = $variant !== null ? $variant['stock'] : $product['stock'];
+        $price = ($variant !== null && $variant['price_cents'] !== null) ? (int) $variant['price_cents'] : (int) $product['price_cents'];
+        $qty = max(1, min(999, $qty));
+        if ($stock !== null) {
+            $stock = (int) $stock;
+            if ($stock <= 0) { return null; }
+            $qty = min($qty, $stock);
+        }
+        $label = $variant !== null ? trim((string) ($variant['label'] ?? '')) : '';
+        return ['product_id' => (int) $product['id'], 'variant_id' => $variant !== null ? (int) $variant['id'] : null,
+            'title' => (string) $product['name'] . ($label !== '' ? ' — ' . $label : ''), 'qty' => $qty, 'unit_price_cents' => $price];
     }
 }

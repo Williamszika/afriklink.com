@@ -107,6 +107,8 @@ final class Order
             'shipping_cents' => "ADD COLUMN shipping_cents BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER total_cents",
             'discount_cents' => "ADD COLUMN discount_cents BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER shipping_cents",
             'discount_code'  => "ADD COLUMN discount_code VARCHAR(40) NULL AFTER discount_cents",
+            'channel'        => "ADD COLUMN channel VARCHAR(8) NOT NULL DEFAULT 'online' AFTER source",
+            'register_session_id' => "ADD COLUMN register_session_id BIGINT UNSIGNED NULL AFTER channel",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -234,6 +236,125 @@ final class Order
             throw $e;
         }
         return $publicId;
+    }
+
+    /** Lignes de paiement (« tenders ») d'une vente — permet le paiement mixte. */
+    public static function ensureTendersTable(): void
+    {
+        db()->exec(
+            'CREATE TABLE IF NOT EXISTS order_tenders (
+                id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                order_id           BIGINT UNSIGNED NOT NULL,
+                method             VARCHAR(16) NOT NULL,
+                amount_cents       BIGINT UNSIGNED NOT NULL,
+                change_given_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
+                currency           CHAR(3) NOT NULL DEFAULT \'EUR\',
+                provider_ref       VARCHAR(120) NULL,
+                created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                KEY idx_tenders_order (order_id)
+            )'
+        );
+    }
+
+    /**
+     * Vente en caisse (POS) : commande channel='pos' réglée immédiatement, qui
+     * décrémente LE MÊME stock partagé (variantes/produits) que la boutique en
+     * ligne. Décrément atomique + STRICT : si une ligne à stock fini ne peut être
+     * honorée (vente concurrente en ligne), toute la vente est annulée (null).
+     * @param list<array{product_id:int,variant_id:?int,title:string,qty:int,unit_price_cents:int}> $lines
+     * @param array{method:string,amount_cents:int,change_given_cents:int} $tender
+     */
+    public static function createPosSale(array $header, array $lines, array $tender): ?string
+    {
+        self::ensureTable();
+        self::ensureItemsTable();
+        self::ensureTendersTable();
+        if ($lines === []) {
+            return null;
+        }
+        $pdo = db();
+        $publicId = uuid();
+        $count = 0;
+        $subtotal = 0;
+        foreach ($lines as $l) {
+            $count += $l['qty'];
+            $subtotal += $l['qty'] * $l['unit_price_cents'];
+        }
+        $first = (string) ($lines[0]['title'] ?? '');
+        $summary = count($lines) > 1 ? $first . ' +' . (count($lines) - 1) : $first;
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare(
+                "INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
+                    unit_price_cents, qty, total_cents, currency, client_name, source, channel, register_session_id, payment_status, status)
+                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :cur, :cname, 'pos', 'pos', :rs, 'paid', 'delivered')"
+            );
+            $stmt->execute([
+                'pid' => $publicId, 'bid' => $header['boutique_id'], 'uid' => $header['user_id'],
+                'pname' => mb_substr($summary, 0, 150), 'qty' => $count, 'total' => $subtotal,
+                'cur' => $header['currency'], 'cname' => mb_substr((string) ($header['client_name'] ?? 'Client comptoir'), 0, 80),
+                'rs' => $header['register_session_id'] ?? null,
+            ]);
+            $orderId = (int) $pdo->lastInsertId();
+            $ins  = $pdo->prepare('INSERT INTO order_items (order_id, product_id, variant_id, title, qty, unit_price_cents, line_total_cents) VALUES (:o, :p, :v, :t, :q, :u, :lt)');
+            $decV = $pdo->prepare('UPDATE product_variants SET stock = stock - :q WHERE id = :id AND stock IS NOT NULL AND stock >= :qm');
+            $decP = $pdo->prepare('UPDATE products SET stock = stock - :q WHERE id = :id AND stock IS NOT NULL AND stock >= :qm');
+            foreach ($lines as $l) {
+                $ins->execute(['o' => $orderId, 'p' => $l['product_id'], 'v' => $l['variant_id'] ?? null,
+                    't' => mb_substr($l['title'], 0, 150), 'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty']]);
+                if (!empty($l['variant_id'])) {
+                    $decV->execute(['q' => $l['qty'], 'qm' => $l['qty'], 'id' => (int) $l['variant_id']]);
+                    if ($decV->rowCount() === 0 && !self::isUnlimited('product_variants', (int) $l['variant_id'])) {
+                        $pdo->rollBack();
+                        return null;
+                    }
+                }
+                if (!empty($l['product_id'])) {
+                    $decP->execute(['q' => $l['qty'], 'qm' => $l['qty'], 'id' => (int) $l['product_id']]);
+                    if (empty($l['variant_id']) && $decP->rowCount() === 0 && !self::isUnlimited('products', (int) $l['product_id'])) {
+                        $pdo->rollBack();
+                        return null;
+                    }
+                }
+            }
+            $pdo->prepare('INSERT INTO order_tenders (order_id, method, amount_cents, change_given_cents, currency) VALUES (:o, :m, :a, :ch, :cur)')
+                ->execute(['o' => $orderId, 'm' => (string) ($tender['method'] ?? 'cash'),
+                    'a' => max(0, (int) ($tender['amount_cents'] ?? $subtotal)), 'ch' => max(0, (int) ($tender['change_given_cents'] ?? 0)),
+                    'cur' => $header['currency']]);
+            $pdo->commit();
+        } catch (\Throwable) {
+            $pdo->rollBack();
+            return null;
+        }
+        return $publicId;
+    }
+
+    /** Stock NULL (illimité) sur une ligne ? (pour le décrément strict du POS). */
+    private static function isUnlimited(string $table, int $id): bool
+    {
+        try {
+            $stmt = db()->prepare("SELECT stock FROM {$table} WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+            return $stmt->fetchColumn() === null;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** Total des ventes POS réglées en espèces d'une session (théorique de caisse). */
+    public static function posCashSalesForSession(int $sessionId): int
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT COALESCE(SUM(t.amount_cents - t.change_given_cents), 0)
+                   FROM order_tenders t JOIN orders o ON o.id = t.order_id
+                  WHERE o.register_session_id = :s AND t.method = 'cash'"
+            );
+            $stmt->execute(['s' => $sessionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
+        }
     }
 
     /**

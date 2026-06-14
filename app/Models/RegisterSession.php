@@ -85,11 +85,12 @@ final class RegisterSession
         }
     }
 
-    /** Espèces théoriques attendues dans le tiroir (fond + apports − sorties). */
+    /** Espèces théoriques attendues (fond + ventes espèces + apports − sorties). */
     public static function expectedCash(array $session): int
     {
         $sums = CashMovement::sums((int) $session['id']);
-        return (int) $session['opening_float_cents'] + (int) $sums['paid_in'] - (int) $sums['paid_out'];
+        $cashSales = Order::posCashSalesForSession((int) $session['id']);
+        return (int) $session['opening_float_cents'] + $cashSales + (int) $sums['paid_in'] - (int) $sums['paid_out'];
     }
 
     /** Clôture : enregistre le comptage, calcule le théorique et l'écart (over/under). */
