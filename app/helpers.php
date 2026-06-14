@@ -187,11 +187,21 @@ function url(string $path = ''): string
  */
 function asset(string $path): string
 {
+    static $ver = [];
     $relative = 'assets/' . ltrim($path, '/');
     $url = url($relative);
     $file = PUBLIC_PATH . '/' . $relative;
     if (is_file($file)) {
-        $url .= '?v=' . (string) filemtime($file);
+        // Cache-busting par HASH DE CONTENU (pas le mtime) : la version change
+        // dès que le fichier change — et seulement alors. Robuste même quand
+        // l'hébergeur fige les mtime au déploiement (ex. Vercel), ce qui rendait
+        // l'ancien ?v=filemtime constant → CSS/JS servis périmés jusqu'à un
+        // vidage de cache forcé. Mémoïsé par requête.
+        if (!isset($ver[$file])) {
+            $hash = md5_file($file);
+            $ver[$file] = $hash !== false ? substr($hash, 0, 10) : (string) filemtime($file);
+        }
+        $url .= '?v=' . $ver[$file];
     }
     return $url;
 }
