@@ -22,6 +22,7 @@ final class HomeController
         $annonces  = \App\Models\Listing::recentActive(12);
         $boutiques = \App\Models\Boutique::recentPublished(12);
         view('home', [
+            'categories'      => \App\Services\Categories::live(),
             'sponsored'       => $sponsored,
             'recently_viewed' => $recent,
             'for_you'         => $forYou,

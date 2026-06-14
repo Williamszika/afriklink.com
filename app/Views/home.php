@@ -23,7 +23,9 @@ $catIcons = [
     'alimentation' => '🍲', 'auto' => '🚗', 'artisanat' => '🎨', 'bebe' => '👶',
     'sport' => '⚽', 'autres' => '🛍️',
 ];
-$categories = config('listings.categories', []);
+// Catégories « vivantes » : classées par contenu réellement publié (annonces +
+// produits des boutiques), calculées dans le contrôleur (App\Services\Categories).
+$categories = $categories ?? [];
 $loggedIn   = current_user() !== null;
 ?>
 <!-- Hero — accroche, recherche, confiance + panneau wax -->
@@ -154,10 +156,11 @@ $loggedIn   = current_user() !== null;
 <section class="cat-section afk-block">
     <div class="afk-head"><h2 class="afk-h2"><?= e(t('home.categories_title')) ?></h2></div>
     <div class="cat-tiles">
-        <?php foreach ($categories as $c): ?>
-            <a class="cat-tile" href="<?= e(url('/explorer?categorie=' . $c)) ?>">
-                <span class="cat-tile-ico" aria-hidden="true"><?= $catIcons[$c] ?? '🛍️' ?></span>
-                <span class="cat-tile-name"><?= e(t('listing.cat.' . $c)) ?></span>
+        <?php foreach ($categories as $c): $ck = (string) $c['key']; ?>
+            <a class="cat-tile" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
+                <span class="cat-tile-ico" aria-hidden="true"><?= $catIcons[$ck] ?? '🛍️' ?></span>
+                <span class="cat-tile-name"><?= e(t('listing.cat.' . $ck)) ?></span>
+                <?php if ((int) ($c['count'] ?? 0) > 0): ?><span class="cat-tile-count"><?= e(t('home.cat_count', ['n' => (int) $c['count']])) ?></span><?php endif; ?>
             </a>
         <?php endforeach; ?>
     </div>

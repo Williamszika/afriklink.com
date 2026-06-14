@@ -364,6 +364,7 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .stat-card.is-muted .num { color: #9aa7a2; font-weight: 700; }
 .kpi-muted .stat-card { box-shadow: none; }
 .kpi-soon-note { margin: 8px 2px 0; font-size: .9rem; }
+.cat-tile-count { display: block; margin-top: 3px; font-size: .72rem; font-weight: 600; color: var(--muted, #6b7280); }
 @media (max-width: 640px) { .nba-row { flex-wrap: wrap; } .nba-cta { width: 100%; text-align: center; } }
 
 /* ---- Sélecteur de devise dans la barre du haut (langue · devise) ---- */

@@ -38,6 +38,7 @@ return [
     'home.vertical.service.desc'      => 'Plumber, tailor, coach… showcase your services and receive requests.',
     'home.trust'           => 'Security by default: protected payments, encrypted data, European compliance.',
     'home.categories_title' => 'Browse by category',
+    'home.cat_count'        => ':n item(s)',
     'home.boutiques_title' => 'Online shops',
     'home.restaurants_title' => 'Online restaurants',
     'home.annonces_title' => 'Latest listings',
