@@ -27,9 +27,10 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                 <?php endforeach; ?>
             </ul>
             <?php $zonesJson = json_encode(array_map(static fn (array $z): array => [
-                'c'    => array_values(array_filter(array_map('trim', explode(',', strtoupper((string) ($z['countries'] ?? '')))))),
-                'fee'  => (int) $z['fee_cents'],
-                'free' => (int) ($z['free_above_cents'] ?? 0),
+                'c'     => array_values(array_filter(array_map('trim', explode(',', strtoupper((string) ($z['countries'] ?? '')))))),
+                'fee'   => (int) $z['fee_cents'],
+                'free'  => (int) ($z['free_above_cents'] ?? 0),
+                'tiers' => is_array($zt = json_decode((string) ($z['tiers'] ?? ''), true)) ? $zt : null,
             ], $shipping_zones ?? []), JSON_UNESCAPED_SLASHES); ?>
             <?php
             // Équivalent indicatif dans la devise de l'acheteur (≈) : on embarque le taux

@@ -2209,6 +2209,11 @@ document.addEventListener('click', function (ev) {
         }
         var z2 = match || catchAll;
         if (!z2) { return null; } // pays non couvert → non livrable (le serveur bloque)
+        if (z2.tiers && z2.tiers.length) { // paliers par montant (triés croissants)
+            var tf = z2.fee || 0;
+            for (var j = 0; j < z2.tiers.length; j++) { if (subtotal >= z2.tiers[j].min) { tf = z2.tiers[j].fee; } }
+            return tf;
+        }
         return (z2.free > 0 && subtotal >= z2.free) ? 0 : (z2.fee || 0);
     }
     function fmt(c) {

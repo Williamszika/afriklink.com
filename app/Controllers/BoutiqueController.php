@@ -640,12 +640,29 @@ final class BoutiqueController
         $freeAbove = $freeRaw !== '' ? parse_price_to_cents($freeRaw, $cur) : null;
         $delay   = whitelist((string) input_string('delay', ''), config('shop.prep_options', []), null);
 
+        // Paliers par montant (optionnels) : « seuil:tarif » par ligne. S'ils
+        // existent, ils remplacent le tarif fixe + franco pour cette zone.
+        $tierRows = [];
+        foreach (preg_split('/\r\n|\r|\n/', (string) input_string('tiers', '')) ?: [] as $line) {
+            $line = trim((string) $line);
+            if ($line === '' || !str_contains($line, ':')) {
+                continue;
+            }
+            [$mn, $fe] = explode(':', $line, 2);
+            $min  = parse_price_to_cents(trim($mn), $cur);
+            $feeT = parse_price_to_cents(trim($fe), $cur);
+            if ($min !== null && $feeT !== null) {
+                $tierRows[] = ['min' => $min, 'fee' => $feeT];
+            }
+        }
+
         \App\Models\ShippingZone::create((int) $boutique['id'], [
             'name'             => $name,
             'countries'        => $countries !== [] ? implode(',', $countries) : null,
             'fee_cents'        => $fee,
             'free_above_cents' => $freeAbove !== null && $freeAbove > 0 ? $freeAbove : null,
             'delay'            => $delay,
+            'tiers'            => \App\Models\ShippingZone::tiersJson($tierRows),
             'position'         => \App\Models\ShippingZone::count((int) $boutique['id']),
         ]);
         flash('success', t('ship.zone.created'));

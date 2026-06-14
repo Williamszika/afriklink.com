@@ -28,11 +28,21 @@ final class ShippingZone
                 fee_cents        BIGINT UNSIGNED NOT NULL DEFAULT 0,
                 free_above_cents BIGINT UNSIGNED NULL,
                 delay            VARCHAR(16) NULL,
+                tiers            VARCHAR(500) NULL,
                 position         INT NOT NULL DEFAULT 0,
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_zones_boutique (boutique_id, position)
             )'
         );
+        // Paliers par montant (JSON), ajoutés après coup sur une table déjà créée.
+        try {
+            db()->query('SELECT tiers FROM shipping_zones LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE shipping_zones ADD COLUMN tiers VARCHAR(500) NULL');
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /** @return list<array> zones d'une boutique, ordonnées */
@@ -65,8 +75,8 @@ final class ShippingZone
         self::ensureTable();
         $pub = uuid();
         db()->prepare(
-            'INSERT INTO shipping_zones (public_id, boutique_id, name, countries, fee_cents, free_above_cents, delay, position)
-             VALUES (:p, :b, :n, :c, :fee, :free, :delay, :pos)'
+            'INSERT INTO shipping_zones (public_id, boutique_id, name, countries, fee_cents, free_above_cents, delay, tiers, position)
+             VALUES (:p, :b, :n, :c, :fee, :free, :delay, :tiers, :pos)'
         )->execute([
             'p' => $pub, 'b' => $boutiqueId,
             'n' => mb_substr(trim($d['name']), 0, 60) ?: 'Zone',
@@ -74,6 +84,7 @@ final class ShippingZone
             'fee' => max(0, (int) $d['fee_cents']),
             'free' => isset($d['free_above_cents']) && $d['free_above_cents'] !== null ? max(0, (int) $d['free_above_cents']) : null,
             'delay' => $d['delay'] ?? null,
+            'tiers' => ($d['tiers'] ?? null) ?: null,
             'pos' => (int) ($d['position'] ?? 0),
         ]);
         return $pub;
@@ -120,6 +131,20 @@ final class ShippingZone
         if ($z === null) {
             return ['deliverable' => false];
         }
+        // Paliers par montant (s'ils existent, ils REMPLACENT le tarif fixe + franco).
+        $tiers = self::parseTiers($z['tiers'] ?? null);
+        if ($tiers !== []) {
+            $fee = self::tierFee($tiers, $subtotalCents, (int) ($z['fee_cents'] ?? 0));
+            return [
+                'deliverable'    => true,
+                'fee_cents'      => $fee,
+                'base_fee_cents' => $fee,
+                'free'           => $fee === 0,
+                'tiered'         => true,
+                'delay'          => (string) ($z['delay'] ?? ''),
+                'zone'           => (string) ($z['name'] ?? ''),
+            ];
+        }
         $fee       = (int) ($z['fee_cents'] ?? 0);
         $freeAbove = (int) ($z['free_above_cents'] ?? 0);
         $free      = $freeAbove > 0 && $subtotalCents >= $freeAbove;
@@ -132,5 +157,55 @@ final class ShippingZone
             'delay'            => (string) ($z['delay'] ?? ''),
             'zone'             => (string) ($z['name'] ?? ''),
         ];
+    }
+
+    /**
+     * Paliers de montant d'une zone (JSON `[{"min":int,"fee":int},…]`, centimes),
+     * triés par seuil croissant. @return list<array{min:int,fee:int}>
+     */
+    private static function parseTiers(?string $json): array
+    {
+        if ($json === null || $json === '') {
+            return [];
+        }
+        $arr = json_decode($json, true);
+        if (!is_array($arr)) {
+            return [];
+        }
+        $out = [];
+        foreach ($arr as $t) {
+            if (is_array($t)) {
+                $out[] = ['min' => max(0, (int) ($t['min'] ?? 0)), 'fee' => max(0, (int) ($t['fee'] ?? 0))];
+            }
+        }
+        usort($out, static fn (array $a, array $b): int => $a['min'] <=> $b['min']);
+        return $out;
+    }
+
+    /** Tarif du palier dont le seuil le plus élevé reste ≤ sous-total (sinon repli). */
+    private static function tierFee(array $tiers, int $subtotalCents, int $fallback): int
+    {
+        $fee = $fallback;
+        foreach ($tiers as $t) {
+            if ($subtotalCents >= $t['min']) {
+                $fee = $t['fee'];
+            }
+        }
+        return max(0, $fee);
+    }
+
+    /**
+     * Convertit la saisie vendeur « seuil:tarif » (une par ligne) en JSON de
+     * paliers, ou null si vide/invalide. Bornes en centimes déjà parsées.
+     * @param list<array{min:int,fee:int}> $rows
+     */
+    public static function tiersJson(array $rows): ?string
+    {
+        $rows = array_values(array_filter($rows, static fn (array $r): bool => isset($r['min'], $r['fee'])));
+        if ($rows === []) {
+            return null;
+        }
+        usort($rows, static fn (array $a, array $b): int => $a['min'] <=> $b['min']);
+        return json_encode(array_map(static fn (array $r): array => ['min' => max(0, (int) $r['min']), 'fee' => max(0, (int) $r['fee'])], $rows), JSON_UNESCAPED_SLASHES);
     }
 }

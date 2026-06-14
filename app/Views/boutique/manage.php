@@ -264,8 +264,12 @@ $publicPath = '/boutique/' . $boutique['slug'];
                                 <strong><?= e((string) $z['name']) ?></strong>
                                 <span class="muted zone-countries"><?= e($names) ?></span>
                                 <span class="zone-meta">
-                                    <?= e(format_price((int) $z['fee_cents'], $cur)) ?>
-                                    <?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?>
+                                    <?php $nt = !empty($z['tiers']) ? count(json_decode((string) $z['tiers'], true) ?: []) : 0; ?>
+                                    <?php if ($nt > 0): ?>
+                                        <?= e(t('ship.zone.tiers_n', ['n' => $nt])) ?>
+                                    <?php else: ?>
+                                        <?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?>
+                                    <?php endif; ?>
                                     <?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?>
                                 </span>
                             </div>
@@ -310,6 +314,9 @@ $publicPath = '/boutique/' . $boutique['slug'];
                             <option value="<?= e((string) $opt) ?>"><?= e(t('shop.prep.' . $opt)) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <label for="z-tiers"><?= e(t('ship.zone.f.tiers')) ?></label>
+                    <textarea id="z-tiers" name="tiers" rows="3" placeholder="<?= e(t('ship.zone.f.tiers_ph')) ?>"></textarea>
+                    <p class="hint"><?= e(t('ship.zone.f.tiers_hint')) ?></p>
                     <button type="submit" class="btn btn-primary btn-sm"><?= e(t('ship.zone.add_btn')) ?></button>
                 </form>
             </details>
