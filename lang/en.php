@@ -755,6 +755,8 @@ return [
     'notify.order.mail_client' => 'Customer',
     'notify.order.mail_cta' => 'View the order',
     // Customer notifications
+    'notify.paid.title' => 'Order paid',
+    'notify.paid.body' => 'Order #:ref paid (:amount) — ready to prepare.',
     'notify.client.placed_subject' => 'Order #:ref received',
     'notify.client.placed_intro' => 'Thank you! Your order #:ref at :shop has been received. The seller will confirm it.',
     'notify.client.placed_sms' => 'Order #:ref received at :shop. The seller will confirm it.',

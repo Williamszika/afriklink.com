@@ -27,6 +27,7 @@ use App\Controllers\PaymentController;
 use App\Controllers\SellerController;
 use App\Controllers\PosController;
 use App\Controllers\SellerProfileController;
+use App\Controllers\WebhookController;
 
 /**
  * Route table: [HTTP method, path, [Controller, action], [middleware...]].
@@ -223,6 +224,10 @@ return [
     ['POST', '/restaurant/commande/{ref}/regler', [RestaurantController::class, 'paySettle'],       ['csrf', 'throttle:rorder,30,3600']],
     ['GET',  '/restaurant/commande/{ref}/retour', [RestaurantController::class, 'payReturn'],       []],
     ['GET',  '/restaurant/{slug}', [RestaurantController::class, 'show'], []],
+
+    // Webhooks PSP — SOURCE DE VÉRITÉ de l'encaissement (sans csrf/auth : la
+    // signature authentifie). Corps brut lu via php://input.
+    ['POST', '/webhooks/stripe', [WebhookController::class, 'stripe'], ['throttle:webhook,300,3600']],
 
     // Signalement « ce n'était pas moi » (lien reçu par e-mail, sans connexion)
     ['GET',  '/signaler-vitrine', [ReportController::class, 'storefront'], ['throttle:report,20,3600']],

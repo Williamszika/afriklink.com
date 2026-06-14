@@ -755,6 +755,8 @@ return [
     'notify.order.mail_client' => 'Client',
     'notify.order.mail_cta' => 'Voir la commande',
     // Notifications au client
+    'notify.paid.title' => 'Commande payée',
+    'notify.paid.body' => 'Commande #:ref réglée (:amount) — à préparer.',
     'notify.client.placed_subject' => 'Commande #:ref bien reçue',
     'notify.client.placed_intro' => 'Merci ! Votre commande #:ref chez :shop a bien été reçue. Le vendeur va la confirmer.',
     'notify.client.placed_sms' => 'Commande #:ref reçue chez :shop. Le vendeur va la confirmer.',

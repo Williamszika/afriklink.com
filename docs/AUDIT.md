@@ -201,9 +201,12 @@ Ossature **multi-fournisseurs**, chacun activé dès que ses clés d'env existen
 1. ~~Incohérence de commission~~ → ✅ **résolu** : source unique = `config/payment.php`
    (`platform_commission_pct`, défaut **5 %**, env `PLATFORM_COMMISSION_PCT`), calcul via le helper
    `platform_commission_cents()` ; le doublon `platform_fee_bps` (app.php + `.env.example`) a été retiré.
-2. **PSP réels non branchés** : seul `simulation` fonctionne ; CinetPay/Stripe/PayPal sont
-   **scaffoldés** (activation par clés d'env) mais l'intégration API + **webhook signé = vérité**
-   reste à implémenter avant tout encaissement réel.
+2. **PSP — Stripe branché (webhook = vérité)** ✅ : `StripeProvider` réel (Checkout Session +
+   montants zéro-décimale) et **webhook signé idempotent** (`POST /webhooks/stripe`) qui constate
+   le paiement — signature HMAC-SHA256, anti-rejeu temporel, **idempotence** (`payment_events`),
+   **contrôle du montant**, confirmation via `PaymentSettlement` — testé (14/14). **Reste** :
+   valider l'appel API en conditions réelles (clés live + URL webhook chez Stripe), **Stripe
+   Connect** (reversement vendeur + `application_fee_amount`), puis CinetPay/PayPal au même modèle.
 3. **Notifications client incomplètes** (cahier §6) : `expédiée`/`livrée` faites ; manquent
    `payout`, `remboursement`, changement de statut KYC.
 4. **Verticales Salon / Services** : non construites (placeholders « bientôt »).
