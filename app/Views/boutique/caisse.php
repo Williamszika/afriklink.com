@@ -26,7 +26,12 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <div class="caisse-totals" data-ship-calc data-subtotal="<?= (int) $total ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
+            <?php $zonesJson = json_encode(array_map(static fn (array $z): array => [
+                'c'    => array_values(array_filter(array_map('trim', explode(',', strtoupper((string) ($z['countries'] ?? '')))))),
+                'fee'  => (int) $z['fee_cents'],
+                'free' => (int) ($z['free_above_cents'] ?? 0),
+            ], $shipping_zones ?? []), JSON_UNESCAPED_SLASHES); ?>
+            <div class="caisse-totals" data-ship-calc data-subtotal="<?= (int) $total ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-zones="<?= e($zonesJson) ?>">
                 <p class="cart-total-row"><span><?= e(t('caisse.subtotal')) ?></span> <strong><?= e(format_price($total, $cur)) ?></strong></p>
                 <?php if ($fulfillments): ?>
                     <p class="cart-total-row"><span><?= e(t('caisse.shipping')) ?><?php if ($delivery_delay !== ''): ?> · <span class="muted"><?= e(t('shop.prep.' . $delivery_delay)) ?></span><?php endif; ?></span>
@@ -52,6 +57,16 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                         <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" data-fee="<?= (int) ($ship_map[$mth] ?? 0) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
                     <?php endforeach; ?>
                 </div>
+            <?php endif; ?>
+            <?php if (!empty($shipping_zones)): ?>
+                <label for="dest-country"><?= e(t('ship.dest_country')) ?></label>
+                <select id="dest-country" name="dest_country" data-dest-country>
+                    <option value=""><?= e(t('field.choose')) ?></option>
+                    <?php foreach (($countries ?? []) as $code => $cn): ?>
+                        <option value="<?= e((string) $code) ?>" <?= ($dest_country ?? '') === $code ? 'selected' : '' ?>><?= e((string) $cn) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (has_error('dest_country')): ?><p class="field-error"><?= e(error('dest_country')) ?></p><?php endif; ?>
             <?php endif; ?>
             <?php if ($terms): ?>
                 <label><?= e(t('bcart.pay_term')) ?></label>

@@ -314,6 +314,7 @@ final class BoutiqueController
             'mains'    => \App\Models\Product::mainPhotos($ids),
             'ratings'  => $ratings,
             'shop_rating' => Review::summaryForBoutique((int) $boutique['id']),
+            'shipping_zones' => \App\Models\ShippingZone::forBoutique((int) $boutique['id']),
             'page_title' => (string) $boutique['name'],
             'meta' => [
                 'description' => $this->ogDescription((string) ($boutique['tagline'] ?: $boutique['description'] ?? '')),
@@ -710,16 +711,22 @@ final class BoutiqueController
         }
         $total = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
         $fulfillments = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
-        // Frais de livraison par mode (seuil de gratuité appliqué).
+        $zones = \App\Models\ShippingZone::forBoutique((int) $boutique['id']);
+        // Destination par défaut = pays détecté de l'acheteur (modifiable au checkout).
+        $destCountry = strtoupper((string) (detected_geo()['country_code'] ?? ''));
+        // Frais par mode : tarif de ZONE selon la destination si définies, sinon frais à plat.
         $shipMap = [];
         foreach ($fulfillments as $m) {
-            $shipMap[$m] = $this->shippingFor($boutique, $m, $total);
+            $shipMap[$m] = $this->shippingFor($boutique, $m, $total, $destCountry);
         }
         view('boutique/caisse', [
             'boutique'     => $boutique,
             'lines'        => $lines,
             'total'        => $total,
             'ship_map'     => $shipMap,
+            'shipping_zones' => $zones,
+            'dest_country' => $destCountry,
+            'countries'    => config('countries', []),
             'delivery_delay' => (string) ($boutique['delivery_delay'] ?? ''),
             'preview'      => $boutique['status'] !== 'published',
             'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
@@ -816,7 +823,21 @@ final class BoutiqueController
         }
 
         $subtotal = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
-        $shipping = $this->shippingFor($boutique, $fulfillment, $subtotal);
+        // Frais de livraison : par ZONE selon le pays de destination si la boutique en
+        // a défini ; le serveur fait foi (jamais le frais envoyé par le client).
+        $destCountry = whitelist(strtoupper((string) input_string('dest_country', '')), array_keys(config('countries', [])), null);
+        $quote = $this->shippingQuote($boutique, $fulfillment, $subtotal, $destCountry);
+        if (!empty($quote['needs_country'])) {
+            keep_old($_POST);
+            set_errors(['dest_country' => t('ship.zone.err_choose_country')]);
+            redirect('/boutique/' . $boutique['slug'] . '/caisse');
+        }
+        if (empty($quote['deliverable'])) {
+            keep_old($_POST);
+            flash('error', t('ship.zone.not_deliverable'));
+            redirect('/boutique/' . $boutique['slug'] . '/caisse');
+        }
+        $shipping = (int) $quote['fee'];
         // Code promo (optionnel) : revalidé côté serveur sur cette boutique.
         $promoCode = trim((string) input_string('promo_code', ''));
         $discount = 0;
@@ -1026,18 +1047,40 @@ final class BoutiqueController
     }
 
     /** Frais de livraison selon le mode choisi + seuil de gratuité. */
-    private function shippingFor(array $boutique, ?string $fulfillment, int $subtotal): int
+    /**
+     * Devis de livraison : frais + livrabilité. Si la boutique a des ZONES, le
+     * tarif vient de la zone du pays de destination (franco par zone) ; sinon on
+     * garde les frais à plat hérités (local/international + franco global).
+     * @return array{fee:int,deliverable:bool,needs_country:bool,zone:?string,free:bool}
+     */
+    private function shippingQuote(array $boutique, ?string $fulfillment, int $subtotal, ?string $destCountry): array
     {
-        $fee = match ((string) $fulfillment) {
-            'local'        => (int) ($boutique['delivery_fee_cents'] ?? 0),
-            'international' => (int) ($boutique['delivery_intl_cents'] ?? 0),
-            default        => 0, // retrait / main à main : pas de frais
-        };
-        $free = (int) ($boutique['free_ship_cents'] ?? 0);
-        if ($free > 0 && $subtotal >= $free) {
-            $fee = 0; // livraison offerte au-delà du seuil
+        // Retrait / main à main : pas de frais, toujours « livrable ».
+        if (!in_array((string) $fulfillment, ['local', 'international'], true)) {
+            return ['fee' => 0, 'deliverable' => true, 'needs_country' => false, 'zone' => null, 'free' => false];
         }
-        return max(0, $fee);
+        if (\App\Models\ShippingZone::count((int) $boutique['id']) > 0) {
+            if ($destCountry === null || $destCountry === '') {
+                return ['fee' => 0, 'deliverable' => true, 'needs_country' => true, 'zone' => null, 'free' => false];
+            }
+            $r = \App\Models\ShippingZone::rateFor((int) $boutique['id'], $destCountry, $subtotal);
+            if ($r === null) {
+                return ['fee' => 0, 'deliverable' => true, 'needs_country' => false, 'zone' => null, 'free' => false];
+            }
+            if (empty($r['deliverable'])) {
+                return ['fee' => 0, 'deliverable' => false, 'needs_country' => false, 'zone' => null, 'free' => false];
+            }
+            return ['fee' => (int) $r['fee_cents'], 'deliverable' => true, 'needs_country' => false, 'zone' => (string) $r['zone'], 'free' => !empty($r['free'])];
+        }
+        // Hérité : frais à plat + franco global.
+        $fee  = (string) $fulfillment === 'local' ? (int) ($boutique['delivery_fee_cents'] ?? 0) : (int) ($boutique['delivery_intl_cents'] ?? 0);
+        $free = (int) ($boutique['free_ship_cents'] ?? 0);
+        return ['fee' => ($free > 0 && $subtotal >= $free) ? 0 : max(0, $fee), 'deliverable' => true, 'needs_country' => false, 'zone' => null, 'free' => false];
+    }
+
+    private function shippingFor(array $boutique, ?string $fulfillment, int $subtotal, ?string $destCountry = null): int
+    {
+        return (int) $this->shippingQuote($boutique, $fulfillment, $subtotal, $destCountry)['fee'];
     }
 
     /** Panier de la caisse (session) revalidé en lignes prêtes à commander. @return list<array> */

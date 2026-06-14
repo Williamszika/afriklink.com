@@ -2183,17 +2183,41 @@ document.addEventListener('click', function (ev) {
     var grandEl = box.querySelector('[data-grand-total]');
     var radios = document.querySelectorAll('input[name="fulfillment"]');
     if (!grandEl || !radios.length) { return; }
+    // Zones de livraison : si définies, le tarif d'un mode expédié vient de la
+    // zone du pays de destination (franco par zone). Le serveur fait foi ; ceci
+    // n'est que l'affichage du récap qui s'ajuste quand l'acheteur change de pays.
+    var destSel = document.querySelector('[data-dest-country]');
+    var zones = [];
+    try { zones = JSON.parse(box.getAttribute('data-zones') || '[]') || []; } catch (e) { zones = []; }
+    function zoneFee(cc) {
+        if (!zones.length) { return null; }
+        var match = null, catchAll = null;
+        for (var i = 0; i < zones.length; i++) {
+            var z = zones[i];
+            if (!z.c || !z.c.length) { if (!catchAll) { catchAll = z; } continue; }
+            if (cc && z.c.indexOf(cc) !== -1) { match = z; break; }
+        }
+        var z2 = match || catchAll;
+        if (!z2) { return null; } // pays non couvert → non livrable (le serveur bloque)
+        return (z2.free > 0 && subtotal >= z2.free) ? 0 : (z2.fee || 0);
+    }
     function fmt(c) {
         var v = curInt ? Math.round(c / 100) : c / 100;
         return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: curInt ? 0 : 2 }).format(v) + ' ' + sym;
     }
     function update() {
         var sel = document.querySelector('input[name="fulfillment"]:checked');
+        var method = sel ? sel.value : '';
         var fee = sel ? (parseInt(sel.getAttribute('data-fee'), 10) || 0) : 0;
+        if (zones.length && (method === 'local' || method === 'international') && destSel) {
+            var zf = zoneFee((destSel.value || '').toUpperCase());
+            if (zf !== null) { fee = zf; }
+        }
         if (shipEl) { shipEl.textContent = fee > 0 ? fmt(fee) : (shipEl.getAttribute('data-free') || fmt(0)); }
         grandEl.textContent = fmt(subtotal + fee);
     }
     radios.forEach(function (r) { r.addEventListener('change', update); });
+    if (destSel) { destSel.addEventListener('change', update); }
     update();
 })();
 

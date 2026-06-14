@@ -197,6 +197,19 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                         <dt><?= e(t('shop.f.delivery_fee')) ?></dt>
                         <dd><?= icon('truck', ['size' => 16]) ?> <?= implode('<br>', $rows) ?></dd>
                     <?php endif; ?>
+                    <?php if (!empty($shipping_zones)): ?>
+                        <dt><?= e(t('ship.ships_to')) ?></dt>
+                        <dd>
+                            <ul class="ship-zones-public">
+                                <?php foreach ($shipping_zones as $z):
+                                    $codes = array_filter(array_map('trim', explode(',', (string) ($z['countries'] ?? ''))));
+                                    $zn = $codes === [] ? t('ship.zone.rest') : (string) $z['name'];
+                                ?>
+                                    <li><strong><?= e($zn) ?></strong> — <?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </dd>
+                    <?php endif; ?>
                     <?php if (!empty($boutique['prep_time'])): ?>
                         <dt><?= e(t('shop.f.prep')) ?></dt><dd><?= e(t('shop.prep.' . $boutique['prep_time'])) ?></dd>
                     <?php endif; ?>
