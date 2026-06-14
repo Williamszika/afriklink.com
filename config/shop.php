@@ -18,6 +18,7 @@ return [
     'product_desc_max'  => 3000,
     'product_max_photos' => 5,
     'product_max_video_seconds' => 120, // 2 minutes
+    'low_stock_threshold' => 3, // seuil d'alerte « stock bas » (notif vendeur au franchissement)
     'banner_max' => 10, // bannière = diaporama animé, jusqu'à 10 images
 
     'delivery_zones'   => ['city', 'country', 'international'],

@@ -1089,6 +1089,8 @@ return [
     'notif.msg' => 'Nouveau message de :name',
     'notif.order' => 'Nouvelle commande reçue',
     'notif.review' => 'Nouvel avis sur un de vos produits',
+    'notif.low_stock' => 'Stock bas sur un produit',
+    'notif.low_stock_left' => 'il ne reste que :n en stock',
     'common.see_all' => 'Voir tout',
     'common.loading' => 'Chargement…',
     'explore.subtitle' => 'Bientôt : parcourez toutes les boutiques, produits et annonces — d’Afrique en Europe — et trouvez ce qu’il vous faut près de chez vous.',

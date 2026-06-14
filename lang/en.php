@@ -1089,6 +1089,8 @@ return [
     'notif.msg' => 'New message from :name',
     'notif.order' => 'New order received',
     'notif.review' => 'New review on one of your products',
+    'notif.low_stock' => 'Low stock on a product',
+    'notif.low_stock_left' => 'only :n left in stock',
     'common.see_all' => 'See all',
     'common.loading' => 'Loading…',
     'explore.subtitle' => 'Soon: browse every shop, product and listing — from Africa to Europe — and find what you need close to you.',

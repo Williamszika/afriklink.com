@@ -230,11 +230,13 @@ final class Order
                     $dec->execute(['qty' => $l['qty'], 'qmin' => $l['qty'], 'pid' => (int) $l['product_id']]);
                 }
             }
+            $low = self::detectLowStock($pdo, $lines);
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
             throw $e;
         }
+        self::notifyLowStock((int) ($header['user_id'] ?? 0), $low);
         return $publicId;
     }
 
@@ -321,11 +323,13 @@ final class Order
                 ->execute(['o' => $orderId, 'm' => (string) ($tender['method'] ?? 'cash'),
                     'a' => max(0, (int) ($tender['amount_cents'] ?? $subtotal)), 'ch' => max(0, (int) ($tender['change_given_cents'] ?? 0)),
                     'cur' => $header['currency']]);
+            $low = self::detectLowStock($pdo, $lines);
             $pdo->commit();
         } catch (\Throwable) {
             $pdo->rollBack();
             return null;
         }
+        self::notifyLowStock((int) ($header['user_id'] ?? 0), $low);
         return $publicId;
     }
 
@@ -338,6 +342,67 @@ final class Order
             return $stmt->fetchColumn() === null;
         } catch (\Throwable) {
             return false;
+        }
+    }
+
+    /**
+     * Détecte les lignes dont le stock vient de PASSER sous le seuil d'alerte
+     * lors de cette vente — franchissement unique (new ≤ seuil < new+qty) pour
+     * ne notifier qu'une fois. À appeler DANS la transaction, après les
+     * décréments. Stock NULL = illimité (ignoré). Best-effort : ne casse jamais
+     * la vente (renvoie [] en cas d'erreur).
+     * @return list<array{title:string,stock:int}>
+     */
+    private static function detectLowStock(\PDO $pdo, array $lines): array
+    {
+        try {
+            $t = (int) config('shop.low_stock_threshold', 3);
+            if ($t <= 0) {
+                return [];
+            }
+            $out = [];
+            $qV = $pdo->prepare('SELECT stock FROM product_variants WHERE id = :id');
+            $qP = $pdo->prepare('SELECT stock FROM products WHERE id = :id');
+            foreach ($lines as $l) {
+                $qty = (int) ($l['qty'] ?? 0);
+                if ($qty <= 0) {
+                    continue;
+                }
+                if (!empty($l['variant_id'])) {
+                    $qV->execute(['id' => (int) $l['variant_id']]);
+                    $s = $qV->fetchColumn();
+                } elseif (!empty($l['product_id'])) {
+                    $qP->execute(['id' => (int) $l['product_id']]);
+                    $s = $qP->fetchColumn();
+                } else {
+                    continue;
+                }
+                if ($s === null || $s === false) {
+                    continue; // illimité ou introuvable
+                }
+                $new = (int) $s;
+                $old = $new + $qty; // le décrément a réussi d'exactement qty
+                if ($new <= $t && $old > $t) {
+                    $out[] = ['title' => (string) ($l['title'] ?? ''), 'stock' => $new];
+                }
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Pousse une alerte « stock bas » au vendeur pour chaque franchissement. */
+    private static function notifyLowStock(int $userId, array $crossings): void
+    {
+        foreach ($crossings as $c) {
+            Notification::push(
+                $userId,
+                'low_stock',
+                t('notif.low_stock'),
+                trim((string) ($c['title'] ?? '')) . ' · ' . t('notif.low_stock_left', ['n' => (int) ($c['stock'] ?? 0)]),
+                '/boutique/gerer'
+            );
         }
     }
 
