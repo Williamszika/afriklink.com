@@ -29,14 +29,68 @@ final class Review
                 KEY idx_reviews_boutique (boutique_id, status)
             )'
         );
-        try {
-            db()->query('SELECT verified FROM reviews LIMIT 1');
-        } catch (\Throwable) {
+        // Colonnes ajoutées après coup (best-effort, comme partout en prod durcie).
+        $cols = [
+            'verified' => 'ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0 AFTER comment',
+            'reply'    => 'ADD COLUMN reply VARCHAR(1000) NULL AFTER status',
+            'reply_at' => 'ADD COLUMN reply_at DATETIME NULL AFTER reply',
+        ];
+        foreach ($cols as $col => $ddl) {
             try {
-                db()->exec('ALTER TABLE reviews ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0 AFTER comment');
+                db()->query("SELECT {$col} FROM reviews LIMIT 1");
             } catch (\Throwable) {
-                // déjà migré
+                try {
+                    db()->exec("ALTER TABLE reviews {$ddl}");
+                } catch (\Throwable) {
+                    // déjà migré ou DDL indisponible en prod
+                }
             }
+        }
+    }
+
+    /** Avis d'une boutique (toutes fiches confondues), nom du produit joint. @return list<array> */
+    public static function forBoutique(int $boutiqueId, int $limit = 50): array
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT r.*, p.name AS product_name
+                   FROM reviews r
+                   LEFT JOIN products p ON p.id = r.product_id
+                  WHERE r.boutique_id = :b AND r.status = 'approved'
+                  ORDER BY r.id DESC LIMIT " . max(1, min(200, $limit))
+            );
+            $stmt->execute(['b' => $boutiqueId]);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Réponse publique du vendeur à un avis (vide = retire la réponse). Best-effort. */
+    public static function setReply(int $id, ?string $reply): void
+    {
+        $reply = $reply !== null ? trim($reply) : '';
+        try {
+            if ($reply === '') {
+                db()->prepare('UPDATE reviews SET reply = NULL, reply_at = NULL WHERE id = :id')->execute(['id' => $id]);
+            } else {
+                db()->prepare('UPDATE reviews SET reply = :r, reply_at = NOW() WHERE id = :id')
+                    ->execute(['r' => mb_substr($reply, 0, 1000), 'id' => $id]);
+            }
+        } catch (\Throwable) {
+            // colonne reply non provisionnée : sans gravité
+        }
+    }
+
+    /** Nombre d'avis sans réponse du vendeur (pastille du menu). */
+    public static function unansweredCountFor(int $boutiqueId): int
+    {
+        try {
+            $stmt = db()->prepare("SELECT COUNT(*) FROM reviews WHERE boutique_id = :b AND status = 'approved' AND (reply IS NULL OR reply = '')");
+            $stmt->execute(['b' => $boutiqueId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
         }
     }
 

@@ -221,6 +221,36 @@ final class SellerController
         ] + self::commonData($user));
     }
 
+    /** Avis clients : liste des avis reçus + réponse publique du vendeur. */
+    public function reviews(Request $request): void
+    {
+        $user     = current_user() ?? [];
+        $boutique = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
+        view('vendeur/avis', [
+            'active'   => 'avis',
+            'boutique' => $boutique,
+            'reviews'  => $boutique !== null ? \App\Models\Review::forBoutique((int) $boutique['id'], 100) : [],
+            'summary'  => $boutique !== null
+                ? \App\Models\Review::summaryForBoutique((int) $boutique['id'])
+                : ['avg' => 0.0, 'count' => 0],
+        ] + self::commonData($user));
+    }
+
+    /** Enregistre (ou retire) la réponse du vendeur à un avis le concernant. */
+    public function reviewReply(Request $request): void
+    {
+        $user     = current_user() ?? [];
+        $boutique = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
+        $review   = \App\Models\Review::findByPublicId((string) $request->param('rid', ''));
+        if ($boutique === null || $review === null || (int) $review['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        $reply = trim((string) input_string('reply', ''));
+        \App\Models\Review::setReply((int) $review['id'], $reply !== '' ? $reply : null);
+        flash('success', t($reply !== '' ? 'reviews.reply_saved' : 'reviews.reply_removed'));
+        redirect('/vendeur/avis');
+    }
+
     public function verification(Request $request): void
     {
         $userId = (int) current_user_id();

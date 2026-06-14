@@ -393,6 +393,24 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .cockpit-stock li { display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-top:1px solid var(--border,#eef0f3); }
 .cockpit-stock li:first-child { border-top:0; }
 
+/* Avis clients (vendeur) : synthèse + liste + réponse du vendeur. */
+.reviews-stars { color:#f0a818; letter-spacing:1px; }
+.reviews-summary .reviews-avg { display:flex; align-items:center; gap:10px; }
+.reviews-avg-num { font-size:2rem; font-weight:800; line-height:1; }
+.reviews-list { list-style:none; margin:0; padding:0; }
+.review-item { padding:14px 0; border-top:1px solid var(--border,#eef0f3); }
+.review-item:first-child { border-top:0; padding-top:2px; }
+.review-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.review-meta { margin-left:auto; font-size:.85rem; }
+.review-comment { margin:8px 0 6px; }
+.review-reply { background:var(--surface-2,#f6f8f7); border-left:3px solid var(--brand,#0b7a4b); border-radius:0 8px 8px 0; padding:8px 12px; margin:6px 0; }
+.review-reply-label { display:inline-flex; align-items:center; gap:5px; font-weight:600; font-size:.82rem; color:var(--brand,#0b7a4b); }
+.review-reply p { margin:4px 0 0; }
+.review-reply-form { margin-top:6px; }
+.review-reply-form summary { display:inline-flex; width:auto; cursor:pointer; list-style:none; }
+.review-reply-form summary::-webkit-details-marker { display:none; }
+.review-reply-form textarea { width:100%; margin:8px 0; padding:8px 10px; border:1px solid var(--border,#d9dee5); border-radius:8px; font:inherit; resize:vertical; }
+
 /* Graphique en barres (CSS pur, CSP-safe) */
 .chart { display:flex; align-items:flex-end; gap:4px; height:calc(var(--chart-h,130px) + 20px); }
 .chart-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; }

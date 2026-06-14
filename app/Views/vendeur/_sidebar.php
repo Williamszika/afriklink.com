@@ -3,9 +3,11 @@
 $companyName = (string) ($profile['company_name'] ?? ($user['full_name'] ?? ''));
 $verified    = ($profile['verification_status'] ?? 'pending') === 'verified';
 
-// Pastilles en direct : commandes « à traiter » + messages non lus.
+// Pastilles en direct : commandes « à traiter » + messages non lus + avis sans réponse.
 $ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
 $msgUnread     = \App\Models\Conversation::unreadCountFor((int) ($user['id'] ?? 0));
+$boutiqueSb    = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
+$reviewsTodo   = $boutiqueSb !== null ? \App\Models\Review::unansweredCountFor((int) $boutiqueSb['id']) : 0;
 $groups = [
     ['label' => null, 'items' => [
         ['key' => 'overview',  'icon' => 'grid',  'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
@@ -16,6 +18,8 @@ $groups = [
         ['key' => 'portefeuille', 'icon' => 'wallet', 'href' => url('/vendeur/portefeuille'), 'label' => t('seller.nav.wallet'), 'chip' => null],
         ['key' => 'messages',  'icon' => 'chat', 'href' => url('/messages'),  'label' => t('seller.nav.messages'),
          'chip' => $msgUnread > 0 ? (string) $msgUnread : null, 'chip_class' => 'chip-pending'],
+        ['key' => 'avis',      'icon' => 'star', 'href' => url('/vendeur/avis'), 'label' => t('seller.nav.reviews'),
+         'chip' => $reviewsTodo > 0 ? (string) $reviewsTodo : null, 'chip_class' => 'chip-pending'],
     ]],
     ['label' => t('seller.group.develop'), 'items' => [
         ['key' => 'publicite',   'icon' => 'megaphone', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => null],

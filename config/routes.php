@@ -139,6 +139,8 @@ return [
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],
     ['POST', '/vendeur/publicite/{pid}/promouvoir', [SellerController::class, 'promote'], ['auth', 'csrf', 'throttle:product,60,3600']],
     ['GET',  '/vendeur/affiliation', [SellerController::class, 'affiliation'],  ['auth']],
+    ['GET',  '/vendeur/avis',                  [SellerController::class, 'reviews'],     ['auth']],
+    ['POST', '/vendeur/avis/{rid}/repondre',   [SellerController::class, 'reviewReply'], ['auth', 'csrf', 'throttle:review,60,3600']],
     ['GET',  '/vendeur/verification',[SellerController::class, 'verification'], ['auth']],
     ['POST', '/vendeur/verification/{level}', [KycController::class, 'submit'], ['auth', 'csrf', 'throttle:kycsub2,200,3600']],
     ['POST', '/api/kyc/sign',        [MediaController::class, 'signKyc'],      ['auth', 'csrf', 'throttle:sign,60,3600']],
