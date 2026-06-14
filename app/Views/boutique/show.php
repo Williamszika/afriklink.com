@@ -2,6 +2,11 @@
 /** @var array $boutique  @var array $seller  @var bool $is_owner  @var bool $seller_verified  @var list<string> $banners */
 use App\Services\BusinessHours;
 use App\Services\CloudinaryService;
+use App\Services\ContactChannels;
+
+// Canaux de contact / réseaux sociaux : calculés une fois, réutilisés sur la
+// bannière (icônes cliquables) et dans le bloc « Contacter la boutique ».
+[$ctSet, $ctPrimaries] = ContactChannels::forBoutique($boutique);
 
 $logo   = $boutique['logo_public_id'] ?? null;
 $banners = $banners ?? array_filter([$boutique['banner_public_id'] ?? null]);
@@ -58,6 +63,17 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
 
     <div class="shop-hero">
         <?= render_partial('partials/shop_banner', ['images' => $banners, 'w' => 1100, 'h' => 300]) ?>
+        <?php if ($ctSet !== []): ?>
+            <div class="shop-social" aria-label="<?= e(t('shop.social_label')) ?>">
+                <?php foreach ($ctSet as $ch => $val): $m = ContactChannels::meta($ch); ?>
+                    <a class="shop-social-link" rel="noopener" target="_blank"
+                       href="<?= e(ContactChannels::url($ch, $val)) ?>"
+                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>">
+                        <img src="<?= e(ContactChannels::logo($ch)) ?>" alt="<?= e($m['label']) ?>" width="26" height="26">
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
         <div class="shop-hero-id">
             <?php if ($logo !== null): ?>
                 <img class="shop-logo" src="<?= e(CloudinaryService::imageUrl($logo, 160, 160)) ?>" alt="" width="80" height="80">
@@ -159,8 +175,33 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     <p class="listing-description"><?= nl2br(e((string) $boutique['return_policy'])) ?></p>
                 </div>
             <?php endif; ?>
-            <div class="panel">
-                <h2 class="panel-title"><?= e(t('shop.infos')) ?></h2>
+            <?php if ($ctPrimaries !== []): ?>
+                <div class="panel shop-contact-panel">
+                    <h2 class="panel-title"><?= icon('chat', ['size' => 18]) ?> <?= e(t('shop.contact_title')) ?></h2>
+                    <div class="contact-buttons">
+                        <?php foreach ($ctPrimaries as $ch): $pm = ContactChannels::meta($ch); ?>
+                            <a class="btn btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
+                               href="<?= e(ContactChannels::url($ch, $ctSet[$ch])) ?>">
+                                <img class="social-logo" src="<?= e(ContactChannels::logo($ch)) ?>" alt="" width="24" height="24">
+                                <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php elseif ($waPhone !== ''): ?>
+                <div class="panel shop-contact-panel">
+                    <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
+                       href="https://wa.me/<?= e($waPhone) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('listing.contact_whatsapp')) ?></a>
+                </div>
+            <?php endif; ?>
+
+            <details class="panel info-disclosure">
+                <summary class="info-summary">
+                    <?= icon('info', ['size' => 18]) ?>
+                    <span><?= e(t('shop.infos')) ?></span>
+                    <?= icon('chevron', ['size' => 18, 'class' => 'info-caret']) ?>
+                </summary>
+                <div class="info-disclosure-body">
                 <dl class="meta">
                     <dt><?= e(t('shop.f.type')) ?></dt>
                     <dd><?= ($boutique['shop_type'] ?? 'online') === 'physical' ? icon('store', ['size' => 16]) . ' ' . e(t('shop.type.physical')) : icon('globe', ['size' => 16]) . ' ' . e(t('shop.type.online')) ?></dd>
@@ -271,34 +312,8 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                         </div>
                     </div>
                 <?php endif; ?>
-                <?php
-                [$ctSet, $ctPrimaries] = \App\Services\ContactChannels::forBoutique($boutique);
-                ?>
-                <?php if ($ctSet !== []): ?>
-                    <div class="contact-buttons">
-                        <?php foreach ($ctPrimaries as $ch): $pm = \App\Services\ContactChannels::meta($ch); ?>
-                            <a class="btn btn-block contact-btn contact--<?= e($pm['class']) ?>" rel="noopener" target="_blank"
-                               href="<?= e(\App\Services\ContactChannels::url($ch, $ctSet[$ch])) ?>">
-                                <img class="social-logo" src="<?= e(\App\Services\ContactChannels::logo($ch)) ?>" alt="" width="24" height="24">
-                                <?= e(t('contact.reach', ['channel' => $pm['label']])) ?>
-                            </a>
-                        <?php endforeach; ?>
-                        <?php $others = array_filter($ctSet, static fn ($k) => !in_array($k, $ctPrimaries, true), ARRAY_FILTER_USE_KEY); ?>
-                        <?php if ($others !== []): ?>
-                            <div class="contact-secondary">
-                                <?php foreach ($others as $ch => $val): $m = \App\Services\ContactChannels::meta($ch); ?>
-                                    <a class="contact-logo" rel="noopener" target="_blank"
-                                       href="<?= e(\App\Services\ContactChannels::url($ch, $val)) ?>"
-                                       title="<?= e($m['label']) ?>" aria-label="<?= e($m['label']) ?>"><img src="<?= e(\App\Services\ContactChannels::logo($ch)) ?>" alt="<?= e($m['label']) ?>" width="46" height="46"></a>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                <?php elseif ($waPhone !== ''): ?>
-                    <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
-                       href="https://wa.me/<?= e($waPhone) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('listing.contact_whatsapp')) ?></a>
-                <?php endif; ?>
-            </div>
+                </div>
+            </details>
 
             <?php if ($canOrder): ?>
                 <!-- Le panier (JS) est posté ici, revalidé serveur, puis on passe à la caisse. -->

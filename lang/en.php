@@ -1067,6 +1067,8 @@ return [
     'shop.policy_save' => 'Save policy',
     'shop.policy_saved' => 'Return policy saved.',
     'shop.infos' => 'Useful info',
+    'shop.social_label' => 'Social networks',
+    'shop.contact_title' => 'Contact the shop',
     'shop.cta_create' => 'Create',
     'shop.cta_manage' => 'Manage',
     'validation.shop_name' => 'The shop name must be between 2 and :max characters.',

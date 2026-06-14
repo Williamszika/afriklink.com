@@ -1067,6 +1067,8 @@ return [
     'shop.policy_save' => 'Enregistrer la politique',
     'shop.policy_saved' => 'Politique de retour enregistrée.',
     'shop.infos' => 'Infos pratiques',
+    'shop.social_label' => 'Réseaux sociaux',
+    'shop.contact_title' => 'Contacter la boutique',
     'shop.cta_create' => 'Créer',
     'shop.cta_manage' => 'Gérer',
     'validation.shop_name' => 'Le nom de la boutique doit faire entre 2 et :max caractères.',

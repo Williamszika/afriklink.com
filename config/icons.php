@@ -56,4 +56,6 @@ return [
     'copy'       => '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
     'folder'     => '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
     'utensils'   => '<path d="M6 3v5a2 2 0 0 0 4 0V3"/><path d="M8 8v13"/><path d="M16 3c-1.66 0-3 2.24-3 5s1.34 4 3 4"/><path d="M16 3v18"/>',
+    'info'       => '<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/>',
+    'chevron'    => '<path d="m6 9 6 6 6-6"/>',
 ];
