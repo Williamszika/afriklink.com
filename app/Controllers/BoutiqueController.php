@@ -1142,12 +1142,15 @@ final class BoutiqueController
         foreach ($items as $it) {
             $subtotal += (int) $it['line_total_cents'];
         }
+        $logoId = (string) ($boutique['logo_public_id'] ?? '');
         view('boutique/invoice', [
             'order'      => $order,
             'items'      => $items,
             'boutique'   => $boutique,
             'seller'     => $seller,
             'subtotal'   => $subtotal,
+            'shop_logo'  => $logoId !== '' ? CloudinaryService::imageUrl($logoId, 120, 120) : '',
+            'qr_svg'     => QrCode::svg(url('/boutique/commande/' . $order['public_id'])),
             'page_title' => t('invoice.title', ['ref' => strtoupper(substr((string) $order['public_id'], 0, 6))]),
         ], null);
     }

@@ -471,6 +471,7 @@ return [
     'invoice.ref_label'  => 'Reference',
     'invoice.date_label' => 'Date',
     'invoice.powered'  => 'Powered by Afriklink',
+    'invoice.qr_hint'  => 'Scan to track your order',
     'newsletter.title'   => 'Stay in the loop',
     'newsletter.ph'      => 'Your email address',
     'newsletter.btn'     => 'Subscribe',

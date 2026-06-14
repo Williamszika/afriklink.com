@@ -1,5 +1,6 @@
 <?php
-/** @var array $order  @var list<array> $items  @var ?array $boutique  @var array $seller  @var int $subtotal */
+/** @var array $order  @var list<array> $items  @var ?array $boutique  @var array $seller  @var int $subtotal
+ *  @var string $shop_logo  URL du logo boutique (ou '')   @var string $qr_svg  SVG inline du QR (ou '') */
 $cur      = (string) $order['currency'];
 $ref      = strtoupper(substr((string) $order['public_id'], 0, 6));
 $ship     = (int) ($order['shipping_cents'] ?? 0);
@@ -9,6 +10,8 @@ $shopName = (string) ($boutique['name'] ?? '');
 $paid     = (string) ($order['payment_status'] ?? '') === 'paid';
 $sub      = $subtotal > 0 ? $subtotal : $total;
 $dateStr  = date('d/m/Y', strtotime((string) $order['created_at']));
+$shopLogo = (string) ($shop_logo ?? '');   // logo boutique (Cloudinary) ou ''
+$qrSvg    = (string) ($qr_svg ?? '');       // QR (SVG inline) vers la commande, ou ''
 // Lignes : soit le détail panier, soit l'article unique (repli).
 $rows = [];
 if ($items === []) {
@@ -54,6 +57,9 @@ if ($items === []) {
         .inv-cauri { width:46px; height:46px; display:flex; align-items:center; justify-content:center;
             background:rgba(251,247,239,.96); border-radius:12px; box-shadow:0 6px 16px -8px rgba(0,0,0,.6); flex:none; }
         .inv-cauri .cauri { width:30px; height:40px; display:block; }
+        .inv-shoplogo { width:46px; height:46px; border-radius:11px; object-fit:cover; flex:none;
+            background:#fff; border:2px solid rgba(255,255,255,.9); box-shadow:0 6px 16px -8px rgba(0,0,0,.6); }
+        .inv-coline { width:1px; align-self:stretch; margin:4px 1px; background:rgba(245,214,153,.45); }
         .inv-wordmark { font-family:var(--afk-display,"Bricolage Grotesque",sans-serif); font-weight:800;
             font-size:1.5rem; letter-spacing:-.02em; line-height:1; }
         .inv-wordmark span { color:var(--inv-or); }
@@ -78,6 +84,11 @@ if ($items === []) {
             color:var(--inv-forest-300); font-weight:700; }
         .inv-party-name { font-weight:700; font-size:1.02rem; color:var(--inv-ink); }
         .inv-party .muted { color:var(--inv-muted); font-size:.86rem; line-height:1.45; }
+        .inv-party-head { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+        .inv-party-head .inv-party-name { margin:0; }
+        .inv-vendor-logo { width:46px; height:46px; border-radius:11px; object-fit:cover; flex:none;
+            background:#fff; border:1px solid var(--inv-line); }
+        .inv-vendor-logo--empty { display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
 
         /* Tableau des articles */
         table.inv-table { width:100%; border-collapse:collapse; margin-bottom:18px; }
@@ -93,15 +104,20 @@ if ($items === []) {
         .inv-table .it-title { font-weight:600; }
         .inv-table td.num.amount { font-weight:700; color:var(--inv-forest); }
 
-        /* Récap : tampon + totaux */
-        .inv-summary { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
-        .inv-summary-left { padding-top:6px; }
+        /* Récap : QR (gauche) + tampon & totaux (droite) */
+        .inv-summary { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; }
+        .inv-summary-left { display:flex; flex-direction:column; gap:6px; }
+        .inv-summary-right { display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
+        .inv-qr { width:118px; padding:7px; background:#fff; border:1px solid var(--inv-line); border-radius:12px;
+            box-shadow:0 4px 12px -7px rgba(16,36,30,.3); }
+        .inv-qr svg { width:104px; height:104px; display:block; }
+        .inv-qr-cap { font-size:.72rem; color:var(--inv-muted); max-width:132px; line-height:1.35; }
         .inv-stamp { display:inline-block; transform:rotate(-7deg); border:3px double currentColor;
             border-radius:9px; padding:7px 16px; font-family:var(--afk-display,"Bricolage Grotesque",sans-serif);
             font-weight:800; font-size:1.05rem; text-transform:uppercase; letter-spacing:.08em; opacity:.92; }
         .inv-stamp.is-paid { color:var(--inv-ok); }
         .inv-stamp.is-unpaid { color:var(--inv-warn); }
-        .inv-terms { margin:14px 2px 0; font-size:.82rem; color:var(--inv-muted); max-width:240px; line-height:1.5; }
+        .inv-terms { margin:8px 2px 0; font-size:.82rem; color:var(--inv-muted); max-width:240px; line-height:1.5; }
 
         table.inv-totals { width:300px; border-collapse:collapse; }
         .inv-totals td { padding:5px 10px; font-size:.9rem; }
@@ -149,6 +165,10 @@ if ($items === []) {
         <header class="inv-band">
             <div class="inv-brand">
                 <span class="inv-cauri"><?= render_partial('partials/logo', ['uid' => 'inv']) ?></span>
+                <?php if ($shopLogo !== ''): ?>
+                    <span class="inv-coline" aria-hidden="true"></span>
+                    <img class="inv-shoplogo" src="<?= e($shopLogo) ?>" alt="" width="46" height="46">
+                <?php endif; ?>
                 <span>
                     <span class="inv-wordmark">Afrik<span>link</span></span>
                     <span class="inv-tag"><?= e($shopName !== '' ? $shopName : t('invoice.heading')) ?></span>
@@ -167,7 +187,14 @@ if ($items === []) {
             <div class="inv-parties">
                 <div class="inv-party">
                     <h3><?= e(t('invoice.from')) ?></h3>
-                    <div class="inv-party-name"><?= e($shopName) ?></div>
+                    <div class="inv-party-head">
+                        <?php if ($shopLogo !== ''): ?>
+                            <img class="inv-vendor-logo" src="<?= e($shopLogo) ?>" alt="" width="46" height="46">
+                        <?php else: ?>
+                            <span class="inv-vendor-logo inv-vendor-logo--empty" aria-hidden="true">🛍️</span>
+                        <?php endif; ?>
+                        <div class="inv-party-name"><?= e($shopName) ?></div>
+                    </div>
                     <?php if (!empty($boutique['city']) || !empty($boutique['country_code'])): ?>
                         <div class="muted"><?= e(place_label((string) ($boutique['city'] ?? ''), (string) ($boutique['country_code'] ?? ''))) ?></div>
                     <?php endif; ?>
@@ -205,7 +232,10 @@ if ($items === []) {
 
             <div class="inv-summary">
                 <div class="inv-summary-left">
-                    <span class="inv-stamp <?= $paid ? 'is-paid' : 'is-unpaid' ?>"><?= e($paid ? t('invoice.paid') : t('invoice.unpaid')) ?></span>
+                    <?php if ($qrSvg !== ''): ?>
+                        <div class="inv-qr"><?= $qrSvg ?></div>
+                        <div class="inv-qr-cap"><?= e(t('invoice.qr_hint')) ?></div>
+                    <?php endif; ?>
                     <?php
                     // N'afficher les conditions que si la clé de traduction existe (jamais de clé brute).
                     $termKey = (string) ($order['payment_term'] ?? '');
@@ -217,12 +247,15 @@ if ($items === []) {
                         <?= e(t('invoice.pay_status')) ?> : <strong><?= e($paid ? t('invoice.paid') : t('invoice.unpaid')) ?></strong>
                     </p>
                 </div>
-                <table class="inv-totals">
-                    <tr><td><?= e(t('caisse.subtotal')) ?></td><td class="num"><?= e(format_price($sub, $cur)) ?></td></tr>
-                    <?php if ($ship > 0): ?><tr><td><?= e(t('caisse.shipping')) ?></td><td class="num"><?= e(format_price($ship, $cur)) ?></td></tr><?php endif; ?>
-                    <?php if ($disc > 0): ?><tr><td><?= e(t('order.receipt.discount')) ?></td><td class="num">−<?= e(format_price($disc, $cur)) ?></td></tr><?php endif; ?>
-                    <tr class="inv-grand"><td><?= e(t('rorder.total')) ?></td><td class="num"><?= e(format_price($total, $cur)) ?></td></tr>
-                </table>
+                <div class="inv-summary-right">
+                    <span class="inv-stamp <?= $paid ? 'is-paid' : 'is-unpaid' ?>"><?= e($paid ? t('invoice.paid') : t('invoice.unpaid')) ?></span>
+                    <table class="inv-totals">
+                        <tr><td><?= e(t('caisse.subtotal')) ?></td><td class="num"><?= e(format_price($sub, $cur)) ?></td></tr>
+                        <?php if ($ship > 0): ?><tr><td><?= e(t('caisse.shipping')) ?></td><td class="num"><?= e(format_price($ship, $cur)) ?></td></tr><?php endif; ?>
+                        <?php if ($disc > 0): ?><tr><td><?= e(t('order.receipt.discount')) ?></td><td class="num">−<?= e(format_price($disc, $cur)) ?></td></tr><?php endif; ?>
+                        <tr class="inv-grand"><td><?= e(t('rorder.total')) ?></td><td class="num"><?= e(format_price($total, $cur)) ?></td></tr>
+                    </table>
+                </div>
             </div>
 
             <div class="inv-thanks"><?= e(t('invoice.thanks', ['shop' => $shopName])) ?></div>
