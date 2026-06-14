@@ -153,6 +153,8 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
     <?= $content ?>
 </main>
 
+<?= render_partial('partials/ticker') ?>
+
 <footer class="site-footer">
     <div class="container footer-inner">
         <div class="footer-top">

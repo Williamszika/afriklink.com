@@ -115,6 +115,47 @@ final class BusinessHours
     }
 
     /**
+     * Minutes restantes avant la fermeture si la boutique est ouverte MAINTENANT
+     * (gère les créneaux de nuit). null si fermée ou sans horaires.
+     *
+     * @param array<string,array{o:string,c:string}> $hours
+     */
+    public static function minutesUntilClose(array $hours, string $tz): ?int
+    {
+        if ($hours === []) {
+            return null;
+        }
+        try {
+            $now = new DateTimeImmutable('now', new DateTimeZone($tz));
+        } catch (\Throwable) {
+            $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+        }
+        $nowMin = (int) $now->format('G') * 60 + (int) $now->format('i');
+        $idx    = (int) $now->format('N') - 1;
+        $today  = self::DAYS[$idx];
+        $yester = self::DAYS[($idx + 6) % 7];
+
+        if (isset($hours[$today])) {
+            $o = self::toMin($hours[$today]['o']);
+            $c = self::toMin($hours[$today]['c']);
+            if ($c > $o && $nowMin >= $o && $nowMin < $c) {
+                return $c - $nowMin;                 // créneau normal
+            }
+            if ($c < $o && $nowMin >= $o) {
+                return (1440 - $nowMin) + $c;        // créneau de nuit, partie soirée
+            }
+        }
+        if (isset($hours[$yester])) {
+            $o = self::toMin($hours[$yester]['o']);
+            $c = self::toMin($hours[$yester]['c']);
+            if ($c < $o && $nowMin < $c) {
+                return $c - $nowMin;                 // créneau de nuit, partie matin
+            }
+        }
+        return null;
+    }
+
+    /**
      * Construit le JSON des horaires depuis les champs du formulaire.
      * Pour chaque jour : case « h_{day} » cochée + heures « h_{day}_o / _c »
      * valides et distinctes. Renvoie null si aucun jour n'est ouvert.

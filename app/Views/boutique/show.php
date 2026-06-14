@@ -89,7 +89,8 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 <?php if (!empty($boutique['tagline'])): ?><p class="lead"><?= e((string) $boutique['tagline']) ?></p><?php endif; ?>
                 <p class="muted">
                     <?php if (!empty($boutique['category'])): ?><span class="badge badge-neutral"><?= e(t('listing.cat.' . $boutique['category'])) ?></span><?php endif; ?>
-                    <?php if ($cc !== ''): ?> <?= flag_emoji($cc) ?> <?= e(country_name($cc)) ?><?php endif; ?>
+                    <?php $heroPlace = place_label($boutique['city'] ?? null, $boutique['country_code'] ?: $cc); ?>
+                    <?php if ($heroPlace !== ''): ?> <?= e($heroPlace) ?><?php endif; ?>
                     <?php if ($openNow !== null): ?> <span class="hours-badge <?= $openNow ? 'is-open' : 'is-closed' ?>"><?= icon('clock', ['size' => 12]) ?> <?= e($openNow ? t('shop.open_now') : t('shop.closed_now')) ?></span><?php endif; ?>
                 </p>
                 <?php if (!empty($shop_rating['count'])): ?>

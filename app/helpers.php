@@ -423,6 +423,24 @@ function flag_emoji(string $iso): string
         . mb_chr(0x1F1E6 + ord($iso[1]) - 65, 'UTF-8');
 }
 
+/**
+ * Libellé de lieu « Ville · 🇸🇳 Pays » — la VILLE avant le pays. Les parties
+ * vides sont ignorées. Renvoie du texte brut (à échapper par l'appelant).
+ */
+function place_label(?string $city, ?string $countryCode): string
+{
+    $parts = [];
+    $city = trim((string) $city);
+    if ($city !== '') {
+        $parts[] = $city;
+    }
+    $cc = strtoupper(trim((string) $countryCode));
+    if (preg_match('/^[A-Z]{2}$/', $cc) === 1) {
+        $parts[] = trim(flag_emoji($cc) . ' ' . country_name($cc));
+    }
+    return implode(' · ', $parts);
+}
+
 /** Initiales pour l'avatar par défaut (« AD » pour « Awa Diop »). */
 function user_initials(array $user): string
 {
