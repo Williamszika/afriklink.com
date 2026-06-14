@@ -4,10 +4,14 @@ $selCountry = old('country_code', $detected_country);
 $selDial    = old('dial_country', $detected_country);
 $cm         = old('contact_method') ?: 'email';
 $g          = old('gender');
-// Verrouillé dès qu'une position (pays) est détectée : pays, drapeau et indicatif
-// ne sont plus modifiables ; le GPS les corrige silencieusement (voir app.js).
-$lockCountry = isset($countries[$selCountry]);
-$lockDial    = ($selDial !== '' && dial_code($selDial) !== '');
+// Verrouillé UNIQUEMENT si le pays détecté est dans la zone du marketplace
+// (Afrique/Europe) ; le GPS le corrige ensuite silencieusement (voir app.js).
+// Une détection HORS zone (IP datacenter/VPN → ex. « US ») est quasi sûrement
+// erronée : on laisse alors le pays et l'indicatif librement modifiables, pour
+// ne pas piéger l'utilisateur sur un mauvais pays.
+$inRegion = static fn (string $cc): bool => in_array(\App\Services\GeoService::continentOf($cc), ['africa', 'europe'], true);
+$lockCountry = isset($countries[$selCountry]) && $inRegion($selCountry);
+$lockDial    = ($selDial !== '' && dial_code($selDial) !== '') && $inRegion($selDial);
 ?>
 <section class="auth-card auth-card--wide">
     <h1><?= e(t('register.particulier_title')) ?></h1>
