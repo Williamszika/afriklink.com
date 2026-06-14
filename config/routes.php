@@ -10,6 +10,7 @@ use App\Controllers\NotificationController;
 use App\Controllers\MessageController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\AddressController;
 use App\Controllers\AdminKycController;
 use App\Controllers\AnnouncementController;
 use App\Controllers\WalletController;
@@ -96,6 +97,10 @@ return [
     ['POST', '/logout',            [AuthController::class, 'logout'],         ['auth', 'csrf']],
     ['GET',  '/dashboard',         [DashboardController::class, 'index'],     ['auth']],
     ['GET',  '/mes-achats',        [DashboardController::class, 'purchases'], ['auth']],
+    ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
+    ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
+    ['POST', '/mes-adresses/{id}/defaut', [AddressController::class, 'setDefault'], ['auth', 'csrf']],
+    ['POST', '/mes-adresses/{id}/suppr',  [AddressController::class, 'delete'],     ['auth', 'csrf']],
 
     // Account self-service
     ['GET',  '/profile',           [ProfileController::class, 'edit'],            ['auth']],
@@ -204,6 +209,7 @@ return [
     ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      []],
     ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['csrf', 'throttle:border,40,3600']],
     ['GET',  '/boutique/commande/{ref}',   [BoutiqueController::class, 'orderConfirmation'], []],
+    ['POST', '/boutique/commande/{ref}/recommander', [BoutiqueController::class, 'reorder'], ['csrf', 'throttle:border,40,3600']],
     // Paiement en ligne de la commande (public ; PSP réel ou bac à sable de simulation)
     ['POST', '/boutique/commande/{ref}/payer',  [BoutiqueController::class, 'payStart'],   ['csrf', 'throttle:bpay,30,3600']],
     ['GET',  '/boutique/commande/{ref}/regler', [BoutiqueController::class, 'paySandbox'], []],

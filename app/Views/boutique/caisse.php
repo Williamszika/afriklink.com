@@ -3,6 +3,7 @@
  *  @var list<string> $terms  @var list<string> $pay_methods  @var list<string> $fulfillments
  *  @var array<string,int> $ship_map  @var string $delivery_delay */
 $me = $me ?? [];
+$savedAddr = isset($saved_address) && is_array($saved_address) ? \App\Models\UserAddress::oneLine($saved_address) : '';
 $cur = (string) $boutique['currency'];
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
 $firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments[0]] ?? 0) : 0;
@@ -132,8 +133,11 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?: e((string) ($me['email'] ?? '')) ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
             <?php if (has_error('client_email')): ?><p class="field-error"><?= e(error('client_email')) ?></p><?php endif; ?>
             <label for="cl-addr"><?= e(t('order.f.address')) ?></label>
-            <input type="text" id="cl-addr" name="client_address" maxlength="220" value="<?= old('client_address') ?>" placeholder="<?= e(t('order.f.address_ph')) ?>"
+            <input type="text" id="cl-addr" name="client_address" maxlength="220" value="<?= old('client_address') ?: e($savedAddr) ?>" placeholder="<?= e(t('order.f.address_ph')) ?>"
                    data-require-radio="fulfillment" data-require-when="local,international">
+            <?php if ($savedAddr !== '' && !empty($me)): ?>
+                <p class="hint"><a href="<?= e(url('/mes-adresses')) ?>"><?= e(t('addr.manage_link')) ?></a></p>
+            <?php endif; ?>
             <?= render_partial('partials/share_location') ?>
             <?php if (has_error('client_address')): ?><p class="field-error"><?= e(error('client_address')) ?></p><?php endif; ?>
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>

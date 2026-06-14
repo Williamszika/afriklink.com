@@ -725,6 +725,45 @@ final class BoutiqueController
         redirect('/boutique/' . $boutique['slug'] . '/caisse');
     }
 
+    /** « Recommander » : ré-ajoute au panier les articles encore disponibles d'une commande passée. */
+    public function reorder(Request $request): void
+    {
+        $order = Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $boutique = $this->boutiqueOf((int) $order['boutique_id']);
+        if ($boutique === null || $boutique['status'] !== 'published') {
+            flash('error', t('reorder.unavailable'));
+            redirect('/mes-achats');
+        }
+        // Reconstruit des entrées panier (public_id + qté) depuis les lignes de la commande.
+        $entries = [];
+        foreach (Order::items((int) $order['id']) as $it) {
+            $pid = (int) ($it['product_id'] ?? 0);
+            if ($pid <= 0) {
+                continue;
+            }
+            $p = \App\Models\Product::findById($pid);
+            if ($p !== null && (int) $p['boutique_id'] === (int) $boutique['id']) {
+                $entries[] = ['id' => (string) $p['public_id'], 'qty' => max(1, min(99, (int) $it['qty']))];
+            }
+        }
+        // Re-validation serveur (produit en ligne, en stock) : on ne ré-ajoute que le disponible.
+        $lines = $this->validateCartLines($boutique, $entries);
+        if ($lines === []) {
+            flash('error', t('reorder.none'));
+            redirect('/boutique/' . $boutique['slug']);
+        }
+        $_SESSION['caisse'][(int) $boutique['id']] = array_map(
+            static fn (array $l): array => ['id' => $l['public_id'], 'qty' => $l['qty']],
+            $lines
+        );
+        $_SESSION['cart_shop'] = (string) $boutique['slug'];
+        flash('success', t('reorder.added'));
+        redirect('/boutique/' . $boutique['slug'] . '/caisse');
+    }
+
     /** La caisse : récapitulatif du panier + moyen / type de paiement + validation. */
     public function caisse(Request $request): void
     {
@@ -759,8 +798,11 @@ final class BoutiqueController
             'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
             'pay_methods'  => array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))),
             'fulfillments' => $fulfillments,
-            // Acheteur connecté : pré-remplir ses coordonnées (invités : champs vides).
+            // Acheteur connecté : pré-remplir ses coordonnées + adresse par défaut.
             'me'           => current_user(),
+            'saved_address' => current_user_id() !== null
+                ? \App\Models\UserAddress::defaultFor((int) current_user_id())
+                : null,
             'page_title'   => t('caisse.title', ['shop' => (string) $boutique['name']]),
         ]);
     }

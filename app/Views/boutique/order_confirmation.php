@@ -95,6 +95,12 @@ $waText = rawurlencode(
     <?php if ($wa !== ''): ?>
         <p><a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('bcart.send_whatsapp')) ?></a></p>
     <?php endif; ?>
+    <?php if ($boutique && ($boutique['status'] ?? '') === 'published'): ?>
+        <form method="post" action="<?= e(url('/boutique/commande/' . $order['public_id'] . '/recommander')) ?>">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-ghost btn-block">🔁 <?= e(t('reorder.cta')) ?></button>
+        </form>
+    <?php endif; ?>
     <?php if ($boutique): ?>
         <p><a class="btn btn-ghost" href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
     <?php endif; ?>

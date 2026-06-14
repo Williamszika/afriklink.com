@@ -5,6 +5,7 @@
     <div class="page-head">
         <h1>🛒 <?= e(t('purchases.title')) ?></h1>
         <p class="muted"><?= e(t('purchases.subtitle')) ?></p>
+        <p><a class="btn btn-ghost btn-sm" href="<?= e(url('/mes-adresses')) ?>">📍 <?= e(t('addr.title')) ?></a></p>
     </div>
 
     <?php if ($orders === []): ?>
