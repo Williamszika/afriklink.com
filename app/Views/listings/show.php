@@ -48,7 +48,7 @@ $waText     = rawurlencode(t('listing.wa_text', ['title' => (string) $listing['t
         <div class="listing-side">
             <div class="panel">
                 <h1 class="listing-title"><?= e((string) $listing['title']) ?></h1>
-                <p class="listing-price"><?= e(format_price((int) $listing['price_cents'], (string) $listing['currency'])) ?></p>
+                <p class="listing-price"><?= render_partial('partials/price_dual', ['cents' => (int) $listing['price_cents'], 'cur' => (string) $listing['currency']]) ?></p>
                 <p class="listing-tags">
                     <span class="badge badge-neutral"><?= e(t('listing.cat.' . $listing['category'])) ?></span>
                     <span class="badge badge-ok"><?= e(t('listing.cond.' . $listing['item_condition'])) ?></span>

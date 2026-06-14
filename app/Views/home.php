@@ -85,7 +85,7 @@ $loggedIn   = current_user() !== null;
                     <span class="promo-badge"><?= e(t('ads.badge')) ?></span>
                 </span>
                 <span class="product-card-name"><?= e((string) $a['title']) ?></span>
-                <span class="product-card-price"><?= e(format_price((int) $a['price_cents'], (string) $a['currency'])) ?></span>
+                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $a['price_cents'], 'cur' => (string) $a['currency']]) ?></span>
             </a>
         <?php endforeach; ?>
     </div>
@@ -134,7 +134,7 @@ $loggedIn   = current_user() !== null;
                     <?php if (\App\Models\Listing::isPromoted($a)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                 </span>
                 <span class="product-card-name"><?= e((string) $a['title']) ?></span>
-                <span class="product-card-price"><?= e(format_price((int) $a['price_cents'], (string) $a['currency'])) ?></span>
+                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $a['price_cents'], 'cur' => (string) $a['currency']]) ?></span>
             </a>
         <?php endforeach; ?>
     </div>

@@ -31,13 +31,26 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                 'fee'  => (int) $z['fee_cents'],
                 'free' => (int) ($z['free_above_cents'] ?? 0),
             ], $shipping_zones ?? []), JSON_UNESCAPED_SLASHES); ?>
-            <div class="caisse-totals" data-ship-calc data-subtotal="<?= (int) $total ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-zones="<?= e($zonesJson) ?>">
-                <p class="cart-total-row"><span><?= e(t('caisse.subtotal')) ?></span> <strong><?= e(format_price($total, $cur)) ?></strong></p>
+            <?php
+            // Équivalent indicatif dans la devise de l'acheteur (≈) : on embarque le taux
+            // pour que le TOTAL se convertisse aussi quand les frais changent (JS).
+            $buyerCur = current_currency();
+            $fxAttr = '';
+            if (strtoupper($buyerCur) !== strtoupper($cur)) {
+                $conv = \App\Services\ExchangeRates::convert(1000000, $cur, $buyerCur);
+                if ($conv !== null) {
+                    $fxSym = trim(str_replace('0', '', format_price(0, $buyerCur)));
+                    $fxAttr = ' data-fx-rate="' . ($conv / 1000000) . '" data-fx-int="' . (currency_is_integer($buyerCur) ? '1' : '0') . '" data-fx-sym="' . e($fxSym) . '"';
+                }
+            }
+            ?>
+            <div class="caisse-totals" data-ship-calc data-subtotal="<?= (int) $total ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-zones="<?= e($zonesJson) ?>"<?= $fxAttr ?>>
+                <p class="cart-total-row"><span><?= e(t('caisse.subtotal')) ?></span> <strong><?= e(format_price($total, $cur)) ?><?php $sa = format_price_approx($total, $cur); if ($sa !== ''): ?> <span class="price-approx" title="<?= e(t('price.approx_title')) ?>">≈&nbsp;<?= e($sa) ?></span><?php endif; ?></strong></p>
                 <?php if ($fulfillments): ?>
                     <p class="cart-total-row"><span><?= e(t('caisse.shipping')) ?><?php if ($delivery_delay !== ''): ?> · <span class="muted"><?= e(t('shop.prep.' . $delivery_delay)) ?></span><?php endif; ?></span>
                         <strong data-ship-amount data-free="<?= e(t('caisse.free')) ?>"><?= $firstFee > 0 ? e(format_price($firstFee, $cur)) : e(t('caisse.free')) ?></strong></p>
                 <?php endif; ?>
-                <p class="cart-total-row caisse-total"><span><?= e(t('rorder.total')) ?></span> <strong data-grand-total><?= e(format_price($total + $firstFee, $cur)) ?></strong></p>
+                <p class="cart-total-row caisse-total"><span><?= e(t('rorder.total')) ?></span> <strong data-grand-total><?= e(format_price($total + $firstFee, $cur)) ?></strong><?php if ($fxAttr !== ''): $ga = format_price_approx($total + $firstFee, $cur); ?> <span class="price-approx" data-grand-approx title="<?= e(t('price.approx_title')) ?>"><?= $ga !== '' ? e('≈ ' . $ga) : '' ?></span><?php endif; ?></p>
                 <?php if ($minOrder > 0): ?>
                     <p class="caisse-minorder<?= $belowMin ? ' is-below' : '' ?>">
                         <?= $belowMin

@@ -2189,6 +2189,16 @@ document.addEventListener('click', function (ev) {
     var destSel = document.querySelector('[data-dest-country]');
     var zones = [];
     try { zones = JSON.parse(box.getAttribute('data-zones') || '[]') || []; } catch (e) { zones = []; }
+    // Équivalent dans la devise de l'acheteur (≈) : taux embarqué (centimes acheteur / centime boutique).
+    var fxRate = parseFloat(box.getAttribute('data-fx-rate')) || 0;
+    var fxInt = box.getAttribute('data-fx-int') === '1';
+    var fxSym = box.getAttribute('data-fx-sym') || '';
+    var approxEl = box.querySelector('[data-grand-approx]');
+    function fmtFx(cents) {
+        var bc = cents * fxRate;
+        var v = fxInt ? Math.round(bc / 100) : bc / 100;
+        return '≈ ' + new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: fxInt ? 0 : 2 }).format(v) + ' ' + fxSym;
+    }
     function zoneFee(cc) {
         if (!zones.length) { return null; }
         var match = null, catchAll = null;
@@ -2215,6 +2225,7 @@ document.addEventListener('click', function (ev) {
         }
         if (shipEl) { shipEl.textContent = fee > 0 ? fmt(fee) : (shipEl.getAttribute('data-free') || fmt(0)); }
         grandEl.textContent = fmt(subtotal + fee);
+        if (approxEl && fxRate > 0) { approxEl.textContent = fmtFx(subtotal + fee); }
     }
     radios.forEach(function (r) { r.addEventListener('change', update); });
     if (destSel) { destSel.addEventListener('change', update); }

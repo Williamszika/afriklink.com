@@ -20,7 +20,7 @@ if (empty($products)) {
                         <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                     </span>
                     <span class="product-card-name"><?= e((string) $p['name']) ?></span>
-                    <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
+                    <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></span>
                 </a>
                 <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
                 <?= render_partial('partials/compare_toggle', ['pid' => (string) $p['public_id']]) ?>
