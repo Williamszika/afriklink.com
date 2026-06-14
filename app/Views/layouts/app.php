@@ -138,6 +138,8 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
     </div>
 </header>
 
+<?= render_partial('partials/ticker') ?>
+
 <?php $flashes = get_flashes(); ?>
 <?php if ($flashes !== []): ?>
     <div class="container flashes">
@@ -152,8 +154,6 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
 <main class="container main-content">
     <?= $content ?>
 </main>
-
-<?= render_partial('partials/ticker') ?>
 
 <footer class="site-footer">
     <div class="container footer-inner">
