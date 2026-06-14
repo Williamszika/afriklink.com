@@ -18,14 +18,16 @@ $groups = [
          'chip' => $msgUnread > 0 ? (string) $msgUnread : null, 'chip_class' => 'chip-pending'],
     ]],
     ['label' => t('seller.group.develop'), 'items' => [
-        ['key' => 'gains',       'icon' => '💸', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
         ['key' => 'publicite',   'icon' => '📣', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => null],
         ['key' => 'affiliation', 'icon' => '🤝', 'href' => url('/vendeur/affiliation'), 'label' => t('seller.nav.affiliation'),  'chip' => null],
     ]],
     ['label' => t('seller.group.account'), 'items' => [
-        ['key' => 'verification', 'icon' => '🪪', 'href' => url('/vendeur/verification'), 'label' => t('seller.nav.verification'), 'chip' => $soon],
+        ['key' => 'verification', 'icon' => '🪪', 'href' => url('/vendeur/verification'), 'label' => t('seller.nav.verification'), 'chip' => null],
         ['key' => 'profil',       'icon' => '🏢', 'href' => url('/vendeur/profil'),       'label' => t('seller.nav.profile'),      'chip' => null],
         ['key' => 'reglages',     'icon' => '⚙️', 'href' => url('/vendeur/reglages'),     'label' => t('seller.nav.settings'),     'chip' => null],
+    ]],
+    ['label' => t('seller.group.soon'), 'items' => [
+        ['key' => 'gains',       'icon' => '💸', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
     ]],
 ];
 ?>

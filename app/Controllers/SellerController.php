@@ -24,26 +24,107 @@ final class SellerController
         $userId        = (int) ($user['id'] ?? 0);
         $profile       = ProProfile::findByUserId($userId) ?? [];
         $avatarVersion = Avatar::versionFor($userId);
+        $hasStorefront = \App\Models\Boutique::findByUserId($userId) !== null
+            || \App\Models\Restaurant::findByUserId($userId) !== null;
+        $steps         = self::onboardingSteps($user, $profile, $avatarVersion !== null, $hasStorefront);
 
         return [
-            'user'           => $user,
-            'profile'        => $profile,
-            'avatar_version' => $avatarVersion,
-            'avatar_url'     => avatar_url($user, $avatarVersion),
-            'completion'     => self::completion($profile, $avatarVersion !== null),
+            'user'             => $user,
+            'profile'          => $profile,
+            'avatar_version'   => $avatarVersion,
+            'avatar_url'       => avatar_url($user, $avatarVersion),
+            'completion'       => self::completion($steps),
+            'onboarding_steps' => $steps,
+            'has_storefront'   => $hasStorefront,
         ];
     }
 
-    /** % de complétion : logo + 6 champs entreprise (sert barre + checklist). */
-    public static function completion(array $profile, bool $hasLogo): int
+    /**
+     * Étapes d'onboarding — SOURCE UNIQUE de la barre de complétion ET de la
+     * checklist (elles ne peuvent plus diverger). 5 étapes réelles : e-mail
+     * vérifié, logo, description, n° d'enregistrement, première vitrine.
+     * @return list<array{done:bool,label:string,href:?string}>
+     */
+    public static function onboardingSteps(array $user, array $profile, bool $hasLogo, bool $hasStorefront): array
     {
-        $done = $hasLogo ? 1 : 0;
-        foreach (['description', 'legal_form', 'reg_number', 'address', 'website', 'languages'] as $f) {
-            if (!empty($profile[$f])) {
+        $emailOk = !empty($user['email_verified_at']);
+        $hasDesc = !empty($profile['description']);
+        $hasReg  = !empty($profile['reg_number']);
+        return [
+            ['done' => $emailOk,       'label' => t('pro.dash.check_email'),      'href' => $emailOk ? null : url('/verify-email/notice')],
+            ['done' => $hasLogo,       'label' => t('seller.check_logo'),         'href' => $hasLogo ? null : url('/vendeur/profil')],
+            ['done' => $hasDesc,       'label' => t('seller.check_description'),   'href' => $hasDesc ? null : url('/vendeur/profil')],
+            ['done' => $hasReg,        'label' => t('pro.dash.check_reg'),         'href' => $hasReg ? null : url('/vendeur/profil')],
+            ['done' => $hasStorefront, 'label' => t('pro.dash.check_storefront'),  'href' => $hasStorefront ? null : url('/vendeur/vitrines')],
+        ];
+    }
+
+    /** % de complétion = étapes faites / total (recalculé depuis l'état réel). */
+    public static function completion(array $steps): int
+    {
+        if ($steps === []) {
+            return 0;
+        }
+        $done = 0;
+        foreach ($steps as $s) {
+            if (!empty($s['done'])) {
                 $done++;
             }
         }
-        return (int) round($done * 100 / 7);
+        return (int) round($done * 100 / count($steps));
+    }
+
+    /**
+     * État adaptatif du tableau de bord : calcule le STADE depuis l'état réel du
+     * compte (vitrine / produits / commandes) et la « prochaine meilleure action ».
+     *   A = mise en route (pas de vitrine) · B = prêt à vendre (vitrine, 0 vente)
+     *   · C = vendeur actif (≥ 1 commande).
+     * @return array<string,mixed>
+     */
+    public static function dashboardState(array $user): array
+    {
+        $uid      = (int) ($user['id'] ?? 0);
+        $boutique = \App\Models\Boutique::findByUserId($uid);
+        $hasShop  = $boutique !== null || \App\Models\Restaurant::findByUserId($uid) !== null;
+        $productN = $boutique !== null ? count(\App\Models\Product::forBoutique((int) $boutique['id'])) : 0;
+        $orderN   = $boutique !== null ? (int) (\App\Models\Order::countFor((int) $boutique['id'])['total'] ?? 0) : 0;
+        $pending  = \App\Models\Order::pendingForUser($uid);
+        $views    = \App\Models\ShopView::totalForUser($uid);
+        $stage    = !$hasShop ? 'A' : ($orderN === 0 ? 'B' : 'C');
+
+        return [
+            'stage'     => $stage,
+            'has_shop'  => $hasShop,
+            'boutique'  => $boutique,
+            'product_n' => $productN,
+            'order_n'   => $orderN,
+            'pending'   => $pending,
+            'views'     => $views,
+            'next'      => self::nextBestAction($stage, $boutique, $productN, $pending),
+        ];
+    }
+
+    /**
+     * La SEULE action la plus utile selon l'avancement : créer la vitrine →
+     * ajouter des produits → traiter les commandes → partager la boutique.
+     * @return array{icon:string,title:string,desc:string,cta:string,href:string}
+     */
+    public static function nextBestAction(string $stage, ?array $boutique, int $productN, int $pending): array
+    {
+        if ($stage === 'A' || $boutique === null) {
+            return ['icon' => '🏪', 'title' => t('nba.create_shop_t'), 'desc' => t('nba.create_shop_d'),
+                'cta' => t('nba.create_shop_c'), 'href' => url('/vendeur/vitrines')];
+        }
+        if ($productN === 0) {
+            return ['icon' => '📦', 'title' => t('nba.add_products_t'), 'desc' => t('nba.add_products_d'),
+                'cta' => t('nba.add_products_c'), 'href' => url('/boutique/produits/nouveau')];
+        }
+        if ($pending > 0) {
+            return ['icon' => '🔔', 'title' => t('nba.process_orders_t', ['n' => $pending]), 'desc' => t('nba.process_orders_d'),
+                'cta' => t('nba.process_orders_c'), 'href' => url('/vendeur/commandes?filtre=a_traiter')];
+        }
+        return ['icon' => '🔗', 'title' => t('nba.share_shop_t'), 'desc' => t('nba.share_shop_d'),
+            'cta' => t('nba.share_shop_c'), 'href' => url('/boutique/' . (string) $boutique['slug'])];
     }
 
     public function storefronts(Request $request): void

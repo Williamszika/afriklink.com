@@ -347,6 +347,25 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .stat-card--urgent { border-color: #f4b740; background: #fffaf0; }
 .stat-card--urgent .num { color: #b45309; }
 
+/* ---- Dashboard vendeur : action prioritaire (NextBestAction) + états adaptatifs ---- */
+.notice-warn { background: #fdf6e7; border: 1px solid #ecd8a6; border-radius: 10px; padding: 10px 14px; margin: 12px 0; color: #7a5a12; }
+.notice-warn p { margin: 0; font-size: .92rem; }
+.nba-card { display: block; text-decoration: none; color: inherit; border: 2px solid var(--afk-or, #e5a02e); background: linear-gradient(180deg, #fffdf7, #fff); }
+.nba-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16, 61, 48, .10); }
+.nba-card--inline { border-width: 1px; border-color: var(--border); background: #fff; }
+.nba-badge { display: inline-block; font-weight: 700; font-size: .7rem; letter-spacing: .04em; text-transform: uppercase; color: var(--afk-foret, #103d30); background: var(--afk-or, #e5a02e); padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; }
+.nba-row { display: flex; align-items: center; gap: 16px; }
+.nba-ico { font-size: 2rem; line-height: 1; flex: 0 0 auto; }
+.nba-body { flex: 1 1 auto; min-width: 0; }
+.nba-title { margin: 0 0 4px; font-size: 1.2rem; }
+.nba-desc { margin: 0; color: #5b6b66; font-size: .94rem; }
+.nba-cta { flex: 0 0 auto; white-space: nowrap; }
+.stat-card.is-muted { opacity: .65; }
+.stat-card.is-muted .num { color: #9aa7a2; font-weight: 700; }
+.kpi-muted .stat-card { box-shadow: none; }
+.kpi-soon-note { margin: 8px 2px 0; font-size: .9rem; }
+@media (max-width: 640px) { .nba-row { flex-wrap: wrap; } .nba-cta { width: 100%; text-align: center; } }
+
 /* Commandes (suivi vendeur) */
 .chip-pending { margin-left: auto; min-width: 20px; text-align: center; padding: 1px 7px; font-size: .72rem; font-weight: 800; color: #fff; background: #dc2626; border-radius: 999px; }
 .order-record summary { cursor: pointer; font-weight: 700; }

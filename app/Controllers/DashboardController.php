@@ -14,7 +14,8 @@ final class DashboardController
 
         // Espace vendeur : tableau de bord à menu latéral (section « Vue d'ensemble »).
         if (($user['account_type'] ?? '') === 'professionnel') {
-            view('vendeur/overview', ['active' => 'overview'] + SellerController::commonData($user));
+            view('vendeur/overview', ['active' => 'overview', 'dash' => SellerController::dashboardState($user)]
+                + SellerController::commonData($user));
             return;
         }
 
