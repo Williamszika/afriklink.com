@@ -248,10 +248,10 @@ foreach ($realVariants as $rv) {
 
     <!-- Recommandations : souvent achetés ensemble (co-achats) + vu récemment (historique). -->
     <?php if (!empty($fbt)): ?>
-        <?= render_partial('partials/product_rail', ['icon' => '🧩', 'title' => t('reco.fbt'), 'products' => $fbt, 'mains' => $reco_mains ?? []]) ?>
+        <?= render_partial('partials/product_rail', ['icon' => 'bag', 'title' => t('reco.fbt'), 'products' => $fbt, 'mains' => $reco_mains ?? []]) ?>
     <?php endif; ?>
     <?php if (!empty($recently_viewed)): ?>
-        <?= render_partial('partials/product_rail', ['icon' => '🕒', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains ?? []]) ?>
+        <?= render_partial('partials/product_rail', ['icon' => 'clock', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains ?? []]) ?>
     <?php endif; ?>
 
     <?php if ($canOrder): ?>
