@@ -13,7 +13,7 @@ $verified = ($profile['verification_status'] ?? 'pending') === 'verified';
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>🏢 <?= e(t('seller.profile_title')) ?></h1>
+            <h1><?= icon('building', ['size' => 24]) ?> <?= e(t('seller.profile_title')) ?></h1>
             <p class="muted"><?= e(t('seller.profile_subtitle')) ?></p>
         </div>
 
@@ -24,7 +24,7 @@ $verified = ($profile['verification_status'] ?? 'pending') === 'verified';
                 <?php if ($avatar_url !== null): ?>
                     <img class="avatar avatar-img" src="<?= e($avatar_url) ?>" alt="" width="72" height="72">
                 <?php else: ?>
-                    <div class="avatar" aria-hidden="true">🏪</div>
+                    <div class="avatar" aria-hidden="true"><?= icon('store', ['size' => 30]) ?></div>
                 <?php endif; ?>
                 <div class="avatar-forms">
                     <form method="post" action="<?= e(url('/profile/photo')) ?>" enctype="multipart/form-data" class="avatar-upload">
@@ -99,7 +99,7 @@ $verified = ($profile['verification_status'] ?? 'pending') === 'verified';
                 </div>
             </div>
             <?php if (!$verified): ?>
-                <div class="notice notice-info"><p>🛡️ <?= e(t('pro.field.reg_number_trust')) ?></p></div>
+                <div class="notice notice-info"><p><?= icon('shield', ['size' => 15]) ?> <?= e(t('pro.field.reg_number_trust')) ?></p></div>
             <?php endif; ?>
 
             <label for="address"><?= e(t('pro.field.address')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -111,7 +111,7 @@ $verified = ($profile['verification_status'] ?? 'pending') === 'verified';
                         data-geo-address="#address" data-geo-status="#geo-status-profil"
                         data-msg-asking="<?= e(t('geo.asking')) ?>" data-msg-denied="<?= e(t('geo.denied')) ?>"
                         data-msg-error="<?= e(t('geo.error')) ?>" data-msg-unsupported="<?= e(t('geo.unsupported')) ?>">
-                    📍 <?= e(t('geo.btn')) ?>
+                    <?= icon('pin', ['size' => 15]) ?> <?= e(t('geo.btn')) ?>
                 </button>
                 <span class="geo-status hint" id="geo-status-profil" role="status" aria-live="polite"></span>
             </div>

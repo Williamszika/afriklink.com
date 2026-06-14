@@ -10,7 +10,7 @@ $verticals = [
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>🏪 <?= e(t('pro.dash.create_title')) ?></h1>
+            <h1><?= icon('store', ['size' => 24]) ?> <?= e(t('pro.dash.create_title')) ?></h1>
             <p class="muted"><?= e(t('pro.dash.create_desc')) ?></p>
         </div>
 

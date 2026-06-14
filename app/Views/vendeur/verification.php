@@ -9,7 +9,7 @@ $idTypes = config('kyc.id_types', []);
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>🪪 <?= e(t('kyc.title')) ?></h1>
+            <h1><?= icon('shield', ['size' => 24]) ?> <?= e(t('kyc.title')) ?></h1>
             <p class="muted"><?= e(t('kyc.intro')) ?></p>
         </div>
 
@@ -45,13 +45,13 @@ $idTypes = config('kyc.id_types', []);
                     </div>
 
                     <?php if ($state === 'pending'): ?>
-                        <p class="hint">⏳ <?= e(t('kyc.pending_hint')) ?></p>
+                        <p class="hint"><?= icon('clock', ['size' => 15]) ?> <?= e(t('kyc.pending_hint')) ?></p>
 
                     <?php elseif ($state === 'approved'): ?>
-                        <p class="hint">✅ <?= e(t('kyc.approved_hint')) ?></p>
+                        <p class="hint"><?= icon('check', ['size' => 15]) ?> <?= e(t('kyc.approved_hint')) ?></p>
 
                     <?php elseif ($state === 'locked'): ?>
-                        <p class="hint">🔒 <?= e(t('kyc.locked_hint')) ?></p>
+                        <p class="hint"><?= icon('lock', ['size' => 15]) ?> <?= e(t('kyc.locked_hint')) ?></p>
 
                     <?php elseif ($state === 'open' && $mediaReady): ?>
                         <?php if ($status === 'rejected' && !empty($sub['review_note'])): ?>
@@ -106,7 +106,7 @@ $idTypes = config('kyc.id_types', []);
                                 <?php endforeach; ?>
                             </div>
 
-                            <p class="hint">🔒 <?= e(t('kyc.privacy')) ?></p>
+                            <p class="hint"><?= icon('lock', ['size' => 15]) ?> <?= e(t('kyc.privacy')) ?></p>
                             <button type="submit" class="btn btn-primary"><?= e(t('kyc.submit')) ?></button>
                         </form>
                     <?php endif; ?>

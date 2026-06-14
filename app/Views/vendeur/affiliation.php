@@ -8,12 +8,12 @@
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>🤝 <?= e(t('aff.title')) ?> <span class="badge badge-ok"><?= e(t('aff.rate_badge', ['rate' => (int) $rate])) ?></span></h1>
+            <h1><?= icon('users', ['size' => 24]) ?> <?= e(t('aff.title')) ?> <span class="badge badge-ok"><?= e(t('aff.rate_badge', ['rate' => (int) $rate])) ?></span></h1>
             <p class="muted"><?= e(t('aff.lead', ['rate' => (int) $rate])) ?></p>
         </div>
 
         <div class="panel">
-            <h2 class="panel-title">🔗 <?= e(t('aff.your_link')) ?></h2>
+            <h2 class="panel-title"><?= icon('link', ['size' => 18]) ?> <?= e(t('aff.your_link')) ?></h2>
             <?php if ($link !== ''): ?>
                 <div class="aff-link-row">
                     <input type="text" class="aff-link-input" value="<?= e($link) ?>" readonly aria-label="<?= e(t('aff.your_link')) ?>">
@@ -27,15 +27,15 @@
 
         <div class="stat-grid cols-3">
             <div class="stat-card">
-                <div class="num"><span aria-hidden="true">👆</span> <?= (int) $stats['clicks'] ?></div>
+                <div class="num"><?= icon('pointer', ['size' => 18]) ?> <?= (int) $stats['clicks'] ?></div>
                 <div class="lbl"><?= e(t('aff.clicks')) ?></div>
             </div>
             <div class="stat-card">
-                <div class="num"><span aria-hidden="true">🛍️</span> <?= (int) $stats['conversions'] ?></div>
+                <div class="num"><?= icon('bag', ['size' => 18]) ?> <?= (int) $stats['conversions'] ?></div>
                 <div class="lbl"><?= e(t('aff.conversions')) ?></div>
             </div>
             <div class="stat-card">
-                <div class="num"><span aria-hidden="true">💸</span>
+                <div class="num"><?= icon('wallet', ['size' => 18]) ?>
                     <?php if (empty($stats['earnings'])): ?>
                         0
                     <?php else: ?>
@@ -47,7 +47,7 @@
         </div>
 
         <div class="panel">
-            <h2 class="panel-title">📜 <?= e(t('aff.recent_title')) ?></h2>
+            <h2 class="panel-title"><?= icon('list', ['size' => 18]) ?> <?= e(t('aff.recent_title')) ?></h2>
             <?php if ($recent === []): ?>
                 <p class="muted"><?= e(t('aff.none_yet')) ?></p>
             <?php else: ?>
@@ -75,7 +75,7 @@
         </div>
 
         <div class="panel">
-            <h2 class="panel-title">💡 <?= e(t('aff.how_title')) ?></h2>
+            <h2 class="panel-title"><?= icon('lightbulb', ['size' => 18]) ?> <?= e(t('aff.how_title')) ?></h2>
             <ul class="tips">
                 <li>1️⃣ <?= e(t('aff.how_1')) ?></li>
                 <li>2️⃣ <?= e(t('aff.how_2', ['rate' => (int) $rate])) ?></li>

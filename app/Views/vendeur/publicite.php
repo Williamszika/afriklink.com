@@ -10,7 +10,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
     <div class="seller-main">
 
         <div class="seller-head">
-            <h1>📣 <?= e(t('ads.title')) ?></h1>
+            <h1><?= icon('megaphone', ['size' => 24]) ?> <?= e(t('ads.title')) ?></h1>
             <p class="muted"><?= e(t('ads.lead', ['days' => (int) $promo_days])) ?></p>
         </div>
 
@@ -31,7 +31,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                             <div class="product-thumb">
                                 <?php if ($main !== null): ?>
                                     <img src="<?= e(CloudinaryService::imageUrl($main, 140, 140)) ?>" alt="" loading="lazy" width="70" height="70">
-                                <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                                <?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                             </div>
                             <div class="product-row-body">
                                 <p class="product-row-title"><?= e((string) $p['name']) ?>
@@ -49,7 +49,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                         <?php if ($promoted): ?>
                                             <button class="btn btn-ghost btn-sm" name="action" value="stop"><?= e(t('ads.stop')) ?></button>
                                         <?php else: ?>
-                                            <button class="btn btn-primary btn-sm" name="action" value="promote">✨ <?= e(t('ads.promote', ['days' => (int) $promo_days])) ?></button>
+                                            <button class="btn btn-primary btn-sm" name="action" value="promote"><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.promote', ['days' => (int) $promo_days])) ?></button>
                                         <?php endif; ?>
                                     </form>
                                 </div>
@@ -60,9 +60,9 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
             </div>
             <div class="panel">
                 <ul class="tips">
-                    <li>✨ <?= e(t('ads.tip_1')) ?></li>
-                    <li>🏠 <?= e(t('ads.tip_2')) ?></li>
-                    <li>🆓 <?= e(t('ads.tip_3')) ?></li>
+                    <li><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.tip_1')) ?></li>
+                    <li><?= icon('home', ['size' => 16]) ?> <?= e(t('ads.tip_2')) ?></li>
+                    <li><?= icon('tag', ['size' => 16]) ?> <?= e(t('ads.tip_3')) ?></li>
                 </ul>
             </div>
         <?php endif; ?>

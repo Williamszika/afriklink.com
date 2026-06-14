@@ -50,5 +50,8 @@ return [
     'card'       => '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 9.5h19"/>',
     'user'       => '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
     'flag'       => '<path d="M5 21V4"/><path d="M5 4h11l-1.4 4L16 12H5"/>',
+    'home'       => '<path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/>',
+    'list'       => '<path d="M8 5h12"/><path d="M8 12h12"/><path d="M8 19h12"/><path d="M3.5 5h.01"/><path d="M3.5 12h.01"/><path d="M3.5 19h.01"/>',
+    'pointer'    => '<path d="M5 3l13 7.5-5.4 1.6L9.5 18z"/>',
     'utensils'   => '<path d="M6 3v5a2 2 0 0 0 4 0V3"/><path d="M8 8v13"/><path d="M16 3c-1.66 0-3 2.24-3 5s1.34 4 3 4"/><path d="M16 3v18"/>',
 ];
