@@ -853,6 +853,7 @@ return [
     'resto.drink_volumes_hint' => 'Cochez les tailles proposées et indiquez le prix de chacune.',
     'resto.drink_need_volume' => 'Cochez au moins une contenance et indiquez son prix.',
     'resto.from_price' => 'dès :price',
+    'resto.from_label' => 'dès',
     'resto.size_out' => 'épuisé',
     'resto.size_mark_out' => 'Marquer épuisé',
     'resto.size_mark_in' => 'De retour',

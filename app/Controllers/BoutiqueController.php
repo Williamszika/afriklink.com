@@ -216,7 +216,9 @@ final class BoutiqueController
         $contacts  = ($boutique['contact_whatsapp'] ?? '') . ($boutique['contact_sms'] ?? '') . ($boutique['contact_telegram'] ?? '')
             . ($boutique['contact_facebook'] ?? '') . ($boutique['contact_instagram'] ?? '') . ($boutique['contact_tiktok'] ?? '');
         $items = [
-            ['key' => 'media',    'done' => $hasMedia,                                              'req' => true,  'href' => '/boutique/modifier'],
+            // Logo/bannière : recommandé mais NON bloquant pour publier (le libellé
+            // de l'assistant indique « optionnel » — on reste cohérent).
+            ['key' => 'media',    'done' => $hasMedia,                                              'req' => false, 'href' => '/boutique/modifier'],
             ['key' => 'product',  'done' => $activeProducts > 0,                                     'req' => true,  'href' => '/boutique/produits/nouveau'],
             ['key' => 'contact',  'done' => trim($contacts) !== '',                                  'req' => true,  'href' => '/boutique/modifier'],
             ['key' => 'delivery', 'done' => trim((string) ($boutique['delivery_methods'] ?? '')) !== '', 'req' => true, 'href' => '/boutique/modifier'],

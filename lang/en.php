@@ -853,6 +853,7 @@ return [
     'resto.drink_volumes_hint' => 'Tick the sizes offered and set a price for each.',
     'resto.drink_need_volume' => 'Tick at least one size and set its price.',
     'resto.from_price' => 'from :price',
+    'resto.from_label' => 'from',
     'resto.size_out' => 'sold out',
     'resto.size_mark_out' => 'Mark sold out',
     'resto.size_mark_in' => 'Back in stock',

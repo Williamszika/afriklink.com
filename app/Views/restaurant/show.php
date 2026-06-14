@@ -81,7 +81,7 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                                         <div class="order-sizes">
                                             <?php foreach ($vars as $vr): $vOut = !empty($vr['out']); $lbl = rtrim(rtrim((string) $vr['v'], '0'), '.'); ?>
                                                 <div class="order-size<?= $vOut ? ' is-out' : '' ?>">
-                                                    <span class="order-size-label"><?= e($lbl) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?></span>
+                                                    <span class="order-size-label"><?= e($lbl) ?> L · <?= render_partial('partials/price_dual', ['cents' => (int) $vr['p'], 'cur' => $cur]) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?></span>
                                                     <?php if (!$vOut): ?>
                                                         <?= render_partial('restaurant/_stepper', ['id' => $iid, 'size' => (string) $vr['v'], 'name' => (string) $it['name'] . ' — ' . $lbl . ' L', 'price' => (int) $vr['p']]) ?>
                                                     <?php endif; ?>
@@ -94,7 +94,7 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                                     <?php if (!empty($it['photo_public_id'])): ?>
                                         <span class="menu-item-thumb"><img src="<?= e(CloudinaryService::imageUrl((string) $it['photo_public_id'], 200, 200)) ?>" alt="" loading="lazy"></span>
                                     <?php endif; ?>
-                                    <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
+                                    <span class="menu-item-price"><?php if ($vars !== []): ?><?= e(t('resto.from_label')) ?> <?php endif; ?><?= render_partial('partials/price_dual', ['cents' => (int) $it['price_cents'], 'cur' => $cur]) ?></span>
                                     <?php if ($vars === []): ?>
                                         <?= render_partial('restaurant/_stepper', ['id' => $iid, 'size' => '', 'name' => (string) $it['name'], 'price' => (int) $it['price_cents']]) ?>
                                     <?php endif; ?>

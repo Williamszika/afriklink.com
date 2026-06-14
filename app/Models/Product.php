@@ -293,6 +293,40 @@ final class Product
      * mot-clé / catégorie / fourchette de prix, triés (sponsorisés en tête).
      * @return list<array> produits + boutique_slug/name/currency/category
      */
+    /**
+     * Recherche insensible à la CASSE et aux ACCENTS, indépendante de la
+     * collation de la base (les colonnes TiDB sont en utf8mb4_bin, où LIKE est
+     * sinon sensible casse + accents). On replie les accents sur la lettre de
+     * base, des deux côtés : terme (PHP) et colonne (SQL).
+     */
+    private const SEARCH_FOLD = [
+        'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a', 'ã' => 'a', 'å' => 'a',
+        'ç' => 'c',
+        'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+        'î' => 'i', 'ï' => 'i', 'í' => 'i', 'ì' => 'i',
+        'ô' => 'o', 'ö' => 'o', 'ó' => 'o', 'õ' => 'o', 'ò' => 'o',
+        'ù' => 'u', 'û' => 'u', 'ü' => 'u', 'ú' => 'u',
+        'ñ' => 'n', 'ÿ' => 'y', 'ý' => 'y',
+    ];
+
+    /** Normalise un terme côté PHP : minuscules + sans accents. */
+    private static function searchFold(string $s): string
+    {
+        return strtr(mb_strtolower($s, 'UTF-8'), self::SEARCH_FOLD);
+    }
+
+    /** Expression SQL équivalente à searchFold() pour une colonne. */
+    private static function foldExpr(string $col): string
+    {
+        $expr = $col;
+        foreach (self::SEARCH_FOLD as $lower => $base) {
+            $upper = mb_strtoupper($lower, 'UTF-8');
+            $expr  = "REPLACE($expr, '$lower', '$base')";
+            $expr  = "REPLACE($expr, '$upper', '$base')";
+        }
+        return "LOWER($expr)";
+    }
+
     public static function search(array $f): array
     {
         self::migrate();
@@ -308,14 +342,17 @@ final class Product
         $where = ["p.status = 'active'", "b.status = 'published'"];
         $args  = [];
         if ($q !== '') {
-            // Placeholders distincts (EMULATE_PREPARES=false interdit la réutilisation).
-            $where[] = '(p.name LIKE :q OR p.description LIKE :q2 OR b.name LIKE :q3)';
-            $like = '%' . $q . '%';
+            // Insensible casse + accents (voir foldExpr). Placeholders distincts
+            // (EMULATE_PREPARES=false interdit la réutilisation).
+            $where[] = '(' . self::foldExpr('p.name') . ' LIKE :q'
+                . ' OR ' . self::foldExpr('p.description') . ' LIKE :q2'
+                . ' OR ' . self::foldExpr('b.name') . ' LIKE :q3)';
+            $like = '%' . self::searchFold($q) . '%';
             $args['q'] = $like; $args['q2'] = $like; $args['q3'] = $like;
         }
         if ($cat !== '') { $where[] = 'b.category = :cat'; $args['cat'] = $cat; }
         if ($pays !== '') { $where[] = 'b.country_code = :pays'; $args['pays'] = $pays; }
-        if ($city !== '') { $where[] = 'b.city LIKE :city'; $args['city'] = '%' . $city . '%'; }
+        if ($city !== '') { $where[] = self::foldExpr('b.city') . ' LIKE :city'; $args['city'] = '%' . self::searchFold($city) . '%'; }
         if (!empty($f['in_stock'])) { $where[] = '(p.stock IS NULL OR p.stock > 0)'; }
         if ($min !== null) { $where[] = 'p.price_cents >= :pmin'; $args['pmin'] = $min * 100; }
         if ($max !== null) { $where[] = 'p.price_cents <= :pmax'; $args['pmax'] = $max * 100; }
