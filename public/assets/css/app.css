@@ -1022,6 +1022,26 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .aff-shop-name { font-weight:700; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .aff-shop-place { font-size:.78rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .aff-shop-rate { flex:none; }
+/* Produits à partager (cartes avec vignette) */
+.aff-product-head { display:flex; align-items:center; gap:10px; color:var(--ink); }
+.aff-product-head:hover { text-decoration:none; }
+.aff-product-img { width:48px; height:48px; border-radius:10px; overflow:hidden; flex:none; background:var(--bg-2); display:flex; align-items:center; justify-content:center; }
+.aff-product-img img { width:100%; height:100%; object-fit:cover; }
+.aff-product-img .listing-thumb-empty { color:var(--muted); }
+/* Portefeuille d'affiliation */
+.aff-wallet { display:flex; flex-wrap:wrap; align-items:flex-end; gap:14px 22px; margin-top:8px; }
+.aff-wallet-balance { display:flex; flex-direction:column; gap:2px; }
+.aff-wallet-balance .lbl { font-size:.78rem; color:var(--muted); }
+.aff-wallet-amount { font-size:1.7rem; font-weight:800; color:var(--brand); line-height:1.1; }
+.aff-wd-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 14px; }
+.aff-wd-field { display:flex; flex-direction:column; gap:4px; font-size:.82rem; font-weight:600; }
+.aff-wd-dest input { min-width:200px; }
+.aff-wd-list { list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
+.aff-wd-list li { display:flex; align-items:center; gap:10px; font-size:.88rem; }
+/* Bandeau d'incitation vendeur */
+.aff-nudge { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.aff-nudge-txt { min-width:0; }
+.aff-nudge-txt p { margin:2px 0 0; }
 .table-wrap { overflow-x:auto; }
 .data-table { width:100%; border-collapse:collapse; font-size:.9rem; }
 .data-table th, .data-table td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }

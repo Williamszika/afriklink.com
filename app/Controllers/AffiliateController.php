@@ -4,7 +4,10 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Affiliate;
+use App\Models\AuditLog;
 use App\Models\Boutique;
+use App\Models\Product;
+use App\Models\Wallet;
 use App\Request;
 
 /**
@@ -42,17 +45,54 @@ final class AffiliateController
             $program = ['boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate']];
         }
 
+        $products = Product::participating(12);
+        $cur      = Wallet::currencyFor($uid, 'EUR');
+
         view('affiliation/hub', [
-            'user'       => $user,
-            'code'       => $code,
-            'link'       => $code !== '' ? url('/r/' . $code) : '',
-            'rate'       => Affiliate::RATE_PCT,
-            'stats'      => Affiliate::statsFor($uid),
-            'recent'     => Affiliate::recentFor($uid, 10),
-            'directory'  => Boutique::participating(60),
-            'program'    => $program,
-            'page_title' => t('aff.title'),
+            'user'        => $user,
+            'code'        => $code,
+            'link'        => $code !== '' ? url('/r/' . $code) : '',
+            'rate'        => Affiliate::RATE_PCT,
+            'stats'       => Affiliate::statsFor($uid),
+            'recent'      => Affiliate::recentFor($uid, 10),
+            'directory'   => Boutique::participating(60),
+            'dir_products' => $products,
+            'dir_mains'   => Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'program'     => $program,
+            'wallet'      => [
+                'balance'     => Wallet::balanceCents($uid),
+                'currency'    => $cur,
+                'threshold'   => Wallet::thresholdCents($cur),
+                'can'         => Wallet::canWithdraw($uid),
+                'withdrawals' => Wallet::withdrawalsFor($uid),
+            ],
+            'page_title'  => t('aff.title'),
         ]);
+    }
+
+    /** Demande de retrait du solde (commissions d'affiliation) — ouvert à tout membre. */
+    public function withdraw(Request $request): void
+    {
+        $user = current_user() ?? [];
+        $uid  = (int) ($user['id'] ?? 0);
+        if ($uid <= 0) {
+            redirect('/login');
+        }
+        $method = whitelist((string) input_string('method', 'mobile_money'), ['mobile_money', 'bank'], 'mobile_money');
+        $dest   = trim((string) input_string('destination', ''));
+        if (mb_strlen($dest) < 4) {
+            flash('error', t('wallet.err_destination'));
+            redirect('/affiliation');
+        }
+        $pid = Wallet::requestWithdrawal($uid, $method, $dest);
+        if ($pid === null) {
+            $cur = Wallet::currencyFor($uid, 'EUR');
+            flash('error', t('wallet.err_threshold', ['min' => format_price(Wallet::thresholdCents($cur), $cur)]));
+        } else {
+            AuditLog::record($uid, 'wallet.withdrawal_requested', 'withdrawal', null, [], $request->ipBinary());
+            flash('success', t('wallet.requested'));
+        }
+        redirect('/affiliation');
     }
 
     /** Active/désactive le programme d'affiliation de SA boutique et fixe le taux. */

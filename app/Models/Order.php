@@ -679,6 +679,22 @@ final class Order
         }
     }
 
+    /** Identifiant public d'une commande à partir de son id numérique (ou null). */
+    public static function publicIdById(int $id): ?string
+    {
+        if ($id <= 0) {
+            return null;
+        }
+        try {
+            $stmt = db()->prepare('SELECT public_id FROM orders WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $id]);
+            $v = $stmt->fetchColumn();
+            return $v !== false ? (string) $v : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /** Applique une action de traitement ; renvoie le nouveau statut ou null si interdite. */
     public static function applyAction(int $id, string $current, string $action): ?string
     {

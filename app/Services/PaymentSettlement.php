@@ -53,6 +53,18 @@ final class PaymentSettlement
         } catch (\Throwable) {
         }
 
+        // Commission d'affiliation : versée au portefeuille de l'apporteur dès que la
+        // commande boutique est réellement payée (idempotent). Best-effort.
+        try {
+            if ($orderId > 0 && $kind !== 'restaurant') {
+                $orderPublicId = Order::publicIdById($orderId);
+                if ($orderPublicId !== null) {
+                    \App\Models\Affiliate::payoutForOrder($orderPublicId);
+                }
+            }
+        } catch (\Throwable) {
+        }
+
         // Alerte vendeur (in-app) — best-effort, ne bloque jamais.
         try {
             $sellerId = (int) ($payment['user_id'] ?? 0);

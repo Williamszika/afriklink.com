@@ -311,6 +311,29 @@ final class Product
         }
     }
 
+    /**
+     * Produits actifs des boutiques participant à l'affiliation (opt-in), pour
+     * l'annuaire « à partager ». Plus le taux est élevé, plus le produit remonte.
+     * @return list<array> p.* + boutique_slug/name/currency + affiliation_rate_pct
+     */
+    public static function participating(int $limit = 12): array
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT p.id, p.public_id, p.name, p.price_cents, p.status,
+                        b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency,
+                        b.affiliation_rate_pct AS affiliation_rate_pct
+                   FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE b.status = 'published' AND b.affiliation_enabled = 1 AND p.status = 'active'
+                  ORDER BY b.affiliation_rate_pct DESC, p.id DESC LIMIT " . max(1, min(48, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** Première photo de chaque produit. @return array<int,string> */
     public static function mainPhotos(array $productIds): array
     {

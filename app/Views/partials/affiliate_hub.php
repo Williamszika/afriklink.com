@@ -8,7 +8,12 @@
  * @var list<array> $recent
  * @var list<array> $directory  boutiques participantes (opt-in)
  * @var ?array{boutique:array,enabled:bool,rate:int} $program  programme de SA boutique, ou null
+ * @var list<array> $dir_products  produits participants  @var array<int,string> $dir_mains
+ * @var ?array{balance:int,currency:string,threshold:int,can:bool,withdrawals:list<array>} $wallet
  */
+$dir_products = $dir_products ?? [];
+$dir_mains    = $dir_mains ?? [];
+$wallet       = $wallet ?? null;
 ?>
 <!-- 1. Lien personnel -->
 <div class="panel">
@@ -45,6 +50,49 @@
         <div class="lbl"><?= e(t('aff.earnings')) ?></div>
     </div>
 </div>
+
+<!-- 2b. Portefeuille : solde + retrait (uniquement sur le hub universel) -->
+<?php if ($wallet !== null): ?>
+    <div class="panel">
+        <h2 class="panel-title"><?= icon('wallet', ['size' => 18]) ?> <?= e(t('aff.wallet_title')) ?></h2>
+        <p class="muted"><?= e(t('aff.wallet_lead')) ?></p>
+        <div class="aff-wallet">
+            <div class="aff-wallet-balance">
+                <span class="lbl"><?= e(t('aff.wallet_balance')) ?></span>
+                <strong class="aff-wallet-amount"><?= e(format_price((int) $wallet['balance'], (string) $wallet['currency'])) ?></strong>
+            </div>
+            <?php if (!empty($wallet['can'])): ?>
+                <form method="post" action="<?= e(url('/affiliation/retrait')) ?>" class="aff-wd-form">
+                    <?= csrf_field() ?>
+                    <label class="aff-wd-field">
+                        <span><?= e(t('wallet.method')) ?></span>
+                        <select name="method">
+                            <option value="mobile_money"><?= e(t('wallet.method.mobile_money')) ?></option>
+                            <option value="bank"><?= e(t('wallet.method.bank')) ?></option>
+                        </select>
+                    </label>
+                    <label class="aff-wd-field aff-wd-dest">
+                        <span><?= e(t('wallet.destination')) ?></span>
+                        <input type="text" name="destination" maxlength="160" required placeholder="<?= e(t('wallet.destination_ph')) ?>">
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-sm"><?= e(t('wallet.request')) ?></button>
+                </form>
+            <?php else: ?>
+                <p class="hint"><?= e(t('aff.wallet_threshold', ['min' => format_price((int) $wallet['threshold'], (string) $wallet['currency'])])) ?></p>
+            <?php endif; ?>
+        </div>
+        <?php if (!empty($wallet['withdrawals'])): ?>
+            <ul class="aff-wd-list">
+                <?php foreach (array_slice($wallet['withdrawals'], 0, 3) as $w): ?>
+                    <li>
+                        <span><?= e(format_price((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
+                        <span class="badge <?= ($w['status'] ?? '') === 'paid' ? 'badge-ok' : 'badge-muted' ?>"><?= e(t('wallet.status.' . ($w['status'] ?? 'pending'))) ?></span>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
 
 <!-- 3. Configuration du programme (uniquement si le membre a une boutique) -->
 <?php if ($program !== null): ?>
@@ -106,6 +154,42 @@
         </div>
     <?php endif; ?>
 </div>
+
+<!-- 4b. Produits participants à partager -->
+<?php if ($dir_products !== []): ?>
+    <div class="panel">
+        <h2 class="panel-title"><?= icon('bag', ['size' => 18]) ?> <?= e(t('aff.products_title')) ?></h2>
+        <p class="hint"><?= e(t('aff.products_lead')) ?></p>
+        <div class="aff-directory aff-products">
+            <?php foreach ($dir_products as $p): ?>
+                <?php
+                $pPath = '/boutique/' . (string) $p['boutique_slug'] . '/p/' . (string) $p['public_id'];
+                $pLink = $link !== '' ? $link . '?to=' . rawurlencode($pPath) : url($pPath);
+                $pImg  = $dir_mains[(int) $p['id']] ?? null;
+                ?>
+                <div class="aff-shop aff-product">
+                    <a class="aff-product-head" href="<?= e(url($pPath)) ?>" target="_blank" rel="noopener">
+                        <span class="aff-product-img">
+                            <?php if ($pImg !== null): ?>
+                                <img src="<?= e(\App\Services\CloudinaryService::imageUrl($pImg, 200, 200)) ?>" alt="" loading="lazy">
+                            <?php else: ?>
+                                <span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span>
+                            <?php endif; ?>
+                        </span>
+                        <span class="aff-shop-id">
+                            <span class="aff-shop-name"><?= e((string) $p['name']) ?></span>
+                            <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
+                        </span>
+                        <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => (int) $p['affiliation_rate_pct']])) ?></span>
+                    </a>
+                    <?php if ($link !== ''): ?>
+                        <button type="button" class="btn btn-ghost btn-sm btn-block" data-copy="<?= e($pLink) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= icon('copy', ['size' => 15]) ?> <?= e(t('aff.directory_copy')) ?></button>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
 
 <!-- 5. Dernières ventes attribuées -->
 <div class="panel">

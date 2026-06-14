@@ -93,14 +93,15 @@ final class SellerController
         $stage    = !$hasShop ? 'A' : ($orderN === 0 ? 'B' : 'C');
 
         $state = [
-            'stage'     => $stage,
-            'has_shop'  => $hasShop,
-            'boutique'  => $boutique,
-            'product_n' => $productN,
-            'order_n'   => $orderN,
-            'pending'   => $pending,
-            'views'     => $views,
-            'next'      => self::nextBestAction($stage, $boutique, $productN, $pending),
+            'stage'       => $stage,
+            'has_shop'    => $hasShop,
+            'boutique'    => $boutique,
+            'product_n'   => $productN,
+            'order_n'     => $orderN,
+            'pending'     => $pending,
+            'views'       => $views,
+            'aff_enabled' => $boutique !== null && \App\Models\Boutique::affiliationOf((int) $boutique['id'])['enabled'],
+            'next'        => self::nextBestAction($stage, $boutique, $productN, $pending),
         ];
 
         // Cockpit chiffré : seulement pour un vendeur ACTIF (≥ 1 commande), pour ne
@@ -236,15 +237,19 @@ final class SellerController
             $aff = \App\Models\Boutique::affiliationOf((int) $shop['id']);
             $program = ['boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate']];
         }
+        $afProducts = \App\Models\Product::participating(12);
         view('vendeur/affiliation', [
-            'active'    => 'affiliation',
-            'code'      => $code,
-            'link'      => $code !== '' ? url('/r/' . $code) : '',
-            'rate'      => \App\Models\Affiliate::RATE_PCT,
-            'stats'     => \App\Models\Affiliate::statsFor($uid),
-            'recent'    => \App\Models\Affiliate::recentFor($uid, 10),
-            'directory' => \App\Models\Boutique::participating(60),
-            'program'   => $program,
+            'active'       => 'affiliation',
+            'code'         => $code,
+            'link'         => $code !== '' ? url('/r/' . $code) : '',
+            'rate'         => \App\Models\Affiliate::RATE_PCT,
+            'stats'        => \App\Models\Affiliate::statsFor($uid),
+            'recent'       => \App\Models\Affiliate::recentFor($uid, 10),
+            'directory'    => \App\Models\Boutique::participating(60),
+            'dir_products' => $afProducts,
+            'dir_mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $afProducts)),
+            'program'      => $program,
+            'wallet'       => null,
         ] + self::commonData($user));
     }
 

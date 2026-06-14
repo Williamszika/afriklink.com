@@ -1,6 +1,7 @@
 <?php
 /** @var string $code @var string $link @var int $rate
- *  @var array $stats @var list<array> $recent @var list<array> $directory @var ?array $program */
+ *  @var array $stats @var list<array> $recent @var list<array> $directory @var ?array $program
+ *  @var list<array> $dir_products @var array<int,string> $dir_mains @var ?array $wallet */
 $maxRate = $directory !== [] ? max(array_map(static fn (array $s): int => (int) $s['affiliation_rate_pct'], $directory)) : 0;
 ?>
 <section class="aff-hub">
@@ -12,12 +13,15 @@ $maxRate = $directory !== [] ? max(array_map(static fn (array $s): int => (int) 
     </div>
 
     <?= render_partial('partials/affiliate_hub', [
-        'code'      => $code,
-        'link'      => $link,
-        'rate'      => $rate,
-        'stats'     => $stats,
-        'recent'    => $recent,
-        'directory' => $directory,
-        'program'   => $program,
+        'code'         => $code,
+        'link'         => $link,
+        'rate'         => $rate,
+        'stats'        => $stats,
+        'recent'       => $recent,
+        'directory'    => $directory,
+        'dir_products' => $dir_products,
+        'dir_mains'    => $dir_mains,
+        'program'      => $program,
+        'wallet'       => $wallet,
     ]) ?>
 </section>

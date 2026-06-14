@@ -22,6 +22,20 @@ $pending     = (int) ($dash['pending'] ?? 0);
             </div>
         <?php endif; ?>
 
+        <?php
+        // Incitation : si la boutique est publiée mais l'affiliation n'est pas activée.
+        $afShop = $dash['boutique'] ?? null;
+        if ($afShop !== null && ($afShop['status'] ?? '') === 'published' && empty($dash['aff_enabled'])):
+        ?>
+            <div class="notice notice-info aff-nudge">
+                <div class="aff-nudge-txt">
+                    <strong><?= icon('megaphone', ['size' => 16]) ?> <?= e(t('aff.nudge_title')) ?></strong>
+                    <p class="muted"><?= e(t('aff.nudge_body')) ?></p>
+                </div>
+                <a class="btn btn-primary btn-sm" href="<?= e(url('/affiliation')) ?>"><?= e(t('aff.nudge_cta')) ?></a>
+            </div>
+        <?php endif; ?>
+
         <?php if ($stage === 'C'): ?>
             <?php /* ---- Vendeur actif : KPIs réels en haut ---- */ ?>
             <div class="stat-grid cols-4">

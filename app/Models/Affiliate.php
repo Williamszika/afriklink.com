@@ -46,10 +46,31 @@ final class Affiliate
                 amount_cents     BIGINT UNSIGNED NOT NULL DEFAULT 0,
                 commission_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
                 currency         CHAR(3) NOT NULL DEFAULT \'EUR\',
+                paid_out_at      DATETIME NULL,
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_aff_conv (affiliate_id, id)
             )'
         );
+        self::migrate();
+    }
+
+    /** Ajoute paid_out_at aux tables existantes (versement portefeuille). Mémoïsé. */
+    private static function migrate(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            db()->query('SELECT paid_out_at FROM affiliate_conversions LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE affiliate_conversions ADD COLUMN paid_out_at DATETIME NULL');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     /* ---- Logique pure (testable hors base) ------------------------------- */
@@ -193,6 +214,44 @@ final class Affiliate
             ]);
         } catch (\Throwable) {
             // doublon (commande déjà créditée) : idempotent, on ignore.
+        }
+    }
+
+    /**
+     * Verse la commission d'une commande au PORTEFEUILLE de l'apporteur, une seule
+     * fois, lorsque la commande est réellement payée (appelé par PaymentSettlement).
+     * Idempotent : un verrou atomique (paid_out_at) empêche tout double crédit.
+     */
+    public static function payoutForOrder(string $orderPublicId): void
+    {
+        $orderPublicId = trim($orderPublicId);
+        if ($orderPublicId === '') {
+            return;
+        }
+        self::ensureTables();
+        try {
+            $stmt = db()->prepare(
+                'SELECT id, affiliate_id, commission_cents, currency, paid_out_at
+                   FROM affiliate_conversions WHERE order_public_id = :o LIMIT 1'
+            );
+            $stmt->execute(['o' => $orderPublicId]);
+            $row = $stmt->fetch();
+            if ($row === false || $row['paid_out_at'] !== null) {
+                return; // pas d'apporteur, ou déjà versé
+            }
+            $commission = (int) $row['commission_cents'];
+            if ($commission <= 0) {
+                return;
+            }
+            // Verrou : seul le premier à poser paid_out_at crédite (anti double-paiement).
+            $lock = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NOW() WHERE id = :id AND paid_out_at IS NULL');
+            $lock->execute(['id' => (int) $row['id']]);
+            if ($lock->rowCount() < 1) {
+                return; // un autre traitement a déjà versé
+            }
+            Wallet::credit((int) $row['affiliate_id'], $commission, (string) $row['currency'], 'affiliate', $orderPublicId);
+        } catch (\Throwable) {
+            // best-effort : ne bloque jamais la confirmation de paiement
         }
     }
 
