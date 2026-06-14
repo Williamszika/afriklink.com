@@ -1232,6 +1232,14 @@ h2 { letter-spacing:-.01em; }
 .readiness-list .is-done .readiness-ico { background:var(--success-bg); color:var(--success); }
 .readiness-list .is-todo { color:var(--muted); }
 .readiness-list .is-todo .readiness-ico { background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+.readiness-list .is-todo a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--border); }
+.readiness-warnings { margin-top:14px; border-top:1px solid var(--border); padding-top:12px; }
+.readiness-warnings .rw-title { font-weight:700; font-size:.84rem; margin:0 0 6px; }
+.readiness-warnings ul { list-style:none; margin:0; padding:0; display:grid; gap:6px; }
+.readiness-warnings li { font-size:.9rem; padding:8px 11px; border-radius:8px; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
+.readiness-warnings li.rw-warn { background:#fdf6e7; border:1px solid #ecd8a6; color:#7a5a12; }
+.readiness-warnings li.rw-info { background:#eff8ff; border:1px solid #b2ddff; color:#0b5394; }
+.readiness-warnings li a { font-weight:600; white-space:nowrap; }
 .readiness-ok { color:var(--success); font-weight:700; margin:10px 0 0; }
 
 /* Boutique : bandeau d'annonce + champ congé */

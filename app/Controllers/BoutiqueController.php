@@ -207,12 +207,12 @@ final class BoutiqueController
         $contacts  = ($boutique['contact_whatsapp'] ?? '') . ($boutique['contact_sms'] ?? '') . ($boutique['contact_telegram'] ?? '')
             . ($boutique['contact_facebook'] ?? '') . ($boutique['contact_instagram'] ?? '') . ($boutique['contact_tiktok'] ?? '');
         $items = [
-            ['key' => 'media',    'done' => $hasMedia,                                              'req' => true],
-            ['key' => 'product',  'done' => $activeProducts > 0,                                     'req' => true],
-            ['key' => 'contact',  'done' => trim($contacts) !== '',                                  'req' => true],
-            ['key' => 'delivery', 'done' => trim((string) ($boutique['delivery_methods'] ?? '')) !== '', 'req' => true],
-            ['key' => 'payment',  'done' => trim((string) ($boutique['payment_methods'] ?? '')) !== '' || !empty($boutique['cod_enabled']), 'req' => false],
-            ['key' => 'desc',     'done' => trim((string) ($boutique['description'] ?? '')) !== '',  'req' => false],
+            ['key' => 'media',    'done' => $hasMedia,                                              'req' => true,  'href' => '/boutique/modifier'],
+            ['key' => 'product',  'done' => $activeProducts > 0,                                     'req' => true,  'href' => '/boutique/produits/nouveau'],
+            ['key' => 'contact',  'done' => trim($contacts) !== '',                                  'req' => true,  'href' => '/boutique/modifier'],
+            ['key' => 'delivery', 'done' => trim((string) ($boutique['delivery_methods'] ?? '')) !== '', 'req' => true, 'href' => '/boutique/modifier'],
+            ['key' => 'payment',  'done' => trim((string) ($boutique['payment_methods'] ?? '')) !== '' || !empty($boutique['cod_enabled']), 'req' => false, 'href' => '/boutique/modifier'],
+            ['key' => 'desc',     'done' => trim((string) ($boutique['description'] ?? '')) !== '',  'req' => false, 'href' => '/boutique/modifier'],
         ];
         $done = 0;
         $missing = [];
@@ -220,10 +220,11 @@ final class BoutiqueController
             if ($it['done']) { $done++; } elseif ($it['req']) { $missing[] = (string) $it['key']; }
         }
         return [
-            'items'   => $items,
-            'score'   => (int) round($done * 100 / count($items)),
-            'ready'   => $missing === [],
-            'missing' => $missing,
+            'items'    => $items,
+            'score'    => (int) round($done * 100 / count($items)),
+            'ready'    => $missing === [],
+            'missing'  => $missing,
+            'warnings' => \App\Services\ShopReadiness::warnings($boutique, $activeProducts),
         ];
     }
 

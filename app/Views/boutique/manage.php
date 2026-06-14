@@ -58,7 +58,11 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <?php foreach ($readiness['items'] as $it): ?>
                     <li class="<?= $it['done'] ? 'is-done' : 'is-todo' ?>">
                         <span class="readiness-ico" aria-hidden="true"><?= $it['done'] ? '✓' : '○' ?></span>
-                        <?= e(t('shop.ready.' . $it['key'])) ?>
+                        <?php if (!$it['done'] && !empty($it['href'])): ?>
+                            <a href="<?= e(url($it['href'])) ?>"><?= e(t('shop.ready.' . $it['key'])) ?></a>
+                        <?php else: ?>
+                            <?= e(t('shop.ready.' . $it['key'])) ?>
+                        <?php endif; ?>
                         <?php if (!$it['req']): ?> <span class="muted">(<?= e(t('shop.ready.optional')) ?>)</span><?php endif; ?>
                     </li>
                 <?php endforeach; ?>
@@ -67,6 +71,19 @@ $publicPath = '/boutique/' . $boutique['slug'];
                 <p class="hint"><?= e(t('shop.ready.hint')) ?></p>
             <?php elseif (!$published): ?>
                 <p class="readiness-ok">🎉 <?= e(t('shop.ready.ok')) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($readiness['warnings'])): ?>
+                <div class="readiness-warnings">
+                    <p class="rw-title"><?= e(t('shop.warn.title')) ?></p>
+                    <ul>
+                        <?php foreach ($readiness['warnings'] as $wn): ?>
+                            <li class="rw-<?= e($wn['level']) ?>">
+                                <span><?= e(t('shop.warn.' . $wn['key'])) ?></span>
+                                <?php if (!empty($wn['href'])): ?> <a href="<?= e(url($wn['href'])) ?>"><?= e(t('shop.warn.fix')) ?> →</a><?php endif; ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             <?php endif; ?>
         </div>
         <?php endif; ?>
