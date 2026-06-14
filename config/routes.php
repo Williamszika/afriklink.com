@@ -11,6 +11,7 @@ use App\Controllers\MessageController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminKycController;
+use App\Controllers\AnnouncementController;
 use App\Controllers\BoutiqueController;
 use App\Controllers\HomeController;
 use App\Controllers\KycController;
@@ -143,6 +144,14 @@ return [
     ['GET',  '/admin/kyc/doc/{id}',  [AdminKycController::class, 'document'],  ['staff']],
     ['GET',  '/admin/kyc/{id}',      [AdminKycController::class, 'show'],      ['staff']],
     ['POST', '/admin/kyc/{id}/review', [AdminKycController::class, 'review'],  ['staff', 'csrf']],
+
+    // Annonces « À la une » : staff rédige ; admin valide ce que les modérateurs proposent.
+    ['GET',  '/admin/annonces',              [AnnouncementController::class, 'index'],   ['staff']],
+    ['POST', '/admin/annonces',              [AnnouncementController::class, 'store'],   ['staff', 'csrf', 'throttle:annonce,30,3600']],
+    ['POST', '/admin/annonces/{id}/valider', [AnnouncementController::class, 'review'],  ['staff', 'csrf']],
+    ['POST', '/admin/annonces/{id}/supprimer', [AnnouncementController::class, 'destroy'], ['staff', 'csrf']],
+    // Page publique d'article (annonce approuvée).
+    ['GET',  '/info/{slug}',                  [AnnouncementController::class, 'show'],    []],
     ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
     ['POST', '/vendeur/profil',    [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],

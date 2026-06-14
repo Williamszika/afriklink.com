@@ -299,8 +299,32 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .ticker-ico { font-size:.95em; line-height:1; }
 .ticker--closing { color:#ffd9b3; }
 .ticker--stock { color:#ffd0d0; }
+/* Annonces du staff (admin/modérateur) : EN ROUGE, mises en avant. */
+.ticker--admin { color:#ff6b6b; font-weight:800; }
+.ticker--admin:hover { color:#ff9090; }
+.ticker--admin .ticker-ico { filter:none; }
 @keyframes ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .ticker-track { animation:none; } .ticker-viewport { overflow-x:auto; } }
+
+/* Annonces « À la une » — back-office (liste/validation) + page d'article */
+.ann-admin { max-width:820px; }
+.ann-list { list-style:none; margin:8px 0 0; padding:0; display:grid; gap:8px; }
+.ann-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:10px 12px; border:1px solid var(--border); border-radius:12px; }
+.ann-row--pending { border-left:3px solid #d99a00; background:#fffbf0; }
+.ann-row--approved { border-left:3px solid #0f7a3c; }
+.ann-row--rejected { opacity:.6; }
+.ann-row-main { min-width:0; flex:1; }
+.ann-row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.ann-status { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:2px 8px; border-radius:999px; margin-right:6px; white-space:nowrap; }
+.ann-status--pending { background:#fff0d6; color:#9a6700; }
+.ann-status--approved { background:#eafaf2; color:#0f7a3c; }
+.ann-status--rejected { background:#fdeaea; color:#b42318; }
+.ann-article { max-width:720px; }
+.ann-tag { display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#fff; background:#d93636; padding:3px 10px; border-radius:999px; }
+.ann-article h1 { margin:10px 0 4px; }
+.ann-meta { margin:0 0 18px; }
+.ann-body { font-size:1.02rem; line-height:1.7; }
+.ann-cta { margin-top:20px; }
 
 .site-footer {
     border-top: 1px solid var(--border);

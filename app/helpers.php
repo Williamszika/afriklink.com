@@ -775,6 +775,21 @@ function is_staff(?array $user = null): bool
     return $email !== '' && in_array($email, config('app.admin_emails', []), true);
 }
 
+/** Administrateur : rôle 'admin' OU e-mail listé dans ADMIN_EMAILS. Peut approuver
+ *  ce que les modérateurs proposent (les modérateurs sont staff mais PAS admin). */
+function is_admin(?array $user = null): bool
+{
+    $user ??= current_user();
+    if ($user === null) {
+        return false;
+    }
+    if (($user['role'] ?? '') === 'admin') {
+        return true;
+    }
+    $email = strtolower(trim((string) ($user['email'] ?? '')));
+    return $email !== '' && in_array($email, config('app.admin_emails', []), true);
+}
+
 /** Establish an authenticated session for a user id (regenerates session id). */
 function login_user(int $userId): void
 {

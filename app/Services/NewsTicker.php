@@ -38,10 +38,24 @@ final class NewsTicker
         return $memo = $out;
     }
 
+    private static function cacheFile(): string
+    {
+        return sys_get_temp_dir() . '/afriklink-ticker.json';
+    }
+
+    /** Invalide le cache : à appeler quand une annonce staff change (création/validation). */
+    public static function bustCache(): void
+    {
+        try {
+            @unlink(self::cacheFile());
+        } catch (\Throwable) {
+        }
+    }
+
     /** @return list<array<string,mixed>> données brutes, cache fichier TTL court */
     private static function cached(): array
     {
-        $file = sys_get_temp_dir() . '/afriklink-ticker.json';
+        $file = self::cacheFile();
         try {
             if (is_file($file) && (time() - (int) @filemtime($file)) <= self::CACHE_TTL) {
                 $d = json_decode((string) @file_get_contents($file), true);
@@ -65,6 +79,13 @@ final class NewsTicker
     private static function build(): array
     {
         $items = [];
+
+        // 0. Annonces éditoriales du staff (EN ROUGE) — approuvées seulement,
+        //    prioritaires, cliquables vers la page d'article.
+        foreach (\App\Models\Announcement::liveForTicker(6) as $a) {
+            $items[] = ['kind' => 'admin', 'icon' => '📢', 'href' => url('/info/' . $a['public_id']),
+                'title' => (string) $a['title']];
+        }
 
         // 1. Ferme bientôt (≤ 60 min) — le plus urgent en tête.
         try {
@@ -140,6 +161,8 @@ final class NewsTicker
     private static function render(array $r): string
     {
         switch ((string) ($r['kind'] ?? '')) {
+            case 'admin':
+                return (string) ($r['title'] ?? '');
             case 'closing':
                 return t('ticker.closing', ['name' => (string) $r['name'], 'min' => (int) $r['min']]);
             case 'stock':
