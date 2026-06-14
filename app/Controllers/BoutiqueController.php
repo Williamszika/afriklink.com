@@ -759,6 +759,8 @@ final class BoutiqueController
             'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),
             'pay_methods'  => array_values(array_filter(explode(',', (string) ($boutique['payment_methods'] ?? '')))),
             'fulfillments' => $fulfillments,
+            // Acheteur connecté : pré-remplir ses coordonnées (invités : champs vides).
+            'me'           => current_user(),
             'page_title'   => t('caisse.title', ['shop' => (string) $boutique['name']]),
         ]);
     }
@@ -909,6 +911,10 @@ final class BoutiqueController
         ], $lines);
         if ($discountRow !== null) {
             \App\Models\Discount::recordUse((int) $discountRow['id']);
+        }
+        // Rattache l'achat au compte de l'acheteur s'il est connecté (sinon = invité).
+        if (($buyerId = current_user_id()) !== null) {
+            Order::setBuyer($publicId, (int) $buyerId);
         }
 
         unset($_SESSION['caisse'][(int) $boutique['id']]); // panier consommé

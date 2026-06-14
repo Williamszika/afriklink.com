@@ -2,6 +2,7 @@
 /** @var array $boutique  @var list<array> $lines  @var int $total  @var bool $preview
  *  @var list<string> $terms  @var list<string> $pay_methods  @var list<string> $fulfillments
  *  @var array<string,int> $ship_map  @var string $delivery_delay */
+$me = $me ?? [];
 $cur = (string) $boutique['currency'];
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
 $firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments[0]] ?? 0) : 0;
@@ -116,16 +117,19 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                 </div>
             <?php endif; ?>
             <h3 class="caisse-section">📇 <?= e(t('order.f.your_details')) ?></h3>
+            <?php if (empty($me)): ?>
+                <p class="hint caisse-guest">👤 <?= e(t('caisse.guest_hint')) ?> <a href="<?= e(url('/login')) ?>"><?= e(t('caisse.guest_login')) ?></a></p>
+            <?php endif; ?>
             <label for="cl-name"><?= e(t('order.f.client')) ?></label>
-            <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+            <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?: e((string) ($me['full_name'] ?? '')) ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
             <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
             <p class="hint"><?= e(t('order.f.contact_hint')) ?></p>
             <?php if (has_error('contact')): ?><p class="field-error"><?= e(error('contact')) ?></p><?php endif; ?>
             <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
-            <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?>" placeholder="+221 …">
+            <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?: e((string) ($me['phone'] ?? '')) ?>" placeholder="+221 …">
             <?php if (has_error('client_phone')): ?><p class="field-error"><?= e(error('client_phone')) ?></p><?php endif; ?>
             <label for="cl-email"><?= e(t('order.f.email')) ?></label>
-            <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
+            <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?: e((string) ($me['email'] ?? '')) ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
             <?php if (has_error('client_email')): ?><p class="field-error"><?= e(error('client_email')) ?></p><?php endif; ?>
             <label for="cl-addr"><?= e(t('order.f.address')) ?></label>
             <input type="text" id="cl-addr" name="client_address" maxlength="220" value="<?= old('client_address') ?>" placeholder="<?= e(t('order.f.address_ph')) ?>"

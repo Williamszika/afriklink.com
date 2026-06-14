@@ -128,9 +128,7 @@ $stats = [
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <?php if ((int) ($purchase_count ?? 0) > count($purchases)): ?>
-                    <p class="hint"><?= e(t('dash.buys_more', ['n' => (int) $purchase_count])) ?></p>
-                <?php endif; ?>
+                <p><a class="btn btn-ghost btn-sm" href="<?= e(url('/mes-achats')) ?>"><?= e(t('purchases.see_all')) ?> →</a></p>
             <?php endif; ?>
         </div>
         <div class="panel" id="sales">

@@ -95,6 +95,7 @@ return [
 
     ['POST', '/logout',            [AuthController::class, 'logout'],         ['auth', 'csrf']],
     ['GET',  '/dashboard',         [DashboardController::class, 'index'],     ['auth']],
+    ['GET',  '/mes-achats',        [DashboardController::class, 'purchases'], ['auth']],
 
     // Account self-service
     ['GET',  '/profile',           [ProfileController::class, 'edit'],            ['auth']],
@@ -200,8 +201,8 @@ return [
     ['POST', '/boutique/produits/{pid}/statut',   [ProductController::class, 'setStatus'], ['auth', 'csrf']],
     // Caisse + commande en ligne : panier public (client, éventuellement non connecté)
     ['POST', '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisseStore'], ['csrf', 'throttle:border,80,3600']],
-    ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      ['auth']],
-    ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['auth', 'csrf', 'throttle:border,40,3600']],
+    ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      []],
+    ['POST', '/boutique/{slug}/commander', [BoutiqueController::class, 'checkout'],          ['csrf', 'throttle:border,40,3600']],
     ['GET',  '/boutique/commande/{ref}',   [BoutiqueController::class, 'orderConfirmation'], []],
     // Paiement en ligne de la commande (public ; PSP réel ou bac à sable de simulation)
     ['POST', '/boutique/commande/{ref}/payer',  [BoutiqueController::class, 'payStart'],   ['csrf', 'throttle:bpay,30,3600']],

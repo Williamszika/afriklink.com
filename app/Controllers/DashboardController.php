@@ -35,6 +35,18 @@ final class DashboardController
         ]);
     }
 
+    /** Espace acheteur : tous mes achats (commandes passées en ligne). */
+    public function purchases(Request $request): void
+    {
+        $user = current_user() ?? [];
+        $uid  = (int) ($user['id'] ?? 0);
+        view('purchases', [
+            'user'       => $user,
+            'orders'     => \App\Models\Order::forUser($uid, 50),
+            'page_title' => t('purchases.title'),
+        ]);
+    }
+
     /**
      * Friendly interstitial for dashboard actions whose full feature is still on
      * the roadmap (selling, messaging). Keeps every button clickable and honest

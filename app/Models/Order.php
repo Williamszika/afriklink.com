@@ -116,6 +116,8 @@ final class Order
             'tracking_url'    => "ADD COLUMN tracking_url VARCHAR(300) NULL AFTER tracking_number",
             'shipped_at'      => "ADD COLUMN shipped_at DATETIME NULL AFTER status",
             'delivered_at'    => "ADD COLUMN delivered_at DATETIME NULL AFTER shipped_at",
+            // Acheteur connecté (≠ user_id qui pointe le vendeur) : historique d'achat.
+            'buyer_user_id'   => "ADD COLUMN buyer_user_id BIGINT UNSIGNED NULL AFTER user_id",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -608,17 +610,30 @@ final class Order
         }
     }
 
-    /** @return list<array> commandes d'un acheteur (boutique jointe), récentes d'abord. */
+    /** Rattache une commande à l'acheteur connecté (best-effort : colonne facultative). */
+    public static function setBuyer(string $publicId, int $buyerUserId): void
+    {
+        if ($buyerUserId <= 0) {
+            return;
+        }
+        try {
+            db()->prepare('UPDATE orders SET buyer_user_id = :b WHERE public_id = :p')
+                ->execute(['b' => $buyerUserId, 'p' => $publicId]);
+        } catch (\Throwable) {
+            // colonne buyer_user_id non provisionnée : sans gravité
+        }
+    }
+
+    /** @return list<array> ACHATS d'un acheteur (boutique jointe), récents d'abord. */
     public static function forUser(int $userId, int $limit = 10): array
     {
         try {
-            self::ensureTable();
             $limit = max(1, min(50, $limit));
             $stmt = db()->prepare(
                 "SELECT o.public_id, o.total_cents, o.currency, o.status, o.created_at,
                         b.name AS boutique_name, b.slug AS boutique_slug
                    FROM orders o JOIN boutiques b ON b.id = o.boutique_id
-                  WHERE o.user_id = :uid
+                  WHERE o.buyer_user_id = :uid
                   ORDER BY o.id DESC LIMIT {$limit}"
             );
             $stmt->execute(['uid' => $userId]);
@@ -628,12 +643,11 @@ final class Order
         }
     }
 
-    /** Nombre total de commandes (achats) d'un utilisateur. */
+    /** Nombre total d'ACHATS d'un acheteur. */
     public static function countForUser(int $userId): int
     {
         try {
-            self::ensureTable();
-            $stmt = db()->prepare('SELECT COUNT(*) FROM orders WHERE user_id = :uid');
+            $stmt = db()->prepare('SELECT COUNT(*) FROM orders WHERE buyer_user_id = :uid');
             $stmt->execute(['uid' => $userId]);
             return (int) $stmt->fetchColumn();
         } catch (\Throwable) {
