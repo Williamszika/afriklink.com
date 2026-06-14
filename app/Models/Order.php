@@ -109,6 +109,7 @@ final class Order
             'discount_code'  => "ADD COLUMN discount_code VARCHAR(40) NULL AFTER discount_cents",
             'channel'        => "ADD COLUMN channel VARCHAR(8) NOT NULL DEFAULT 'online' AFTER source",
             'register_session_id' => "ADD COLUMN register_session_id BIGINT UNSIGNED NULL AFTER channel",
+            'dest_country'   => "ADD COLUMN dest_country CHAR(2) NULL AFTER client_address",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -186,9 +187,9 @@ final class Order
         try {
             $stmt = $pdo->prepare(
                 'INSERT INTO orders (public_id, boutique_id, user_id, product_id, product_name,
-                    unit_price_cents, qty, total_cents, shipping_cents, discount_cents, discount_code, currency, client_name, client_phone, client_email, client_address,
+                    unit_price_cents, qty, total_cents, shipping_cents, discount_cents, discount_code, currency, client_name, client_phone, client_email, client_address, dest_country,
                     geo_lat, geo_lng, note, fulfillment, payment_term, payment_method, source, status)
-                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :ship, :disc, :dcode, :cur, :cname, :cphone, :cemail, :caddr,
+                 VALUES (:pid, :bid, :uid, NULL, :pname, 0, :qty, :total, :ship, :disc, :dcode, :cur, :cname, :cphone, :cemail, :caddr, :destc,
                     :lat, :lng, :note, :ful, :term, :method, \'online\', \'new\')'
             );
             $stmt->execute([
@@ -198,6 +199,7 @@ final class Order
                 'cur' => $header['currency'], 'cname' => $header['client_name'],
                 'cphone' => $header['client_phone'], 'cemail' => $header['client_email'] ?? null,
                 'caddr' => $header['client_address'] ?? null,
+                'destc' => ($header['dest_country'] ?? null) ?: null,
                 'lat' => $header['geo_lat'] ?? null, 'lng' => $header['geo_lng'] ?? null,
                 'note' => $header['note'], 'ful' => $header['fulfillment'], 'term' => $header['payment_term'] ?? null,
                 'method' => $header['payment_method'] ?? null,

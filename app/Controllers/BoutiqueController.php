@@ -858,6 +858,7 @@ final class BoutiqueController
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
             'client_address' => $address !== '' ? mb_substr($address, 0, 220) : null,
+            'dest_country'   => $destCountry,
             'geo_lat'        => $hasGeo ? round($lat, 6) : null,
             'geo_lng'        => $hasGeo ? round($lng, 6) : null,
             'note'           => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
