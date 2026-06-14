@@ -92,7 +92,7 @@ final class SellerController
         $views    = \App\Models\ShopView::totalForUser($uid);
         $stage    = !$hasShop ? 'A' : ($orderN === 0 ? 'B' : 'C');
 
-        return [
+        $state = [
             'stage'     => $stage,
             'has_shop'  => $hasShop,
             'boutique'  => $boutique,
@@ -102,6 +102,26 @@ final class SellerController
             'views'     => $views,
             'next'      => self::nextBestAction($stage, $boutique, $productN, $pending),
         ];
+
+        // Cockpit chiffré : seulement pour un vendeur ACTIF (≥ 1 commande), pour ne
+        // pas surcharger un débutant de graphiques vides ni de requêtes inutiles.
+        if ($stage === 'C') {
+            $summary = \App\Services\SellerAnalytics::summary($uid);
+            $state += [
+                'currency'       => \App\Services\SellerAnalytics::currency($uid),
+                'revenue_month'  => (int) ($summary['month_cents'] ?? 0),
+                'revenue_total'  => (int) ($summary['total_cents'] ?? 0),
+                'revenue_by_day' => \App\Services\SellerAnalytics::revenueByDay($uid, 14),
+                'top_products'   => \App\Services\SellerAnalytics::topProducts($uid, 5, 30),
+                'low_stock'      => \App\Services\SellerAnalytics::lowStock($uid, 5),
+                'recent_orders'  => $boutique !== null
+                    ? array_slice(\App\Models\Order::forBoutique((int) $boutique['id']), 0, 5)
+                    : [],
+                'conversion'     => $views > 0 ? round($orderN / $views * 100, 1) : null,
+            ];
+        }
+
+        return $state;
     }
 
     /**
@@ -148,11 +168,10 @@ final class SellerController
         view('vendeur/reglages', ['active' => 'reglages'] + self::commonData(current_user() ?? []));
     }
 
-    /* ---- Sections « bientôt » (KYC, publicité, affiliation, gains) ---- */
-
+    /** Ancien lien « Gains & retraits » — fusionné dans le Portefeuille. */
     public function earnings(Request $request): void
     {
-        $this->soon('gains', 'wallet', 'seller.earnings');
+        redirect('/vendeur/portefeuille');
     }
 
     public function advertising(Request $request): void
@@ -211,16 +230,6 @@ final class SellerController
             'submissions'   => \App\Models\Kyc::submissionsByLevel($userId),
             'approvedLevel' => \App\Models\Kyc::approvedLevel($userId),
             'mediaReady'    => CloudinaryService::configured(),
-        ] + self::commonData(current_user() ?? []));
-    }
-
-    /** Rend la vue de section générique avec ses libellés. */
-    private function soon(string $active, string $icon, string $prefix): void
-    {
-        view('vendeur/section_soon', [
-            'active' => $active,
-            'icon'   => $icon,
-            'prefix' => $prefix,
         ] + self::commonData(current_user() ?? []));
     }
 }

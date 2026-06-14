@@ -3,7 +3,6 @@
 $companyName = (string) ($profile['company_name'] ?? ($user['full_name'] ?? ''));
 $verified    = ($profile['verification_status'] ?? 'pending') === 'verified';
 
-$soon = t('dash.soon');
 // Pastilles en direct : commandes « à traiter » + messages non lus.
 $ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
 $msgUnread     = \App\Models\Conversation::unreadCountFor((int) ($user['id'] ?? 0));
@@ -26,9 +25,6 @@ $groups = [
         ['key' => 'verification', 'icon' => 'shield', 'href' => url('/vendeur/verification'), 'label' => t('seller.nav.verification'), 'chip' => null],
         ['key' => 'profil',       'icon' => 'building', 'href' => url('/vendeur/profil'),       'label' => t('seller.nav.profile'),      'chip' => null],
         ['key' => 'reglages',     'icon' => 'settings', 'href' => url('/vendeur/reglages'),     'label' => t('seller.nav.settings'),     'chip' => null],
-    ]],
-    ['label' => t('seller.group.soon'), 'items' => [
-        ['key' => 'gains',       'icon' => 'wallet', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
     ]],
 ];
 ?>

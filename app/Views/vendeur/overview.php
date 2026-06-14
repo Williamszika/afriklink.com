@@ -48,6 +48,88 @@ $pending     = (int) ($dash['pending'] ?? 0);
                     </div>
                 </a>
             <?php endif; ?>
+
+            <?php /* ---- Cockpit chiffré : revenu, meilleures ventes, commandes, stock ---- */ ?>
+            <?php
+            $gc = (string) ($dash['currency'] ?? 'XOF');
+            $revBars = array_map(static fn (array $p): array => [
+                'value' => (int) $p['cents'],
+                'label' => (string) (int) date('j', strtotime((string) $p['date'])),
+                'title' => date('d/m', strtotime((string) $p['date'])) . ' · ' . format_price((int) $p['cents'], $gc),
+            ], (array) ($dash['revenue_by_day'] ?? []));
+            $topProducts = (array) ($dash['top_products'] ?? []);
+            $lowStock    = (array) ($dash['low_stock'] ?? []);
+            $recent      = (array) ($dash['recent_orders'] ?? []);
+            $conversion  = $dash['conversion'] ?? null;
+            ?>
+            <div class="cockpit-grid">
+                <div class="panel cockpit-rev">
+                    <div class="cockpit-rev-head">
+                        <div>
+                            <span class="muted"><?= e(t('seller.cockpit.revenue_month')) ?></span>
+                            <strong class="cockpit-rev-amount"><?= e(format_price((int) ($dash['revenue_month'] ?? 0), $gc)) ?></strong>
+                        </div>
+                        <?php if ($conversion !== null): ?>
+                            <div class="cockpit-conv">
+                                <span class="muted"><?= e(t('seller.cockpit.conversion')) ?></span>
+                                <strong><?= e((string) $conversion) ?> %</strong>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <p class="gains-chart-title"><?= e(t('wallet.gains_14d')) ?></p>
+                    <?= render_partial('partials/bar_chart', ['bars' => $revBars, 'cur' => $gc, 'height' => 120]) ?>
+                </div>
+
+                <div class="panel cockpit-top">
+                    <h2 class="panel-title">🏆 <?= e(t('seller.cockpit.top_products')) ?></h2>
+                    <?php if ($topProducts === []): ?>
+                        <p class="muted"><?= e(t('seller.cockpit.top_empty')) ?></p>
+                    <?php else: ?>
+                        <ol class="cockpit-top-list">
+                            <?php foreach ($topProducts as $tp): ?>
+                                <li>
+                                    <span class="cockpit-top-name"><?= e((string) $tp['name']) ?></span>
+                                    <span class="muted"><?= (int) $tp['units'] ?>× · <?= e(format_price((int) $tp['cents'], $gc)) ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ol>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="cockpit-grid">
+                <div class="panel">
+                    <h2 class="panel-title"><?= icon('package', ['size' => 18]) ?> <?= e(t('seller.cockpit.recent_orders')) ?></h2>
+                    <?php if ($recent === []): ?>
+                        <p class="muted"><?= e(t('order.empty.toutes')) ?></p>
+                    <?php else: ?>
+                        <ul class="cockpit-orders">
+                            <?php foreach ($recent as $o): $rst = (string) $o['status']; ?>
+                                <li>
+                                    <span class="cockpit-order-id"><strong>#<?= e(strtoupper(substr((string) $o['public_id'], 0, 6))) ?></strong> · <?= e((string) $o['client_name']) ?></span>
+                                    <span class="cockpit-order-right">
+                                        <?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?>
+                                        <span class="ann-status ann-status--<?= e($rst === 'delivered' ? 'approved' : ($rst === 'cancelled' ? 'rejected' : 'pending')) ?>"><?= e(t('order.status.' . $rst)) ?></span>
+                                    </span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <p><a class="btn btn-ghost btn-sm" href="<?= e(url('/vendeur/commandes')) ?>"><?= e(t('seller.cockpit.all_orders')) ?> →</a></p>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($lowStock !== []): ?>
+                    <div class="panel cockpit-lowstock">
+                        <h2 class="panel-title">⚠️ <?= e(t('seller.cockpit.low_stock')) ?></h2>
+                        <ul class="cockpit-stock">
+                            <?php foreach ($lowStock as $ls): ?>
+                                <li><span><?= e((string) $ls['name']) ?></span> <span class="badge badge-warn"><?= (int) $ls['stock'] ?></span></li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <p><a class="btn btn-ghost btn-sm" href="<?= e(url('/boutique/gerer')) ?>"><?= e(t('seller.cockpit.manage_stock')) ?> →</a></p>
+                    </div>
+                <?php endif; ?>
+            </div>
         <?php elseif ($next !== null): ?>
             <?php /* ---- Mise en route / prêt à vendre : action prioritaire en avant ---- */ ?>
             <a class="panel nba-card" href="<?= e($next['href']) ?>">

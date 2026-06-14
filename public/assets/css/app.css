@@ -374,6 +374,25 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .gains-chart-title { font-weight:600; margin:6px 0 8px; }
 @media (max-width:560px) { .gains-stat-val { font-size:1.02rem; } }
 
+/* Cockpit « Vue d'ensemble » : revenu, meilleures ventes, commandes, stock. */
+.cockpit-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+@media (max-width:760px) { .cockpit-grid { grid-template-columns:1fr; } }
+.cockpit-rev-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+.cockpit-rev-amount { display:block; font-size:1.5rem; font-weight:700; margin-top:2px; }
+.cockpit-conv { text-align:right; } .cockpit-conv strong { display:block; font-size:1.15rem; }
+.cockpit-top-list { margin:6px 0 0; padding:0; list-style:none; counter-reset:rank; }
+.cockpit-top-list li { display:flex; justify-content:space-between; gap:10px; align-items:baseline; padding:7px 0; border-top:1px solid var(--border,#eef0f3); }
+.cockpit-top-list li:first-child { border-top:0; }
+.cockpit-top-list li::before { counter-increment:rank; content:counter(rank); font-weight:700; color:var(--brand,#0b7a4b); margin-right:8px; }
+.cockpit-top-name { flex:1; font-weight:600; }
+.cockpit-orders { margin:6px 0 10px; padding:0; list-style:none; }
+.cockpit-orders li { display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px solid var(--border,#eef0f3); font-size:.92rem; }
+.cockpit-orders li:first-child { border-top:0; }
+.cockpit-order-right { white-space:nowrap; display:inline-flex; gap:8px; align-items:center; }
+.cockpit-stock { margin:6px 0 10px; padding:0; list-style:none; }
+.cockpit-stock li { display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-top:1px solid var(--border,#eef0f3); }
+.cockpit-stock li:first-child { border-top:0; }
+
 /* Graphique en barres (CSS pur, CSP-safe) */
 .chart { display:flex; align-items:flex-end; gap:4px; height:calc(var(--chart-h,130px) + 20px); }
 .chart-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; }

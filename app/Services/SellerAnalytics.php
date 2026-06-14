@@ -104,6 +104,73 @@ final class SellerAnalytics
     }
 
     /**
+     * Meilleures ventes de la boutique sur les $days derniers jours (par chiffre
+     * d'affaires). @return list<array{name:string,units:int,cents:int}>
+     */
+    public static function topProducts(int $userId, int $limit = 5, int $days = 30): array
+    {
+        $b = Boutique::findByUserId($userId);
+        if ($b === null) {
+            return [];
+        }
+        $limit = max(1, min(20, $limit));
+        $days  = max(7, min(365, $days));
+        try {
+            $stmt = db()->prepare(
+                "SELECT COALESCE(MAX(p.name), MAX(oi.title)) AS name,
+                        COALESCE(SUM(oi.qty),0) AS units, COALESCE(SUM(oi.line_total_cents),0) AS cents
+                   FROM order_items oi
+                   JOIN orders o ON o.id = oi.order_id
+                   LEFT JOIN products p ON p.id = oi.product_id
+                  WHERE o.boutique_id = :bid AND o.status <> 'cancelled'
+                    AND o.created_at >= (NOW() - INTERVAL {$days} DAY)
+                  GROUP BY oi.product_id
+                  ORDER BY cents DESC
+                  LIMIT {$limit}"
+            );
+            $stmt->execute(['bid' => (int) $b['id']]);
+            $out = [];
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $out[] = ['name' => (string) $r['name'], 'units' => (int) $r['units'], 'cents' => (int) $r['cents']];
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Produits dont le stock est passé sous le seuil d'alerte (réassort à prévoir).
+     * Stock NULL = illimité (ignoré). @return list<array{name:string,stock:int}>
+     */
+    public static function lowStock(int $userId, int $limit = 5): array
+    {
+        $b = Boutique::findByUserId($userId);
+        if ($b === null) {
+            return [];
+        }
+        $threshold = max(0, (int) config('shop.low_stock_threshold', 3));
+        $limit = max(1, min(20, $limit));
+        try {
+            $stmt = db()->prepare(
+                "SELECT name, stock FROM products
+                  WHERE boutique_id = :bid AND status = 'published'
+                    AND stock IS NOT NULL AND stock <= {$threshold}
+                  ORDER BY stock ASC, id DESC
+                  LIMIT {$limit}"
+            );
+            $stmt->execute(['bid' => (int) $b['id']]);
+            $out = [];
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $out[] = ['name' => (string) $r['name'], 'stock' => (int) $r['stock']];
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
      * Vitrines du vendeur sous forme de sources d'agrégation homogènes.
      * @return list<array{kind:string,label:string,table:string,key:string,amount:string,id:int}>
      */
