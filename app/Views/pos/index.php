@@ -41,8 +41,19 @@ $cur = (string) $boutique['currency'];
                         </select>
                         <div class="grid-2">
                             <div><label for="pos-qty"><?= e(t('pos.f.qty')) ?></label><input type="text" id="pos-qty" name="qty" inputmode="numeric" value="1" required></div>
-                            <div><label for="pos-received"><?= e(t('pos.f.received', ['cur' => $cur])) ?></label><input type="text" id="pos-received" name="received" inputmode="decimal" placeholder="0" required></div>
+                            <div><label for="pos-method"><?= e(t('pos.f.method')) ?></label>
+                                <select id="pos-method" name="method">
+                                    <option value="cash"><?= e(t('pos.pay.cash')) ?></option>
+                                    <option value="card"><?= e(t('pos.pay.card')) ?></option>
+                                    <option value="wave"><?= e(t('pos.pay.wave')) ?></option>
+                                    <option value="orange_money"><?= e(t('pos.pay.orange_money')) ?></option>
+                                    <option value="mtn_momo"><?= e(t('pos.pay.mtn_momo')) ?></option>
+                                </select>
+                            </div>
                         </div>
+                        <label for="pos-received"><?= e(t('pos.f.received', ['cur' => $cur])) ?></label>
+                        <input type="text" id="pos-received" name="received" inputmode="decimal" placeholder="0">
+                        <p class="hint"><?= e(t('pos.received_hint')) ?></p>
                         <button type="submit" class="btn btn-primary btn-block">💵 <?= e(t('pos.sale_btn')) ?></button>
                     </form>
                     <p class="hint">🔁 <?= e(t('pos.shared_note')) ?></p>

@@ -116,22 +116,31 @@ final class PosController
             redirect('/vendeur/point-de-vente');
         }
         $total    = $line['qty'] * $line['unit_price_cents'];
-        $received = (int) (parse_price_to_cents(trim((string) input_string('received', '')), $cur) ?? 0);
-        if ($received < $total) {
-            flash('error', t('pos.err_received'));
-            redirect('/vendeur/point-de-vente');
+        // Moyen de paiement : espèces (avec rendu) ou électronique déclaré
+        // (carte / mobile money) — seul l'espèces alimente le tiroir.
+        $method = whitelist((string) input_string('method', 'cash'), ['cash', 'card', 'wave', 'orange_money', 'mtn_momo'], 'cash');
+        if ($method === 'cash') {
+            $received = (int) (parse_price_to_cents(trim((string) input_string('received', '')), $cur) ?? 0);
+            if ($received < $total) {
+                flash('error', t('pos.err_received'));
+                redirect('/vendeur/point-de-vente');
+            }
+            $tender = ['method' => 'cash', 'amount_cents' => $received, 'change_given_cents' => $received - $total];
+        } else {
+            $tender = ['method' => $method, 'amount_cents' => $total, 'change_given_cents' => 0];
         }
-        $change   = $received - $total;
         $publicId = Order::createPosSale([
             'boutique_id' => (int) $boutique['id'], 'user_id' => (int) $boutique['user_id'],
             'register_session_id' => (int) $session['id'], 'currency' => $cur,
-        ], [$line], ['method' => 'cash', 'amount_cents' => $received, 'change_given_cents' => $change]);
+        ], [$line], $tender);
         if ($publicId === null) {
             flash('error', t('pos.err_stock'));
             redirect('/vendeur/point-de-vente');
         }
-        AuditLog::record((int) $user['id'], 'pos.sale', 'register_session', (int) $session['id'], ['order' => $publicId, 'total' => $total], $request->ipBinary());
-        flash('success', t('pos.sale_done', ['change' => format_price($change, $cur)]));
+        AuditLog::record((int) $user['id'], 'pos.sale', 'register_session', (int) $session['id'], ['order' => $publicId, 'total' => $total, 'method' => $method], $request->ipBinary());
+        flash('success', $method === 'cash'
+            ? t('pos.sale_done', ['change' => format_price((int) $tender['change_given_cents'], $cur)])
+            : t('pos.sale_done_e', ['method' => t('pos.pay.' . $method)]));
         redirect('/vendeur/point-de-vente');
     }
 
