@@ -146,9 +146,48 @@ final class Product
                 // déjà migré
             }
         }
+        // Rayon / catégorie du produit (le vendeur range ses articles).
+        try {
+            db()->query('SELECT collection FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products ADD COLUMN collection VARCHAR(60) NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
         // Couche variantes (stock partagé online + POS) : création idempotente,
         // protégée pour ne jamais casser une page publique si elle échoue.
         try { ProductVariant::ensureTable(); } catch (\Throwable) {}
+    }
+
+    /** Enregistre le rayon (catégorie) d'un produit. Best-effort (colonne facultative). */
+    public static function setCollection(int $id, ?string $collection): void
+    {
+        $c = trim((string) ($collection ?? ''));
+        try {
+            db()->prepare('UPDATE products SET collection = :c WHERE id = :id')
+                ->execute(['c' => $c !== '' ? mb_substr($c, 0, 60) : null, 'id' => $id]);
+        } catch (\Throwable) {
+            // colonne collection non provisionnée : sans gravité
+        }
+    }
+
+    /** Rayons (catégories) distincts d'une boutique. @return list<string> */
+    public static function collectionsFor(int $boutiqueId, bool $activeOnly = true): array
+    {
+        try {
+            $sql = "SELECT DISTINCT collection FROM products
+                     WHERE boutique_id = :b AND collection IS NOT NULL AND collection <> ''";
+            if ($activeOnly) {
+                $sql .= " AND status = 'active'";
+            }
+            $stmt = db()->prepare($sql . ' ORDER BY collection');
+            $stmt->execute(['b' => $boutiqueId]);
+            return array_values(array_map('strval', array_column($stmt->fetchAll() ?: [], 'collection')));
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /** @return list<array> produits d'une boutique (sponsorisés en tête, puis récents) */

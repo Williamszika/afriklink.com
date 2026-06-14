@@ -427,6 +427,8 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .addr-line { margin:0 0 2px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .addr-actions { display:flex; gap:6px; flex-wrap:wrap; flex:0 0 auto; }
 .addr-actions form { margin:0; }
+/* Rayons (catégories de produits) sur la vitrine. */
+.shop-rayons { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
 
 /* Graphique en barres (CSS pur, CSP-safe) */
 .chart { display:flex; align-items:flex-end; gap:4px; height:calc(var(--chart-h,130px) + 20px); }

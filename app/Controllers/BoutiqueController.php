@@ -311,6 +311,15 @@ final class BoutiqueController
                 };
             });
         }
+        // Rayons (catégories de produits) : filtre optionnel de la vitrine.
+        $collections = \App\Models\Product::collectionsFor((int) $boutique['id'], true);
+        $rayon = whitelist((string) input_string('rayon', ''), $collections, '');
+        if ($rayon !== '') {
+            $products = array_values(array_filter(
+                $products,
+                static fn (array $p): bool => (string) ($p['collection'] ?? '') === $rayon
+            ));
+        }
         $banners  = Boutique::banners((int) $boutique['id']);
         $ogImage  = $banners[0] ?? ($boutique['logo_public_id'] ?? null);
         view('boutique/show', [
@@ -320,6 +329,8 @@ final class BoutiqueController
             'seller_verified' => $this->sellerVerified((int) $boutique['user_id']),
             'is_owner' => $isOwner,
             'products' => $products,
+            'collections' => $collections,
+            'rayon'    => $rayon,
             'sort'     => $sort,
             'mains'    => \App\Models\Product::mainPhotos($ids),
             'ratings'  => $ratings,

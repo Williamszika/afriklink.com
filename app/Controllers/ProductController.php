@@ -24,7 +24,8 @@ final class ProductController
     {
         $b = $this->boutiqueOrRedirect();
         view('boutique/product_form', ['mode' => 'create', 'boutique' => $b, 'product' => null,
-            'photos' => [], 'media_ready' => CloudinaryService::configured()]);
+            'photos' => [], 'collections' => Product::collectionsFor((int) $b['id'], false),
+            'media_ready' => CloudinaryService::configured()]);
     }
 
     public function store(Request $request): void
@@ -41,6 +42,7 @@ final class ProductController
         if ($created !== null) {
             $stock = $this->syncVariants((int) $created['id'], $b, $data['stock'], (int) $data['price_cents']);
             Product::setStock((int) $created['id'], $stock);
+            Product::setCollection((int) $created['id'], $data['collection'] ?? null);
         }
         AuditLog::record((int) current_user_id(), 'product.created', 'product', null, ['public_id' => $publicId], $request->ipBinary());
         clear_old();
@@ -54,6 +56,7 @@ final class ProductController
         $p = $this->ownProductOr404($request, $b);
         view('boutique/product_form', ['mode' => 'edit', 'boutique' => $b, 'product' => $p,
             'photos' => Product::photos((int) $p['id']), 'variants' => ProductVariant::forProduct((int) $p['id']),
+            'collections' => Product::collectionsFor((int) $b['id'], false),
             'media_ready' => CloudinaryService::configured()]);
     }
 
@@ -72,6 +75,7 @@ final class ProductController
         $nowIn  = $data['stock'] === null || (int) $data['stock'] > 0;
 
         Product::update((int) $p['id'], $data);
+        Product::setCollection((int) $p['id'], $data['collection'] ?? null);
         // On ne remplace les photos que si le formulaire en a renvoyé (sinon on garde).
         if ($photos !== null) {
             Product::setPhotos((int) $p['id'], $photos);
@@ -249,6 +253,7 @@ final class ProductController
             'name' => $name, 'description' => $description, 'price_cents' => $priceCents,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
+            'collection' => mb_substr(trim((string) input_string('collection', '')), 0, 60),
         ], $errors, $errors === [] ? $photos : null];
     }
 

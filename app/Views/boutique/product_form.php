@@ -38,6 +38,17 @@ $fmtP = static function ($cents) use ($cur): string {
                required maxlength="<?= (int) config('shop.product_name_max', 150) ?>" placeholder="<?= e(t('product.f.name_ph')) ?>">
         <?php if (has_error('name')): ?><p class="field-error"><?= e(error('name')) ?></p><?php endif; ?>
 
+        <?php $cols = $collections ?? []; ?>
+        <label for="p-collection"><?= e(t('product.f.collection')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+        <input type="text" id="p-collection" name="collection" maxlength="60" list="collection-list"
+               value="<?= old('collection') ?: e((string) ($product['collection'] ?? '')) ?>" placeholder="<?= e(t('product.f.collection_ph')) ?>">
+        <?php if ($cols !== []): ?>
+            <datalist id="collection-list">
+                <?php foreach ($cols as $c): ?><option value="<?= e((string) $c) ?>"></option><?php endforeach; ?>
+            </datalist>
+        <?php endif; ?>
+        <p class="hint"><?= e(t('product.f.collection_hint')) ?></p>
+
         <div class="grid-2">
             <div>
                 <label for="p-price"><?= e(t('product.f.price', ['cur' => $cur])) ?></label>

@@ -115,8 +115,16 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     </div>
                 <?php endif; ?>
             </div>
+            <?php $rayons = $collections ?? []; $curRayon = $rayon ?? ''; if ($rayons !== []): $sfx = ($sort ?? '') !== '' ? '&tri=' . $sort : ''; ?>
+                <div class="shop-rayons">
+                    <a class="chip-filter<?= $curRayon === '' ? ' is-active' : '' ?>" href="<?= e(url('/boutique/' . $boutique['slug'] . (($sort ?? '') !== '' ? '?tri=' . $sort : ''))) ?>"><?= e(t('shop.rayon_all')) ?></a>
+                    <?php foreach ($rayons as $c): ?>
+                        <a class="chip-filter<?= $curRayon === $c ? ' is-active' : '' ?>" href="<?= e(url('/boutique/' . $boutique['slug'] . '?rayon=' . rawurlencode((string) $c) . $sfx)) ?>"><?= e((string) $c) ?></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
             <?php if (empty($products)): ?>
-                <div class="empty-state"><p><?= e(t('shop.no_products_public')) ?></p></div>
+                <div class="empty-state"><p><?= e($curRayon !== '' ? t('shop.rayon_empty') : t('shop.no_products_public')) ?></p></div>
             <?php else: ?>
                 <div class="product-grid">
                     <?php foreach ($products as $pr): ?>
