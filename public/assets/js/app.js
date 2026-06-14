@@ -2518,3 +2518,10 @@ document.addEventListener('submit', function (ev) {
     var btn = form.querySelector('button[type="submit"], button:not([type])');
     if (btn) { setTimeout(function () { btn.disabled = true; btn.classList.add('is-loading'); }, 0); }
 });
+
+/* ---- Bouton « Imprimer / Enregistrer en PDF » ([data-print]), p.ex. la facture.
+   Délégué sur document pour fonctionner sur la page de facture autonome. ---- */
+document.addEventListener('click', function (ev) {
+    var b = ev.target && ev.target.closest ? ev.target.closest('[data-print]') : null;
+    if (b) { ev.preventDefault(); window.print(); }
+});

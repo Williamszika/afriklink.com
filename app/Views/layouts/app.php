@@ -173,6 +173,14 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>
                 <a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a>
             </nav>
+            <div class="footer-news">
+                <p class="footer-news-title"><?= e(t('newsletter.title')) ?></p>
+                <form method="post" action="<?= e(url('/newsletter')) ?>" class="footer-news-form">
+                    <?= csrf_field() ?>
+                    <input type="email" name="email" required maxlength="191" placeholder="<?= e(t('newsletter.ph')) ?>" aria-label="<?= e(t('newsletter.title')) ?>">
+                    <button type="submit" class="btn btn-primary btn-sm"><?= e(t('newsletter.btn')) ?></button>
+                </form>
+            </div>
         </div>
         <p class="footer-bottom">&copy; <?= date('Y') ?> <?= e(config('app.name', 'Afriklink')) ?></p>
     </div>

@@ -95,6 +95,8 @@ $waText = rawurlencode(
     <?php if ($wa !== ''): ?>
         <p><a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('bcart.send_whatsapp')) ?></a></p>
     <?php endif; ?>
+    <p><a class="btn btn-ghost btn-block" href="<?= e(url('/boutique/commande/' . $order['public_id'] . '/facture')) ?>" target="_blank" rel="noopener">🧾 <?= e(t('invoice.cta')) ?></a></p>
+
     <?php /* ---- Actions acheteur : annulation / retour ---- */ ?>
     <?php $retReq = !empty($order['return_requested_at']); ?>
     <?php if (in_array($status, ['new', 'confirmed'], true)): ?>

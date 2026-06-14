@@ -1128,6 +1128,30 @@ final class BoutiqueController
         ]);
     }
 
+    /** Facture imprimable (le client l'enregistre en PDF via « imprimer »). Page autonome. */
+    public function invoice(Request $request): void
+    {
+        $order = \App\Models\Order::findByPublicId((string) $request->param('ref', ''));
+        if ($order === null) {
+            abort(404);
+        }
+        $boutique = $this->boutiqueOf((int) $order['boutique_id']);
+        $seller   = $boutique !== null ? (User::findById((int) $boutique['user_id']) ?? []) : [];
+        $items    = Order::items((int) $order['id']);
+        $subtotal = 0;
+        foreach ($items as $it) {
+            $subtotal += (int) $it['line_total_cents'];
+        }
+        view('boutique/invoice', [
+            'order'      => $order,
+            'items'      => $items,
+            'boutique'   => $boutique,
+            'seller'     => $seller,
+            'subtotal'   => $subtotal,
+            'page_title' => t('invoice.title', ['ref' => strtoupper(substr((string) $order['public_id'], 0, 6))]),
+        ], null);
+    }
+
     /* ---- Paiement en ligne de la commande (public) ----------------- */
 
     /** Démarre (ou reprend) le paiement d'une commande depuis la confirmation. */
