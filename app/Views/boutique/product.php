@@ -42,7 +42,7 @@ foreach ($realVariants as $rv) {
             <?php if ($main !== null): ?>
                 <button type="button" class="listing-main-zoom" data-zoom-open data-zoom-hover data-index="0" aria-label="<?= e(t('product.zoom')) ?>">
                     <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($main, 1100, 825)) ?>" alt="<?= e((string) $product['name']) ?>" width="880" height="660">
-                    <span class="zoom-hint" aria-hidden="true">🔍</span>
+                    <span class="zoom-hint" aria-hidden="true"><?= icon('search', ['size' => 16]) ?></span>
                 </button>
             <?php endif; ?>
             <?php if (count($photos) > 1): ?>
@@ -64,7 +64,7 @@ foreach ($realVariants as $rv) {
         <div class="listing-side">
             <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
-                <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line">✨ <?= e(t('ads.badge')) ?></p><?php endif; ?>
+                <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line"><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.badge')) ?></p><?php endif; ?>
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
                 <?php endif; ?>
@@ -78,7 +78,7 @@ foreach ($realVariants as $rv) {
                 </p>
                 <?php if (!$inStock && $published): ?>
                     <div class="stock-alert" id="stock-alert">
-                        <p class="stock-alert-cta">🔔 <?= e(t('stock.cta')) ?></p>
+                        <p class="stock-alert-cta"><?= icon('bell', ['size' => 16]) ?> <?= e(t('stock.cta')) ?></p>
                         <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/alerte-stock')) ?>" class="stock-alert-form">
                             <?= csrf_field() ?>
                             <input type="email" name="email" maxlength="120" value="<?= old('email') ?>" placeholder="<?= e(t('order.f.email_ph')) ?>">
@@ -106,7 +106,7 @@ foreach ($realVariants as $rv) {
                 <?php endif; ?>
                 <?php if ($canOrder): ?>
                     <div class="product-buy">
-                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e($buyId) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
+                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e($buyId) ?>"><?= icon('zap', ['size' => 18]) ?> <?= e(t('bcart.buy_now')) ?></button>
                         <?php if ($realVariants === []): ?>
                             <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
                         <?php endif; ?>
@@ -123,7 +123,7 @@ foreach ($realVariants as $rv) {
                        href="https://wa.me/<?= e($waPhone) ?>?text=<?= $waText ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('product.order_whatsapp')) ?></a>
                 <?php endif; ?>
                 <?php if (!empty($seller_verified)): ?>
-                    <p class="verified-line" title="<?= e(t('shop.verified_hint')) ?>">✅ <?= e(t('shop.verified_seller')) ?></p>
+                    <p class="verified-line" title="<?= e(t('shop.verified_hint')) ?>"><?= icon('shield', ['size' => 16]) ?> <?= e(t('shop.verified_seller')) ?></p>
                 <?php endif; ?>
                 <?= render_partial('partials/share_row', [
                     'share_url'  => $productUrl,
@@ -131,7 +131,7 @@ foreach ($realVariants as $rv) {
                 ]) ?>
                 <?php if (!empty($aff_link)): ?>
                     <div class="aff-share">
-                        <p class="aff-share-cta">💸 <?= e(t('aff.share_cta', ['rate' => (int) ($aff_rate ?? 5)])) ?></p>
+                        <p class="aff-share-cta"><?= icon('wallet', ['size' => 16]) ?> <?= e(t('aff.share_cta', ['rate' => (int) ($aff_rate ?? 5)])) ?></p>
                         <div class="aff-link-row">
                             <input type="text" class="aff-link-input" value="<?= e($aff_link) ?>" readonly aria-label="<?= e(t('aff.your_link')) ?>">
                             <button type="button" class="btn btn-ghost btn-sm" data-copy="<?= e($aff_link) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= e(t('aff.copy')) ?></button>
@@ -141,7 +141,7 @@ foreach ($realVariants as $rv) {
                 <?php if ($published && !$is_owner): ?>
                     <?php if ((int) (current_user_id() ?? 0) > 0): ?>
                         <details class="msg-ask">
-                            <summary>💬 <?= e(t('msg.ask_seller')) ?></summary>
+                            <summary><?= icon('chat', ['size' => 16]) ?> <?= e(t('msg.ask_seller')) ?></summary>
                             <form method="post" action="<?= e(url('/messages/demarrer')) ?>" class="msg-ask-form">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="slug" value="<?= e($boutique['slug']) ?>">
@@ -151,7 +151,7 @@ foreach ($realVariants as $rv) {
                             </form>
                         </details>
                     <?php else: ?>
-                        <a class="btn btn-ghost btn-block" href="<?= e(url('/login')) ?>">💬 <?= e(t('msg.login_to_ask')) ?></a>
+                        <a class="btn btn-ghost btn-block" href="<?= e(url('/login')) ?>"><?= icon('chat', ['size' => 16]) ?> <?= e(t('msg.login_to_ask')) ?></a>
                     <?php endif; ?>
                 <?php endif; ?>
                 <?php if ($is_owner): ?>
@@ -173,7 +173,7 @@ foreach ($realVariants as $rv) {
 
     <!-- Avis & notes -->
     <div class="panel" id="avis">
-        <h2 class="panel-title">⭐ <?= e(t('review.title')) ?>
+        <h2 class="panel-title"><?= icon('star', ['size' => 18]) ?> <?= e(t('review.title')) ?>
             <?php if (($rating['count'] ?? 0) > 0): ?> <?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?><?php endif; ?>
         </h2>
         <?php if (empty($reviews)): ?>
@@ -202,11 +202,11 @@ foreach ($realVariants as $rv) {
         <?php endif; ?>
 
         <?php if ($published && (int) (current_user_id() ?? 0) === 0): ?>
-            <p class="review-login-cta">🔒 <a href="<?= e(url('/login')) ?>"><?= e(t('review.login_to_post')) ?></a></p>
+            <p class="review-login-cta"><?= icon('lock', ['size' => 16]) ?> <a href="<?= e(url('/login')) ?>"><?= e(t('review.login_to_post')) ?></a></p>
         <?php endif; ?>
         <?php if ($published && (int) (current_user_id() ?? 0) > 0): ?>
             <details class="review-form-box" <?= has_error('review') ? 'open' : '' ?>>
-                <summary>✍️ <?= e(t('review.cta')) ?></summary>
+                <summary><?= icon('pencil', ['size' => 16]) ?> <?= e(t('review.cta')) ?></summary>
                 <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/avis')) ?>" class="review-form">
                     <?= csrf_field() ?>
                     <div class="star-input" role="radiogroup" aria-label="<?= e(t('review.title')) ?>">
@@ -231,12 +231,12 @@ foreach ($realVariants as $rv) {
     <!-- Produits recommandés -->
     <?php if (!empty($related)): ?>
         <div class="panel">
-            <h2 class="panel-title">🛍️ <?= e(t('product.related')) ?></h2>
+            <h2 class="panel-title"><?= icon('bag', ['size' => 18]) ?> <?= e(t('product.related')) ?></h2>
             <div class="product-grid">
                 <?php foreach ($related as $rp): $rm = $related_mains[(int) $rp['id']] ?? null; ?>
                     <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $rp['public_id'])) ?>">
                         <span class="product-card-img">
-                            <?php if ($rm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($rm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                            <?php if ($rm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($rm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                         </span>
                         <span class="product-card-name"><?= e((string) $rp['name']) ?></span>
                         <span class="product-card-price"><?= e(format_price((int) $rp['price_cents'], $cur)) ?></span>
@@ -263,7 +263,7 @@ foreach ($realVariants as $rv) {
 
         <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
         <div class="cart-bar" data-cart-bar hidden>
-            <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
+            <span class="cart-bar-info"><?= icon('cart', ['size' => 16]) ?> <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
             <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
         </div>
     <?php endif; ?>

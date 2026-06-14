@@ -34,13 +34,13 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
 ?>
 <section class="shop-page"<?= $accentStyle !== '' ? ' style="' . e($accentStyle) . '"' : '' ?>>
 <?php if (!empty($boutique['announcement'])): ?>
-    <div class="shop-announce">📣 <?= e((string) $boutique['announcement']) ?></div>
+    <div class="shop-announce"><?= icon('megaphone', ['size' => 16]) ?> <?= e((string) $boutique['announcement']) ?></div>
 <?php endif; ?>
 <?php if ($onVacation): ?>
     <div class="notice notice-warning"><p>🏖️ <?= e(!empty($boutique['vacation_until']) ? t('shop.vacation_until', ['date' => date('d/m/Y', strtotime((string) $boutique['vacation_until']))]) : t('shop.vacation_now')) ?></p></div>
 <?php endif; ?>
 <?php if ($previewOrder && $canOrder): ?>
-    <div class="notice notice-info"><p>👁️ <?= e(t('shop.preview_note')) ?></p></div>
+    <div class="notice notice-info"><p><?= icon('eye', ['size' => 16]) ?> <?= e(t('shop.preview_note')) ?></p></div>
 <?php endif; ?>
     <?php if ($is_owner && ($boutique['status'] ?? '') !== 'published'): ?>
         <div class="notice notice-info"><p><?= e(t('shop.owner_draft')) ?> — <a href="<?= e(url('/boutique/gerer')) ?>"><?= e(t('shop.manage_link')) ?></a></p></div>
@@ -52,12 +52,12 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
             <?php if ($logo !== null): ?>
                 <img class="shop-logo" src="<?= e(CloudinaryService::imageUrl($logo, 160, 160)) ?>" alt="" width="80" height="80">
             <?php else: ?>
-                <div class="shop-logo shop-logo--empty" aria-hidden="true">🛍️</div>
+                <div class="shop-logo shop-logo--empty" aria-hidden="true"><?= icon('store', ['size' => 34]) ?></div>
             <?php endif; ?>
             <div>
                 <h1><?= e((string) $boutique['name']) ?>
                     <?php if (!empty($seller_verified)): ?>
-                        <span class="badge badge-verified" title="<?= e(t('shop.verified_hint')) ?>">✅ <?= e(t('shop.verified_seller')) ?></span>
+                        <span class="badge badge-verified" title="<?= e(t('shop.verified_hint')) ?>"><?= icon('shield', ['size' => 15]) ?> <?= e(t('shop.verified_seller')) ?></span>
                     <?php endif; ?>
                 </h1>
                 <?php if (!empty($boutique['tagline'])): ?><p class="lead"><?= e((string) $boutique['tagline']) ?></p><?php endif; ?>
@@ -74,7 +74,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 ]) ?>
                 <?php if ($canOrder): ?>
                     <button type="button" class="btn btn-primary cart-hero-btn" data-cart-open>
-                        🛒 <?= e(t('bcart.view_cart')) ?> <span class="cart-hero-count" data-cart-count>0</span>
+                        <?= icon('cart', ['size' => 18]) ?> <?= e(t('bcart.view_cart')) ?> <span class="cart-hero-count" data-cart-count>0</span>
                     </button>
                 <?php endif; ?>
             </div>
@@ -84,7 +84,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
     <div class="shop-body">
         <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
             <div class="shop-toolbar">
-                <h2 class="panel-title">📦 <?= e(t('shop.products_title')) ?>
+                <h2 class="panel-title"><?= icon('package', ['size' => 18]) ?> <?= e(t('shop.products_title')) ?>
                     <span class="shop-count muted"><?= e(t('shop.count', ['n' => count($products)])) ?></span>
                 </h2>
                 <?php if (!empty($products)): $sort = $sort ?? ''; ?>
@@ -110,8 +110,8 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                                 <span class="product-card-img">
                                     <?php if ($m !== null): ?>
                                         <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
-                                    <?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
-                                    <?php if (!empty($pr['pinned'])): ?><span class="pin-badge" title="<?= e(t('product.pinned')) ?>">📌</span><?php endif; ?>
+                                    <?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
+                                    <?php if (!empty($pr['pinned'])): ?><span class="pin-badge" title="<?= e(t('product.pinned')) ?>"><?= icon('pin', ['size' => 14]) ?></span><?php endif; ?>
                                     <?php if (\App\Models\Product::isPromoted($pr)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                                     <?php if (!$inStock): ?><span class="card-out-badge"><?= e(t('product.out_of_stock')) ?></span><?php endif; ?>
                                 </span>
@@ -125,7 +125,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                             <?= render_partial('partials/compare_toggle', ['pid' => (string) $pr['public_id']]) ?>
                             <?php if ($canOrder && $inStock): ?>
                                 <div class="product-actions">
-                                    <button type="button" class="btn btn-primary btn-sm buy-now-btn" data-buy-now="<?= e((string) $pr['public_id']) ?>">⚡ <?= e(t('bcart.buy_now')) ?></button>
+                                    <button type="button" class="btn btn-primary btn-sm buy-now-btn" data-buy-now="<?= e((string) $pr['public_id']) ?>"><?= icon('zap', ['size' => 16]) ?> <?= e(t('bcart.buy_now')) ?></button>
                                     <?= render_partial('partials/cart_stepper', ['id' => (string) $pr['public_id'], 'size' => '', 'name' => (string) $pr['name'], 'price' => (int) $pr['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $pr['public_id'])]) ?>
                                 </div>
                             <?php endif; ?>
@@ -144,7 +144,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
             <?php endif; ?>
             <?php if (!empty($boutique['return_policy'])): ?>
                 <div class="panel">
-                    <h2 class="panel-title">↩️ <?= e(t('shop.policy_title')) ?></h2>
+                    <h2 class="panel-title"><?= icon('undo', ['size' => 18]) ?> <?= e(t('shop.policy_title')) ?></h2>
                     <p class="listing-description"><?= nl2br(e((string) $boutique['return_policy'])) ?></p>
                 </div>
             <?php endif; ?>
@@ -152,13 +152,13 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 <h2 class="panel-title"><?= e(t('shop.infos')) ?></h2>
                 <dl class="meta">
                     <dt><?= e(t('shop.f.type')) ?></dt>
-                    <dd><?= ($boutique['shop_type'] ?? 'online') === 'physical' ? '🏬 ' . e(t('shop.type.physical')) : '🌐 ' . e(t('shop.type.online')) ?></dd>
+                    <dd><?= ($boutique['shop_type'] ?? 'online') === 'physical' ? icon('store', ['size' => 16]) . ' ' . e(t('shop.type.physical')) : icon('globe', ['size' => 16]) . ' ' . e(t('shop.type.online')) ?></dd>
                     <?php if (($boutique['shop_type'] ?? '') === 'physical' && !empty($boutique['address'])): ?>
-                        <dt><?= e(t('shop.f.address')) ?></dt><dd>📍 <?= e((string) $boutique['address']) ?></dd>
+                        <dt><?= e(t('shop.f.address')) ?></dt><dd><?= icon('pin', ['size' => 15]) ?> <?= e((string) $boutique['address']) ?></dd>
                     <?php endif; ?>
                     <?php if (!empty($boutique['city']) || !empty($boutique['country_code'])): ?>
                         <dt><?= e(t('shop.f.location')) ?></dt>
-                        <dd>🌍 <?= e(implode(' · ', array_filter([
+                        <dd><?= icon('globe', ['size' => 15]) ?> <?= e(implode(' · ', array_filter([
                             (string) ($boutique['city'] ?? '') ?: null,
                             !empty($boutique['country_code']) ? trim(flag_emoji((string) $boutique['country_code']) . ' ' . country_name((string) $boutique['country_code'])) : null,
                             !empty($boutique['continent']) ? t('geo.continent.' . $boutique['continent']) : null,
@@ -192,19 +192,19 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                         if ($dFee > 0) { $rows[] = e(t('shop.method.local')) . ' : <strong>' . e(format_price($dFee, $cur)) . '</strong>'; }
                         if ($dIntl > 0) { $rows[] = e(t('shop.method.international')) . ' : <strong>' . e(format_price($dIntl, $cur)) . '</strong>'; }
                         if (!empty($boutique['free_ship_cents'])) { $rows[] = e(t('shop.f.free_ship')) . ' ' . e(format_price((int) $boutique['free_ship_cents'], $cur)); }
-                        if ($dDelay !== '') { $rows[] = '🕒 ' . e(t('shop.prep.' . $dDelay)); }
+                        if ($dDelay !== '') { $rows[] = icon('clock', ['size' => 15]) . ' ' . e(t('shop.prep.' . $dDelay)); }
                     ?>
                         <dt><?= e(t('shop.f.delivery_fee')) ?></dt>
-                        <dd>🚚 <?= implode('<br>', $rows) ?></dd>
+                        <dd><?= icon('truck', ['size' => 16]) ?> <?= implode('<br>', $rows) ?></dd>
                     <?php endif; ?>
                     <?php if (!empty($boutique['prep_time'])): ?>
                         <dt><?= e(t('shop.f.prep')) ?></dt><dd><?= e(t('shop.prep.' . $boutique['prep_time'])) ?></dd>
                     <?php endif; ?>
                     <?php if (!empty($boutique['open_hours'])): ?>
-                        <dt><?= e(t('shop.cfg.hours')) ?></dt><dd>🕒 <?= nl2br(e((string) $boutique['open_hours'])) ?></dd>
+                        <dt><?= e(t('shop.cfg.hours')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= nl2br(e((string) $boutique['open_hours'])) ?></dd>
                     <?php endif; ?>
                     <?php if (!empty($boutique['min_order_cents'])): ?>
-                        <dt><?= e(t('shop.cfg.min_order')) ?></dt><dd>🧺 <?= e(format_price((int) $boutique['min_order_cents'], $cur)) ?></dd>
+                        <dt><?= e(t('shop.cfg.min_order')) ?></dt><dd><?= icon('cart', ['size' => 15]) ?> <?= e(format_price((int) $boutique['min_order_cents'], $cur)) ?></dd>
                     <?php endif; ?>
                     <?php $payTerms = array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))); ?>
                     <?php if ($payTerms): ?>
@@ -215,7 +215,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                             <?php endforeach; ?>
                         </dd>
                     <?php elseif (!empty($boutique['cod_enabled'])): ?>
-                        <dt><?= e(t('shop.f.payment')) ?></dt><dd>💵 <?= e(t('shop.f.cod')) ?></dd>
+                        <dt><?= e(t('shop.f.payment')) ?></dt><dd><?= icon('banknote', ['size' => 16]) ?> <?= e(t('shop.f.cod')) ?></dd>
                     <?php endif; ?>
                 </dl>
                 <?php $payMethods = array_filter(explode(',', (string) ($boutique['payment_methods'] ?? ''))); ?>
@@ -272,7 +272,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
     <?php if ($canOrder): ?>
         <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
         <div class="cart-bar" data-cart-bar hidden>
-            <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
+            <span class="cart-bar-info"><?= icon('cart', ['size' => 16]) ?> <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
             <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
         </div>
     <?php endif; ?>
