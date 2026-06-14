@@ -1241,6 +1241,15 @@ h2 { letter-spacing:-.01em; }
 .readiness-warnings li.rw-info { background:#eff8ff; border:1px solid #b2ddff; color:#0b5394; }
 .readiness-warnings li a { font-weight:600; white-space:nowrap; }
 .price-approx { color: var(--muted); font-weight: 500; font-size: .82em; white-space: nowrap; }
+.zone-list { list-style:none; margin:0 0 12px; padding:0; display:grid; gap:8px; }
+.zone-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; }
+.zone-info { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.zone-info .zone-countries { font-size:.84rem; }
+.zone-info .zone-meta { font-size:.84rem; font-weight:600; color:var(--ink); }
+.zone-add { margin-top:4px; }
+.zone-add > summary { cursor:pointer; font-weight:600; }
+.zone-form { margin-top:10px; display:grid; gap:8px; }
+.zone-countries-select { width:100%; }
 .readiness-ok { color:var(--success); font-weight:700; margin:10px 0 0; }
 
 /* Boutique : bandeau d'annonce + champ congé */

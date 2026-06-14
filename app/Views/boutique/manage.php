@@ -247,6 +247,74 @@ $publicPath = '/boutique/' . $boutique['slug'];
             <?php endif; ?>
         </div>
 
+        <!-- Zones de livraison (groupes de pays × tarif) -->
+        <div class="panel" id="zones">
+            <h2 class="panel-title"><?= icon('truck', ['size' => 18]) ?> <?= e(t('ship.zone.title')) ?></h2>
+            <p class="muted"><?= e(t('ship.zone.lead')) ?></p>
+            <?php if (!empty($shipping_zones)): ?>
+                <ul class="zone-list">
+                    <?php foreach ($shipping_zones as $z):
+                        $codes = array_filter(array_map('trim', explode(',', (string) ($z['countries'] ?? ''))));
+                        $names = $codes === []
+                            ? t('ship.zone.rest')
+                            : implode(', ', array_map(static fn (string $c): string => (string) (config('countries')[$c] ?? $c), $codes));
+                    ?>
+                        <li class="zone-row">
+                            <div class="zone-info">
+                                <strong><?= e((string) $z['name']) ?></strong>
+                                <span class="muted zone-countries"><?= e($names) ?></span>
+                                <span class="zone-meta">
+                                    <?= e(format_price((int) $z['fee_cents'], $cur)) ?>
+                                    <?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?>
+                                    <?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?>
+                                </span>
+                            </div>
+                            <form method="post" action="<?= e(url('/boutique/livraison/zones/' . $z['public_id'] . '/suppr')) ?>" class="inline-form">
+                                <?= csrf_field() ?>
+                                <button class="link-button btn-danger" data-confirm="<?= e(t('ship.zone.del_confirm')) ?>"><?= e(t('product.delete')) ?></button>
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+            <details class="zone-add">
+                <summary><?= icon('plus', ['size' => 16]) ?> <?= e(t('ship.zone.add')) ?></summary>
+                <form method="post" action="<?= e(url('/boutique/livraison/zones')) ?>" class="zone-form" data-submit-once>
+                    <?= csrf_field() ?>
+                    <label for="z-name"><?= e(t('ship.zone.f.name')) ?></label>
+                    <input type="text" id="z-name" name="name" maxlength="60" required placeholder="<?= e(t('ship.zone.f.name_ph')) ?>">
+
+                    <label><?= e(t('ship.zone.f.countries')) ?></label>
+                    <label class="check-pill"><input type="checkbox" name="rest" value="1"> <span><?= e(t('ship.zone.f.rest')) ?></span></label>
+                    <select name="countries[]" multiple size="6" class="zone-countries-select">
+                        <?php foreach (config('countries', []) as $code => $cn): ?>
+                            <option value="<?= e((string) $code) ?>"><?= e((string) $cn) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="hint"><?= e(t('ship.zone.f.countries_hint')) ?></p>
+
+                    <div class="grid-2">
+                        <div>
+                            <label for="z-fee"><?= e(t('ship.zone.f.fee', ['cur' => $cur])) ?></label>
+                            <input type="text" id="z-fee" name="fee" inputmode="decimal" value="0" required>
+                        </div>
+                        <div>
+                            <label for="z-free"><?= e(t('ship.zone.f.free_above', ['cur' => $cur])) ?></label>
+                            <input type="text" id="z-free" name="free_above" inputmode="decimal" placeholder="<?= e(t('ship.zone.f.free_above_ph')) ?>">
+                        </div>
+                    </div>
+                    <label for="z-delay"><?= e(t('ship.zone.f.delay')) ?></label>
+                    <select id="z-delay" name="delay">
+                        <option value=""><?= e(t('field.choose')) ?></option>
+                        <?php foreach (config('shop.prep_options', []) as $opt): ?>
+                            <option value="<?= e((string) $opt) ?>"><?= e(t('shop.prep.' . $opt)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm"><?= e(t('ship.zone.add_btn')) ?></button>
+                </form>
+            </details>
+        </div>
+
         <!-- Promotions / codes promo -->
         <div class="panel" id="promos">
             <h2 class="panel-title">🏷️ <?= e(t('promo.title')) ?></h2>

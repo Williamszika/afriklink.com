@@ -117,6 +117,7 @@ final class BoutiqueController
             'orders_pending' => \App\Models\Order::countFor((int) $boutique['id'])['new'],
             'views_total'    => ShopView::totals((int) $boutique['id'])['total'],
             'discounts'      => \App\Models\Discount::forBoutique((int) $boutique['id']),
+            'shipping_zones' => \App\Models\ShippingZone::forBoutique((int) $boutique['id']),
         ] + SellerController::commonData($user));
     }
 
@@ -601,6 +602,65 @@ final class BoutiqueController
             flash('success', t('promo.updated'));
         }
         redirect('/boutique/gerer#promos');
+    }
+
+    /* ---- Zones de livraison (groupes de pays × tarif + franco par zone) ---- */
+
+    public function createShippingZone(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        if (\App\Models\ShippingZone::count((int) $boutique['id']) >= 12) {
+            flash('error', t('ship.zone.err_max'));
+            redirect('/boutique/gerer#zones');
+        }
+        $cur  = (string) $boutique['currency'];
+        $name = trim((string) input_string('name', ''));
+        if ($name === '') {
+            flash('error', t('ship.zone.err_name'));
+            redirect('/boutique/gerer#zones');
+        }
+        // « Reste du monde » (catch-all) = aucun pays ; sinon liste validée contre config.
+        $rest  = input_string('rest', '') === '1';
+        $valid = array_keys(config('countries', []));
+        $countries = $rest ? [] : array_values(array_intersect(
+            array_map(static fn ($c): string => strtoupper(trim((string) $c)), (array) ($_POST['countries'] ?? [])),
+            $valid
+        ));
+        if (!$rest && $countries === []) {
+            flash('error', t('ship.zone.err_countries'));
+            redirect('/boutique/gerer#zones');
+        }
+        $fee     = (int) (parse_price_to_cents(trim((string) input_string('fee', '0')), $cur) ?? 0);
+        $freeRaw = trim((string) input_string('free_above', ''));
+        $freeAbove = $freeRaw !== '' ? parse_price_to_cents($freeRaw, $cur) : null;
+        $delay   = whitelist((string) input_string('delay', ''), config('shop.prep_options', []), null);
+
+        \App\Models\ShippingZone::create((int) $boutique['id'], [
+            'name'             => $name,
+            'countries'        => $countries !== [] ? implode(',', $countries) : null,
+            'fee_cents'        => $fee,
+            'free_above_cents' => $freeAbove !== null && $freeAbove > 0 ? $freeAbove : null,
+            'delay'            => $delay,
+            'position'         => \App\Models\ShippingZone::count((int) $boutique['id']),
+        ]);
+        flash('success', t('ship.zone.created'));
+        redirect('/boutique/gerer#zones');
+    }
+
+    public function deleteShippingZone(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        \App\Models\ShippingZone::delete((string) $request->param('zid', ''), (int) $boutique['id']);
+        flash('success', t('ship.zone.deleted'));
+        redirect('/boutique/gerer#zones');
     }
 
     /* ---- Caisse & commande en ligne (panier public) ---------------- */
