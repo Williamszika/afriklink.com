@@ -23,7 +23,7 @@ final class Order
 
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS orders (
                 id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id        CHAR(36) NOT NULL UNIQUE,
@@ -62,7 +62,7 @@ final class Order
     /** Lignes d'une commande passée en ligne (panier multi-produits). */
     public static function ensureItemsTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS order_items (
                 id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 order_id         BIGINT UNSIGNED NOT NULL,
@@ -245,7 +245,7 @@ final class Order
     /** Lignes de paiement (« tenders ») d'une vente — permet le paiement mixte. */
     public static function ensureTendersTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS order_tenders (
                 id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 order_id           BIGINT UNSIGNED NOT NULL,

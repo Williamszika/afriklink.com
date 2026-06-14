@@ -16,7 +16,7 @@ final class Avatar
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS user_avatars (
                 user_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
                 mime       VARCHAR(32) NOT NULL,

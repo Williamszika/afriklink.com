@@ -15,7 +15,7 @@ final class PaymentEvent
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS payment_events (
                 id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 provider    VARCHAR(20) NOT NULL,

@@ -12,7 +12,7 @@ final class Notification
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS notifications (
                 id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 user_id    BIGINT UNSIGNED NOT NULL,

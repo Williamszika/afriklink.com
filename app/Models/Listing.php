@@ -15,7 +15,7 @@ final class Listing
 {
     public static function ensureTables(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS listings (
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id       CHAR(36) NOT NULL UNIQUE,
@@ -38,7 +38,7 @@ final class Listing
                 KEY idx_listings_cat (category, status, created_at)
             )'
         );
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS listing_photos (
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 listing_id      BIGINT UNSIGNED NOT NULL,

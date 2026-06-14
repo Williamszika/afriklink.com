@@ -36,6 +36,27 @@ function db(): PDO
 }
 
 /**
+ * Exécute un ordre DDL (CREATE TABLE / ALTER) en mode best-effort.
+ *
+ * En prod DURCIE, le compte MySQL applicatif suit la moindre privilège et n'a
+ * PAS les droits DDL : le schéma est provisionné par un compte privilégié
+ * (migrations). Les `ensureTable()` des modèles appellent alors CREATE/ALTER qui
+ * échouent avec « command denied (1142) » — exception qui, NON capturée,
+ * renvoie une 500 à CHAQUE écriture. On avale donc ces erreurs : si la table/
+ * colonne existe déjà (cas normal en prod), tout fonctionne ; sinon, c'est au
+ * processus de migration privilégié de la créer. Idempotent et sans effet en dev
+ * (où le compte a les droits et le CREATE TABLE IF NOT EXISTS réussit).
+ */
+function ddl_safe(string $sql): void
+{
+    try {
+        db()->exec($sql);
+    } catch (\Throwable) {
+        // Pas de droits DDL (prod) ou course entre instances : sans gravité.
+    }
+}
+
+/**
  * Options TLS pour un MySQL managé (TiDB Cloud Serverless exige TLS et REFUSE les
  * connexions non chiffrées). Activées si DB_SSL est vrai.
  *

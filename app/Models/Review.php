@@ -12,7 +12,7 @@ final class Review
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS reviews (
                 id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id   CHAR(36) NOT NULL UNIQUE,

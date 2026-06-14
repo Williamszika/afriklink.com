@@ -14,7 +14,7 @@ final class ShopView
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS shop_views (
                 id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 boutique_id BIGINT UNSIGNED NOT NULL,

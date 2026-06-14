@@ -23,7 +23,7 @@ final class RestaurantOrder
 
     public static function ensureTables(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS restaurant_orders (
                 id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id     CHAR(36) NOT NULL UNIQUE,
@@ -51,7 +51,7 @@ final class RestaurantOrder
             )'
         );
         self::migrate();
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS restaurant_order_items (
                 id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 order_id      BIGINT UNSIGNED NOT NULL,

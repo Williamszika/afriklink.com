@@ -14,7 +14,7 @@ final class Restaurant
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS restaurants (
                 id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id        CHAR(36) NOT NULL UNIQUE,

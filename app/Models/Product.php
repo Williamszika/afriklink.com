@@ -13,7 +13,7 @@ final class Product
 {
     public static function ensureTables(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS products (
                 id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id   CHAR(36) NOT NULL UNIQUE,
@@ -32,7 +32,7 @@ final class Product
                 KEY idx_products_boutique (boutique_id, status, position)
             )'
         );
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS product_photos (
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 product_id      BIGINT UNSIGNED NOT NULL,

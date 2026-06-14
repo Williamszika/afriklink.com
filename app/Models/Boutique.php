@@ -12,7 +12,7 @@ final class Boutique
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS boutiques (
                 id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id        CHAR(36) NOT NULL UNIQUE,
@@ -54,7 +54,7 @@ final class Boutique
             )'
         );
         // Bannière = diaporama : jusqu'à 10 images (identifiants Cloudinary).
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS boutique_banners (
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 boutique_id     BIGINT UNSIGNED NOT NULL,
@@ -475,21 +475,22 @@ final class Boutique
     public static function updateConfig(int $id, array $cfg): void
     {
         self::ensureTable();
+        // Liste blanche stricte (noms de colonnes sûrs, jamais d'entrée client).
         $allowed = ['announcement', 'is_vacation', 'vacation_until', 'open_hours', 'min_order_cents', 'accent_color', 'hours_json', 'orders_within_hours'];
-        $cols = [];
-        $args = ['id' => $id];
+        // Une colonne par requête : si une colonne récente n'est pas encore
+        // provisionnée en prod (schéma non migré faute de droits DDL), seule
+        // CELLE-LÀ échoue — les autres (couleur d'accent, annonce…) sont bien
+        // enregistrées au lieu de faire échouer tout l'UPDATE groupé.
         foreach ($allowed as $c) {
-            if (array_key_exists($c, $cfg)) {
-                $cols[] = "{$c} = :{$c}";
-                $args[$c] = $cfg[$c];
+            if (!array_key_exists($c, $cfg)) {
+                continue;
             }
-        }
-        if ($cols === []) {
-            return;
-        }
-        try {
-            db()->prepare('UPDATE boutiques SET ' . implode(', ', $cols) . ' WHERE id = :id')->execute($args);
-        } catch (\Throwable) {
+            try {
+                db()->prepare("UPDATE boutiques SET {$c} = :v WHERE id = :id")
+                    ->execute(['v' => $cfg[$c], 'id' => $id]);
+            } catch (\Throwable) {
+                // Colonne absente (schéma non migré) : on ignore cette clé.
+            }
         }
     }
 }

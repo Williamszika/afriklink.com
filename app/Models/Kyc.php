@@ -17,7 +17,7 @@ final class Kyc
 
     public static function ensureTables(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS kyc_submissions (
                 id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 user_id     BIGINT UNSIGNED NOT NULL,
@@ -34,7 +34,7 @@ final class Kyc
                 KEY idx_status (status, submitted_at)
             )'
         );
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS kyc_documents (
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 submission_id   BIGINT UNSIGNED NOT NULL,

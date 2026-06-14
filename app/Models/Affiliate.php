@@ -21,14 +21,14 @@ final class Affiliate
 
     public static function ensureTables(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS affiliate_codes (
                 user_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
                 code       VARCHAR(16) NOT NULL UNIQUE,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )'
         );
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS affiliate_clicks (
                 id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 affiliate_id BIGINT UNSIGNED NOT NULL,
@@ -37,7 +37,7 @@ final class Affiliate
                 KEY idx_aff_clicks (affiliate_id, id)
             )'
         );
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS affiliate_conversions (
                 id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 affiliate_id     BIGINT UNSIGNED NOT NULL,

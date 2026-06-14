@@ -13,7 +13,7 @@ final class Conversation
 {
     public static function ensureTables(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS conversations (
                 id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 public_id      CHAR(36) NOT NULL UNIQUE,
@@ -32,7 +32,7 @@ final class Conversation
                 KEY idx_conv_seller (seller_id, last_at)
             )'
         );
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS messages (
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 conversation_id BIGINT UNSIGNED NOT NULL,

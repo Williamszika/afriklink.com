@@ -13,7 +13,7 @@ final class CashMovement
 {
     public static function ensureTable(): void
     {
-        db()->exec(
+        ddl_safe(
             'CREATE TABLE IF NOT EXISTS cash_movements (
                 id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 session_id  BIGINT UNSIGNED NOT NULL,
