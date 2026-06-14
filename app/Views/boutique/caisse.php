@@ -98,6 +98,23 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+            <?php
+            // Moyens de paiement adaptés au PAYS de l'acheteur (via CinetPay) — affiché
+            // si la boutique propose un encaissement en ligne (carte / mobile money).
+            $onlineIntent = array_intersect($pay_methods, ['mobile_money', 'card', 'paypal']) !== [];
+            if ($onlineIntent):
+                $buyerCc = strtoupper((string) ($dest_country ?? '')) ?: strtoupper((string) (current_user()['country_code'] ?? ''));
+                if ($buyerCc === '') { $buyerCc = detect_country_code(); }
+                $ccMobile = country_mobile_money($buyerCc);
+            ?>
+                <div class="pay-country">
+                    <p class="hint pay-country-label"><?= e(t('caisse.country_methods')) ?><?php if ($buyerCc !== ''): ?> <?= flag_emoji($buyerCc) ?> <?= e(country_name($buyerCc)) ?><?php endif; ?></p>
+                    <div class="pay-country-badges">
+                        <?php foreach ($ccMobile as $op): ?><span class="pay-country-badge">📱 <?= e($op) ?></span><?php endforeach; ?>
+                        <span class="pay-country-badge pay-country-badge--card">💳 <?= e(t('caisse.card')) ?></span>
+                    </div>
+                </div>
+            <?php endif; ?>
             <h3 class="caisse-section">📇 <?= e(t('order.f.your_details')) ?></h3>
             <label for="cl-name"><?= e(t('order.f.client')) ?></label>
             <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">

@@ -468,6 +468,32 @@ function place_label(?string $city, ?string $countryCode): string
     return implode(' · ', $parts);
 }
 
+/**
+ * Opérateurs Mobile Money disponibles dans un pays (noms de marque), pour
+ * afficher à la caisse les moyens de paiement adaptés à l'acheteur (via
+ * CinetPay). Liste vide hors zones Mobile Money (Europe…) → seule la carte
+ * s'applique. Indicatif (le choix final se fait sur la page CinetPay).
+ * @return list<string>
+ */
+function country_mobile_money(?string $cc): array
+{
+    static $map = [
+        'CI' => ['Orange Money', 'MTN MoMo', 'Moov Money', 'Wave'],
+        'SN' => ['Orange Money', 'Wave', 'Free Money'],
+        'BJ' => ['MTN MoMo', 'Moov Money'],
+        'BF' => ['Orange Money', 'Moov Money'],
+        'ML' => ['Orange Money', 'Moov Money'],
+        'TG' => ['T-Money', 'Moov Money'],
+        'NE' => ['Airtel Money', 'Moov Money'],
+        'GW' => ['Orange Money'],
+        'GN' => ['Orange Money', 'MTN MoMo'],
+        'CM' => ['Orange Money', 'MTN MoMo'],
+        'CD' => ['Orange Money', 'Airtel Money', 'M-Pesa'],
+        'CG' => ['Airtel Money', 'MTN MoMo'],
+    ];
+    return $map[strtoupper(trim((string) $cc))] ?? [];
+}
+
 /** Initiales pour l'avatar par défaut (« AD » pour « Awa Diop »). */
 function user_initials(array $user): string
 {

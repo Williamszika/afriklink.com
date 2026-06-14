@@ -906,6 +906,8 @@ return [
     'caisse.your_cart' => 'Your cart',
     'caisse.validate' => 'Confirm & pay',
     'caisse.subtotal' => 'Subtotal',
+    'caisse.country_methods' => 'Payable in your country:',
+    'caisse.card' => 'Bank card',
     'caisse.shipping' => 'Shipping',
     'caisse.free' => 'Free',
     'caisse.validate_order' => 'Place the order',

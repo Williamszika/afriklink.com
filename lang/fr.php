@@ -906,6 +906,8 @@ return [
     'caisse.your_cart' => 'Votre panier',
     'caisse.validate' => 'Valider le paiement',
     'caisse.subtotal' => 'Sous-total',
+    'caisse.country_methods' => 'Payable dans votre pays :',
+    'caisse.card' => 'Carte bancaire',
     'caisse.shipping' => 'Livraison',
     'caisse.free' => 'Offerte',
     'caisse.validate_order' => 'Valider la commande',
