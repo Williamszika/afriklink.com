@@ -248,7 +248,8 @@ return [
 
     // Webhooks PSP — SOURCE DE VÉRITÉ de l'encaissement (sans csrf/auth : la
     // signature authentifie). Corps brut lu via php://input.
-    ['POST', '/webhooks/stripe', [WebhookController::class, 'stripe'], ['throttle:webhook,300,3600']],
+    ['POST', '/webhooks/stripe',   [WebhookController::class, 'stripe'],   ['throttle:webhook,300,3600']],
+    ['POST', '/webhooks/cinetpay', [WebhookController::class, 'cinetpay'], ['throttle:webhook,300,3600']],
 
     // Signalement « ce n'était pas moi » (lien reçu par e-mail, sans connexion)
     ['GET',  '/signaler-vitrine', [ReportController::class, 'storefront'], ['throttle:report,20,3600']],

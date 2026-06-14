@@ -7,6 +7,8 @@ use App\Models\Payment;
 use App\Models\PaymentEvent;
 use App\Request;
 use App\Services\AuditLog;
+use App\Services\Payment\CinetPayProvider;
+use App\Services\Payment\PaymentResult;
 use App\Services\Payment\StripeProvider;
 use App\Services\PaymentSettlement;
 
@@ -33,6 +35,55 @@ final class WebhookController
         http_response_code($status);
         header('Content-Type: application/json');
         echo $status === 200 ? '{"received":true}' : '{"error":"invalid"}';
+    }
+
+    /** Endpoint CinetPay (notify_url) — données POST form-encodées. */
+    public function cinetpay(Request $request): void
+    {
+        $status = self::processCinetPay($_POST);
+        http_response_code($status);
+        echo $status === 200 ? 'OK' : 'KO';
+    }
+
+    /**
+     * Cœur testable du webhook CinetPay. On NE FAIT PAS confiance au POST : on
+     * RE-VÉRIFIE le statut via l'API /payment/check (= la vérité), on contrôle
+     * le montant, puis on confirme. Idempotent. Renvoie le code HTTP
+     * (400 = sans référence ; 200 = traité/ignoré, pour ne pas boucler).
+     */
+    public static function processCinetPay(array $post): int
+    {
+        $ref = (string) ($post['cpm_trans_id'] ?? '');
+        if ($ref === '') {
+            return 400;
+        }
+        $payment = Payment::findByReference($ref);
+        if ($payment === null || ($payment['status'] ?? '') === 'paid') {
+            return 200; // inconnu ou déjà confirmé (idempotent)
+        }
+        try {
+            $provider = new CinetPayProvider();
+            if (!$provider->isConfigured()) {
+                return 200; // pas de clés : rien à faire
+            }
+            $result = $provider->verify($ref, ['currency' => (string) ($payment['currency'] ?? 'XOF')]);
+            if ($result->status === PaymentResult::PAID) {
+                // Contrôle du montant : refuser un SOUS-paiement (arrondi CFA toléré au-dessus).
+                if ($result->amountCents > 0 && $result->amountCents < (int) $payment['amount_cents']) {
+                    AuditLog::record((int) ($payment['user_id'] ?? 0), 'payment.amount_mismatch', 'payment',
+                        (int) $payment['id'], ['expected' => (int) $payment['amount_cents'], 'got' => $result->amountCents], null);
+                    return 200;
+                }
+                PaymentSettlement::confirm($payment, $result->providerRef);
+                AuditLog::record((int) ($payment['user_id'] ?? 0), 'payment.paid.webhook', 'payment',
+                    (int) $payment['id'], ['provider' => 'cinetpay'], null);
+            } elseif ($result->status === PaymentResult::FAILED) {
+                PaymentSettlement::fail($payment, 'failed');
+            }
+        } catch (\Throwable) {
+            return 200; // on acquitte ; la trace reste dans les logs
+        }
+        return 200;
     }
 
     /**
