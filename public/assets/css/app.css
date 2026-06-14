@@ -366,6 +366,30 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .pay-country-badge { display:inline-flex; align-items:center; gap:4px; font-size:.8rem; font-weight:600; padding:4px 10px; border-radius:999px; background:#eafaf2; color:#0f7a3c; border:1px solid #bfe8d4; }
 .pay-country-badge--card { background:#eef3fe; color:#1d4ed8; border-color:#c5d4f6; }
 
+/* Tableau de bord des gains (portefeuille) */
+.gains-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+.gains-stat { text-align:center; padding:14px 8px; border:1px solid var(--border); border-radius:12px; background:var(--card,#fff); }
+.gains-stat-val { display:block; font-size:1.3rem; font-weight:800; color:var(--brand); line-height:1.15; }
+.gains-stat-lbl { display:block; font-size:.78rem; color:var(--muted,#667085); margin-top:3px; }
+.gains-chart-title { font-weight:600; margin:6px 0 8px; }
+@media (max-width:560px) { .gains-stat-val { font-size:1.02rem; } }
+
+/* Graphique en barres (CSS pur, CSP-safe) */
+.chart { display:flex; align-items:flex-end; gap:4px; height:calc(var(--chart-h,130px) + 20px); }
+.chart-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; }
+.chart-col-track { flex:1; width:100%; display:flex; align-items:flex-end; }
+.chart-col-fill { width:100%; min-height:2px; background:linear-gradient(180deg, var(--brand-300,#3C7A66), var(--brand,#103D30)); border-radius:5px 5px 0 0; transition:height .3s ease; }
+.chart-col:hover .chart-col-fill { background:var(--brand-dark,#0B2C22); }
+.chart-col-x { font-size:.6rem; color:var(--muted,#667085); white-space:nowrap; }
+
+/* Provenance par vitrine */
+.provenance-list { list-style:none; margin:0; padding:0; display:grid; gap:13px; }
+.provenance-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:5px; }
+.provenance-amount { font-weight:600; white-space:nowrap; }
+.provenance-track { height:9px; background:var(--bg,#f1f3f5); border-radius:999px; overflow:hidden; }
+.provenance-fill { height:100%; border-radius:999px; background:var(--brand); transition:width .4s ease; }
+.provenance-fill--restaurant { background:#e8851a; }
+
 .site-footer {
     border-top: 1px solid var(--border);
     background: rgba(255, 255, 255, .88);

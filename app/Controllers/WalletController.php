@@ -7,6 +7,7 @@ use App\Models\Boutique;
 use App\Models\Wallet;
 use App\Request;
 use App\Services\AuditLog;
+use App\Services\SellerAnalytics;
 
 /**
  * Portefeuille vendeur : solde encaissé par la plateforme, historique, et
@@ -29,6 +30,11 @@ final class WalletController
             'can_withdraw'    => Wallet::canWithdraw($uid),
             'entries'         => Wallet::entries($uid, 20),
             'withdrawals'     => Wallet::withdrawalsFor($uid),
+            // Tableau de bord des gains (chiffre d'affaires) par vitrine.
+            'gains_currency'  => SellerAnalytics::currency($uid),
+            'gains_summary'   => SellerAnalytics::summary($uid),
+            'gains_by_day'    => SellerAnalytics::revenueByDay($uid, 14),
+            'gains_by_shop'   => SellerAnalytics::byStorefront($uid),
             'page_title'      => t('wallet.title'),
         ] + SellerController::commonData($user));
     }

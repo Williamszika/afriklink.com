@@ -1,7 +1,16 @@
 <?php
 /** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url
  *  @var int $balance_cents  @var string $currency  @var int $threshold_cents  @var bool $can_withdraw
- *  @var list<array> $entries  @var list<array> $withdrawals */
+ *  @var list<array> $entries  @var list<array> $withdrawals
+ *  @var string $gains_currency  @var array{total_cents:int,month_cents:int,count:int} $gains_summary
+ *  @var list<array{date:string,cents:int}> $gains_by_day  @var list<array{label:string,kind:string,cents:int}> $gains_by_shop */
+$gc = $gains_currency;
+$dayBars = array_map(static fn (array $p): array => [
+    'value' => (int) $p['cents'],
+    'label' => (string) (int) date('j', strtotime((string) $p['date'])),
+    'title' => date('d/m', strtotime((string) $p['date'])) . ' · ' . format_price((int) $p['cents'], $gc),
+], $gains_by_day);
+$shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'], $gains_by_shop));
 ?>
 <div class="seller-shell">
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
@@ -11,6 +20,7 @@
             <p class="muted"><?= e(t('wallet.intro')) ?></p>
         </div>
 
+        <!-- Solde retirable -->
         <div class="panel wallet-balance">
             <div class="wallet-balance-top">
                 <span class="muted"><?= e(t('wallet.balance')) ?></span>
@@ -42,6 +52,50 @@
                 <p class="hint wallet-threshold">🔒 <?= e(t('wallet.threshold_note', ['min' => format_price($threshold_cents, $currency)])) ?></p>
             <?php endif; ?>
         </div>
+
+        <!-- Mes gains (chiffre d'affaires) -->
+        <div class="panel">
+            <h2 class="panel-title">📈 <?= e(t('wallet.gains_title')) ?></h2>
+            <div class="gains-stats">
+                <div class="gains-stat">
+                    <span class="gains-stat-val"><?= e(format_price((int) $gains_summary['total_cents'], $gc)) ?></span>
+                    <span class="gains-stat-lbl"><?= e(t('wallet.gains_total')) ?></span>
+                </div>
+                <div class="gains-stat">
+                    <span class="gains-stat-val"><?= e(format_price((int) $gains_summary['month_cents'], $gc)) ?></span>
+                    <span class="gains-stat-lbl"><?= e(t('wallet.gains_month')) ?></span>
+                </div>
+                <div class="gains-stat">
+                    <span class="gains-stat-val"><?= (int) $gains_summary['count'] ?></span>
+                    <span class="gains-stat-lbl"><?= e(t('wallet.gains_orders')) ?></span>
+                </div>
+            </div>
+
+            <?php if ($shopTotal > 0): ?>
+                <p class="gains-chart-title"><?= e(t('wallet.gains_14d')) ?></p>
+                <?= render_partial('partials/bar_chart', ['bars' => $dayBars, 'cur' => $gc, 'height' => 130]) ?>
+            <?php else: ?>
+                <div class="empty-state"><p><?= e(t('wallet.gains_empty')) ?></p></div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Provenance : par vitrine -->
+        <?php if (count($gains_by_shop) > 0 && $shopTotal > 0): ?>
+            <div class="panel">
+                <h2 class="panel-title">🏪 <?= e(t('wallet.by_shop')) ?></h2>
+                <ul class="provenance-list">
+                    <?php foreach ($gains_by_shop as $s): $pct = $shopTotal > 0 ? (int) round((int) $s['cents'] / $shopTotal * 100) : 0; ?>
+                        <li class="provenance-row">
+                            <div class="provenance-head">
+                                <span><?= $s['kind'] === 'restaurant' ? icon('utensils', ['size' => 15]) : icon('store', ['size' => 15]) ?> <strong><?= e((string) $s['label']) ?></strong></span>
+                                <span class="provenance-amount"><?= e(format_price((int) $s['cents'], $gc)) ?> <span class="muted">· <?= $pct ?>%</span></span>
+                            </div>
+                            <div class="provenance-track"><div class="provenance-fill provenance-fill--<?= e($s['kind']) ?>" style="width:<?= $pct ?>%"></div></div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
         <?php if ($withdrawals !== []): ?>
             <div class="panel">
