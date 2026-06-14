@@ -2442,3 +2442,16 @@ document.addEventListener('change', function (ev) {
     var buy = document.querySelector('[data-buy-now]');
     if (buy) { buy.setAttribute('data-buy-now', radio.value); }
 });
+
+/* ---- Anti double-soumission sur les formulaires sensibles ([data-submit-once]) :
+   vente en caisse, ouverture/clôture de session, commande. Évite la double-vente /
+   double-commande sur double-clic ou réseau lent. La désactivation est différée
+   (setTimeout) pour que la soumission native parte d'abord. ---- */
+document.addEventListener('submit', function (ev) {
+    var form = ev.target;
+    if (!form || !form.matches || !form.matches('[data-submit-once]')) { return; }
+    if (form.dataset.submitted === '1') { ev.preventDefault(); return; }
+    form.dataset.submitted = '1';
+    var btn = form.querySelector('button[type="submit"], button:not([type])');
+    if (btn) { setTimeout(function () { btn.disabled = true; btn.classList.add('is-loading'); }, 0); }
+});

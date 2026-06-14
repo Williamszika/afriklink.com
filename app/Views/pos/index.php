@@ -17,7 +17,7 @@ $cur = (string) $boutique['currency'];
             <div class="panel pos-open">
                 <h2 class="panel-title">🔓 <?= e(t('pos.open_title')) ?></h2>
                 <p class="muted"><?= e(t('pos.open_hint')) ?></p>
-                <form method="post" action="<?= e(url('/vendeur/point-de-vente/ouvrir')) ?>">
+                <form method="post" action="<?= e(url('/vendeur/point-de-vente/ouvrir')) ?>" data-submit-once>
                     <?= csrf_field() ?>
                     <label for="pos-float"><?= e(t('pos.f.float', ['cur' => $cur])) ?></label>
                     <input type="text" id="pos-float" name="opening_float" inputmode="decimal" value="0" required>
@@ -31,7 +31,7 @@ $cur = (string) $boutique['currency'];
                 <?php if (empty($units)): ?>
                     <p class="muted"><?= e(t('shop.products_empty')) ?></p>
                 <?php else: ?>
-                    <form method="post" action="<?= e(url('/vendeur/point-de-vente/vente')) ?>">
+                    <form method="post" action="<?= e(url('/vendeur/point-de-vente/vente')) ?>" data-submit-once>
                         <?= csrf_field() ?>
                         <label for="pos-unit"><?= e(t('pos.f.unit')) ?></label>
                         <select id="pos-unit" name="unit" required>
@@ -84,7 +84,7 @@ $cur = (string) $boutique['currency'];
 
             <div class="panel">
                 <h2 class="panel-title">💵 <?= e(t('pos.cash_title')) ?></h2>
-                <form method="post" action="<?= e(url('/vendeur/point-de-vente/mouvement')) ?>" class="pos-move-form">
+                <form method="post" action="<?= e(url('/vendeur/point-de-vente/mouvement')) ?>" class="pos-move-form" data-submit-once>
                     <?= csrf_field() ?>
                     <div class="grid-2">
                         <div>
@@ -118,7 +118,7 @@ $cur = (string) $boutique['currency'];
             <div class="panel pos-close">
                 <h2 class="panel-title">🔒 <?= e(t('pos.close_title')) ?></h2>
                 <p class="muted"><?= e(t('pos.close_hint', ['expected' => format_price($expected, $cur)])) ?></p>
-                <form method="post" action="<?= e(url('/vendeur/point-de-vente/fermer')) ?>">
+                <form method="post" action="<?= e(url('/vendeur/point-de-vente/fermer')) ?>" data-submit-once>
                     <?= csrf_field() ?>
                     <label for="pos-counted"><?= e(t('pos.f.counted', ['cur' => $cur])) ?></label>
                     <input type="text" id="pos-counted" name="counted_cash" inputmode="decimal" value="0" required>

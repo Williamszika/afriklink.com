@@ -43,7 +43,7 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             </div>
         </div>
 
-        <form class="panel caisse-form" method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/commander')) ?>">
+        <form class="panel caisse-form" method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/commander')) ?>" data-submit-once>
             <?= csrf_field() ?>
             <?php if ($fulfillments): ?>
                 <label><?= e(t('bcart.fulfillment')) ?></label>

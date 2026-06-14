@@ -117,6 +117,17 @@ a:hover { text-decoration: underline; }
     text-decoration: none; white-space: nowrap;
 }
 .btn:hover { text-decoration: none; }
+.btn:disabled, .btn[disabled] { cursor: not-allowed; opacity: .6; }
+.btn.is-loading { position: relative; pointer-events: none; color: transparent !important; }
+.btn.is-loading::after {
+    content: ""; position: absolute; width: 16px; height: 16px;
+    top: calc(50% - 8px); left: calc(50% - 8px); border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    color: #fff; opacity: .85; animation: afk-spin .6s linear infinite;
+}
+.btn-ghost.is-loading::after { color: var(--ink); }
+@keyframes afk-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .btn.is-loading::after { animation: none; } }
 .btn-primary { background: var(--brand); color: #fff; }
 .btn-primary:hover { background: var(--brand-dark); color: #fff; }
 .btn-ghost { background: transparent; color: var(--ink); border-color: var(--border); }
