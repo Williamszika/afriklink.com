@@ -956,6 +956,7 @@ return [
     'shop.warn.intl_no_fee' => 'Livraison internationale activée sans tarif international défini.',
     'shop.warn.published_empty' => 'Boutique publiée alors qu’aucun produit n’est en ligne.',
     'shop.warn.vacation' => 'Mode vacances actif : les commandes sont en pause.',
+    'price.approx_title' => 'Montant indicatif converti — le règlement se fait dans la devise de la boutique.',
     'shop.cfg.title' => 'Annonce & disponibilité',
     'shop.cfg.announcement' => 'Bandeau d’annonce',
     'shop.cfg.announcement_ph' => 'Ex. : Livraison gratuite ce week-end !',

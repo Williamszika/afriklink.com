@@ -68,7 +68,7 @@ foreach ($realVariants as $rv) {
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
                 <?php endif; ?>
-                <p class="listing-price"><?= e(format_price((int) $product['price_cents'], $cur)) ?></p>
+                <p class="listing-price"><?= render_partial('partials/price_dual', ['cents' => (int) $product['price_cents'], 'cur' => $cur]) ?></p>
                 <p class="listing-tags">
                     <?php if ($inStock): ?>
                         <span class="badge badge-ok"><?= $product['stock'] === null ? e(t('product.in_stock')) : e(t('product.stock_n', ['n' => (int) $product['stock']])) ?></span>
@@ -239,7 +239,7 @@ foreach ($realVariants as $rv) {
                             <?php if ($rm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($rm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                         </span>
                         <span class="product-card-name"><?= e((string) $rp['name']) ?></span>
-                        <span class="product-card-price"><?= e(format_price((int) $rp['price_cents'], $cur)) ?></span>
+                        <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $rp['price_cents'], 'cur' => $cur]) ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>

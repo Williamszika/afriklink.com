@@ -956,6 +956,7 @@ return [
     'shop.warn.intl_no_fee' => 'International delivery is enabled but no international rate is set.',
     'shop.warn.published_empty' => 'Shop is published but no product is online.',
     'shop.warn.vacation' => 'Vacation mode is on: orders are paused.',
+    'price.approx_title' => 'Indicative converted amount — payment is made in the shop currency.',
     'shop.cfg.title' => 'Announcement & availability',
     'shop.cfg.announcement' => 'Announcement banner',
     'shop.cfg.announcement_ph' => 'E.g. Free delivery this weekend!',

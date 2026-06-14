@@ -518,6 +518,22 @@ function format_price(int $cents, string $currency): string
     return $amount . ' ' . $symbol;
 }
 
+/**
+ * Équivalent INDICATIF d'un prix dans la devise d'affichage de l'acheteur
+ * (current_currency()), à montrer à côté du prix boutique (« ≈ »). Renvoie ''
+ * si l'acheteur affiche déjà la devise de la boutique ou si aucun taux n'existe.
+ * Le règlement reste dans la devise de la boutique : c'est un simple repère.
+ */
+function format_price_approx(int $cents, string $shopCurrency): string
+{
+    $buyer = current_currency();
+    if (strtoupper($buyer) === strtoupper($shopCurrency)) {
+        return '';
+    }
+    $converted = \App\Services\ExchangeRates::convert($cents, $shopCurrency, $buyer);
+    return $converted === null ? '' : format_price($converted, $buyer);
+}
+
 /** Send a redirect and stop execution. */
 function redirect(string $path, int $status = 302): never
 {

@@ -116,7 +116,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                                     <?php if (!$inStock): ?><span class="card-out-badge"><?= e(t('product.out_of_stock')) ?></span><?php endif; ?>
                                 </span>
                                 <span class="product-card-name"><?= e((string) $pr['name']) ?></span>
-                                <span class="product-card-price"><?= e(format_price((int) $pr['price_cents'], $cur)) ?></span>
+                                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $pr['price_cents'], 'cur' => $cur]) ?></span>
                                 <?php if (!empty($ratings[(int) $pr['id']]['count'])): ?>
                                     <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $ratings[(int) $pr['id']]['avg'], 'count' => $ratings[(int) $pr['id']]['count'], 'small' => true]) ?></span>
                                 <?php endif; ?>
