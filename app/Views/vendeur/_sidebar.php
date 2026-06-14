@@ -11,6 +11,7 @@ $groups = [
     ['label' => null, 'items' => [
         ['key' => 'overview',  'icon' => '🏠', 'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
         ['key' => 'vitrines',  'icon' => '🏪', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
+        ['key' => 'pos',       'icon' => '🧾', 'href' => url('/vendeur/point-de-vente'), 'label' => t('seller.nav.pos'), 'chip' => null],
         ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),
          'chip' => $ordersPending > 0 ? (string) $ordersPending : null, 'chip_class' => 'chip-pending'],
         ['key' => 'messages',  'icon' => '💬', 'href' => url('/messages'),  'label' => t('seller.nav.messages'),

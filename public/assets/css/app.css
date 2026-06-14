@@ -1559,3 +1559,13 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .promo-item.is-off{opacity:.55}
 .promo-code-tag{font-family:var(--afk-mono);font-weight:700;background:var(--accent-50);color:#8a5a08;border:1px solid #f0c674;padding:3px 10px;border-radius:7px}
 .promo-item .inline-form{margin-left:auto}
+
+/* — Point de vente (POS) — */
+.pos-move-list{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px}
+.pos-move-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.9rem}
+.pos-move-sign{font-family:var(--afk-mono);font-weight:700}
+.pos-move-sign.is-in{color:var(--afk-ok)}
+.pos-move-sign.is-out{color:var(--danger)}
+.pos-var.is-ok{color:var(--afk-ok)}
+.pos-var.is-over{color:var(--afk-info)}
+.pos-var.is-under{color:var(--danger)}

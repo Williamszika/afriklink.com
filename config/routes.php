@@ -25,6 +25,7 @@ use App\Controllers\ProRegistrationController;
 use App\Controllers\OrderController;
 use App\Controllers\PaymentController;
 use App\Controllers\SellerController;
+use App\Controllers\PosController;
 use App\Controllers\SellerProfileController;
 
 /**
@@ -122,6 +123,10 @@ return [
     ['GET',  '/paiement/retour/{ref}',        [PaymentController::class, 'result'],           ['auth']],
 
     ['GET',  '/vendeur/gains',       [SellerController::class, 'earnings'],     ['auth']],
+    ['GET',  '/vendeur/point-de-vente',           [PosController::class, 'index'],    ['auth']],
+    ['POST', '/vendeur/point-de-vente/ouvrir',    [PosController::class, 'open'],     ['auth', 'csrf']],
+    ['POST', '/vendeur/point-de-vente/mouvement', [PosController::class, 'movement'], ['auth', 'csrf']],
+    ['POST', '/vendeur/point-de-vente/fermer',    [PosController::class, 'close'],    ['auth', 'csrf']],
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],
     ['POST', '/vendeur/publicite/{pid}/promouvoir', [SellerController::class, 'promote'], ['auth', 'csrf', 'throttle:product,60,3600']],
     ['GET',  '/vendeur/affiliation', [SellerController::class, 'affiliation'],  ['auth']],
