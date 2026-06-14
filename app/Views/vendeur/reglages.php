@@ -5,6 +5,7 @@ $curLocale  = current_locale();
 $curCurrency = current_currency();
 $locales    = config('app.locales', ['fr', 'en']);
 $currencies = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
+$prefs      = $prefs ?? ['notify_email' => true, 'notify_sms' => true, 'payout_method' => null, 'payout_destination' => null];
 ?>
 <div class="seller-shell">
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
@@ -58,6 +59,39 @@ $currencies = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
                 </div>
             </div>
             <p class="hint"><?= e(t('settings.prefs_hint')) ?></p>
+            <button type="submit" class="btn btn-primary"><?= e(t('profile.save')) ?></button>
+        </form>
+
+        <!-- Notifications & retrait par défaut -->
+        <form method="post" action="<?= e(url('/vendeur/reglages')) ?>" class="panel" novalidate>
+            <?= csrf_field() ?>
+            <h2 class="panel-title"><?= e(t('settings.notify_title')) ?></h2>
+            <p class="hint"><?= e(t('settings.notify_hint')) ?></p>
+            <label class="switch-row">
+                <input type="checkbox" name="notify_email" value="1" <?= !empty($prefs['notify_email']) ? 'checked' : '' ?>>
+                <span><?= e(t('settings.notify_email')) ?></span>
+            </label>
+            <label class="switch-row">
+                <input type="checkbox" name="notify_sms" value="1" <?= !empty($prefs['notify_sms']) ? 'checked' : '' ?>>
+                <span><?= e(t('settings.notify_sms')) ?></span>
+            </label>
+
+            <h2 class="panel-title" style="margin-top:20px"><?= e(t('settings.payout_title')) ?></h2>
+            <p class="hint"><?= e(t('settings.payout_hint')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="payout_method"><?= e(t('wallet.method')) ?></label>
+                    <select id="payout_method" name="payout_method">
+                        <option value="" <?= empty($prefs['payout_method']) ? 'selected' : '' ?>><?= e(t('settings.payout_none')) ?></option>
+                        <option value="mobile_money" <?= ($prefs['payout_method'] ?? '') === 'mobile_money' ? 'selected' : '' ?>><?= e(t('wallet.method.mobile_money')) ?></option>
+                        <option value="bank" <?= ($prefs['payout_method'] ?? '') === 'bank' ? 'selected' : '' ?>><?= e(t('wallet.method.bank')) ?></option>
+                    </select>
+                </div>
+                <div>
+                    <label for="payout_destination"><?= e(t('wallet.destination')) ?></label>
+                    <input type="text" id="payout_destination" name="payout_destination" maxlength="160" value="<?= e((string) ($prefs['payout_destination'] ?? '')) ?>" placeholder="<?= e(t('wallet.destination_ph')) ?>">
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary"><?= e(t('profile.save')) ?></button>
         </form>
 

@@ -45,6 +45,69 @@ final class ProProfile
         } catch (\Throwable) {
             // information_schema indisponible : on réessaiera
         }
+        // Préférences vendeur (réglages) — ajoutées après coup, best-effort.
+        $cols = [
+            'notify_email'       => "ADD COLUMN notify_email TINYINT(1) NOT NULL DEFAULT 1",
+            'notify_sms'         => "ADD COLUMN notify_sms TINYINT(1) NOT NULL DEFAULT 1",
+            'payout_method'      => "ADD COLUMN payout_method VARCHAR(16) NULL",
+            'payout_destination' => "ADD COLUMN payout_destination VARCHAR(160) NULL",
+        ];
+        foreach ($cols as $col => $ddl) {
+            try {
+                db()->query("SELECT {$col} FROM pro_profiles LIMIT 1");
+            } catch (\Throwable) {
+                try {
+                    db()->exec("ALTER TABLE pro_profiles {$ddl}");
+                } catch (\Throwable) {
+                    // déjà présent ou DDL indisponible en prod
+                }
+            }
+        }
+    }
+
+    /**
+     * Préférences du vendeur (réglages), avec valeurs par défaut sûres si les
+     * colonnes ne sont pas encore provisionnées (notifications activées).
+     * @return array{notify_email:bool,notify_sms:bool,payout_method:?string,payout_destination:?string}
+     */
+    public static function sellerPrefs(int $userId): array
+    {
+        $defaults = ['notify_email' => true, 'notify_sms' => true, 'payout_method' => null, 'payout_destination' => null];
+        try {
+            $stmt = db()->prepare('SELECT notify_email, notify_sms, payout_method, payout_destination FROM pro_profiles WHERE user_id = :u LIMIT 1');
+            $stmt->execute(['u' => $userId]);
+            $r = $stmt->fetch();
+            if ($r === false) {
+                return $defaults;
+            }
+            return [
+                'notify_email'       => (int) ($r['notify_email'] ?? 1) === 1,
+                'notify_sms'         => (int) ($r['notify_sms'] ?? 1) === 1,
+                'payout_method'      => ($r['payout_method'] ?? null) ?: null,
+                'payout_destination' => ($r['payout_destination'] ?? null) ?: null,
+            ];
+        } catch (\Throwable) {
+            return $defaults;
+        }
+    }
+
+    /** Enregistre les préférences vendeur (réglages). Best-effort. */
+    public static function setSellerPrefs(int $userId, array $prefs): void
+    {
+        try {
+            db()->prepare(
+                'UPDATE pro_profiles SET notify_email = :ne, notify_sms = :ns,
+                        payout_method = :pm, payout_destination = :pd WHERE user_id = :u'
+            )->execute([
+                'ne' => !empty($prefs['notify_email']) ? 1 : 0,
+                'ns' => !empty($prefs['notify_sms']) ? 1 : 0,
+                'pm' => ($prefs['payout_method'] ?? '') !== '' ? mb_substr((string) $prefs['payout_method'], 0, 16) : null,
+                'pd' => ($prefs['payout_destination'] ?? '') !== '' ? mb_substr((string) $prefs['payout_destination'], 0, 160) : null,
+                'u'  => $userId,
+            ]);
+        } catch (\Throwable) {
+            // colonnes non provisionnées : sans gravité
+        }
     }
 
     public static function create(int $userId, array $data): void

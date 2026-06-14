@@ -32,9 +32,12 @@ final class OrderNotifier
         $itemCount = array_sum(array_map(static fn ($l): int => (int) $l['qty'], $lines));
         $totalLabel = format_price($totalCents, $currency);
 
+        // Préférences du vendeur (réglages) : il peut couper l'e-mail et/ou le SMS.
+        $prefs = \App\Models\ProProfile::sellerPrefs((int) ($seller['id'] ?? 0));
+
         // ---- E-mail détaillé ----
         $email = trim((string) ($seller['email'] ?? ''));
-        if ($email !== '') {
+        if ($email !== '' && $prefs['notify_email']) {
             try {
                 self::email($email, $vitrineName, $orderRef, $lines, $currency, $totalLabel, $clientName, $clientPhone, $manageUrl);
             } catch (\Throwable) {
@@ -44,7 +47,7 @@ final class OrderNotifier
 
         // ---- SMS / WhatsApp court ----
         $phone = Notifier::normalize((string) ($seller['phone'] ?? ''));
-        if ($phone !== '') {
+        if ($phone !== '' && $prefs['notify_sms']) {
             try {
                 $text = t('notify.order.sms', [
                     'ref'   => $orderRef,

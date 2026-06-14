@@ -411,6 +411,11 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .review-reply-form summary::-webkit-details-marker { display:none; }
 .review-reply-form textarea { width:100%; margin:8px 0; padding:8px 10px; border:1px solid var(--border,#d9dee5); border-radius:8px; font:inherit; resize:vertical; }
 
+/* Réglages : interrupteurs de préférences (notifications). */
+.switch-row { display:flex; align-items:center; gap:10px; padding:8px 0; cursor:pointer; }
+.switch-row input[type=checkbox] { width:18px; height:18px; flex:0 0 auto; accent-color:var(--brand,#0b7a4b); }
+.switch-row span { font-weight:500; }
+
 /* Graphique en barres (CSS pur, CSP-safe) */
 .chart { display:flex; align-items:flex-end; gap:4px; height:calc(var(--chart-h,130px) + 20px); }
 .chart-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; }

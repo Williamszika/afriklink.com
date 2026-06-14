@@ -165,7 +165,26 @@ final class SellerController
 
     public function settings(Request $request): void
     {
-        view('vendeur/reglages', ['active' => 'reglages'] + self::commonData(current_user() ?? []));
+        $user = current_user() ?? [];
+        view('vendeur/reglages', [
+            'active' => 'reglages',
+            'prefs'  => ProProfile::sellerPrefs((int) ($user['id'] ?? 0)),
+        ] + self::commonData($user));
+    }
+
+    /** Enregistre les préférences vendeur : notifications + retrait par défaut. */
+    public function updateSettings(Request $request): void
+    {
+        $user   = current_user() ?? [];
+        $method = whitelist((string) input_string('payout_method', ''), ['mobile_money', 'bank'], null);
+        ProProfile::setSellerPrefs((int) ($user['id'] ?? 0), [
+            'notify_email'       => (string) input_string('notify_email', '') !== '',
+            'notify_sms'         => (string) input_string('notify_sms', '') !== '',
+            'payout_method'      => $method,
+            'payout_destination' => trim((string) input_string('payout_destination', '')),
+        ]);
+        flash('success', t('settings.prefs_saved'));
+        redirect('/vendeur/reglages');
     }
 
     /** Ancien lien « Gains & retraits » — fusionné dans le Portefeuille. */

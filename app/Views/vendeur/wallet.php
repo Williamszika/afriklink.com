@@ -5,6 +5,7 @@
  *  @var string $gains_currency  @var array{total_cents:int,month_cents:int,count:int} $gains_summary
  *  @var list<array{date:string,cents:int}> $gains_by_day  @var list<array{label:string,kind:string,cents:int}> $gains_by_shop */
 $gc = $gains_currency;
+$payout = $payout ?? [];
 $dayBars = array_map(static fn (array $p): array => [
     'value' => (int) $p['cents'],
     'label' => (string) (int) date('j', strtotime((string) $p['date'])),
@@ -30,6 +31,7 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
                 <?php endif; ?>
             </div>
             <?php if ($can_withdraw): ?>
+                <?php $pm = (string) ($payout['payout_method'] ?? ''); $pd = (string) ($payout['payout_destination'] ?? ''); ?>
                 <form method="post" action="<?= e(url('/vendeur/portefeuille/retrait')) ?>" class="wallet-form">
                     <?= csrf_field() ?>
                     <p class="hint"><?= e(t('wallet.withdraw_full', ['amount' => format_price($balance_cents, $currency)])) ?></p>
@@ -37,13 +39,13 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
                         <div>
                             <label for="wd-method"><?= e(t('wallet.method')) ?></label>
                             <select id="wd-method" name="method">
-                                <option value="mobile_money"><?= e(t('wallet.method.mobile_money')) ?></option>
-                                <option value="bank"><?= e(t('wallet.method.bank')) ?></option>
+                                <option value="mobile_money" <?= $pm === 'mobile_money' ? 'selected' : '' ?>><?= e(t('wallet.method.mobile_money')) ?></option>
+                                <option value="bank" <?= $pm === 'bank' ? 'selected' : '' ?>><?= e(t('wallet.method.bank')) ?></option>
                             </select>
                         </div>
                         <div>
                             <label for="wd-dest"><?= e(t('wallet.destination')) ?></label>
-                            <input type="text" id="wd-dest" name="destination" maxlength="160" required placeholder="<?= e(t('wallet.destination_ph')) ?>">
+                            <input type="text" id="wd-dest" name="destination" maxlength="160" required value="<?= e($pd) ?>" placeholder="<?= e(t('wallet.destination_ph')) ?>">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary"><?= e(t('wallet.request')) ?></button>

@@ -30,6 +30,8 @@ final class WalletController
             'can_withdraw'    => Wallet::canWithdraw($uid),
             'entries'         => Wallet::entries($uid, 20),
             'withdrawals'     => Wallet::withdrawalsFor($uid),
+            // Retrait par défaut (Réglages) pour pré-remplir le formulaire.
+            'payout'          => \App\Models\ProProfile::sellerPrefs($uid),
             // Tableau de bord des gains (chiffre d'affaires) par vitrine.
             'gains_currency'  => SellerAnalytics::currency($uid),
             'gains_summary'   => SellerAnalytics::summary($uid),

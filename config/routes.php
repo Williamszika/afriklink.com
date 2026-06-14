@@ -163,6 +163,7 @@ return [
     ['GET',  '/admin/retraits',               [WalletController::class, 'adminIndex'],   ['staff']],
     ['POST', '/admin/retraits/{id}/traiter',  [WalletController::class, 'adminProcess'], ['staff', 'csrf']],
     ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
+    ['POST', '/vendeur/reglages',  [SellerController::class, 'updateSettings'], ['auth', 'csrf', 'throttle:profile,30,3600']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
     ['POST', '/vendeur/profil',    [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],
 
