@@ -49,6 +49,7 @@ return [
     ['GET',  '/robots.txt',        [HomeController::class, 'robots'],         []],
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
+    ['GET',  '/devise/{currency}', [HomeController::class, 'switchCurrency'], ['throttle:cur,60,3600']],
     ['GET',  '/r/{code}',          [AffiliateController::class, 'go'],        ['throttle:aff,180,3600']],
     ['GET',  '/mentions-legales',  [LegalController::class, 'notice'],        []],
     ['GET',  '/confidentialite',   [LegalController::class, 'privacy'],       []],

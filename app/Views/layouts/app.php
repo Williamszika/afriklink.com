@@ -70,6 +70,14 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                    href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?></a>
             <?php endforeach; ?>
         </span>
+        <details class="cur-switch">
+            <summary title="<?= e(t('field.currency')) ?>" aria-label="<?= e(t('field.currency')) ?>"><?= e(current_currency()) ?> ▾</summary>
+            <div class="cur-menu">
+                <?php foreach (config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']) as $c): ?>
+                    <a class="<?= $c === current_currency() ? 'is-active' : '' ?>" href="<?= e(url('/devise/' . $c)) ?>"><?= e($c) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </details>
     </div>
 </div>
 

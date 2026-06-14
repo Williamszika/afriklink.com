@@ -225,6 +225,25 @@ final class HomeController
         back('/');
     }
 
+    /** Switch the display currency and remember it in a cookie (mirror of switchLanguage). */
+    public function switchCurrency(Request $request): void
+    {
+        $currency = strtoupper((string) $request->param('currency', ''));
+        $allowed  = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
+
+        if (in_array($currency, $allowed, true)) {
+            setcookie('currency', $currency, [
+                'expires'  => time() + 31536000,
+                'path'     => '/',
+                'secure'   => request_is_https(),
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
+        }
+
+        back('/');
+    }
+
     /** Plan du site (sitemap.xml) : vitrines, produits, restaurants et annonces publiés. */
     public function sitemap(Request $request): void
     {

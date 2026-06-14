@@ -366,6 +366,17 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .kpi-soon-note { margin: 8px 2px 0; font-size: .9rem; }
 @media (max-width: 640px) { .nba-row { flex-wrap: wrap; } .nba-cta { width: 100%; text-align: center; } }
 
+/* ---- Sélecteur de devise dans la barre du haut (langue · devise) ---- */
+.cur-switch { position: relative; display: inline-block; margin-left: 10px; }
+.cur-switch > summary { list-style: none; cursor: pointer; padding: 2px 6px; border-radius: 6px; color: inherit; font-size: .78rem; font-weight: 600; }
+.cur-switch > summary::-webkit-details-marker { display: none; }
+.cur-switch > summary::marker { content: ""; }
+.cur-switch[open] > summary { background: rgba(255, 255, 255, .14); }
+.cur-menu { position: absolute; right: 0; top: calc(100% + 5px); background: #fff; border: 1px solid var(--border); border-radius: 9px; box-shadow: 0 10px 26px rgba(16, 61, 48, .14); padding: 5px; min-width: 92px; z-index: 70; display: grid; gap: 2px; }
+.cur-menu a { display: block; padding: 6px 12px; border-radius: 6px; font-size: .82rem; color: var(--ink); text-decoration: none; }
+.cur-menu a:hover { background: var(--bg); }
+.cur-menu a.is-active { background: var(--afk-or, #e5a02e); color: #fff; font-weight: 700; }
+
 /* Commandes (suivi vendeur) */
 .chip-pending { margin-left: auto; min-width: 20px; text-align: center; padding: 1px 7px; font-size: .72rem; font-weight: 800; color: #fff; background: #dc2626; border-radius: 999px; }
 .order-record summary { cursor: pointer; font-weight: 700; }
