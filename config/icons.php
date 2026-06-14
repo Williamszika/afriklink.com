@@ -53,5 +53,7 @@ return [
     'home'       => '<path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/>',
     'list'       => '<path d="M8 5h12"/><path d="M8 12h12"/><path d="M8 19h12"/><path d="M3.5 5h.01"/><path d="M3.5 12h.01"/><path d="M3.5 19h.01"/>',
     'pointer'    => '<path d="M5 3l13 7.5-5.4 1.6L9.5 18z"/>',
+    'copy'       => '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
+    'folder'     => '<path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
     'utensils'   => '<path d="M6 3v5a2 2 0 0 0 4 0V3"/><path d="M8 8v13"/><path d="M16 3c-1.66 0-3 2.24-3 5s1.34 4 3 4"/><path d="M16 3v18"/>',
 ];

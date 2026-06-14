@@ -13,19 +13,19 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
     <div class="seller-main">
 
         <div class="panel shop-admin-head">
-            <div class="shop-logo shop-logo--empty" aria-hidden="true">🍽️</div>
+            <div class="shop-logo shop-logo--empty" aria-hidden="true"><?= icon('utensils', ['size' => 34]) ?></div>
             <div class="shop-admin-id">
                 <h1><?= e((string) $resto['name']) ?>
                     <span class="badge <?= $published ? 'badge-ok' : 'badge-warn' ?>"><?= e(t($published ? 'shop.status.published' : 'shop.status.draft')) ?></span>
                 </h1>
                 <p class="muted shop-url-row">
                     <a href="<?= e(url('/restaurant/' . $resto['slug'])) ?>" target="_blank" rel="noopener"><?= e($baseUrl) ?>/restaurant/<?= e((string) $resto['slug']) ?> ↗</a>
-                    <button type="button" class="btn-copy" data-copy="<?= e(url('/restaurant/' . $resto['slug'])) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><span class="ico-copy" aria-hidden="true">⧉</span> <?= e(t('shop.copy_url')) ?></button>
+                    <button type="button" class="btn-copy" data-copy="<?= e(url('/restaurant/' . $resto['slug'])) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><span class="ico-copy" aria-hidden="true"><?= icon('copy', ['size' => 15]) ?></span> <?= e(t('shop.copy_url')) ?></button>
                 </p>
             </div>
             <div class="shop-admin-actions">
                 <?php $rPending = \App\Models\RestaurantOrder::pendingForUser((int) $user['id']); ?>
-                <a class="btn btn-ghost btn-sm<?= $rPending > 0 ? ' stat-card--urgent' : '' ?>" href="<?= e(url('/restaurant/commandes')) ?>">🧾 <?= e(t('rorder.nav')) ?><?= $rPending > 0 ? ' (' . $rPending . ')' : '' ?></a>
+                <a class="btn btn-ghost btn-sm<?= $rPending > 0 ? ' stat-card--urgent' : '' ?>" href="<?= e(url('/restaurant/commandes')) ?>"><?= icon('receipt', ['size' => 15]) ?> <?= e(t('rorder.nav')) ?><?= $rPending > 0 ? ' (' . $rPending . ')' : '' ?></a>
                 <form method="post" action="<?= e(url('/restaurant/publier')) ?>" class="inline-form">
                     <?= csrf_field() ?>
                     <?php if ($published): ?>
@@ -40,14 +40,14 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
         <?php if (!$published): ?><div class="notice notice-info"><p><?= e(t('resto.draft_banner')) ?></p></div><?php endif; ?>
 
         <div class="stat-grid cols-3">
-            <div class="stat-card"><div class="num">🍲 <?= (int) $counts['available'] ?></div><div class="lbl"><?= e(t('resto.kpi.available')) ?></div></div>
-            <div class="stat-card"><div class="num">🗂️ <?= count($categories) ?></div><div class="lbl"><?= e(t('resto.kpi.categories')) ?></div></div>
-            <div class="stat-card"><div class="num">📋 <?= (int) $counts['total'] ?></div><div class="lbl"><?= e(t('resto.kpi.total')) ?></div></div>
+            <div class="stat-card"><div class="num"><?= icon('utensils', ['size' => 18]) ?> <?= (int) $counts['available'] ?></div><div class="lbl"><?= e(t('resto.kpi.available')) ?></div></div>
+            <div class="stat-card"><div class="num"><?= icon('folder', ['size' => 18]) ?> <?= count($categories) ?></div><div class="lbl"><?= e(t('resto.kpi.categories')) ?></div></div>
+            <div class="stat-card"><div class="num"><?= icon('list', ['size' => 18]) ?> <?= (int) $counts['total'] ?></div><div class="lbl"><?= e(t('resto.kpi.total')) ?></div></div>
         </div>
 
         <!-- Ajouter une catégorie -->
         <div class="panel">
-            <h2 class="panel-title">🗂️ <?= e(t('resto.categories_title')) ?></h2>
+            <h2 class="panel-title"><?= icon('folder', ['size' => 18]) ?> <?= e(t('resto.categories_title')) ?></h2>
             <form method="post" action="<?= e(url('/restaurant/categorie')) ?>" class="cat-add-form">
                 <?= csrf_field() ?>
                 <div class="inline-add">
@@ -79,7 +79,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
             <!-- Ajouter un plat / une boisson (le formulaire s'adapte à la catégorie) -->
             <?php $volumes = config('restaurant.drink_volumes', []); ?>
             <div class="panel">
-                <h2 class="panel-title">➕ <?= e(t('resto.item_add_title')) ?></h2>
+                <h2 class="panel-title"><?= icon('plus', ['size' => 18]) ?> <?= e(t('resto.item_add_title')) ?></h2>
                 <form method="post" action="<?= e(url('/restaurant/plat')) ?>" class="resto-item-form" data-itemform
                       data-l-dish="<?= e(t('resto.f.item_name')) ?>" data-l-drink="<?= e(t('resto.f.drink_name')) ?>">
                     <?= csrf_field() ?>
@@ -134,7 +134,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
 
             <!-- Carte actuelle -->
             <div class="panel">
-                <h2 class="panel-title">📋 <?= e(t('resto.menu_title')) ?></h2>
+                <h2 class="panel-title"><?= icon('list', ['size' => 18]) ?> <?= e(t('resto.menu_title')) ?></h2>
                 <?php foreach ($categories as $c): ?>
                     <div class="menu-cat">
                         <div class="menu-cat-head">
@@ -142,10 +142,10 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                                 <?= csrf_field() ?>
                                 <input type="text" name="name" value="<?= e((string) $c['name']) ?>" maxlength="60" required
                                        aria-label="<?= e(t('resto.cat_rename_aria')) ?>">
-                                <button class="btn btn-ghost btn-sm" title="<?= e(t('resto.cat_rename')) ?>">✓ <?= e(t('resto.cat_rename')) ?></button>
+                                <button class="btn btn-ghost btn-sm" title="<?= e(t('resto.cat_rename')) ?>"><?= icon('check', ['size' => 15]) ?> <?= e(t('resto.cat_rename')) ?></button>
                             </form>
                             <div class="menu-cat-actions">
-                                <a class="btn btn-ghost btn-sm" href="<?= e(url('/restaurant/gerer?cat=' . $c['public_id'])) ?>#i-name">➕ <?= e(t('resto.add_dish_here')) ?></a>
+                                <a class="btn btn-ghost btn-sm" href="<?= e(url('/restaurant/gerer?cat=' . $c['public_id'])) ?>#i-name"><?= icon('plus', ['size' => 15]) ?> <?= e(t('resto.add_dish_here')) ?></a>
                                 <form method="post" action="<?= e(url('/restaurant/categorie/' . $c['public_id'] . '/suppr')) ?>" class="inline-form">
                                     <?= csrf_field() ?>
                                     <button class="link-button btn-danger" data-confirm="<?= e(t('resto.cat_delete_confirm')) ?>"><?= e(t('product.delete')) ?></button>
@@ -197,7 +197,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
 
         <!-- Encaissement en ligne (conditions + moyens + fournisseur) -->
         <div class="panel">
-            <h2 class="panel-title">💳 <?= e(t('resto.payment_title')) ?></h2>
+            <h2 class="panel-title"><?= icon('card', ['size' => 18]) ?> <?= e(t('resto.payment_title')) ?></h2>
             <p class="muted"><?= e(t('resto.payment_hint')) ?></p>
             <?php
             $rTerms = array_filter(explode(',', (string) ($resto['payment_terms'] ?? '')));

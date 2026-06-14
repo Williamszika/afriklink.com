@@ -12,7 +12,7 @@ $tabs = ['new', 'confirmed', 'ready', 'delivered', 'cancelled', 'all'];
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
     <div class="seller-main">
         <div class="seller-head">
-            <h1>🧾 <?= e(t('rorder.orders_title', ['name' => (string) $resto['name']])) ?></h1>
+            <h1><?= icon('receipt', ['size' => 24]) ?> <?= e(t('rorder.orders_title', ['name' => (string) $resto['name']])) ?></h1>
             <p class="muted"><?= e(t('rorder.orders_sub')) ?> · <a href="<?= e(url('/restaurant/gerer')) ?>">← <?= e(t('resto.menu_title')) ?></a></p>
         </div>
 
@@ -23,7 +23,7 @@ $tabs = ['new', 'confirmed', 'ready', 'delivered', 'cancelled', 'all'];
         </div>
 
         <?php if ($orders === []): ?>
-            <div class="panel"><div class="empty-state"><p style="font-size:2rem;margin:0 0 6px" aria-hidden="true">🧾</p><p><?= e(t('rorder.empty')) ?></p></div></div>
+            <div class="panel"><div class="empty-state"><p style="margin:0 0 6px" aria-hidden="true"><?= icon('receipt', ['size' => 34]) ?></p><p><?= e(t('rorder.empty')) ?></p></div></div>
         <?php else: ?>
             <div class="order-rows">
                 <?php foreach ($orders as $o): $st = (string) $o['status']; $ref = strtoupper(substr((string) $o['public_id'], 0, 6)); $phone = preg_replace('/\D+/', '', (string) ($o['client_phone'] ?? '')); ?>
@@ -44,22 +44,22 @@ $tabs = ['new', 'confirmed', 'ready', 'delivered', 'cancelled', 'all'];
                             <?php endforeach; ?>
                         </ul>
                         <p class="order-line"><strong class="order-total"><?= e(t('rorder.total')) ?> : <?= e(format_price((int) $o['subtotal_cents'], $cur)) ?></strong></p>
-                        <p class="order-client">👤 <?= e((string) $o['client_name']) ?>
+                        <p class="order-client"><?= icon('user', ['size' => 15]) ?> <?= e((string) $o['client_name']) ?>
                             <?php if ($phone !== ''): ?> · <a href="https://wa.me/<?= e($phone) ?>" target="_blank" rel="noopener"><img class="social-logo-sm" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="18" height="18"> <?= e((string) $o['client_phone']) ?></a><?php endif; ?>
                         </p>
-                        <?php if (!empty($o['client_address'])): ?><p class="order-note">📍 <?= e((string) $o['client_address']) ?></p><?php endif; ?>
-                        <?php if (!empty($o['geo_lat']) && !empty($o['geo_lng'])): ?><p class="order-note">🗺️ <a href="https://www.google.com/maps?q=<?= e((string) $o['geo_lat']) ?>,<?= e((string) $o['geo_lng']) ?>" target="_blank" rel="noopener"><?= e(t('order.map_link')) ?></a></p><?php endif; ?>
-                        <?php if (!empty($o['note'])): ?><p class="order-note">📝 <?= e((string) $o['note']) ?></p><?php endif; ?>
+                        <?php if (!empty($o['client_address'])): ?><p class="order-note"><?= icon('pin', ['size' => 15]) ?> <?= e((string) $o['client_address']) ?></p><?php endif; ?>
+                        <?php if (!empty($o['geo_lat']) && !empty($o['geo_lng'])): ?><p class="order-note"><?= icon('pin', ['size' => 15]) ?> <a href="https://www.google.com/maps?q=<?= e((string) $o['geo_lat']) ?>,<?= e((string) $o['geo_lng']) ?>" target="_blank" rel="noopener"><?= e(t('order.map_link')) ?></a></p><?php endif; ?>
+                        <?php if (!empty($o['note'])): ?><p class="order-note"><?= icon('pencil', ['size' => 14]) ?> <?= e((string) $o['note']) ?></p><?php endif; ?>
                         <?php if (in_array($st, ['new', 'confirmed', 'ready'], true)): ?>
                             <form method="post" action="<?= e(url('/restaurant/commandes/' . $o['public_id'] . '/statut')) ?>" class="order-actions">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="retour" value="<?= e($filter) ?>">
                                 <?php if ($st === 'new'): ?>
-                                    <button class="btn btn-primary btn-sm" name="action" value="confirm">✅ <?= e(t('rorder.act.confirm')) ?></button>
+                                    <button class="btn btn-primary btn-sm" name="action" value="confirm"><?= icon('check', ['size' => 16]) ?> <?= e(t('rorder.act.confirm')) ?></button>
                                 <?php elseif ($st === 'confirmed'): ?>
-                                    <button class="btn btn-primary btn-sm" name="action" value="ready">🍽️ <?= e(t('rorder.act.ready')) ?></button>
+                                    <button class="btn btn-primary btn-sm" name="action" value="ready"><?= icon('utensils', ['size' => 16]) ?> <?= e(t('rorder.act.ready')) ?></button>
                                 <?php else: ?>
-                                    <button class="btn btn-primary btn-sm" name="action" value="deliver">🏁 <?= e(t('rorder.act.deliver')) ?></button>
+                                    <button class="btn btn-primary btn-sm" name="action" value="deliver"><?= icon('flag', ['size' => 16]) ?> <?= e(t('rorder.act.deliver')) ?></button>
                                 <?php endif; ?>
                                 <button class="btn btn-ghost btn-sm btn-danger" name="action" value="cancel" data-confirm="<?= e(t('order.cancel_confirm')) ?>"><?= e(t('rorder.act.cancel')) ?></button>
                             </form>

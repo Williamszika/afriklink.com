@@ -4,15 +4,15 @@
 $cur = (string) $resto['currency'];
 ?>
 <section class="caisse">
-    <h1 class="caisse-title">🧾 <?= e(t('caisse.title', ['shop' => (string) $resto['name']])) ?></h1>
+    <h1 class="caisse-title"><?= icon('receipt', ['size' => 22]) ?> <?= e(t('caisse.title', ['shop' => (string) $resto['name']])) ?></h1>
     <p class="muted"><a href="<?= e(url('/restaurant/' . $resto['slug'])) ?>">← <?= e(t('caisse.continue')) ?></a></p>
     <?php if (!empty($preview)): ?>
-        <div class="notice notice-info"><p>👁️ <?= e(t('caisse.preview')) ?></p></div>
+        <div class="notice notice-info"><p><?= icon('eye', ['size' => 15]) ?> <?= e(t('caisse.preview')) ?></p></div>
     <?php endif; ?>
 
     <div class="caisse-grid">
         <div class="panel caisse-cart">
-            <h2 class="panel-title">🧺 <?= e(t('caisse.your_cart')) ?></h2>
+            <h2 class="panel-title"><?= icon('cart', ['size' => 18]) ?> <?= e(t('caisse.your_cart')) ?></h2>
             <ul class="cart-lines">
                 <?php foreach ($lines as $l): ?>
                     <li class="cart-line">
@@ -48,7 +48,7 @@ $cur = (string) $resto['currency'];
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
-            <h3 class="caisse-section">📇 <?= e(t('order.f.your_details')) ?></h3>
+            <h3 class="caisse-section"><?= icon('user', ['size' => 16]) ?> <?= e(t('order.f.your_details')) ?></h3>
             <label for="cl-name"><?= e(t('order.f.client')) ?></label>
             <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
             <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
@@ -67,7 +67,7 @@ $cur = (string) $resto['currency'];
             <?php if (has_error('client_address')): ?><p class="field-error"><?= e(error('client_address')) ?></p><?php endif; ?>
             <label for="cl-note"><?= e(t('order.f.note')) ?></label>
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('rorder.note_ph')) ?>">
-            <button type="submit" class="btn btn-primary btn-block btn-lg">✅ <?= e($terms ? t('caisse.validate') : t('caisse.validate_order')) ?></button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg"><?= icon('check', ['size' => 18]) ?> <?= e($terms ? t('caisse.validate') : t('caisse.validate_order')) ?></button>
         </form>
     </div>
 </section>

@@ -23,7 +23,7 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
             <?php if (!empty($resto['logo_public_id'])): ?>
                 <img class="shop-logo" src="<?= e(CloudinaryService::imageUrl((string) $resto['logo_public_id'], 160, 160)) ?>" alt="" width="80" height="80">
             <?php else: ?>
-                <div class="shop-logo shop-logo--empty" aria-hidden="true">🍽️</div>
+                <div class="shop-logo shop-logo--empty" aria-hidden="true"><?= icon('utensils', ['size' => 34]) ?></div>
             <?php endif; ?>
             <div>
                 <h1><?= e((string) $resto['name']) ?></h1>
@@ -32,13 +32,13 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                     <?php foreach (array_filter(explode(',', (string) ($resto['cuisine'] ?? ''))) as $cui): ?>
                         <span class="badge badge-neutral"><?= $cui === 'autre' && !empty($resto['cuisine_other']) ? e((string) $resto['cuisine_other']) : e(t('resto.cuisine.' . $cui)) ?></span>
                     <?php endforeach; ?>
-                    <?php if (!empty($resto['city']) || $cc !== ''): ?> 🌍 <?= e(trim(($resto['city'] ?? '') . ' ' . ($cc !== '' ? flag_emoji($cc) : ''))) ?><?php endif; ?>
+                    <?php if (!empty($resto['city']) || $cc !== ''): ?> <?= icon('globe', ['size' => 14]) ?> <?= e(trim(($resto['city'] ?? '') . ' ' . ($cc !== '' ? flag_emoji($cc) : ''))) ?><?php endif; ?>
                 </p>
                 <div class="resto-info-strip">
-                    <?php if (!empty($resto['prep_minutes'])): ?><span>⏱️ ~<?= (int) $resto['prep_minutes'] ?> min</span><?php endif; ?>
-                    <?php if (!empty($resto['delivery_fee_cents'])): ?><span>🛵 <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></span><?php endif; ?>
-                    <?php if (!empty($resto['delivery_min_cents'])): ?><span>🧾 <?= e(t('resto.f.delivery_min')) ?> <?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></span><?php endif; ?>
-                    <?php if ($hoursLabel !== ''): ?><span>🕒 <?= e($hoursLabel) ?></span><?php endif; ?>
+                    <?php if (!empty($resto['prep_minutes'])): ?><span><?= icon('clock', ['size' => 14]) ?> ~<?= (int) $resto['prep_minutes'] ?> min</span><?php endif; ?>
+                    <?php if (!empty($resto['delivery_fee_cents'])): ?><span><?= icon('truck', ['size' => 14]) ?> <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></span><?php endif; ?>
+                    <?php if (!empty($resto['delivery_min_cents'])): ?><span><?= icon('receipt', ['size' => 14]) ?> <?= e(t('resto.f.delivery_min')) ?> <?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></span><?php endif; ?>
+                    <?php if ($hoursLabel !== ''): ?><span><?= icon('clock', ['size' => 14]) ?> <?= e($hoursLabel) ?></span><?php endif; ?>
                 </div>
                 <?= render_partial('partials/share_row', ['share_url' => $shopUrl, 'share_text' => t('resto.share_text', ['name' => (string) $resto['name']])]) ?>
             </div>
@@ -54,7 +54,7 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
         <div class="panel" data-cart-root
              data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>"
              data-cur-sym="<?= e(['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur) ?>">
-            <h2 class="panel-title">📋 <?= e(t('resto.menu_title')) ?></h2>
+            <h2 class="panel-title"><?= icon('list', ['size' => 18]) ?> <?= e(t('resto.menu_title')) ?></h2>
             <?php if (count($catsWithItems) >= 2): ?>
                 <nav class="menu-nav" aria-label="<?= e(t('resto.menu_title')) ?>">
                     <?php foreach ($catsWithItems as $c): ?>
@@ -115,10 +115,10 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                         <dd><?= e(implode(' · ', array_map(static fn ($s) => t('resto.service.' . $s), $services))) ?></dd>
                     <?php endif; ?>
                     <?php $hoursLabel = resto_hours_label($resto['open_days'] ?? null, $resto['open_time'] ?? null, $resto['close_time'] ?? null, $resto['hours'] ?? null); ?>
-                    <?php if ($hoursLabel !== ''): ?><dt><?= e(t('resto.f.hours')) ?></dt><dd>🕒 <?= e($hoursLabel) ?></dd><?php endif; ?>
-                    <?php if (!empty($resto['address'])): ?><dt><?= e(t('resto.f.address')) ?></dt><dd>📍 <?= e((string) $resto['address']) ?></dd><?php endif; ?>
-                    <?php if (!empty($resto['prep_minutes'])): ?><dt><?= e(t('resto.f.prep')) ?></dt><dd>⏱️ <?= (int) $resto['prep_minutes'] ?> min</dd><?php endif; ?>
-                    <?php if (!empty($resto['delivery_fee_cents'])): ?><dt><?= e(t('resto.f.delivery_fee')) ?></dt><dd>🛵 <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></dd><?php endif; ?>
+                    <?php if ($hoursLabel !== ''): ?><dt><?= e(t('resto.f.hours')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= e($hoursLabel) ?></dd><?php endif; ?>
+                    <?php if (!empty($resto['address'])): ?><dt><?= e(t('resto.f.address')) ?></dt><dd><?= icon('pin', ['size' => 15]) ?> <?= e((string) $resto['address']) ?></dd><?php endif; ?>
+                    <?php if (!empty($resto['prep_minutes'])): ?><dt><?= e(t('resto.f.prep')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= (int) $resto['prep_minutes'] ?> min</dd><?php endif; ?>
+                    <?php if (!empty($resto['delivery_fee_cents'])): ?><dt><?= e(t('resto.f.delivery_fee')) ?></dt><dd><?= icon('truck', ['size' => 15]) ?> <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></dd><?php endif; ?>
                     <?php if (!empty($resto['delivery_min_cents'])): ?><dt><?= e(t('resto.f.delivery_min')) ?></dt><dd><?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></dd><?php endif; ?>
                 </dl>
                 <?php if ($wa !== ''): ?>
@@ -136,7 +136,7 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
 
     <!-- Barre de panier (apparaît dès qu'un article est choisi) -->
     <div class="cart-bar" data-cart-bar hidden>
-        <span class="cart-bar-info">🧺 <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
+        <span class="cart-bar-info"><?= icon('cart', ['size' => 16]) ?> <span data-cart-count>0</span> <?= e(t('rorder.items')) ?> · <strong data-cart-total>0</strong></span>
         <button type="button" class="btn btn-primary" data-cart-checkout><?= e(t('bcart.to_checkout')) ?> →</button>
     </div>
 </section>

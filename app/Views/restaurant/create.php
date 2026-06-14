@@ -7,7 +7,7 @@ $selCur = old('currency') ?: (string) ($user['preferred_currency'] ?? 'XOF');
 $autoGeo = detected_geo();
 ?>
 <section class="auth-card auth-card--wide">
-    <h1>🍽️ <?= e(t('resto.create_title')) ?></h1>
+    <h1><?= icon('utensils', ['size' => 24]) ?> <?= e(t('resto.create_title')) ?></h1>
     <p class="muted"><?= e(t('resto.create_sub')) ?></p>
 
     <form method="post" action="<?= e(url('/restaurant/creer')) ?>" novalidate>

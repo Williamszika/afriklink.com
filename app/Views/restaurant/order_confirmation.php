@@ -19,7 +19,7 @@ $waText = rawurlencode(
 );
 ?>
 <section class="auth-card pay-result">
-    <div class="pay-result-icon" aria-hidden="true">🧾</div>
+    <div class="pay-result-icon" aria-hidden="true"><?= icon('receipt', ['size' => 40]) ?></div>
     <h1><?= e(t('rorder.confirm_title')) ?></h1>
     <p class="muted"><?= e(t('rorder.confirm_sub', ['ref' => $ref])) ?></p>
 
@@ -49,14 +49,14 @@ $waText = rawurlencode(
 
     <?php if ($payStatus === 'paid'): ?>
         <?php if ($term === 'deposit'): ?>
-            <p class="pay-paid-badge">✅ <?= e(t('pay.deposit_paid', ['rest' => format_price((int) ($rest_cents ?? 0), $cur)])) ?></p>
+            <p class="pay-paid-badge"><?= icon('check', ['size' => 16]) ?> <?= e(t('pay.deposit_paid', ['rest' => format_price((int) ($rest_cents ?? 0), $cur)])) ?></p>
         <?php else: ?>
-            <p class="pay-paid-badge">✅ <?= e(t('pay.status_paid')) ?></p>
+            <p class="pay-paid-badge"><?= icon('check', ['size' => 16]) ?> <?= e(t('pay.status_paid')) ?></p>
         <?php endif; ?>
     <?php elseif (!empty($pay_ready)): ?>
         <form method="post" action="<?= e(url('/restaurant/commande/' . $order['public_id'] . '/payer')) ?>" class="pay-now-form">
             <?= csrf_field() ?>
-            <button type="submit" class="btn btn-primary btn-block btn-lg">💳 <?= e(t('pay.pay_amount', ['amount' => format_price((int) ($due_cents ?? 0), $cur)])) ?></button>
+            <button type="submit" class="btn btn-primary btn-block btn-lg"><?= icon('card', ['size' => 18]) ?> <?= e(t('pay.pay_amount', ['amount' => format_price((int) ($due_cents ?? 0), $cur)])) ?></button>
         </form>
         <?php if ($term === 'deposit'): ?><p class="hint"><?= e(t('pay.deposit_hint', ['rest' => format_price((int) ($rest_cents ?? 0), $cur)])) ?></p><?php endif; ?>
     <?php endif; ?>
