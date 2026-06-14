@@ -27,14 +27,14 @@ $pending     = (int) ($dash['pending'] ?? 0);
             <div class="stat-grid cols-4">
                 <?php
                 $kpis = [
-                    ['icon' => '📦', 'label' => t('seller.kpi.orders_all'), 'value' => (string) (int) ($dash['order_n'] ?? 0), 'href' => url('/vendeur/commandes')],
-                    ['icon' => '🧾', 'label' => t('seller.stat.orders'),    'value' => (string) $pending, 'href' => url('/vendeur/commandes?filtre=a_traiter'), 'urgent' => $pending > 0],
-                    ['icon' => '👁️', 'label' => t('seller.stat.views'),     'value' => (string) (int) ($dash['views'] ?? 0), 'href' => url('/boutique/stats')],
-                    ['icon' => '🏷️', 'label' => t('seller.kpi.products'),   'value' => (string) (int) ($dash['product_n'] ?? 0), 'href' => url('/boutique/gerer')],
+                    ['icon' => 'package', 'label' => t('seller.kpi.orders_all'), 'value' => (string) (int) ($dash['order_n'] ?? 0), 'href' => url('/vendeur/commandes')],
+                    ['icon' => 'receipt', 'label' => t('seller.stat.orders'),    'value' => (string) $pending, 'href' => url('/vendeur/commandes?filtre=a_traiter'), 'urgent' => $pending > 0],
+                    ['icon' => 'eye', 'label' => t('seller.stat.views'),     'value' => (string) (int) ($dash['views'] ?? 0), 'href' => url('/boutique/stats')],
+                    ['icon' => 'tag', 'label' => t('seller.kpi.products'),   'value' => (string) (int) ($dash['product_n'] ?? 0), 'href' => url('/boutique/gerer')],
                 ];
                 foreach ($kpis as $s): ?>
                     <a class="stat-card stat-card--link<?= !empty($s['urgent']) ? ' stat-card--urgent' : '' ?>" href="<?= e($s['href']) ?>">
-                        <div class="num"><span aria-hidden="true"><?= $s['icon'] ?></span> <?= e($s['value']) ?></div>
+                        <div class="num"><?= icon($s['icon']) ?> <?= e($s['value']) ?></div>
                         <div class="lbl"><?= e($s['label']) ?></div>
                     </a>
                 <?php endforeach; ?>
@@ -42,7 +42,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
             <?php if ($pending > 0 && $next !== null): ?>
                 <a class="panel nba-card nba-card--inline" href="<?= e($next['href']) ?>">
                     <div class="nba-row">
-                        <span class="nba-ico" aria-hidden="true"><?= $next['icon'] ?></span>
+                        <span class="nba-ico" aria-hidden="true"><?= icon($next['icon'], ['size' => 30]) ?></span>
                         <div class="nba-body"><h2 class="nba-title"><?= e($next['title']) ?></h2><p class="nba-desc"><?= e($next['desc']) ?></p></div>
                         <span class="btn btn-primary nba-cta"><?= e($next['cta']) ?> →</span>
                     </div>
@@ -53,7 +53,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
             <a class="panel nba-card" href="<?= e($next['href']) ?>">
                 <span class="nba-badge"><?= e(t('seller.nba_badge')) ?></span>
                 <div class="nba-row">
-                    <span class="nba-ico" aria-hidden="true"><?= $next['icon'] ?></span>
+                    <span class="nba-ico" aria-hidden="true"><?= icon($next['icon'], ['size' => 30]) ?></span>
                     <div class="nba-body">
                         <h2 class="nba-title"><?= e($next['title']) ?></h2>
                         <p class="nba-desc"><?= e($next['desc']) ?></p>
@@ -100,11 +100,11 @@ $pending     = (int) ($dash['pending'] ?? 0);
         <?php endif; ?>
 
         <div class="panel">
-            <h2 class="panel-title">💡 <?= e(t('seller.tips_title')) ?></h2>
+            <h2 class="panel-title"><?= icon('lightbulb') ?> <?= e(t('seller.tips_title')) ?></h2>
             <ul class="tips">
-                <li>📷 <?= e(t('seller.tip1')) ?></li>
-                <li>⚡ <?= e(t('seller.tip2')) ?></li>
-                <li>🛡️ <?= e(t('seller.tip3')) ?></li>
+                <li><?= icon('camera', ['size' => 18]) ?> <?= e(t('seller.tip1')) ?></li>
+                <li><?= icon('zap', ['size' => 18]) ?> <?= e(t('seller.tip2')) ?></li>
+                <li><?= icon('shield', ['size' => 18]) ?> <?= e(t('seller.tip3')) ?></li>
             </ul>
         </div>
 

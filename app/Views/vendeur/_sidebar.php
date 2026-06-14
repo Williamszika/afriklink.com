@@ -9,25 +9,25 @@ $ordersPending = \App\Models\Order::pendingForUser((int) ($user['id'] ?? 0));
 $msgUnread     = \App\Models\Conversation::unreadCountFor((int) ($user['id'] ?? 0));
 $groups = [
     ['label' => null, 'items' => [
-        ['key' => 'overview',  'icon' => '🏠', 'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
-        ['key' => 'vitrines',  'icon' => '🏪', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
-        ['key' => 'pos',       'icon' => '🧾', 'href' => url('/vendeur/point-de-vente'), 'label' => t('seller.nav.pos'), 'chip' => null],
-        ['key' => 'commandes', 'icon' => '📦', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),
+        ['key' => 'overview',  'icon' => 'grid',  'href' => url('/dashboard'),         'label' => t('seller.nav.overview'),    'chip' => null],
+        ['key' => 'vitrines',  'icon' => 'store', 'href' => url('/vendeur/vitrines'),  'label' => t('seller.nav.storefronts'), 'chip' => null],
+        ['key' => 'pos',       'icon' => 'receipt', 'href' => url('/vendeur/point-de-vente'), 'label' => t('seller.nav.pos'), 'chip' => null],
+        ['key' => 'commandes', 'icon' => 'package', 'href' => url('/vendeur/commandes'), 'label' => t('seller.nav.orders'),
          'chip' => $ordersPending > 0 ? (string) $ordersPending : null, 'chip_class' => 'chip-pending'],
-        ['key' => 'messages',  'icon' => '💬', 'href' => url('/messages'),  'label' => t('seller.nav.messages'),
+        ['key' => 'messages',  'icon' => 'chat', 'href' => url('/messages'),  'label' => t('seller.nav.messages'),
          'chip' => $msgUnread > 0 ? (string) $msgUnread : null, 'chip_class' => 'chip-pending'],
     ]],
     ['label' => t('seller.group.develop'), 'items' => [
-        ['key' => 'publicite',   'icon' => '📣', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => null],
-        ['key' => 'affiliation', 'icon' => '🤝', 'href' => url('/vendeur/affiliation'), 'label' => t('seller.nav.affiliation'),  'chip' => null],
+        ['key' => 'publicite',   'icon' => 'megaphone', 'href' => url('/vendeur/publicite'),   'label' => t('seller.nav.ads'),          'chip' => null],
+        ['key' => 'affiliation', 'icon' => 'users', 'href' => url('/vendeur/affiliation'), 'label' => t('seller.nav.affiliation'),  'chip' => null],
     ]],
     ['label' => t('seller.group.account'), 'items' => [
-        ['key' => 'verification', 'icon' => '🪪', 'href' => url('/vendeur/verification'), 'label' => t('seller.nav.verification'), 'chip' => null],
-        ['key' => 'profil',       'icon' => '🏢', 'href' => url('/vendeur/profil'),       'label' => t('seller.nav.profile'),      'chip' => null],
-        ['key' => 'reglages',     'icon' => '⚙️', 'href' => url('/vendeur/reglages'),     'label' => t('seller.nav.settings'),     'chip' => null],
+        ['key' => 'verification', 'icon' => 'shield', 'href' => url('/vendeur/verification'), 'label' => t('seller.nav.verification'), 'chip' => null],
+        ['key' => 'profil',       'icon' => 'building', 'href' => url('/vendeur/profil'),       'label' => t('seller.nav.profile'),      'chip' => null],
+        ['key' => 'reglages',     'icon' => 'settings', 'href' => url('/vendeur/reglages'),     'label' => t('seller.nav.settings'),     'chip' => null],
     ]],
     ['label' => t('seller.group.soon'), 'items' => [
-        ['key' => 'gains',       'icon' => '💸', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
+        ['key' => 'gains',       'icon' => 'wallet', 'href' => url('/vendeur/gains'),       'label' => t('seller.nav.earnings'),     'chip' => $soon],
     ]],
 ];
 ?>
@@ -36,7 +36,7 @@ $groups = [
         <?php if ($avatar_url !== null): ?>
             <img class="avatar avatar-img" src="<?= e($avatar_url) ?>" alt="" width="48" height="48">
         <?php else: ?>
-            <div class="avatar avatar-sm" aria-hidden="true">🏪</div>
+            <div class="avatar avatar-sm" aria-hidden="true"><?= icon('store', ['size' => 22]) ?></div>
         <?php endif; ?>
         <div class="seller-ident-body">
             <p class="seller-ident-name"><?= e($companyName) ?></p>
@@ -58,7 +58,7 @@ $groups = [
             <?php foreach ($group['items'] as $it): ?>
                 <a class="seller-nav-item<?= $active === $it['key'] ? ' is-active' : '' ?>"
                    href="<?= e($it['href']) ?>"<?= $active === $it['key'] ? ' aria-current="page"' : '' ?>>
-                    <span class="seller-nav-ico" aria-hidden="true"><?= $it['icon'] ?></span>
+                    <span class="seller-nav-ico"><?= icon($it['icon']) ?></span>
                     <span class="seller-nav-label"><?= e($it['label']) ?></span>
                     <?php if ($it['chip'] !== null): ?><span class="<?= e($it['chip_class'] ?? 'chip-soon') ?>"><?= e($it['chip']) ?></span><?php endif; ?>
                 </a>

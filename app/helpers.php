@@ -559,6 +559,31 @@ function render_partial(string $template, array $data = []): string
     return (string) ob_get_clean();
 }
 
+/**
+ * Icône « outline » inline (SVG), famille cohérente définie dans config/icons.php.
+ * Inline = compatible CSP stricte (pas de police d'icônes). Le trait suit la
+ * couleur du texte (currentColor). Usage : icon('store'), icon('bell', ['size'=>18]).
+ */
+function icon(string $name, array $attr = []): string
+{
+    static $set = null;
+    if ($set === null) {
+        $set = is_file(CONFIG_PATH . '/icons.php') ? require CONFIG_PATH . '/icons.php' : [];
+    }
+    $inner = $set[$name] ?? null;
+    if ($inner === null) {
+        return '';
+    }
+    $size = (int) ($attr['size'] ?? 20);
+    $cls  = 'icon icon-' . preg_replace('/[^a-z0-9_-]/', '', $name);
+    if (!empty($attr['class'])) {
+        $cls .= ' ' . $attr['class'];
+    }
+    return '<svg class="' . e($cls) . '" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" '
+        . 'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" '
+        . 'aria-hidden="true" focusable="false">' . $inner . '</svg>';
+}
+
 /* ------------------------------------------------------------------ */
 /* Flash messages, old input, validation errors                        */
 /* ------------------------------------------------------------------ */

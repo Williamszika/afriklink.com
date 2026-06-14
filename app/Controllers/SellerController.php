@@ -112,18 +112,18 @@ final class SellerController
     public static function nextBestAction(string $stage, ?array $boutique, int $productN, int $pending): array
     {
         if ($stage === 'A' || $boutique === null) {
-            return ['icon' => '🏪', 'title' => t('nba.create_shop_t'), 'desc' => t('nba.create_shop_d'),
+            return ['icon' => 'store', 'title' => t('nba.create_shop_t'), 'desc' => t('nba.create_shop_d'),
                 'cta' => t('nba.create_shop_c'), 'href' => url('/vendeur/vitrines')];
         }
         if ($productN === 0) {
-            return ['icon' => '📦', 'title' => t('nba.add_products_t'), 'desc' => t('nba.add_products_d'),
+            return ['icon' => 'package', 'title' => t('nba.add_products_t'), 'desc' => t('nba.add_products_d'),
                 'cta' => t('nba.add_products_c'), 'href' => url('/boutique/produits/nouveau')];
         }
         if ($pending > 0) {
-            return ['icon' => '🔔', 'title' => t('nba.process_orders_t', ['n' => $pending]), 'desc' => t('nba.process_orders_d'),
+            return ['icon' => 'bell', 'title' => t('nba.process_orders_t', ['n' => $pending]), 'desc' => t('nba.process_orders_d'),
                 'cta' => t('nba.process_orders_c'), 'href' => url('/vendeur/commandes?filtre=a_traiter')];
         }
-        return ['icon' => '🔗', 'title' => t('nba.share_shop_t'), 'desc' => t('nba.share_shop_d'),
+        return ['icon' => 'link', 'title' => t('nba.share_shop_t'), 'desc' => t('nba.share_shop_d'),
             'cta' => t('nba.share_shop_c'), 'href' => url('/boutique/' . (string) $boutique['slug'])];
     }
 

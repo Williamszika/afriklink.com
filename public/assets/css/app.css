@@ -377,6 +377,12 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .cur-menu a:hover { background: var(--bg); }
 .cur-menu a.is-active { background: var(--afk-or, #e5a02e); color: #fff; font-weight: 700; }
 
+/* ---- Famille d'icônes outline (inline SVG, CSP-safe) ---- */
+.icon { display: inline-block; vertical-align: -0.18em; flex: 0 0 auto; }
+.seller-nav-ico .icon { vertical-align: middle; }
+.nba-ico .icon { width: 30px; height: 30px; color: var(--afk-or, #e5a02e); }
+.stat-card .num .icon { vertical-align: -0.16em; opacity: .85; }
+
 /* Commandes (suivi vendeur) */
 .chip-pending { margin-left: auto; min-width: 20px; text-align: center; padding: 1px 7px; font-size: .72rem; font-weight: 800; color: #fff; background: #dc2626; border-radius: 999px; }
 .order-record summary { cursor: pointer; font-weight: 700; }
