@@ -27,4 +27,13 @@ return [
     'lightbulb'  => '<path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-3.8 10.6c.7.6 1.1 1.2 1.2 2.4h5.2c.1-1.2.5-1.8 1.2-2.4A6 6 0 0 0 12 3z"/>',
     'camera'     => '<path d="M3 8.5A1.5 1.5 0 0 1 4.5 7H7l1.5-2.5h7L16 7h3.5A1.5 1.5 0 0 1 21 8.5V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18z"/><circle cx="12" cy="13" r="3.3"/>',
     'zap'        => '<path d="M13 2 4.5 13H11l-1 9 8.5-11H12z"/>',
+    'search'     => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    'cart'       => '<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M2.5 3.5h2l2.2 10.8a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.1L19.5 7H6"/>',
+    'heart'      => '<path d="M12 20S3 14.5 3 8.8A4 4 0 0 1 12 6a4 4 0 0 1 9 2.8C21 14.5 12 20 12 20z"/>',
+    'compare'    => '<path d="M8 4 4 8l4 4"/><path d="M4 8h12"/><path d="M16 20l4-4-4-4"/><path d="M20 16H8"/>',
+    'unlock'     => '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/>',
+    'lock'       => '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    'banknote'   => '<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9.5h.01"/><path d="M18 14.5h.01"/>',
+    'chart'      => '<path d="M4 4v16h16"/><path d="M8 16v-4"/><path d="M12 16V8"/><path d="M16 16v-6"/>',
+    'book'       => '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 4.5v17"/>',
 ];

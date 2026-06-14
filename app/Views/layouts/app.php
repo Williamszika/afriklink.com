@@ -90,7 +90,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
 
         <form class="header-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
             <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
-            <button type="submit" aria-label="<?= e(t('explore.search_btn')) ?>">🔎</button>
+            <button type="submit" aria-label="<?= e(t('explore.search_btn')) ?>"><?= icon('search', ['size' => 18]) ?></button>
         </form>
 
         <nav class="main-nav" aria-label="<?= e(t('nav.primary')) ?>">
@@ -105,24 +105,24 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
             $compareCount = \App\Services\Compare::count();
             ?>
             <div class="nav-dd" data-dd>
-                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/panier/apercu')) ?>" href="<?= e(url('/panier')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('cart.title')) ?>" aria-label="<?= e(t('cart.title')) ?>">🛒<span class="nav-badge" data-global-cart-count <?= $cartCount > 0 ? '' : 'hidden' ?>><?= (int) $cartCount ?></span></a>
+                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/panier/apercu')) ?>" href="<?= e(url('/panier')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('cart.title')) ?>" aria-label="<?= e(t('cart.title')) ?>"><?= icon('cart') ?><span class="nav-badge" data-global-cart-count <?= $cartCount > 0 ? '' : 'hidden' ?>><?= (int) $cartCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
             </div>
             <div class="nav-dd" data-dd>
-                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/favoris/apercu')) ?>" href="<?= e(url('/favoris')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>">❤️<span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
+                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/favoris/apercu')) ?>" href="<?= e(url('/favoris')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>"><?= icon('heart') ?><span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
             </div>
             <div class="nav-dd" data-dd>
-                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/comparer/apercu')) ?>" href="<?= e(url('/comparer')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>">⇄<span class="nav-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
+                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/comparer/apercu')) ?>" href="<?= e(url('/comparer')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>"><?= icon('compare') ?><span class="nav-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
             </div>
             <?php if ($user !== null): ?>
                 <?php if (is_staff($user)): ?>
-                    <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>">🛡️ <?= e(t('nav.moderation')) ?></a>
+                    <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>"><?= icon('shield', ['size' => 18]) ?> <?= e(t('nav.moderation')) ?></a>
                 <?php endif; ?>
                 <?php $notifUnread = \App\Models\Notification::unreadCount((int) $user['id']); ?>
                 <div class="nav-dd" data-dd>
-                    <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/notifications/apercu')) ?>" href="<?= e(url('/notifications')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>">🔔<span class="nav-badge" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
+                    <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/notifications/apercu')) ?>" href="<?= e(url('/notifications')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>"><?= icon('bell') ?><span class="nav-badge" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
                     <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
                 </div>
                 <a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>

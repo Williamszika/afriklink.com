@@ -8,14 +8,14 @@ $cur = (string) $boutique['currency'];
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
     <div class="seller-main">
         <div class="seller-head">
-            <h1>🧾 <?= e(t('pos.title')) ?></h1>
+            <h1><?= icon('receipt', ['size' => 24]) ?> <?= e(t('pos.title')) ?></h1>
             <p class="muted"><?= e(t('pos.lead')) ?> · <strong><?= e((string) $register['name']) ?></strong></p>
         </div>
 
         <?php if ($session === null): ?>
             <!-- Aucune session ouverte : ouverture avec fond de caisse -->
             <div class="panel pos-open">
-                <h2 class="panel-title">🔓 <?= e(t('pos.open_title')) ?></h2>
+                <h2 class="panel-title"><?= icon('unlock') ?> <?= e(t('pos.open_title')) ?></h2>
                 <p class="muted"><?= e(t('pos.open_hint')) ?></p>
                 <form method="post" action="<?= e(url('/vendeur/point-de-vente/ouvrir')) ?>" data-submit-once>
                     <?= csrf_field() ?>
@@ -27,7 +27,7 @@ $cur = (string) $boutique['currency'];
         <?php else: ?>
             <!-- Session ouverte : vente rapide + récap + mouvements + clôture -->
             <div class="panel pos-sale">
-                <h2 class="panel-title">🛒 <?= e(t('pos.sale_title')) ?></h2>
+                <h2 class="panel-title"><?= icon('cart') ?> <?= e(t('pos.sale_title')) ?></h2>
                 <?php if (empty($units)): ?>
                     <p class="muted"><?= e(t('shop.products_empty')) ?></p>
                 <?php else: ?>
@@ -54,7 +54,7 @@ $cur = (string) $boutique['currency'];
                         <label for="pos-received"><?= e(t('pos.f.received', ['cur' => $cur])) ?></label>
                         <input type="text" id="pos-received" name="received" inputmode="decimal" placeholder="0">
                         <p class="hint"><?= e(t('pos.received_hint')) ?></p>
-                        <button type="submit" class="btn btn-primary btn-block">💵 <?= e(t('pos.sale_btn')) ?></button>
+                        <button type="submit" class="btn btn-primary btn-block"><?= icon('banknote', ['size' => 18]) ?> <?= e(t('pos.sale_btn')) ?></button>
                     </form>
                     <p class="hint">🔁 <?= e(t('pos.shared_note')) ?></p>
                 <?php endif; ?>
@@ -68,7 +68,7 @@ $cur = (string) $boutique['currency'];
             <?php if ($summary !== null): ?>
             <div class="panel">
                 <div class="panel-title-row">
-                    <h2 class="panel-title">📊 <?= e(t('pos.report_x')) ?></h2>
+                    <h2 class="panel-title"><?= icon('chart') ?> <?= e(t('pos.report_x')) ?></h2>
                     <a class="afk-link-all" href="<?= e(url('/vendeur/point-de-vente/session/' . $session['public_id'] . '/export')) ?>"><?= e(t('pos.export_csv')) ?> ↓</a>
                 </div>
                 <p class="pos-report-total"><?= e(t('pos.r.sales', ['n' => (int) $summary['count']])) ?> · <strong class="afk-mono"><?= e(format_price((int) $summary['total'], $cur)) ?></strong></p>
@@ -83,7 +83,7 @@ $cur = (string) $boutique['currency'];
             <?php endif; ?>
 
             <div class="panel">
-                <h2 class="panel-title">💵 <?= e(t('pos.cash_title')) ?></h2>
+                <h2 class="panel-title"><?= icon('banknote') ?> <?= e(t('pos.cash_title')) ?></h2>
                 <form method="post" action="<?= e(url('/vendeur/point-de-vente/mouvement')) ?>" class="pos-move-form" data-submit-once>
                     <?= csrf_field() ?>
                     <div class="grid-2">
@@ -116,7 +116,7 @@ $cur = (string) $boutique['currency'];
             </div>
 
             <div class="panel pos-close">
-                <h2 class="panel-title">🔒 <?= e(t('pos.close_title')) ?></h2>
+                <h2 class="panel-title"><?= icon('lock') ?> <?= e(t('pos.close_title')) ?></h2>
                 <p class="muted"><?= e(t('pos.close_hint', ['expected' => format_price($expected, $cur)])) ?></p>
                 <form method="post" action="<?= e(url('/vendeur/point-de-vente/fermer')) ?>" data-submit-once>
                     <?= csrf_field() ?>
@@ -130,7 +130,7 @@ $cur = (string) $boutique['currency'];
         <?php $closed = array_values(array_filter($sessions, static fn (array $s): bool => ($s['status'] ?? '') === 'closed')); ?>
         <?php if (!empty($closed)): ?>
             <div class="panel">
-                <h2 class="panel-title">📒 <?= e(t('pos.history')) ?></h2>
+                <h2 class="panel-title"><?= icon('book') ?> <?= e(t('pos.history')) ?></h2>
                 <table>
                     <thead><tr><th><?= e(t('pos.h.date')) ?></th><th><?= e(t('pos.h.expected')) ?></th><th><?= e(t('pos.h.counted')) ?></th><th><?= e(t('pos.h.variance')) ?></th><th><?= e(t('pos.h.report')) ?></th></tr></thead>
                     <tbody>
