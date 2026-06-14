@@ -375,9 +375,11 @@ final class BoutiqueController
         // Recommandations : co-achats réels + historique de navigation du visiteur.
         $fbt    = \App\Services\Recommender::frequentlyBoughtTogether((int) $product['id'], 4);
         $recent = \App\Services\Recommender::recentlyViewed(6, (string) $product['public_id']);
-        // Affiliation : lien « partager & gagner » pour un membre connecté (hors propriétaire).
-        $viewerId = (int) (current_user_id() ?? 0);
-        $affLink  = ($viewerId > 0 && !$isOwner && ($boutique['status'] ?? '') === 'published')
+        // Affiliation : lien « partager & gagner » pour un membre connecté (hors propriétaire),
+        // uniquement si la boutique a activé son programme (opt-in), au taux qu'elle a fixé.
+        $viewerId   = (int) (current_user_id() ?? 0);
+        $affProgram = \App\Models\Boutique::affiliationOf((int) $boutique['id']);
+        $affLink    = ($viewerId > 0 && !$isOwner && ($boutique['status'] ?? '') === 'published' && $affProgram['enabled'])
             ? url('/r/' . \App\Models\Affiliate::codeFor($viewerId) . '?to=' . rawurlencode('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']))
             : null;
         view('boutique/product', [
@@ -396,7 +398,7 @@ final class BoutiqueController
             'recently_viewed' => $recent,
             'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($fbt, $recent)),
             'aff_link'        => $affLink,
-            'aff_rate'        => \App\Models\Affiliate::RATE_PCT,
+            'aff_rate'        => $affProgram['rate'],
             'page_title' => (string) $product['name'],
             'meta' => [
                 'description' => $this->ogDescription(

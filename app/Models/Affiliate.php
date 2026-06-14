@@ -54,10 +54,11 @@ final class Affiliate
 
     /* ---- Logique pure (testable hors base) ------------------------------- */
 
-    /** Commission (centimes) sur un sous-total donné. */
-    public static function commissionFor(int $subtotalCents): int
+    /** Commission (centimes) sur un sous-total donné, au taux indiqué (défaut RATE_PCT). */
+    public static function commissionFor(int $subtotalCents, int $ratePct = self::RATE_PCT): int
     {
-        return $subtotalCents > 0 ? intdiv($subtotalCents * self::RATE_PCT, 100) : 0;
+        $ratePct = max(0, min(100, $ratePct));
+        return $subtotalCents > 0 ? intdiv($subtotalCents * $ratePct, 100) : 0;
     }
 
     /** Cible de redirection sûre : chemin interne uniquement (pas d'open-redirect). */
@@ -154,6 +155,8 @@ final class Affiliate
     /**
      * Attribue une commande à l'apporteur s'il y a un cookie de parrainage valide.
      * One-shot : le cookie est consommé. Pas d'auto-parrainage (apporteur ≠ vendeur).
+     * Opt-in : seules les boutiques ayant activé leur programme reversent une commission,
+     * au taux qu'elles ont fixé.
      */
     public static function attribute(string $orderPublicId, int $boutiqueId, int $sellerUserId, int $subtotalCents, string $currency): void
     {
@@ -164,9 +167,17 @@ final class Affiliate
         self::cookie('', time() - 3600); // consommer le cookie
         $affiliateId = self::userIdForCode($code);
         if ($affiliateId === null || $affiliateId === $sellerUserId) {
+            return; // lien inconnu ou auto-parrainage
+        }
+        $program = Boutique::affiliationOf($boutiqueId);
+        if (!$program['enabled']) {
+            return; // la boutique n'a pas activé l'affiliation
+        }
+        $commission = self::commissionFor($subtotalCents, $program['rate']);
+        if ($commission <= 0) {
             return;
         }
-        self::recordConversion($affiliateId, $orderPublicId, $boutiqueId, $subtotalCents, self::commissionFor($subtotalCents), $currency);
+        self::recordConversion($affiliateId, $orderPublicId, $boutiqueId, $subtotalCents, $commission, $currency);
     }
 
     public static function recordConversion(int $affiliateId, string $orderPublicId, int $boutiqueId, int $amountCents, int $commissionCents, string $currency): void

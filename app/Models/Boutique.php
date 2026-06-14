@@ -219,6 +219,18 @@ final class Boutique
         } catch (\Throwable) {
             // information_schema indisponible : on tentera plus tard
         }
+        // Affiliation opt-in par boutique : activation + taux de commission (apporteur).
+        try {
+            db()->query('SELECT affiliation_enabled FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE boutiques
+                    ADD COLUMN affiliation_enabled  TINYINT(1) NOT NULL DEFAULT 0,
+                    ADD COLUMN affiliation_rate_pct TINYINT UNSIGNED NOT NULL DEFAULT 5');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     /** Met à jour la politique de retour (panneau « gérer », sans toucher au reste). */
@@ -227,6 +239,74 @@ final class Boutique
         self::ensureTable();
         db()->prepare('UPDATE boutiques SET return_policy = :rp WHERE id = :id')
             ->execute(['rp' => $returnPolicy, 'id' => $id]);
+    }
+
+    /* ---- Affiliation (opt-in par boutique) ------------------------------- */
+
+    /** Borne un taux de commission d'affiliation dans [1, 30] %, défaut 5. */
+    public static function clampAffiliationRate(int $rate): int
+    {
+        return max(1, min(30, $rate > 0 ? $rate : 5));
+    }
+
+    /**
+     * Réglages d'affiliation d'une boutique. Défensif : si la colonne n'existe
+     * pas encore (migration en attente) ou erreur, l'affiliation est inactive.
+     * @return array{enabled:bool, rate:int}
+     */
+    public static function affiliationOf(int $boutiqueId): array
+    {
+        try {
+            $stmt = db()->prepare('SELECT affiliation_enabled, affiliation_rate_pct FROM boutiques WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $boutiqueId]);
+            $row = $stmt->fetch();
+            if ($row === false) {
+                return ['enabled' => false, 'rate' => 5];
+            }
+            return [
+                'enabled' => (bool) (int) $row['affiliation_enabled'],
+                'rate'    => self::clampAffiliationRate((int) $row['affiliation_rate_pct']),
+            ];
+        } catch (\Throwable) {
+            return ['enabled' => false, 'rate' => 5];
+        }
+    }
+
+    /** Active/désactive le programme + fixe le taux. L'appartenance est vérifiée en SQL. */
+    public static function setAffiliation(int $boutiqueId, int $ownerUserId, bool $enabled, int $rate): bool
+    {
+        self::ensureTable();
+        try {
+            $stmt = db()->prepare(
+                'UPDATE boutiques SET affiliation_enabled = :e, affiliation_rate_pct = :r
+                  WHERE id = :id AND user_id = :u'
+            );
+            $stmt->execute([
+                'e' => $enabled ? 1 : 0, 'r' => self::clampAffiliationRate($rate),
+                'id' => $boutiqueId, 'u' => $ownerUserId,
+            ]);
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** Annuaire : boutiques publiées ayant activé l'affiliation, taux décroissant. @return list<array> */
+    public static function participating(int $limit = 60): array
+    {
+        self::ensureTable();
+        try {
+            $stmt = db()->prepare(
+                "SELECT id, user_id, slug, name, tagline, category, logo_public_id, city, country_code, affiliation_rate_pct
+                   FROM boutiques
+                  WHERE status = 'published' AND affiliation_enabled = 1
+                  ORDER BY affiliation_rate_pct DESC, id DESC LIMIT " . max(1, min(100, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

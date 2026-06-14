@@ -98,6 +98,9 @@ return [
     ['POST', '/logout',            [AuthController::class, 'logout'],         ['auth', 'csrf']],
     ['GET',  '/dashboard',         [DashboardController::class, 'index'],     ['auth']],
     ['GET',  '/mes-achats',        [DashboardController::class, 'purchases'], ['auth']],
+    // Affiliation — hub universel (tout membre) : lien perso, gains, annuaire des boutiques participantes.
+    ['GET',  '/affiliation',           [AffiliateController::class, 'hub'],         ['auth']],
+    ['POST', '/affiliation/programme', [AffiliateController::class, 'saveProgram'], ['auth', 'csrf', 'throttle:aff,40,3600']],
     ['POST', '/newsletter',        [NewsletterController::class, 'subscribe'], ['csrf', 'throttle:news,20,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],

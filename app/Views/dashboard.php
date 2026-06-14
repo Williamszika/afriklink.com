@@ -105,6 +105,10 @@ $stats = [
             <span class="action-head">🧭 <strong><?= e(t('dash.action.explore_title')) ?></strong></span>
             <span class="muted"><?= e(t('dash.action.explore_desc')) ?></span>
         </a>
+        <a class="action-card" href="<?= e(url('/affiliation')) ?>">
+            <span class="action-head">💸 <strong><?= e(t('aff.title')) ?></strong></span>
+            <span class="muted"><?= e(t('aff.dash_card')) ?></span>
+        </a>
     </div>
 
     <!-- Achats / Ventes -->
