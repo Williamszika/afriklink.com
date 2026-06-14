@@ -12,6 +12,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AdminKycController;
 use App\Controllers\AnnouncementController;
+use App\Controllers\WalletController;
 use App\Controllers\BoutiqueController;
 use App\Controllers\HomeController;
 use App\Controllers\KycController;
@@ -126,6 +127,9 @@ return [
     ['GET',  '/paiement/retour/{ref}',        [PaymentController::class, 'result'],           ['auth']],
 
     ['GET',  '/vendeur/gains',       [SellerController::class, 'earnings'],     ['auth']],
+    // Portefeuille vendeur : solde encaissé + demande de retrait (≥ 20 000 XOF).
+    ['GET',  '/vendeur/portefeuille',         [WalletController::class, 'index'],    ['auth']],
+    ['POST', '/vendeur/portefeuille/retrait', [WalletController::class, 'withdraw'], ['auth', 'csrf', 'throttle:wd,20,3600']],
     ['GET',  '/vendeur/point-de-vente',           [PosController::class, 'index'],    ['auth']],
     ['POST', '/vendeur/point-de-vente/ouvrir',    [PosController::class, 'open'],     ['auth', 'csrf', 'throttle:pos,120,3600']],
     ['POST', '/vendeur/point-de-vente/vente',     [PosController::class, 'sale'],     ['auth', 'csrf', 'throttle:possale,600,3600']],
@@ -152,6 +156,10 @@ return [
     ['POST', '/admin/annonces/{id}/supprimer', [AnnouncementController::class, 'destroy'], ['staff', 'csrf']],
     // Page publique d'article (annonce approuvée).
     ['GET',  '/info/{slug}',                  [AnnouncementController::class, 'show'],    []],
+
+    // Retraits vendeurs : back-office (staff) — versement manuel.
+    ['GET',  '/admin/retraits',               [WalletController::class, 'adminIndex'],   ['staff']],
+    ['POST', '/admin/retraits/{id}/traiter',  [WalletController::class, 'adminProcess'], ['staff', 'csrf']],
     ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
     ['POST', '/vendeur/profil',    [SellerProfileController::class, 'update'], ['auth', 'csrf', 'throttle:profile,30,3600']],

@@ -120,6 +120,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 <?php if (is_staff($user)): ?>
                     <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>"><?= icon('shield', ['size' => 18]) ?> <?= e(t('nav.moderation')) ?></a>
                     <a class="btn btn-ghost" href="<?= e(url('/admin/annonces')) ?>" title="<?= e(t('ann.admin_title')) ?>"><?= icon('megaphone', ['size' => 18]) ?> <?php if (is_admin($user) && ($annPending = \App\Models\Announcement::pendingCount()) > 0): ?><span class="nav-badge"><?= (int) $annPending ?></span><?php endif; ?></a>
+                    <a class="btn btn-ghost" href="<?= e(url('/admin/retraits')) ?>" title="<?= e(t('wallet.admin_title')) ?>"><?= icon('wallet', ['size' => 18]) ?> <?php if (($wdPending = \App\Models\Wallet::pendingCount()) > 0): ?><span class="nav-badge"><?= (int) $wdPending ?></span><?php endif; ?></a>
                 <?php endif; ?>
                 <?php $notifUnread = \App\Models\Notification::unreadCount((int) $user['id']); ?>
                 <div class="nav-dd" data-dd>

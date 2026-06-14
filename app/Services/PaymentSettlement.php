@@ -41,6 +41,18 @@ final class PaymentSettlement
             }
         }
 
+        // Crédite le portefeuille du vendeur de SA PART (montant − commission
+        // plateforme). Best-effort ; ne bloque jamais la confirmation.
+        try {
+            $sellerId = (int) ($payment['user_id'] ?? 0);
+            $amount   = (int) ($payment['amount_cents'] ?? 0);
+            if ($sellerId > 0 && $amount > 0) {
+                $share = $amount - platform_commission_cents($amount);
+                \App\Models\Wallet::credit($sellerId, $share, (string) ($payment['currency'] ?? 'EUR'), 'sale', $ref);
+            }
+        } catch (\Throwable) {
+        }
+
         // Alerte vendeur (in-app) — best-effort, ne bloque jamais.
         try {
             $sellerId = (int) ($payment['user_id'] ?? 0);

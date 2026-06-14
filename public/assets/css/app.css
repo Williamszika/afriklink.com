@@ -347,6 +347,18 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .order-status--delivered { background:#eafaf2; color:#0f7a3c; }
 .order-status--cancelled { background:#fdeaea; color:#b42318; }
 
+/* Portefeuille vendeur */
+.wallet-balance { text-align:center; }
+.wallet-balance-top { display:flex; flex-direction:column; align-items:center; gap:2px; margin-bottom:14px; }
+.wallet-amount-big { font-size:2rem; font-weight:800; color:var(--brand); line-height:1.1; }
+.wallet-form { max-width:520px; margin:0 auto; text-align:left; border-top:1px solid var(--border); padding-top:16px; }
+.wallet-threshold { text-align:center; margin:0; }
+.wallet-ledger { list-style:none; margin:6px 0 0; padding:0; display:grid; }
+.wallet-entry { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 2px; border-bottom:1px solid var(--border); }
+.wallet-entry:last-child { border-bottom:0; }
+.wallet-amount.is-credit { color:#0f7a3c; }
+.wallet-amount.is-debit { color:#b42318; }
+
 .site-footer {
     border-top: 1px solid var(--border);
     background: rgba(255, 255, 255, .88);
