@@ -38,10 +38,10 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             $buyerCur = current_currency();
             $fxAttr = '';
             if (strtoupper($buyerCur) !== strtoupper($cur)) {
-                $conv = \App\Services\ExchangeRates::convert(1000000, $cur, $buyerCur);
-                if ($conv !== null) {
+                $fxRate = \App\Services\ExchangeRates::rate($cur, $buyerCur); // taux précis (cohérent avec le serveur)
+                if ($fxRate !== null) {
                     $fxSym = trim(str_replace('0', '', format_price(0, $buyerCur)));
-                    $fxAttr = ' data-fx-rate="' . ($conv / 1000000) . '" data-fx-int="' . (currency_is_integer($buyerCur) ? '1' : '0') . '" data-fx-sym="' . e($fxSym) . '"';
+                    $fxAttr = ' data-fx-rate="' . $fxRate . '" data-fx-int="' . (currency_is_integer($buyerCur) ? '1' : '0') . '" data-fx-sym="' . e($fxSym) . '"';
                 }
             }
             ?>

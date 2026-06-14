@@ -51,7 +51,7 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
     $offered = $services !== [] ? $services : ['takeaway'];
     ?>
     <div class="shop-body">
-        <div class="panel" data-cart-root
+        <div class="panel" data-cart-root data-added-label="<?= e(t('bcart.added')) ?>"
              data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>"
              data-cur-sym="<?= e(['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur) ?>">
             <h2 class="panel-title"><?= icon('list', ['size' => 18]) ?> <?= e(t('resto.menu_title')) ?></h2>

@@ -388,6 +388,8 @@ return [
     'dash.progress'          => 'Profil complété à :pct %',
     'dash.progress_missing'  => 'À compléter : ',
     'dash.stat.purchases'    => 'Achats',
+    'dash.stat.purchases_note' => 'Vos commandes',
+    'dash.buys_more'         => ':n commande(s) au total',
     'dash.stat.listings'     => 'Annonces',
     'dash.stat.messages'     => 'Messages',
     'dash.phase'             => 'Phase :n — bientôt',
@@ -896,6 +898,7 @@ return [
     'bcart.view_cart' => 'Panier',
     'bcart.buy_now' => 'Acheter',
     'bcart.add_to_cart' => 'Ajouter au panier',
+    'bcart.added' => 'Ajouté au panier ✓',
     'bcart.to_checkout' => 'Passer à la caisse',
     // Caisse (page de validation du panier)
     'caisse.title' => 'Caisse — :shop',

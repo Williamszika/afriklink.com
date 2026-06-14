@@ -30,6 +30,8 @@ final class DashboardController
             'counts'         => \App\Models\Listing::countsFor($userId),
             'recent'         => $listings,
             'recent_mains'   => \App\Models\Listing::mainPhotos(array_map(static fn (array $l): int => (int) $l['id'], $listings)),
+            'purchases'      => \App\Models\Order::forUser($userId, 6),
+            'purchase_count' => \App\Models\Order::countForUser($userId),
         ]);
     }
 

@@ -34,6 +34,28 @@ final class ExchangeRates
         return (int) round($amountTo * 100);
     }
 
+    /**
+     * Taux multiplicateur PRÉCIS de `from` vers `to` (centime cible par centime
+     * source). À passer tel quel au JS pour qu'il calcule exactement comme
+     * convert() : cible = round(source × taux). Évite la perte de précision d'un
+     * taux dérivé d'un convert() déjà arrondi.
+     */
+    public static function rate(string $from, string $to): ?float
+    {
+        $from = strtoupper(trim($from));
+        $to   = strtoupper(trim($to));
+        if ($from === $to) {
+            return 1.0;
+        }
+        $rates = (array) config('currencies.per_eur', []);
+        $rf = isset($rates[$from]) ? (float) $rates[$from] : 0.0;
+        $rt = isset($rates[$to]) ? (float) $rates[$to] : 0.0;
+        if ($rf <= 0.0 || $rt <= 0.0) {
+            return null;
+        }
+        return $rt / $rf;
+    }
+
     /** Un taux existe-t-il pour cette paire ? */
     public static function available(string $from, string $to): bool
     {

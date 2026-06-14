@@ -3,7 +3,15 @@
  * Bandeau d'actualités défilant du bas de page. CSP-safe : défilement par
  * animation CSS pure (aucun JS inline). Le contenu est dupliqué (2 passes) pour
  * une boucle sans couture. Chaque info est un lien cliquable.
+ *
+ * Réservé aux pages PUBLIQUES : masqué sur les espaces de gestion (tableau de
+ * bord vendeur, admin) pour ne pas encombrer le travail du commerçant.
  */
+$tkPath = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+if (preg_match('#^/(dashboard|vendeur|admin)(/|$)#', $tkPath)
+    || preg_match('#^/(boutique|restaurant)/(gerer|modifier|creer|nouveau|produits?|stats|commandes|promos)#', $tkPath)) {
+    return;
+}
 $ticker = \App\Services\NewsTicker::items();
 if ($ticker === []) {
     return;

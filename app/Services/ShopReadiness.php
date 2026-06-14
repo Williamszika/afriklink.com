@@ -16,8 +16,11 @@ use App\Services\Payment\PaymentProviders;
  */
 final class ShopReadiness
 {
-    /** Moyens de paiement qui supposent un encaissement EN LIGNE (pas du cash). */
-    private const ONLINE_METHODS = ['card', 'paypal', 'apple_pay', 'google_pay', 'mobile_money'];
+    /** Moyens de paiement qui supposent un encaissement EN LIGNE via un PSP réel
+     *  (carte, wallets). Le Mobile Money (Orange Money, Wave, MTN…) est réglé en
+     *  DIRECT entre l'acheteur et le vendeur — comme l'espèce — donc il n'exige
+     *  pas de PSP plateforme et ne déclenche pas l'alerte « mode démo ». */
+    private const ONLINE_METHODS = ['card', 'paypal', 'apple_pay', 'google_pay'];
 
     /**
      * @param array $b boutique  @param int $activeProducts produits actifs (-1 = inconnu)

@@ -101,7 +101,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
     </div>
 
     <div class="shop-body">
-        <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
+        <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-added-label="<?= e(t('bcart.added')) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
             <div class="shop-toolbar">
                 <h2 class="panel-title"><?= icon('package', ['size' => 18]) ?> <?= e(t('shop.products_title')) ?>
                     <span class="shop-count muted"><?= e(t('shop.count', ['n' => count($products)])) ?></span>

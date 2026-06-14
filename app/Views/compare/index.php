@@ -32,7 +32,7 @@ use App\Services\CloudinaryService;
                     </tr>
                     <tr>
                         <th><?= e(t('compare.row_price')) ?></th>
-                        <?php foreach ($products as $p): ?><td class="compare-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></td><?php endforeach; ?>
+                        <?php foreach ($products as $p): ?><td class="compare-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></td><?php endforeach; ?>
                     </tr>
                     <tr>
                         <th><?= e(t('compare.row_rating')) ?></th>

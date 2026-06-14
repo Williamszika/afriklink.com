@@ -602,6 +602,39 @@ final class Order
         }
     }
 
+    /** @return list<array> commandes d'un acheteur (boutique jointe), récentes d'abord. */
+    public static function forUser(int $userId, int $limit = 10): array
+    {
+        try {
+            self::ensureTable();
+            $limit = max(1, min(50, $limit));
+            $stmt = db()->prepare(
+                "SELECT o.public_id, o.total_cents, o.currency, o.status, o.created_at,
+                        b.name AS boutique_name, b.slug AS boutique_slug
+                   FROM orders o JOIN boutiques b ON b.id = o.boutique_id
+                  WHERE o.user_id = :uid
+                  ORDER BY o.id DESC LIMIT {$limit}"
+            );
+            $stmt->execute(['uid' => $userId]);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Nombre total de commandes (achats) d'un utilisateur. */
+    public static function countForUser(int $userId): int
+    {
+        try {
+            self::ensureTable();
+            $stmt = db()->prepare('SELECT COUNT(*) FROM orders WHERE user_id = :uid');
+            $stmt->execute(['uid' => $userId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     public static function findByPublicId(string $publicId): ?array
     {
         try {

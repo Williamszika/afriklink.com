@@ -23,6 +23,28 @@
     }
 })();
 
+// Toast éphémère (confirmation « Ajouté au panier », etc.). CSP-safe : créé en
+// JS, animé en CSS. Accessible (role=status). Auto-disparaît.
+function showToast(msg) {
+    if (!msg) { return; }
+    var host = document.querySelector('.toast-host');
+    if (!host) {
+        host = document.createElement('div');
+        host.className = 'toast-host';
+        document.body.appendChild(host);
+    }
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.setAttribute('role', 'status');
+    el.textContent = msg;
+    host.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('is-in'); });
+    setTimeout(function () {
+        el.classList.remove('is-in');
+        setTimeout(function () { if (el.parentNode) { el.parentNode.removeChild(el); } }, 300);
+    }, 2200);
+}
+
 // Escape hatch for the geolocation-locked location block: the discreet
 // "Ce n'est pas ma position ?" link re-enables the country/indicatif selects AND
 // the city (removing the hidden inputs so the user's own choice is submitted).
@@ -494,6 +516,7 @@ document.addEventListener('click', function (ev) {
             paint(stepper, c.qty);
             render();
             syncServer(stepper.getAttribute('data-id'), c.qty);
+            if (inc) { showToast(menu.getAttribute('data-added-label')); }
         });
     });
     render();
@@ -2195,8 +2218,8 @@ document.addEventListener('click', function (ev) {
     var fxSym = box.getAttribute('data-fx-sym') || '';
     var approxEl = box.querySelector('[data-grand-approx]');
     function fmtFx(cents) {
-        var bc = cents * fxRate;
-        var v = fxInt ? Math.round(bc / 100) : bc / 100;
+        var tc = Math.round(cents * fxRate);
+        var v = fxInt ? Math.round(tc / 100) : tc / 100;
         return '≈ ' + new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: fxInt ? 0 : 2 }).format(v) + ' ' + fxSym;
     }
     function zoneFee(cc) {

@@ -20,7 +20,7 @@ $contactOk = !empty($user['phone']) || $verifiedEmail;
 
 $nListings = (int) ($counts['listings'] ?? 0);
 $stats = [
-    ['icon' => '🛒', 'key' => 'purchases', 'value' => 0,          'note' => t('dash.phase', ['n' => 3]), 'href' => '#buys'],
+    ['icon' => '🛒', 'key' => 'purchases', 'value' => (int) ($purchase_count ?? 0), 'note' => t('dash.stat.purchases_note'), 'href' => '#buys'],
     ['icon' => '🏷️', 'key' => 'listings',  'value' => $nListings, 'note' => t('dash.stat.listings_note'),'href' => url('/annonces')],
     ['icon' => '💬', 'key' => 'messages',  'value' => 0,          'note' => t('dash.phase', ['n' => 5]), 'href' => url('/bientot/messages')],
 ];
@@ -111,10 +111,27 @@ $stats = [
     <div class="grid-2 dash-cols">
         <div class="panel" id="buys">
             <h2 class="panel-title">🛒 <?= e(t('dash.buys_title')) ?></h2>
-            <div class="empty-state">
-                <p><?= e(t('dash.buys_empty')) ?></p>
-                <a class="btn btn-ghost" href="<?= e(url('/')) ?>#verticals"><?= e(t('dash.action.explore_title')) ?></a>
-            </div>
+            <?php if (empty($purchases)): ?>
+                <div class="empty-state">
+                    <p><?= e(t('dash.buys_empty')) ?></p>
+                    <a class="btn btn-ghost" href="<?= e(url('/')) ?>#verticals"><?= e(t('dash.action.explore_title')) ?></a>
+                </div>
+            <?php else: ?>
+                <ul class="order-list">
+                    <?php foreach ($purchases as $o): ?>
+                        <li class="order-row">
+                            <a class="order-row-main" href="<?= e(url('/boutique/commande/' . $o['public_id'])) ?>">
+                                <span class="order-shop"><?= e((string) $o['boutique_name']) ?></span>
+                                <span class="muted order-meta"><?= e(date('d/m/Y', strtotime((string) $o['created_at']))) ?> · <?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></span>
+                            </a>
+                            <span class="order-status order-status--<?= e((string) $o['status']) ?>"><?= e(t('order.status.' . $o['status'])) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <?php if ((int) ($purchase_count ?? 0) > count($purchases)): ?>
+                    <p class="hint"><?= e(t('dash.buys_more', ['n' => (int) $purchase_count])) ?></p>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
         <div class="panel" id="sales">
             <div class="panel-title-row">
