@@ -214,6 +214,8 @@ return [
     ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
     ['POST', '/restaurant/plat/{mid}/contenance', [RestaurantController::class, 'setVariantStatus'], ['auth', 'csrf']],
     ['POST', '/restaurant/paiement',             [RestaurantController::class, 'updatePayment'],   ['auth', 'csrf']],
+    ['POST', '/restaurant/livraison/zones',             [RestaurantController::class, 'createDeliveryArea'], ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/restaurant/livraison/zones/{zid}/suppr', [RestaurantController::class, 'deleteDeliveryArea'], ['auth', 'csrf']],
     // Commandes restaurant : panier public + suivi côté restaurateur
     ['GET',  '/restaurant/commandes',            [RestaurantController::class, 'orders'],          ['auth']],
     ['POST', '/restaurant/commandes/{ref}/statut', [RestaurantController::class, 'setOrderStatus'], ['auth', 'csrf']],

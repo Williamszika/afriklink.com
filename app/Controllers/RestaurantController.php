@@ -86,6 +86,7 @@ final class RestaurantController
             'categories' => MenuItem::categories((int) $resto['id']),
             'items' => MenuItem::forRestaurant((int) $resto['id']),
             'counts' => MenuItem::countFor((int) $resto['id']),
+            'delivery_areas' => \App\Models\DeliveryArea::forRestaurant((int) $resto['id']),
             'precat' => (string) input_string('cat', ''), // « + Plat » depuis une catégorie
         ] + SellerController::commonData($user));
     }
@@ -561,6 +562,52 @@ final class RestaurantController
         redirect('/restaurant/gerer');
     }
 
+    /* ---- Zones de livraison LOCALES (par quartier) ---- */
+
+    public function createDeliveryArea(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $resto = Restaurant::findByUserId((int) $user['id']);
+        if ($resto === null) {
+            redirect('/restaurant/creer');
+        }
+        if (\App\Models\DeliveryArea::count((int) $resto['id']) >= 20) {
+            flash('error', t('darea.err_max'));
+            redirect('/restaurant/gerer#zones');
+        }
+        $cur  = (string) $resto['currency'];
+        $name = trim((string) input_string('name', ''));
+        if ($name === '') {
+            flash('error', t('darea.err_name'));
+            redirect('/restaurant/gerer#zones');
+        }
+        $fee     = (int) (parse_price_to_cents(trim((string) input_string('fee', '0')), $cur) ?? 0);
+        $freeRaw = trim((string) input_string('free_above', ''));
+        $freeAbove = $freeRaw !== '' ? parse_price_to_cents($freeRaw, $cur) : null;
+        $delay   = whitelist((string) input_string('delay', ''), config('shop.prep_options', []), null);
+        \App\Models\DeliveryArea::create((int) $resto['id'], [
+            'name'             => $name,
+            'fee_cents'        => $fee,
+            'free_above_cents' => $freeAbove !== null && $freeAbove > 0 ? $freeAbove : null,
+            'delay'            => $delay,
+            'position'         => \App\Models\DeliveryArea::count((int) $resto['id']),
+        ]);
+        flash('success', t('darea.created'));
+        redirect('/restaurant/gerer#zones');
+    }
+
+    public function deleteDeliveryArea(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $resto = Restaurant::findByUserId((int) $user['id']);
+        if ($resto === null) {
+            redirect('/restaurant/creer');
+        }
+        \App\Models\DeliveryArea::delete((string) $request->param('zid', ''), (int) $resto['id']);
+        flash('success', t('darea.deleted'));
+        redirect('/restaurant/gerer#zones');
+    }
+
     /** Accès à la caisse : restaurant publié (tout le monde) ou propriétaire (aperçu d'un brouillon). */
     private function canShop(array $resto): bool
     {
@@ -681,6 +728,7 @@ final class RestaurantController
         view('restaurant/show', [
             'resto' => $resto,
             'categories' => $cats,
+            'delivery_areas' => \App\Models\DeliveryArea::forRestaurant((int) $resto['id']),
             'by_cat' => $byCat,
             'is_owner' => $isOwner,
             'seller' => User::findById((int) $resto['user_id']) ?? [],

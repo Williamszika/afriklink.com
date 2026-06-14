@@ -119,6 +119,16 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                     <?php if (!empty($resto['address'])): ?><dt><?= e(t('resto.f.address')) ?></dt><dd><?= icon('pin', ['size' => 15]) ?> <?= e((string) $resto['address']) ?></dd><?php endif; ?>
                     <?php if (!empty($resto['prep_minutes'])): ?><dt><?= e(t('resto.f.prep')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= (int) $resto['prep_minutes'] ?> min</dd><?php endif; ?>
                     <?php if (!empty($resto['delivery_fee_cents'])): ?><dt><?= e(t('resto.f.delivery_fee')) ?></dt><dd><?= icon('truck', ['size' => 15]) ?> <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></dd><?php endif; ?>
+                    <?php if (!empty($delivery_areas)): ?>
+                        <dt><?= e(t('darea.title')) ?></dt>
+                        <dd>
+                            <ul class="ship-zones-public">
+                                <?php foreach ($delivery_areas as $z): ?>
+                                    <li><strong><?= e((string) $z['name']) ?></strong> — <?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </dd>
+                    <?php endif; ?>
                     <?php if (!empty($resto['delivery_min_cents'])): ?><dt><?= e(t('resto.f.delivery_min')) ?></dt><dd><?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></dd><?php endif; ?>
                 </dl>
                 <?php if ($wa !== ''): ?>

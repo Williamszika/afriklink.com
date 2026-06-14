@@ -195,6 +195,48 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
             </div>
         <?php endif; ?>
 
+        <!-- Zones de livraison locales (par quartier) -->
+        <div class="panel" id="zones">
+            <h2 class="panel-title"><?= icon('pin', ['size' => 18]) ?> <?= e(t('darea.title')) ?></h2>
+            <p class="muted"><?= e(t('darea.lead')) ?></p>
+            <?php if (!empty($delivery_areas)): ?>
+                <ul class="zone-list">
+                    <?php foreach ($delivery_areas as $z): ?>
+                        <li class="zone-row">
+                            <div class="zone-info">
+                                <strong><?= e((string) $z['name']) ?></strong>
+                                <span class="zone-meta"><?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></span>
+                            </div>
+                            <form method="post" action="<?= e(url('/restaurant/livraison/zones/' . $z['public_id'] . '/suppr')) ?>" class="inline-form">
+                                <?= csrf_field() ?>
+                                <button class="link-button btn-danger" data-confirm="<?= e(t('darea.del_confirm')) ?>"><?= e(t('product.delete')) ?></button>
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+            <details class="zone-add">
+                <summary><?= icon('plus', ['size' => 16]) ?> <?= e(t('darea.add')) ?></summary>
+                <form method="post" action="<?= e(url('/restaurant/livraison/zones')) ?>" class="zone-form" data-submit-once>
+                    <?= csrf_field() ?>
+                    <label for="da-name"><?= e(t('darea.f.name')) ?></label>
+                    <input type="text" id="da-name" name="name" maxlength="60" required placeholder="<?= e(t('darea.f.name_ph')) ?>">
+                    <div class="grid-2">
+                        <div><label for="da-fee"><?= e(t('ship.zone.f.fee', ['cur' => $cur])) ?></label><input type="text" id="da-fee" name="fee" inputmode="decimal" value="0" required></div>
+                        <div><label for="da-free"><?= e(t('ship.zone.f.free_above', ['cur' => $cur])) ?></label><input type="text" id="da-free" name="free_above" inputmode="decimal" placeholder="<?= e(t('ship.zone.f.free_above_ph')) ?>"></div>
+                    </div>
+                    <label for="da-delay"><?= e(t('ship.zone.f.delay')) ?></label>
+                    <select id="da-delay" name="delay">
+                        <option value=""><?= e(t('field.choose')) ?></option>
+                        <?php foreach (config('shop.prep_options', []) as $opt): ?>
+                            <option value="<?= e((string) $opt) ?>"><?= e(t('shop.prep.' . $opt)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm"><?= e(t('darea.add_btn')) ?></button>
+                </form>
+            </details>
+        </div>
+
         <!-- Encaissement en ligne (conditions + moyens + fournisseur) -->
         <div class="panel">
             <h2 class="panel-title"><?= icon('card', ['size' => 18]) ?> <?= e(t('resto.payment_title')) ?></h2>
