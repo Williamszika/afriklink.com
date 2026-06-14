@@ -65,6 +65,23 @@ $cur = (string) $boutique['currency'];
                 <div class="stat-card"><div class="num afk-mono"><?= e(date('H:i', strtotime((string) $session['opened_at']))) ?></div><div class="lbl"><?= e(t('pos.k.opened')) ?></div></div>
             </div>
 
+            <?php if ($summary !== null): ?>
+            <div class="panel">
+                <div class="panel-title-row">
+                    <h2 class="panel-title">📊 <?= e(t('pos.report_x')) ?></h2>
+                    <a class="afk-link-all" href="<?= e(url('/vendeur/point-de-vente/session/' . $session['public_id'] . '/export')) ?>"><?= e(t('pos.export_csv')) ?> ↓</a>
+                </div>
+                <p class="pos-report-total"><?= e(t('pos.r.sales', ['n' => (int) $summary['count']])) ?> · <strong class="afk-mono"><?= e(format_price((int) $summary['total'], $cur)) ?></strong></p>
+                <?php if (!empty($summary['tenders'])): ?>
+                    <ul class="pos-tender-list">
+                        <?php foreach ($summary['tenders'] as $method => $net): ?>
+                            <li><span class="muted"><?= e(t('pos.pay.' . $method)) ?></span> <strong class="afk-mono"><?= e(format_price((int) $net, $cur)) ?></strong></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
             <div class="panel">
                 <h2 class="panel-title">💵 <?= e(t('pos.cash_title')) ?></h2>
                 <form method="post" action="<?= e(url('/vendeur/point-de-vente/mouvement')) ?>" class="pos-move-form">
@@ -115,7 +132,7 @@ $cur = (string) $boutique['currency'];
             <div class="panel">
                 <h2 class="panel-title">📒 <?= e(t('pos.history')) ?></h2>
                 <table>
-                    <thead><tr><th><?= e(t('pos.h.date')) ?></th><th><?= e(t('pos.h.expected')) ?></th><th><?= e(t('pos.h.counted')) ?></th><th><?= e(t('pos.h.variance')) ?></th></tr></thead>
+                    <thead><tr><th><?= e(t('pos.h.date')) ?></th><th><?= e(t('pos.h.expected')) ?></th><th><?= e(t('pos.h.counted')) ?></th><th><?= e(t('pos.h.variance')) ?></th><th><?= e(t('pos.h.report')) ?></th></tr></thead>
                     <tbody>
                         <?php foreach ($closed as $s): $v = (int) ($s['variance_cents'] ?? 0); ?>
                             <tr>
@@ -123,6 +140,7 @@ $cur = (string) $boutique['currency'];
                                 <td class="afk-mono"><?= e(format_price((int) ($s['expected_cash_cents'] ?? 0), $cur)) ?></td>
                                 <td class="afk-mono"><?= e(format_price((int) ($s['counted_cash_cents'] ?? 0), $cur)) ?></td>
                                 <td class="afk-mono pos-var <?= $v === 0 ? 'is-ok' : ($v > 0 ? 'is-over' : 'is-under') ?>"><?= ($v > 0 ? '+' : '') . e(format_price($v, $cur)) ?></td>
+                                <td><a href="<?= e(url('/vendeur/point-de-vente/session/' . $s['public_id'] . '/export')) ?>">Z ↓</a></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

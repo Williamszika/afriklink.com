@@ -341,6 +341,34 @@ final class Order
         }
     }
 
+    /**
+     * Synthèse des ventes POS d'une session (rapports X/Z) : nombre, total, et
+     * répartition nette par moyen de paiement (montant − rendu).
+     * @return array{count:int,total:int,tenders:array<string,int>}
+     */
+    public static function posSummaryForSession(int $sessionId): array
+    {
+        $out = ['count' => 0, 'total' => 0, 'tenders' => []];
+        try {
+            $stmt = db()->prepare('SELECT COUNT(*) AS n, COALESCE(SUM(total_cents), 0) AS total FROM orders WHERE register_session_id = :s');
+            $stmt->execute(['s' => $sessionId]);
+            $r = $stmt->fetch() ?: [];
+            $out['count'] = (int) ($r['n'] ?? 0);
+            $out['total'] = (int) ($r['total'] ?? 0);
+            $t = db()->prepare(
+                "SELECT t.method, COALESCE(SUM(t.amount_cents - t.change_given_cents), 0) AS net
+                   FROM order_tenders t JOIN orders o ON o.id = t.order_id
+                  WHERE o.register_session_id = :s GROUP BY t.method"
+            );
+            $t->execute(['s' => $sessionId]);
+            foreach ($t->fetchAll() ?: [] as $row) {
+                $out['tenders'][(string) $row['method']] = (int) $row['net'];
+            }
+        } catch (\Throwable) {
+        }
+        return $out;
+    }
+
     /** Total des ventes POS réglées en espèces d'une session (théorique de caisse). */
     public static function posCashSalesForSession(int $sessionId): int
     {

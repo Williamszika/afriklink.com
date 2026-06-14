@@ -40,6 +40,7 @@ final class PosController
             'session'   => $session,
             'movements' => $movements,
             'expected'  => $session !== null ? RegisterSession::expectedCash($session) : 0,
+            'summary'   => $session !== null ? Order::posSummaryForSession((int) $session['id']) : null,
             'units'     => $session !== null ? $this->sellableUnits((int) $boutique['id']) : [],
             'sessions'  => RegisterSession::forRegister((int) $register['id'], 8),
         ] + SellerController::commonData($user));
@@ -142,6 +143,53 @@ final class PosController
             ? t('pos.sale_done', ['change' => format_price((int) $tender['change_given_cents'], $cur)])
             : t('pos.sale_done_e', ['method' => t('pos.pay.' . $method)]));
         redirect('/vendeur/point-de-vente');
+    }
+
+    /** Export CSV d'une session : rapport X (ouverte) ou Z (clôturée) — réconciliation. */
+    public function exportSession(Request $request): void
+    {
+        [, $boutique] = $this->sellerShop();
+        $session = RegisterSession::findByPublicId((string) $request->param('id', ''));
+        if ($session === null || (int) $session['boutique_id'] !== (int) $boutique['id']) {
+            abort(404);
+        }
+        $isZ      = ($session['status'] ?? '') === 'closed';
+        $summary  = Order::posSummaryForSession((int) $session['id']);
+        $sums     = CashMovement::sums((int) $session['id']);
+        $expected = RegisterSession::expectedCash($session);
+        $fmt = static fn (int $c): string => number_format($c / 100, 2, '.', '');
+        $rows = [
+            [$isZ ? 'Rapport Z' : 'Rapport X', (string) $boutique['name']],
+            ['Devise', (string) $session['currency']],
+            ['Ouverte', (string) $session['opened_at']],
+        ];
+        if ($isZ) {
+            $rows[] = ['Cloturee', (string) ($session['closed_at'] ?? '')];
+        }
+        $rows[] = ['', ''];
+        $rows[] = ['Ventes (nb)', (string) $summary['count']];
+        $rows[] = ['Ventes (total)', $fmt((int) $summary['total'])];
+        foreach ($summary['tenders'] as $method => $net) {
+            $rows[] = ['  dont ' . $method, $fmt((int) $net)];
+        }
+        $rows[] = ['', ''];
+        $rows[] = ['Fond de caisse', $fmt((int) $session['opening_float_cents'])];
+        $rows[] = ['Apports especes', $fmt((int) $sums['paid_in'])];
+        $rows[] = ['Sorties especes', $fmt((int) $sums['paid_out'])];
+        $rows[] = ['Especes attendues', $fmt($expected)];
+        if ($isZ) {
+            $rows[] = ['Especes comptees', $fmt((int) ($session['counted_cash_cents'] ?? 0))];
+            $rows[] = ['Ecart', $fmt((int) ($session['variance_cents'] ?? 0))];
+        }
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="caisse-' . ($isZ ? 'Z' : 'X') . '-' . substr((string) $session['public_id'], 0, 8) . '.csv"');
+        header('X-Content-Type-Options: nosniff');
+        $out = fopen('php://output', 'w');
+        foreach ($rows as $r) {
+            fputcsv($out, $r);
+        }
+        fclose($out);
+        exit;
     }
 
     /* ---- Helpers ---- */

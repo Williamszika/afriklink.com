@@ -128,6 +128,7 @@ return [
     ['POST', '/vendeur/point-de-vente/vente',     [PosController::class, 'sale'],     ['auth', 'csrf']],
     ['POST', '/vendeur/point-de-vente/mouvement', [PosController::class, 'movement'], ['auth', 'csrf']],
     ['POST', '/vendeur/point-de-vente/fermer',    [PosController::class, 'close'],    ['auth', 'csrf']],
+    ['GET',  '/vendeur/point-de-vente/session/{id}/export', [PosController::class, 'exportSession'], ['auth']],
     ['GET',  '/vendeur/publicite',   [SellerController::class, 'advertising'],  ['auth']],
     ['POST', '/vendeur/publicite/{pid}/promouvoir', [SellerController::class, 'promote'], ['auth', 'csrf', 'throttle:product,60,3600']],
     ['GET',  '/vendeur/affiliation', [SellerController::class, 'affiliation'],  ['auth']],
