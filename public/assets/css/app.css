@@ -503,6 +503,13 @@ img.avatar-img { object-fit: cover; background: var(--bg); border: 1px solid var
 .order-note { color: var(--muted); }
 .order-total { color: var(--brand); }
 .order-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+/* Expédition : transporteur + n° de suivi (saisie facultative côté vendeur). */
+.ship-fields { display: flex; gap: 6px; flex-wrap: wrap; flex: 1 1 100%; margin-bottom: 4px; }
+.input-sm { padding: 6px 9px; font-size: .9rem; border: 1px solid var(--border, #d9dee5); border-radius: 8px; background: #fff; min-width: 0; }
+.ship-fields .input-sm:last-child { flex: 1 1 160px; }
+/* Suivi du colis affiché au client sur la page de confirmation. */
+.track-parcel { margin: 4px auto 12px; max-width: 460px; text-align: center; }
+.track-parcel .hint { margin: 0 0 6px; }
 
 /* Statistiques boutique : barres 14 jours + détail par page */
 .stats-bars { display: flex; align-items: flex-end; gap: 6px; height: 150px; padding-top: 18px; }

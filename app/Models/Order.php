@@ -110,6 +110,12 @@ final class Order
             'channel'        => "ADD COLUMN channel VARCHAR(8) NOT NULL DEFAULT 'online' AFTER source",
             'register_session_id' => "ADD COLUMN register_session_id BIGINT UNSIGNED NULL AFTER channel",
             'dest_country'   => "ADD COLUMN dest_country CHAR(2) NULL AFTER client_address",
+            // Suivi de livraison (transporteur + n° de suivi → lien cliquable).
+            'carrier'         => "ADD COLUMN carrier VARCHAR(32) NULL AFTER fulfillment",
+            'tracking_number' => "ADD COLUMN tracking_number VARCHAR(64) NULL AFTER carrier",
+            'tracking_url'    => "ADD COLUMN tracking_url VARCHAR(300) NULL AFTER tracking_number",
+            'shipped_at'      => "ADD COLUMN shipped_at DATETIME NULL AFTER status",
+            'delivered_at'    => "ADD COLUMN delivered_at DATETIME NULL AFTER shipped_at",
         ];
         foreach ($columns as $col => $ddl) {
             try {
@@ -655,6 +661,40 @@ final class Order
             return null;
         }
         db()->prepare('UPDATE orders SET status = :s WHERE id = :id')->execute(['s' => $to, 'id' => $id]);
+        // Horodatage d'expédition / livraison — best-effort : la colonne peut ne
+        // pas encore être provisionnée en prod, ce qui ne doit jamais bloquer le
+        // changement de statut (déjà appliqué ci-dessus).
+        $col = match ($to) {
+            'shipped'   => 'shipped_at',
+            'delivered' => 'delivered_at',
+            default     => null,
+        };
+        if ($col !== null) {
+            try {
+                db()->prepare("UPDATE orders SET {$col} = COALESCE({$col}, NOW()) WHERE id = :id")->execute(['id' => $id]);
+            } catch (\Throwable) {
+            }
+        }
         return $to;
+    }
+
+    /**
+     * Renseigne le transporteur + le numéro de suivi (+ lien) à l'expédition.
+     * Best-effort : si les colonnes de suivi ne sont pas encore provisionnées,
+     * l'expédition reste possible (le statut, lui, est déjà passé à « expédiée »).
+     */
+    public static function setShipment(int $id, ?string $carrier, ?string $tracking, ?string $url): void
+    {
+        try {
+            db()->prepare('UPDATE orders SET carrier = :c, tracking_number = :t, tracking_url = :u WHERE id = :id')
+                ->execute([
+                    'c'  => ($carrier ?? '') !== '' ? $carrier : null,
+                    't'  => ($tracking ?? '') !== '' ? $tracking : null,
+                    'u'  => ($url ?? '') !== '' ? $url : null,
+                    'id' => $id,
+                ]);
+        } catch (\Throwable) {
+            // colonnes de suivi non provisionnées : sans gravité
+        }
     }
 }

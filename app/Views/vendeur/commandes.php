@@ -168,6 +168,17 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                     <?php if ($st === 'new'): ?>
                                         <button class="btn btn-primary btn-sm" name="action" value="confirm"><?= icon('check', ['size' => 16]) ?> <?= e(t('order.act.confirm')) ?></button>
                                     <?php elseif ($st === 'confirmed'): ?>
+                                        <?php if (($o['source'] ?? '') === 'online'): ?>
+                                            <div class="ship-fields">
+                                                <select name="carrier" class="input-sm" aria-label="<?= e(t('order.ship.carrier')) ?>">
+                                                    <?php foreach (delivery_carriers() as $ck => $clabel): ?>
+                                                        <option value="<?= e($ck) ?>"<?= $ck === config('delivery.default', 'other') ? ' selected' : '' ?>><?= e($clabel) ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <input type="text" name="tracking_number" class="input-sm" maxlength="64"
+                                                       placeholder="<?= e(t('order.ship.tracking_ph')) ?>" aria-label="<?= e(t('order.ship.tracking')) ?>">
+                                            </div>
+                                        <?php endif; ?>
                                         <button class="btn btn-primary btn-sm" name="action" value="ship"><?= icon('package', ['size' => 16]) ?> <?= e(t('order.act.ship')) ?></button>
                                     <?php else: ?>
                                         <button class="btn btn-primary btn-sm" name="action" value="deliver"><?= icon('flag', ['size' => 16]) ?> <?= e(t('order.act.deliver')) ?></button>

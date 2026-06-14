@@ -936,8 +936,13 @@ final class BoutiqueController
         } catch (\Throwable) {
         }
         try {
+            // Reçu détaillé au client : lignes + sous-total / livraison / remise /
+            // total réel de la commande (sous-total + livraison − remise).
             OrderNotifier::clientOrderPlaced(
-                $email, $phone, (string) $boutique['name'], $ref, $total, $cur, $paymentTerm,
+                $email, $phone, (string) $boutique['name'], $ref,
+                $notifyLines, $subtotal, $shipping, $discount,
+                max(0, $subtotal + $shipping - $discount),
+                $cur, $paymentTerm,
                 url('/boutique/commande/' . $publicId),
             );
         } catch (\Throwable) {

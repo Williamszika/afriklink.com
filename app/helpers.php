@@ -494,6 +494,52 @@ function country_mobile_money(?string $cc): array
     return $map[strtoupper(trim((string) $cc))] ?? [];
 }
 
+/* ------------------------------------------------------------------ */
+/* Livraison / transporteurs                                           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Transporteurs proposés au vendeur à l'expédition.
+ * @return array<string,string> clé => libellé affichable
+ */
+function delivery_carriers(): array
+{
+    $out = [];
+    foreach ((array) config('delivery.carriers', []) as $key => $c) {
+        $out[(string) $key] = carrier_label((string) $key);
+    }
+    return $out;
+}
+
+/** Libellé affichable d'un transporteur (le « générique » est traduit). */
+function carrier_label(?string $key): string
+{
+    $key = trim((string) $key);
+    if ($key === '') {
+        return '';
+    }
+    $c = config('delivery.carriers.' . $key);
+    if (!is_array($c)) {
+        return $key;
+    }
+    return (string) ($c['label'] ?? '') !== '' ? (string) $c['label'] : t('order.carrier.other');
+}
+
+/**
+ * Lien de suivi cliquable construit depuis le gabarit du transporteur et le
+ * numéro de suivi ({tracking} = numéro URL-encodé), ou null si le transporteur
+ * n'a pas de gabarit (coursier local…) ou si le numéro est vide.
+ */
+function carrier_tracking_url(?string $carrier, ?string $number): ?string
+{
+    $number = trim((string) $number);
+    $tpl = config('delivery.carriers.' . trim((string) $carrier) . '.url');
+    if ($number === '' || !is_string($tpl) || $tpl === '') {
+        return null;
+    }
+    return str_replace('{tracking}', rawurlencode($number), $tpl);
+}
+
 /** Initiales pour l'avatar par défaut (« AD » pour « Awa Diop »). */
 function user_initials(array $user): string
 {

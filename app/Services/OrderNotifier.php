@@ -105,27 +105,70 @@ final class OrderNotifier
 
     /* ---- Côté client -------------------------------------------------- */
 
-    /** Confirmation au client : commande bien reçue, en attente de validation du vendeur. */
+    /**
+     * Reçu au client : commande bien reçue (en attente de validation du vendeur),
+     * avec le DÉTAIL chiffré (lignes, sous-total, livraison, remise, total) + un
+     * lien pour suivre l'avancement de la livraison.
+     * @param list<array{qty:int,title:string,line_total_cents:int}> $lines
+     */
     public static function clientOrderPlaced(
         string $email,
         string $phone,
         string $shopName,
         string $ref,
+        array $lines,
+        int $subtotalCents,
+        int $shippingCents,
+        int $discountCents,
         int $totalCents,
         string $currency,
         ?string $term,
         string $url,
     ): void {
         $total = format_price($totalCents, $currency);
-        $termLine = $term ? '<p>' . e(t('shop.f.payment_terms')) . ' : ' . e(t('shop.payterm.' . $term)) . '</p>' : '';
-        $html = '<p>' . e(t('notify.client.placed_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-            . '<p>' . e(t('rorder.total')) . ' : <strong>' . e($total) . '</strong></p>'
+
+        // ---- Détail des articles (tableau HTML) ----
+        $rows = '';
+        foreach ($lines as $l) {
+            $rows .= '<tr>'
+                . '<td style="padding:4px 10px 4px 0">' . (int) $l['qty'] . '× ' . e((string) $l['title']) . '</td>'
+                . '<td style="padding:4px 0;text-align:right;white-space:nowrap">'
+                . e(format_price((int) $l['line_total_cents'], $currency)) . '</td></tr>';
+        }
+        $sub = static function (string $label, int $cents) use ($currency): string {
+            return '<tr><td style="padding:2px 10px 2px 0;color:#555">' . e($label) . '</td>'
+                . '<td style="padding:2px 0;text-align:right;color:#555">' . e(format_price($cents, $currency)) . '</td></tr>';
+        };
+        $breakdown = $sub(t('caisse.subtotal'), $subtotalCents);
+        if ($shippingCents > 0) {
+            $breakdown .= $sub(t('caisse.shipping'), $shippingCents);
+        }
+        if ($discountCents > 0) {
+            $breakdown .= '<tr><td style="padding:2px 10px 2px 0;color:#0b7a4b">' . e(t('order.receipt.discount'))
+                . '</td><td style="padding:2px 0;text-align:right;color:#0b7a4b">−' . e(format_price($discountCents, $currency)) . '</td></tr>';
+        }
+
+        $termLine = $term ? '<p>' . e(t('shop.f.payment_terms')) . ' : <strong>' . e(t('shop.payterm.' . $term)) . '</strong></p>' : '';
+
+        $html = '<p>' . e(t('notify.client.receipt_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
+            . '<table style="border-collapse:collapse;margin:6px 0 4px;min-width:260px">' . $rows
+            . '<tr><td colspan="2" style="border-top:1px solid #e5e7eb;padding-top:6px"></td></tr>'
+            . $breakdown
+            . '<tr><td style="padding:6px 10px 0 0;border-top:1px solid #e5e7eb"><strong>' . e(t('rorder.total')) . '</strong></td>'
+            . '<td style="padding:6px 0 0;text-align:right;border-top:1px solid #e5e7eb"><strong>' . e($total) . '</strong></td></tr>'
+            . '</table>'
             . $termLine
+            . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
+            . e(t('notify.client.track_order_cta')) . '</a></p>'
             . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
-        $text = t('notify.client.placed_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n"
-            . t('rorder.total') . ' : ' . $total . "\n" . $url;
+
+        $text = t('notify.client.receipt_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n";
+        foreach ($lines as $l) {
+            $text .= (int) $l['qty'] . '× ' . $l['title'] . ' — ' . format_price((int) $l['line_total_cents'], $currency) . "\n";
+        }
+        $text .= t('rorder.total') . ' : ' . $total . "\n" . $url;
         $sms = t('notify.client.placed_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
-        self::client($email, $phone, t('notify.client.placed_subject', ['ref' => $ref]), $html, $text, $sms);
+        self::client($email, $phone, t('notify.client.receipt_subject', ['ref' => $ref]), $html, $text, $sms);
     }
 
     /**
@@ -168,12 +211,28 @@ final class OrderNotifier
     public static function clientOrderShipped(array $order, string $shopName, string $url): void
     {
         $ref = self::ref($order);
+        // Suivi transporteur (facultatif) : transporteur + n° + lien cliquable.
+        $carrier  = trim((string) ($order['carrier'] ?? ''));
+        $tracking = trim((string) ($order['tracking_number'] ?? ''));
+        $trackUrl = trim((string) ($order['tracking_url'] ?? ''));
+        $trackLine = '';
+        if ($tracking !== '') {
+            $cl = $carrier !== '' ? carrier_label($carrier) : '';
+            $trackLine = '<p>' . e(t('order.track.tracking')) . ' : <strong>' . e($tracking) . '</strong>'
+                . ($cl !== '' ? ' · ' . e($cl) : '') . '</p>';
+        }
+        // Le bouton « Suivre le colis » pointe vers le transporteur si on a un
+        // lien, sinon vers la page de suivi de la commande.
+        $cta = $trackUrl !== '' ? $trackUrl : $url;
         $html = '<p>' . e(t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-            . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
+            . $trackLine
+            . '<p><a href="' . e($cta) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
             . e(t('notify.client.track_cta')) . '</a></p>'
             . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
-        $text = t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n" . $url;
-        $sms  = t('notify.client.shipped_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
+        $text = t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n"
+            . ($tracking !== '' ? t('order.track.tracking') . ' : ' . $tracking . "\n" : '')
+            . ($trackUrl !== '' ? $trackUrl . "\n" : '') . $url;
+        $sms  = t('notify.client.shipped_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $cta;
         self::client(
             trim((string) ($order['client_email'] ?? '')),
             (string) ($order['client_phone'] ?? ''),

@@ -152,6 +152,21 @@ final class OrderController
         } else {
             AuditLog::record((int) $user['id'], 'order.' . $action, 'order', (int) $order['id'], [], $request->ipBinary());
             flash('success', t('order.status_flash', ['status' => t('order.status.' . $to)]));
+            // Expédition : le vendeur peut joindre un transporteur + un numéro de
+            // suivi (facultatifs). On en déduit le lien de suivi cliquable, puis on
+            // recharge la commande pour que la notification client le porte.
+            if ($action === 'ship') {
+                $carriers = array_keys((array) config('delivery.carriers', []));
+                $carrier  = whitelist((string) input_string('carrier', ''), $carriers, null);
+                $tracking = trim(mb_substr((string) preg_replace('/[^A-Za-z0-9\- ]/', '', (string) input_string('tracking_number', '')), 0, 64));
+                Order::setShipment(
+                    (int) $order['id'],
+                    $carrier,
+                    $tracking !== '' ? $tracking : null,
+                    carrier_tracking_url($carrier, $tracking),
+                );
+                $order = Order::findByPublicId((string) $order['public_id']) ?? $order;
+            }
             // Commande EN LIGNE : on tient le client informé à chaque étape
             // (confirmée → expédiée → livrée), par e-mail + SMS/WhatsApp, et en
             // in-app s'il a un compte. Best-effort : ne bloque jamais le vendeur.

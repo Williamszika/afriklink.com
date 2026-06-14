@@ -34,6 +34,21 @@ $waText = rawurlencode(
         ],
     ]) ?>
 
+    <?php
+    // Suivi du colis (si le vendeur a joint un transporteur + un numéro).
+    $trackNum = trim((string) ($order['tracking_number'] ?? ''));
+    if ($trackNum !== '' && in_array($status, ['shipped', 'delivered'], true)):
+        $trackUrl   = trim((string) ($order['tracking_url'] ?? ''));
+        $trackLabel = carrier_label((string) ($order['carrier'] ?? ''));
+        ?>
+        <div class="track-parcel">
+            <p class="hint">📦 <?= e(t('order.track.tracking')) ?> : <strong><?= e($trackNum) ?></strong><?= $trackLabel !== '' ? ' · ' . e($trackLabel) : '' ?></p>
+            <?php if ($trackUrl !== ''): ?>
+                <p><a class="btn btn-ghost btn-sm" href="<?= e($trackUrl) ?>" target="_blank" rel="noopener"><?= icon('truck', ['size' => 15]) ?> <?= e(t('order.track.follow')) ?> ↗</a></p>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
     <ul class="cart-lines confirm-lines">
         <?php foreach ($items as $it): ?>
             <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e((string) $it['title']) ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>
