@@ -43,7 +43,11 @@ final class AffiliateController
         $program = null;
         if ($shop !== null) {
             $aff = Boutique::affiliationOf((int) $shop['id']);
-            $program = ['boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate']];
+            $program = [
+                'boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate'],
+                'stats'    => Affiliate::programStats((int) $shop['id']),
+                'recent'   => Affiliate::programRecent((int) $shop['id'], 8),
+            ];
         }
 
         // Lien PERSONNEL unique : généré uniquement pour les particuliers.

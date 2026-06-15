@@ -301,6 +301,65 @@ final class Affiliate
         }
     }
 
+    /* ---- Performance d'un programme (côté vendeur, par boutique) ---------- */
+
+    /**
+     * Statistiques d'affiliation d'UNE boutique (pour le vendeur qui l'offre) :
+     * nb d'apporteurs distincts, nb de ventes, montant et commissions par devise.
+     * @return array{affiliates:int, sales:int, sales_amount:array<string,int>, commissions:array<string,int>, paid:array<string,int>}
+     */
+    public static function programStats(int $boutiqueId): array
+    {
+        self::ensureTables();
+        $out = ['affiliates' => 0, 'sales' => 0, 'sales_amount' => [], 'commissions' => [], 'paid' => []];
+        if ($boutiqueId <= 0) {
+            return $out;
+        }
+        try {
+            $stmt = db()->prepare(
+                'SELECT currency,
+                        COUNT(*) AS n,
+                        COALESCE(SUM(amount_cents), 0) AS amt,
+                        COALESCE(SUM(commission_cents), 0) AS com,
+                        COALESCE(SUM(CASE WHEN paid_out_at IS NOT NULL THEN commission_cents ELSE 0 END), 0) AS paid
+                   FROM affiliate_conversions WHERE boutique_id = :b GROUP BY currency'
+            );
+            $stmt->execute(['b' => $boutiqueId]);
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $cur = (string) $r['currency'];
+                $out['sales'] += (int) $r['n'];
+                $out['sales_amount'][$cur] = (int) $r['amt'];
+                $out['commissions'][$cur] = (int) $r['com'];
+                $out['paid'][$cur] = (int) $r['paid'];
+            }
+            // Apporteurs DISTINCTS (global, toutes devises confondues).
+            $a = db()->prepare('SELECT COUNT(DISTINCT affiliate_id) FROM affiliate_conversions WHERE boutique_id = :b');
+            $a->execute(['b' => $boutiqueId]);
+            $out['affiliates'] = (int) $a->fetchColumn();
+        } catch (\Throwable) {
+        }
+        return $out;
+    }
+
+    /** Dernières ventes attribuées à des apporteurs pour CETTE boutique. @return list<array> */
+    public static function programRecent(int $boutiqueId, int $limit = 8): array
+    {
+        self::ensureTables();
+        if ($boutiqueId <= 0) {
+            return [];
+        }
+        try {
+            $stmt = db()->prepare(
+                'SELECT order_public_id, amount_cents, commission_cents, currency, paid_out_at, created_at
+                   FROM affiliate_conversions WHERE boutique_id = :b ORDER BY id DESC LIMIT ' . max(1, min(50, $limit))
+            );
+            $stmt->execute(['b' => $boutiqueId]);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     private static function cookie(string $value, int $expires): void
     {
         @setcookie(self::COOKIE, $value, [

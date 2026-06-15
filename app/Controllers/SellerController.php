@@ -236,7 +236,11 @@ final class SellerController
         $program = null;
         if ($shop !== null) {
             $aff = \App\Models\Boutique::affiliationOf((int) $shop['id']);
-            $program = ['boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate']];
+            $program = [
+                'boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate'],
+                'stats'    => \App\Models\Affiliate::programStats((int) $shop['id']),
+                'recent'   => \App\Models\Affiliate::programRecent((int) $shop['id'], 8),
+            ];
         }
         view('vendeur/affiliation', [
             'active'       => 'affiliation',

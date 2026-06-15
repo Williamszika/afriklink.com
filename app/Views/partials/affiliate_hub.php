@@ -46,6 +46,54 @@ $wallet       = $wallet ?? null;
         </form>
         <p class="hint"><?= e(t('aff.program_hint')) ?></p>
     </div>
+
+    <?php /* ---- Performance du programme (côté vendeur) ---- */ ?>
+    <?php $pStats = $program['stats'] ?? null; $pRecent = $program['recent'] ?? []; ?>
+    <?php if ($pStats !== null): ?>
+        <div class="panel">
+            <h2 class="panel-title"><?= icon('chart', ['size' => 18]) ?> <?= e(t('aff.perf_title')) ?></h2>
+            <div class="stat-grid cols-3">
+                <div class="stat-card">
+                    <div class="num"><?= icon('users', ['size' => 18]) ?> <?= (int) $pStats['affiliates'] ?></div>
+                    <div class="lbl"><?= e(t('aff.perf_affiliates')) ?></div>
+                </div>
+                <div class="stat-card">
+                    <div class="num"><?= icon('bag', ['size' => 18]) ?> <?= (int) $pStats['sales'] ?></div>
+                    <div class="lbl"><?= e(t('aff.perf_sales')) ?></div>
+                </div>
+                <div class="stat-card">
+                    <div class="num"><?= icon('wallet', ['size' => 18]) ?>
+                        <?= empty($pStats['paid']) ? '0' : e(implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $pStats['paid'], array_keys($pStats['paid'])))) ?>
+                    </div>
+                    <div class="lbl"><?= e(t('aff.perf_paid')) ?></div>
+                </div>
+            </div>
+            <?php if ($pRecent === []): ?>
+                <p class="muted"><?= e(t('aff.perf_none')) ?></p>
+            <?php else: ?>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr>
+                            <th><?= e(t('aff.col_date')) ?></th>
+                            <th><?= e(t('aff.col_amount')) ?></th>
+                            <th><?= e(t('aff.col_commission')) ?></th>
+                            <th><?= e(t('aff.col_status')) ?></th>
+                        </tr></thead>
+                        <tbody>
+                        <?php foreach ($pRecent as $r): $paid = !empty($r['paid_out_at']); ?>
+                            <tr>
+                                <td><?= e(date('d/m/Y', strtotime((string) $r['created_at']))) ?></td>
+                                <td><?= e(format_price((int) $r['amount_cents'], (string) $r['currency'])) ?></td>
+                                <td><strong><?= e(format_price((int) $r['commission_cents'], (string) $r['currency'])) ?></strong></td>
+                                <td><span class="badge <?= $paid ? 'badge-ok' : 'badge-muted' ?>"><?= e($paid ? t('wallet.status.paid') : t('wallet.status.pending')) ?></span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php if ($can_earn): /* ===== Espace PARTICULIER : lien personnel + gains ===== */ ?>
