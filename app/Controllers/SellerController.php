@@ -230,24 +230,25 @@ final class SellerController
     {
         $user = current_user() ?? [];
         $uid  = (int) ($user['id'] ?? 0);
-        $code = \App\Models\Affiliate::codeFor($uid);
+        // Espace vendeur : AUCUN lien d'apporteur ici — uniquement la configuration
+        // du programme d'affiliation de SA boutique (le « gagner » est aux particuliers).
         $shop    = \App\Models\Boutique::findByUserId($uid);
         $program = null;
         if ($shop !== null) {
             $aff = \App\Models\Boutique::affiliationOf((int) $shop['id']);
             $program = ['boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate']];
         }
-        $afProducts = \App\Models\Product::participating(12);
         view('vendeur/affiliation', [
             'active'       => 'affiliation',
-            'code'         => $code,
-            'link'         => $code !== '' ? url('/r/' . $code) : '',
+            'can_earn'     => false,
+            'code'         => '',
+            'link'         => '',
             'rate'         => \App\Models\Affiliate::RATE_PCT,
-            'stats'        => \App\Models\Affiliate::statsFor($uid),
-            'recent'       => \App\Models\Affiliate::recentFor($uid, 10),
-            'directory'    => \App\Models\Boutique::participating(60),
-            'dir_products' => $afProducts,
-            'dir_mains'    => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $afProducts)),
+            'stats'        => ['clicks' => 0, 'conversions' => 0, 'earnings' => []],
+            'recent'       => [],
+            'directory'    => [],
+            'dir_products' => [],
+            'dir_mains'    => [],
             'program'      => $program,
             'wallet'       => null,
         ] + self::commonData($user));

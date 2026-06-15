@@ -1664,6 +1664,7 @@ return [
     'aff.nudge_title' => 'Enable affiliation to boost your sales',
     'aff.nudge_body' => 'Let members share your products: you only pay a commission on a sale, at the rate you set.',
     'aff.nudge_cta' => 'Set up',
+    'aff.vendor_lead' => 'Set up your shop’s affiliate program: individuals will share your products and earn the commission you set, only on a sale.',
     'wallet.source.affiliate' => 'Affiliate commission',
     'ads.title' => 'Advertising',
     'ads.lead' => 'Promote a product (:days days, free in simulation): it moves to the top of your shop, gets a “Sponsored” badge and appears on the homepage.',

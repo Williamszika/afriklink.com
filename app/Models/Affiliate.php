@@ -190,6 +190,12 @@ final class Affiliate
         if ($affiliateId === null || $affiliateId === $sellerUserId) {
             return; // lien inconnu ou auto-parrainage
         }
+        // L'affiliation est réservée aux particuliers : un vendeur (professionnel)
+        // n'apporte pas de commission — les gains sont distribués par particulier.
+        $affiliate = User::findById($affiliateId);
+        if (($affiliate['account_type'] ?? '') === 'professionnel') {
+            return;
+        }
         $program = Boutique::affiliationOf($boutiqueId);
         if (!$program['enabled']) {
             return; // la boutique n'a pas activé l'affiliation

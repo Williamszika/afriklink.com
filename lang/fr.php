@@ -1664,6 +1664,7 @@ return [
     'aff.nudge_title' => 'Activez l’affiliation pour booster vos ventes',
     'aff.nudge_body' => 'Laissez des membres partager vos produits : vous ne payez une commission qu’en cas de vente, au taux que vous fixez.',
     'aff.nudge_cta' => 'Configurer',
+    'aff.vendor_lead' => 'Configurez le programme d’affiliation de votre boutique : des particuliers partageront vos produits et toucheront la commission que vous fixez, uniquement en cas de vente.',
     'wallet.source.affiliate' => 'Commission d’affiliation',
     'ads.title' => 'Publicité',
     'ads.lead' => 'Mettez un produit en avant (:days jours, gratuit en simulation) : il passe en tête de votre vitrine, reçoit un badge « Sponsorisé » et apparaît sur l’accueil.',

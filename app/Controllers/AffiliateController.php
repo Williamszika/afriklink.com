@@ -33,9 +33,10 @@ final class AffiliateController
     /** Hub d'affiliation accessible à tout membre connecté (acheteur comme vendeur). */
     public function hub(Request $request): void
     {
-        $user = current_user() ?? [];
-        $uid  = (int) ($user['id'] ?? 0);
-        $code = Affiliate::codeFor($uid);
+        $user    = current_user() ?? [];
+        $uid     = (int) ($user['id'] ?? 0);
+        // Le lien d'apporteur (et les gains) est réservé aux PARTICULIERS.
+        $canEarn = ($user['account_type'] ?? '') !== 'professionnel';
 
         // Si le membre possède une boutique, on lui propose de configurer son programme.
         $shop    = Boutique::findByUserId($uid);
@@ -45,29 +46,40 @@ final class AffiliateController
             $program = ['boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate']];
         }
 
-        $products = Product::participating(12);
-        $cur      = Wallet::currencyFor($uid, 'EUR');
-
-        view('affiliation/hub', [
-            'user'        => $user,
-            'code'        => $code,
-            'link'        => $code !== '' ? url('/r/' . $code) : '',
-            'rate'        => Affiliate::RATE_PCT,
-            'stats'       => Affiliate::statsFor($uid),
-            'recent'      => Affiliate::recentFor($uid, 10),
-            'directory'   => Boutique::participating(60),
-            'dir_products' => $products,
-            'dir_mains'   => Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
-            'program'     => $program,
-            'wallet'      => [
+        // Lien PERSONNEL unique : généré uniquement pour les particuliers.
+        $code = $canEarn ? Affiliate::codeFor($uid) : '';
+        $data = [
+            'user'         => $user,
+            'can_earn'     => $canEarn,
+            'code'         => $code,
+            'link'         => $code !== '' ? url('/r/' . $code) : '',
+            'rate'         => Affiliate::RATE_PCT,
+            'program'      => $program,
+            'stats'        => ['clicks' => 0, 'conversions' => 0, 'earnings' => []],
+            'recent'       => [],
+            'directory'    => [],
+            'dir_products' => [],
+            'dir_mains'    => [],
+            'wallet'       => null,
+            'page_title'   => t('aff.title'),
+        ];
+        if ($canEarn) {
+            $products = Product::participating(12);
+            $cur      = Wallet::currencyFor($uid, 'EUR');
+            $data['stats']        = Affiliate::statsFor($uid);
+            $data['recent']       = Affiliate::recentFor($uid, 10);
+            $data['directory']    = Boutique::participating(60);
+            $data['dir_products'] = $products;
+            $data['dir_mains']    = Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products));
+            $data['wallet']       = [
                 'balance'     => Wallet::balanceCents($uid),
                 'currency'    => $cur,
                 'threshold'   => Wallet::thresholdCents($cur),
                 'can'         => Wallet::canWithdraw($uid),
                 'withdrawals' => Wallet::withdrawalsFor($uid),
-            ],
-            'page_title'  => t('aff.title'),
-        ]);
+            ];
+        }
+        view('affiliation/hub', $data);
     }
 
     /** Demande de retrait du solde (commissions d'affiliation) — ouvert à tout membre. */
