@@ -87,6 +87,115 @@ final class SellerAnalytics
         return $out;
     }
 
+    /** Nombre de commandes par jour (toutes vitrines). @return list<array{date:string,n:int}> */
+    public static function ordersByDay(int $userId, int $days = 14): array
+    {
+        $days = max(7, min(60, $days));
+        $series = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $series[date('Y-m-d', strtotime("-{$i} day"))] = 0;
+        }
+        foreach (self::sources($userId) as $src) {
+            try {
+                $stmt = db()->prepare(
+                    "SELECT DATE(created_at) AS d, COUNT(*) AS n FROM {$src['table']}
+                      WHERE {$src['key']} = :id AND status <> 'cancelled'
+                        AND created_at >= (CURDATE() - INTERVAL {$days} DAY) GROUP BY DATE(created_at)"
+                );
+                $stmt->execute(['id' => $src['id']]);
+                foreach ($stmt->fetchAll() ?: [] as $row) {
+                    $d = (string) $row['d'];
+                    if (isset($series[$d])) {
+                        $series[$d] += (int) $row['n'];
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+        $out = [];
+        foreach ($series as $date => $n) {
+            $out[] = ['date' => $date, 'n' => $n];
+        }
+        return $out;
+    }
+
+    /** Nouveaux produits par jour (boutique). @return list<array{date:string,n:int}> */
+    public static function productsByDay(int $userId, int $days = 14): array
+    {
+        $days = max(7, min(60, $days));
+        $series = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $series[date('Y-m-d', strtotime("-{$i} day"))] = 0;
+        }
+        $b = Boutique::findByUserId($userId);
+        if ($b !== null) {
+            try {
+                $stmt = db()->prepare(
+                    "SELECT DATE(created_at) AS d, COUNT(*) AS n FROM products
+                      WHERE boutique_id = :id AND created_at >= (CURDATE() - INTERVAL {$days} DAY) GROUP BY DATE(created_at)"
+                );
+                $stmt->execute(['id' => (int) $b['id']]);
+                foreach ($stmt->fetchAll() ?: [] as $row) {
+                    $d = (string) $row['d'];
+                    if (isset($series[$d])) {
+                        $series[$d] += (int) $row['n'];
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+        $out = [];
+        foreach ($series as $date => $n) {
+            $out[] = ['date' => $date, 'n' => $n];
+        }
+        return $out;
+    }
+
+    /** Répartition des commandes par état. @return array{active:int,delivered:int,cancelled:int} */
+    public static function statusBreakdown(int $userId): array
+    {
+        $b = ['active' => 0, 'delivered' => 0, 'cancelled' => 0];
+        foreach (self::sources($userId) as $src) {
+            try {
+                $stmt = db()->prepare("SELECT status, COUNT(*) AS n FROM {$src['table']} WHERE {$src['key']} = :id GROUP BY status");
+                $stmt->execute(['id' => $src['id']]);
+                foreach ($stmt->fetchAll() ?: [] as $row) {
+                    $s = (string) $row['status'];
+                    $n = (int) $row['n'];
+                    if ($s === 'cancelled') {
+                        $b['cancelled'] += $n;
+                    } elseif ($s === 'delivered') {
+                        $b['delivered'] += $n;
+                    } else {
+                        $b['active'] += $n;
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+        return $b;
+    }
+
+    /** Chiffre d'affaires du MOIS PRÉCÉDENT (pour la comparaison mensuelle). */
+    public static function revenuePrevMonth(int $userId): int
+    {
+        $sum = 0;
+        foreach (self::sources($userId) as $src) {
+            try {
+                $stmt = db()->prepare(
+                    "SELECT COALESCE(SUM({$src['amount']}),0) AS t FROM {$src['table']}
+                      WHERE {$src['key']} = :id AND status <> 'cancelled'
+                        AND created_at >= DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01')
+                        AND created_at <  DATE_FORMAT(NOW(), '%Y-%m-01')"
+                );
+                $stmt->execute(['id' => $src['id']]);
+                $sum += (int) ($stmt->fetchColumn() ?: 0);
+            } catch (\Throwable) {
+            }
+        }
+        return $sum;
+    }
+
     /** Répartition du chiffre d'affaires par vitrine. @return list<array{label:string,kind:string,cents:int}> */
     public static function byStorefront(int $userId): array
     {

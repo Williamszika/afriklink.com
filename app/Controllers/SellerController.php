@@ -119,6 +119,11 @@ final class SellerController
                     ? array_slice(\App\Models\Order::forBoutique((int) $boutique['id']), 0, 5)
                     : [],
                 'conversion'     => $views > 0 ? round($orderN / $views * 100, 1) : null,
+                'revenue_prev_month' => \App\Services\SellerAnalytics::revenuePrevMonth($uid),
+                'status_breakdown'   => \App\Services\SellerAnalytics::statusBreakdown($uid),
+                'orders_by_day'      => \App\Services\SellerAnalytics::ordersByDay($uid, 14),
+                'products_by_day'    => \App\Services\SellerAnalytics::productsByDay($uid, 14),
+                'views_by_day'       => $boutique !== null ? \App\Models\ShopView::daily((int) $boutique['id'], 14) : [],
             ];
         }
 
