@@ -722,7 +722,7 @@ final class BoutiqueController
         foreach (is_array($raw) ? $raw : [] as $e) {
             $id = (string) ($e['id'] ?? '');
             if ($id !== '') {
-                $entries[] = ['id' => $id, 'qty' => max(1, min(99, (int) ($e['qty'] ?? 0)))];
+                $entries[] = ['id' => $id, 'qty' => max(1, min(99, (int) ($e['qty'] ?? 0))), 'len' => max(0, min(10000, (int) ($e['len'] ?? 0)))];
             }
         }
         $lines = $this->validateCartLines($boutique, $entries);
@@ -731,7 +731,7 @@ final class BoutiqueController
             redirect('/boutique/' . $boutique['slug']);
         }
         $_SESSION['caisse'][(int) $boutique['id']] = array_map(
-            static fn (array $l): array => ['id' => $l['public_id'], 'qty' => $l['qty']],
+            static fn (array $l): array => ['id' => $l['public_id'], 'qty' => $l['qty'], 'len' => (int) ($l['length_cm'] ?? 0)],
             $lines
         );
         $_SESSION['cart_shop'] = (string) $boutique['slug']; // pour l'icône panier de l'en-tête
@@ -1321,6 +1321,32 @@ final class BoutiqueController
             $base  = ($variant !== null && $variant['price_cents'] !== null)
                 ? (int) $variant['price_cents'] : (int) $product['price_cents'];
             $price = product_effective_unit_cents($product, $base);
+            $label = $variant !== null ? trim((string) ($variant['label'] ?? '')) : '';
+
+            // Vente AU MÈTRE (tissus/pagnes) : la « quantité » est une LONGUEUR (cm),
+            // prix = longueur × prix au mètre. Une seule ligne ; longueur dans le titre.
+            if ((string) ($product['sale_unit'] ?? 'piece') === 'meter') {
+                if ($stock !== null && (int) $stock <= 0) {
+                    continue; // rupture
+                }
+                $cm = max(50, min(10000, (int) ($entry['len'] ?? 0))); // 0,5 m à 100 m
+                $lineTotal = (int) round($cm * $price / 100);
+                if ($lineTotal <= 0) {
+                    continue;
+                }
+                $lenLabel = rtrim(rtrim(number_format($cm / 100, 2, ',', ''), '0'), ',') . ' m';
+                $lines[] = [
+                    'product_id'       => (int) $product['id'],
+                    'variant_id'       => $variant !== null ? (int) $variant['id'] : null,
+                    'public_id'        => $variant !== null ? (string) $variant['public_id'] : (string) $product['public_id'],
+                    'title'            => (string) $product['name'] . ($label !== '' ? ' — ' . $label : '') . ' — ' . $lenLabel,
+                    'qty'              => 1,
+                    'unit_price_cents' => $lineTotal,
+                    'length_cm'        => $cm,
+                ];
+                continue;
+            }
+
             $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
             if ($stock !== null) {
                 $stock = (int) $stock;
@@ -1329,7 +1355,6 @@ final class BoutiqueController
                 }
                 $qty = min($qty, $stock);
             }
-            $label = $variant !== null ? trim((string) ($variant['label'] ?? '')) : '';
             $lines[] = [
                 'product_id'       => (int) $product['id'],
                 'variant_id'       => $variant !== null ? (int) $variant['id'] : null,

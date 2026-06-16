@@ -570,6 +570,17 @@ document.addEventListener('click', function (ev) {
     document.querySelectorAll('[data-buy-now]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             var id = btn.getAttribute('data-buy-now');
+            // Vente au mètre : on poste directement {id couleur, qty:1, longueur en cm}.
+            var croot = document.querySelector('[data-cart-root]');
+            if (croot && croot.getAttribute('data-sale-unit') === 'meter') {
+                var li = document.querySelector('[data-meter-length]');
+                var m = li ? parseFloat((li.value || '').replace(',', '.')) : 0;
+                if (!m || m < 0.5) { if (li) { li.focus(); } return; }
+                var cf = document.querySelector('[data-caisse-form]');
+                var hid = cf ? cf.querySelector('[data-cart-json]') : null;
+                if (cf && hid) { hid.value = JSON.stringify([{ id: id, size: '', qty: 1, len: Math.round(m * 100) }]); cf.submit(); }
+                return;
+            }
             if (caisseForm) { submitCaisse([{ id: id, size: '', qty: 1 }]); return; }
             var key = id + '|';
             if (cart[key]) {
@@ -2515,6 +2526,27 @@ document.addEventListener('click', function (ev) {
     }
     sel.addEventListener('change', refresh);
     refresh();
+})();
+
+/* ---- Vente au mètre : aperçu du total (longueur × prix au mètre) ---- */
+(function () {
+    var box = document.querySelector('[data-meter-buy]');
+    if (!box) { return; }
+    var input = box.querySelector('[data-meter-length]');
+    var out = box.querySelector('[data-meter-total]');
+    if (!input || !out) { return; }
+    var priceM = parseInt(box.getAttribute('data-price-m'), 10) || 0;
+    var root = document.querySelector('[data-cart-root]');
+    var curInt = root && root.getAttribute('data-cur-int') === '1';
+    var sym = (root && root.getAttribute('data-cur-sym')) || '';
+    function upd() {
+        var m = parseFloat((input.value || '').replace(',', '.'));
+        if (!m || m <= 0) { out.textContent = '—'; return; }
+        var c = Math.round(m * priceM);
+        out.textContent = (curInt ? String(Math.round(c / 100)) : (c / 100).toFixed(2).replace('.', ',')) + ' ' + sym;
+    }
+    input.addEventListener('input', upd);
+    upd();
 })();
 
 /* ---- Sélecteur de déclinaison taille/couleur (fiche produit) ---- */

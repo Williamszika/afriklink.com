@@ -83,7 +83,8 @@ foreach ($realVariants as $rv) {
         </div>
 
         <div class="listing-side">
-            <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
+            <?php $isMeter = (string) ($product['sale_unit'] ?? 'piece') === 'meter'; ?>
+            <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-sale-unit="<?= $isMeter ? 'meter' : 'piece' ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
                 <?php
                 $apTags = [];
@@ -96,7 +97,7 @@ foreach ($realVariants as $rv) {
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
                 <?php endif; ?>
                 <?php $pPct = product_promo_pct($product); $pEff = product_effective_unit_cents($product, (int) $product['price_cents']); ?>
-                <p class="listing-price"><?= render_partial('partials/price_dual', ['cents' => $pEff, 'cur' => $cur, 'compare' => $pPct > 0 ? (int) $product['price_cents'] : 0]) ?><?php if ($pPct > 0): ?> <span class="discount-badge discount-badge--inline">−<?= $pPct ?>%</span><?php endif; ?></p>
+                <p class="listing-price"><?= render_partial('partials/price_dual', ['cents' => $pEff, 'cur' => $cur, 'compare' => $pPct > 0 ? (int) $product['price_cents'] : 0]) ?><?php if ($isMeter): ?> <span class="price-unit"><?= e(t('product.per_meter')) ?></span><?php endif; ?><?php if ($pPct > 0): ?> <span class="discount-badge discount-badge--inline">−<?= $pPct ?>%</span><?php endif; ?></p>
                 <?php if ($pPct > 0 && !empty($product['promo_until'])): ?><p class="promo-until-line"><?= icon('clock', ['size' => 14]) ?> <?= e(t('product.promo_until', ['date' => date('d/m/Y', (int) strtotime((string) $product['promo_until']))])) ?></p><?php endif; ?>
                 <p class="listing-tags">
                     <?php if ($inStock): ?>
@@ -141,10 +142,20 @@ foreach ($realVariants as $rv) {
                         <p class="variant-unavailable" data-variant-unavailable hidden><?= e(t('variant.unavailable')) ?></p>
                     </div>
                 <?php endif; ?>
+                <?php if ($isMeter): ?>
+                    <div class="meter-buy" data-meter-buy data-price-m="<?= $pEff ?>">
+                        <label for="meter-len"><?= e(t('product.meter_length')) ?></label>
+                        <div class="meter-len-row">
+                            <input type="number" id="meter-len" data-meter-length min="0.5" max="100" step="0.5" value="1" inputmode="decimal">
+                            <span class="meter-unit">m</span>
+                        </div>
+                        <p class="meter-total"><?= e(t('product.meter_total')) ?> <strong data-meter-total>—</strong></p>
+                    </div>
+                <?php endif; ?>
                 <?php if ($canOrder): ?>
                     <div class="product-buy">
-                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e($buyId) ?>"><?= icon('zap', ['size' => 18]) ?> <?= e(t('bcart.buy_now')) ?></button>
-                        <?php if ($realVariants === []): ?>
+                        <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e($buyId) ?>"><?= icon('zap', ['size' => 18]) ?> <?= e(t($isMeter ? 'product.meter_buy' : 'bcart.buy_now')) ?></button>
+                        <?php if ($realVariants === [] && !$isMeter): ?>
                             <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => $pEff, 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
                         <?php endif; ?>
                     </div>
