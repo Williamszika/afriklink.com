@@ -88,6 +88,11 @@ foreach ($realVariants as $rv) {
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
                 <?php
                 $pVertical = product_vertical((string) ($boutique['category'] ?? ''));
+                // Libellé de l'axe de déclinaison piloté par le rayon (Taille / Stockage / Contenance / Teinte…).
+                $pAxis = rayon_axis_meta((string) ($boutique['category'] ?? ''), (string) ($product['collection'] ?? ''));
+                $pSizeLabel = $pAxis['key'] !== 'none'
+                    ? $pAxis['label']
+                    : ($pVertical === 'phone' ? t('phone.f.storage') : t('variant.size'));
                 $apTags = [];
                 if ($pVertical === 'phone') {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
@@ -128,7 +133,7 @@ foreach ($realVariants as $rv) {
                     <div class="variant-pick" data-variant-pick data-variants="<?= e((string) json_encode($vMap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>">
                         <?php if ($vSizes !== []): ?>
                             <div class="variant-axis">
-                                <p class="variant-pick-label"><?= e($pVertical === 'phone' ? t('phone.f.storage') : t('variant.size')) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
+                                <p class="variant-pick-label"><?= e($pSizeLabel) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
                                 <div class="variant-chips">
                                     <?php foreach ($vSizes as $sz): ?>
                                         <label class="variant-chip"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?= e($sz) ?></span></label>

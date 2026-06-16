@@ -2497,6 +2497,7 @@ document.addEventListener('click', function (ev) {
         var rows = document.querySelector('[data-variant-rows]');
         if (tpl && tpl.content && rows) {
             rows.appendChild(tpl.content.cloneNode(true));
+            rows.dispatchEvent(new CustomEvent('al:variant-added'));
             var input = rows.lastElementChild ? rows.lastElementChild.querySelector('input') : null;
             if (input) { input.focus(); }
         }
@@ -2509,22 +2510,62 @@ document.addEventListener('click', function (ev) {
     }
 });
 
-/* ---- Tailles suggérées selon la catégorie de vêtement (formulaire produit) ---- */
+/* ---- Le rayon pilote l'axe de déclinaison (taille → stockage, contenance, teinte, pointure…) ---- */
+/* Le formulaire produit s'adapte au Rayon/Catégorie choisi ; pour le prêt-à-porter, la      */
+/* catégorie de vêtement affine encore les tailles (soutien-gorge ≠ pantalon ≠ chaussure).   */
 (function () {
-    var sel = document.querySelector('[data-garment-select]');
     var rows = document.querySelector('[data-variant-rows]');
-    var dl = document.getElementById('size-suggest');
-    if (!sel || !rows || !dl) { return; }
-    var map;
-    try { map = JSON.parse(rows.getAttribute('data-size-map') || '{}'); } catch (e) { map = {}; }
-    function refresh() {
-        var opt = sel.options[sel.selectedIndex];
-        var sys = opt ? opt.getAttribute('data-size-system') : '';
-        var list = (sys && map[sys]) ? map[sys] : (map.alpha || []);
-        dl.innerHTML = '';
-        list.forEach(function (s) { var o = document.createElement('option'); o.value = s; dl.appendChild(o); });
+    if (!rows) { return; }
+    var coll = document.querySelector('[data-collection-select]');
+    var gar  = document.querySelector('[data-garment-select]');
+    var dl   = document.getElementById('size-suggest');
+    var head = rows.querySelector('[data-axis-label]');
+    var axes = {}, sizeMap = {};
+    try { axes = JSON.parse(rows.getAttribute('data-axes') || '{}'); } catch (e) { axes = {}; }
+    try { sizeMap = JSON.parse(rows.getAttribute('data-size-map') || '{}'); } catch (e) { sizeMap = {}; }
+    var baseLabel = rows.getAttribute('data-base-label') || 'Option';
+    var basePh    = rows.getAttribute('data-base-ph') || '';
+    var baseOpts  = [];
+    try { baseOpts = JSON.parse(rows.getAttribute('data-base-opts') || '[]'); } catch (e) { baseOpts = []; }
+
+    function rayonAxis() {
+        if (!coll) { return null; }
+        var opt = coll.options[coll.selectedIndex];
+        var key = opt ? (opt.getAttribute('data-axis') || '') : '';
+        return (key && axes[key]) ? axes[key] : null;
     }
-    sel.addEventListener('change', refresh);
+    function setSizeAttrs(label, ph) {
+        if (head) { head.textContent = label; }
+        var inputs = rows.querySelectorAll('input[name="var_size[]"]');
+        Array.prototype.forEach.call(inputs, function (inp) {
+            inp.setAttribute('placeholder', ph); inp.setAttribute('aria-label', label);
+        });
+        var tplInp = document.querySelector('#variant-template input[name="var_size[]"]');
+        if (tplInp) { tplInp.setAttribute('placeholder', ph); tplInp.setAttribute('aria-label', label); }
+    }
+    function setSuggest(list) {
+        if (!dl) { return; }
+        dl.innerHTML = '';
+        (list || []).forEach(function (s) { var o = document.createElement('option'); o.value = s; dl.appendChild(o); });
+    }
+    function refresh() {
+        var axis = rayonAxis();
+        var label = axis ? axis.label : baseLabel;
+        var ph    = axis ? axis.label : basePh;
+        var opts  = axis ? (axis.opts || []) : baseOpts;
+        // Prêt-à-porter : si une catégorie de vêtement précise est choisie, ses tailles priment.
+        if (gar) {
+            var gopt = gar.options[gar.selectedIndex];
+            var sys = gopt ? gopt.getAttribute('data-size-system') : '';
+            if (sys && sizeMap[sys]) { opts = sizeMap[sys]; }
+            else if (!axis && sizeMap.alpha) { opts = sizeMap.alpha; }
+        }
+        setSizeAttrs(label, ph);
+        setSuggest(opts);
+    }
+    if (coll) { coll.addEventListener('change', refresh); }
+    if (gar)  { gar.addEventListener('change', refresh); }
+    rows.addEventListener('al:variant-added', refresh);
     refresh();
 })();
 

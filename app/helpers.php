@@ -783,10 +783,45 @@ function product_vertical(?string $boutiqueCategory): string
     return 'generic';
 }
 
-/** @return list<string> Rayons suggérés pour la catégorie principale de la boutique. */
+/** @return list<string> Rayons proposés pour la catégorie principale de la boutique. */
 function shop_rayons_for(?string $category): array
 {
-    return (array) (config('rayons', [])[(string) $category] ?? []);
+    return array_keys((array) (config('rayons.list', [])[(string) $category] ?? []));
+}
+
+/**
+ * Clé d'axe de déclinaison d'un rayon donné (taille → 'alpha', stockage → 'stockage',
+ * contenance → 'volume', teinte → 'teinte', pointure, longueur, etc.). 'none' si le rayon
+ * n'impose pas d'axe ou est inconnu. C'est cet axe qui adapte le formulaire produit.
+ */
+function rayon_axis(?string $category, ?string $rayon): string
+{
+    $map = (array) (config('rayons.list', [])[(string) $category] ?? []);
+    $axis = (string) ($map[(string) $rayon] ?? 'none');
+    return isset(config('rayons.axes', [])[$axis]) ? $axis : 'none';
+}
+
+/**
+ * Métadonnées des axes de déclinaison : clé d'axe => ['label' => libellé, 'opts' => suggestions].
+ * Sert à la fois côté serveur (libellé de la taille) et côté client (datalist dynamique).
+ *
+ * @return array<string,array{label:string,opts:list<string>}>
+ */
+function rayon_axes(): array
+{
+    return (array) config('rayons.axes', []);
+}
+
+/** Métadonnées de l'axe d'un rayon : ['label' => …, 'opts' => […]]. */
+function rayon_axis_meta(?string $category, ?string $rayon): array
+{
+    $axis = rayon_axis($category, $rayon);
+    $meta = rayon_axes()[$axis] ?? ['label' => 'Option', 'opts' => []];
+    return [
+        'key'   => $axis,
+        'label' => (string) ($meta['label'] ?? 'Option'),
+        'opts'  => array_values((array) ($meta['opts'] ?? [])),
+    ];
 }
 
 /**

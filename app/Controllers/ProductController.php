@@ -234,10 +234,14 @@ final class ProductController
         $itemCondition = phone_condition_clean(input_string('item_condition', ''));
 
         // Rayon / catégorie (menu déroulant) : valeur choisie, ou saisie libre si « Autre ».
+        // Désormais OBLIGATOIRE : c'est le rayon qui pilote l'axe de déclinaison du produit.
         $collSel    = (string) input_string('collection_select', '');
         $collection = $collSel === '__other__'
             ? mb_substr(trim((string) input_string('collection_other', '')), 0, 60)
             : mb_substr(trim($collSel), 0, 60);
+        if ($collection === '') {
+            $errors['collection'] = t('validation.collection_required');
+        }
 
         $status = whitelist((string) input_string('status', 'active'), ['active', 'hidden'], 'active');
 

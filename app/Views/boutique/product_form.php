@@ -4,19 +4,37 @@ use App\Services\CloudinaryService;
 
 $isEdit = $mode === 'edit';
 $cur    = (string) $boutique['currency'];
-$vertical  = product_vertical((string) ($boutique['category'] ?? '')); // 'phone' | 'apparel' | 'generic'
+$boutiqueCat = (string) ($boutique['category'] ?? '');
+$vertical  = product_vertical($boutiqueCat); // 'phone' | 'apparel' | 'generic'
 $isPhone   = $vertical === 'phone';
 $isApparel = $vertical === 'apparel';
+
+// Rayon courant : sur re-render d'erreur on relit les champs réellement postés
+// (collection_select / collection_other), sinon la valeur enregistrée du produit.
+$curRayonSel = old('collection_select');
+$curCol = $curRayonSel === '__other__'
+    ? (string) old('collection_other')
+    : ($curRayonSel !== '' ? $curRayonSel : (string) ($product['collection'] ?? ''));
+
+// Repli « vertical » de l'axe taille (utilisé tant qu'aucun rayon n'impose d'axe).
 if ($isPhone) {
-    $sizeLabel = t('phone.f.storage'); $sizePh = t('phone.f.storage_ph'); $sizeOpts = phone_storage();
+    $baseLabel = t('phone.f.storage'); $basePh = t('phone.f.storage_ph'); $baseOpts = phone_storage();
     $varSection = t('phone.f.variants'); $varHint = t('phone.f.variants_hint');
 } elseif ($isApparel) {
-    $sizeLabel = t('variant.size'); $sizePh = t('variant.size_ph');
-    $sizeOpts = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
+    $baseLabel = t('variant.size'); $basePh = t('variant.size_ph');
+    $baseOpts = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
     $varSection = t('variant.section'); $varHint = t('variant.hint');
 } else {
-    $sizeLabel = t('variant.option'); $sizePh = t('variant.option_ph'); $sizeOpts = [];
+    $baseLabel = t('variant.option'); $basePh = t('variant.option_ph'); $baseOpts = [];
     $varSection = t('variant.section_generic'); $varHint = t('variant.hint_generic');
+}
+
+// Le RAYON choisi pilote l'axe de déclinaison : taille → Stockage / Contenance / Teinte / Pointure…
+$axisMeta = rayon_axis_meta($boutiqueCat, $curCol);
+if ($axisMeta['key'] !== 'none') {
+    $sizeLabel = $axisMeta['label']; $sizePh = $axisMeta['label']; $sizeOpts = $axisMeta['opts'];
+} else {
+    $sizeLabel = $baseLabel; $sizePh = $basePh; $sizeOpts = $baseOpts;
 }
 $action = $isEdit ? '/boutique/produits/' . $product['public_id'] . '/modifier' : '/boutique/produits';
 $maxPhotos = (int) config('shop.product_max_photos', 6);
@@ -54,24 +72,24 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <?php
         $cols   = $collections ?? [];
-        $curCol = (string) (old('collection') ?: (string) ($product['collection'] ?? ''));
         $catOpts = [];
         foreach ($cols as $c) { if (trim((string) $c) !== '') { $catOpts[(string) $c] = (string) $c; } }
         // Rayons suggérés selon la catégorie VERROUILLÉE de la boutique (pas les autres catégories).
-        foreach (shop_rayons_for((string) ($boutique['category'] ?? '')) as $r) { $catOpts[(string) $r] = (string) $r; }
+        foreach (shop_rayons_for($boutiqueCat) as $r) { $catOpts[(string) $r] = (string) $r; }
         ksort($catOpts, SORT_NATURAL | SORT_FLAG_CASE);
         $isOther = $curCol !== '' && !isset($catOpts[$curCol]);
         ?>
-        <label for="p-collection"><?= e(t('product.f.collection')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-        <select id="p-collection" name="collection_select" data-collection-select>
+        <label for="p-collection"><?= e(t('product.f.collection')) ?> <span class="req">*</span></label>
+        <select id="p-collection" name="collection_select" data-collection-select required>
             <option value=""><?= e(t('product.f.collection_none')) ?></option>
             <?php foreach ($catOpts as $val => $lbl): ?>
-                <option value="<?= e((string) $val) ?>" <?= $curCol === (string) $val ? 'selected' : '' ?>><?= e((string) $lbl) ?></option>
+                <option value="<?= e((string) $val) ?>" data-axis="<?= e(rayon_axis($boutiqueCat, (string) $val)) ?>" <?= $curCol === (string) $val ? 'selected' : '' ?>><?= e((string) $lbl) ?></option>
             <?php endforeach; ?>
-            <option value="__other__" <?= $isOther ? 'selected' : '' ?>><?= e(t('product.f.collection_other')) ?></option>
+            <option value="__other__" data-axis="none" <?= $isOther ? 'selected' : '' ?>><?= e(t('product.f.collection_other')) ?></option>
         </select>
         <input type="text" id="p-collection-other" name="collection_other" maxlength="60" data-collection-other
                value="<?= $isOther ? e($curCol) : '' ?>" placeholder="<?= e(t('product.f.collection_ph')) ?>"<?= $isOther ? '' : ' hidden' ?>>
+        <?php if (has_error('collection')): ?><p class="field-error"><?= e(error('collection')) ?></p><?php endif; ?>
         <p class="hint"><?= e(t('product.f.collection_hint')) ?></p>
 
         <?php if ($vertical === 'phone'): ?>
@@ -162,9 +180,13 @@ $fmtP = static function ($cents) use ($cur): string {
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>
             <p class="hint"><?= e($varHint) ?></p>
-            <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>">
+            <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows
+                 data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>"
+                 data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"
+                 data-base-label="<?= e($baseLabel) ?>" data-base-ph="<?= e($basePh) ?>"
+                 data-base-opts="<?= e((string) json_encode(array_values($baseOpts), JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="variant-head">
-                    <span><?= e($sizeLabel) ?></span>
+                    <span data-axis-label><?= e($sizeLabel) ?></span>
                     <span><?= e(t('variant.color')) ?></span>
                     <span><?= e(t('variant.stock')) ?></span>
                     <span><?= e(t('variant.price_opt')) ?></span>

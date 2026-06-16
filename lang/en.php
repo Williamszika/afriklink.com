@@ -1531,8 +1531,8 @@ return [
     'product.f.name' => 'Product name',
     'product.f.collection' => 'Category / Collection',
     'product.f.collection_ph' => 'e.g. Jewelry, Clothing, Home…',
-    'product.f.collection_hint' => 'Group your items into categories to help customers browse.',
-    'product.f.collection_none' => '— None —',
+    'product.f.collection_hint' => 'The department tailors the form (size, storage, capacity, shade…) and helps customers browse.',
+    'product.f.collection_none' => '— Choose a department —',
     'product.f.collection_other' => 'Other / new category…',
     'product.f.name_ph' => 'E.g.: Wax dress size 38',
     'product.f.price' => 'Price (:cur)',
@@ -1912,4 +1912,5 @@ return [
     'product.wa_text' => 'Hello! I’m interested in “:name” in your Afriklink shop:',
     'validation.product_name' => 'The product name must be between 2 and :max characters.',
     'validation.stock_invalid' => 'Invalid stock (whole number).',
+    'validation.collection_required' => 'Choose a department / category for this item.',
 ];

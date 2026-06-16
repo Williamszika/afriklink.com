@@ -1531,8 +1531,8 @@ return [
     'product.f.name' => 'Nom du produit',
     'product.f.collection' => 'Rayon / Catégorie',
     'product.f.collection_ph' => 'ex. Bijoux, Vêtements, Maison…',
-    'product.f.collection_hint' => 'Regroupez vos articles en rayons pour aider vos clients à s’y retrouver.',
-    'product.f.collection_none' => '— Aucun —',
+    'product.f.collection_hint' => 'Le rayon adapte le formulaire (taille, stockage, contenance, teinte…) et aide vos clients à s’y retrouver.',
+    'product.f.collection_none' => '— Choisir un rayon —',
     'product.f.collection_other' => 'Autre / nouveau rayon…',
     'product.f.name_ph' => 'Ex. : Robe wax taille 38',
     'product.f.price' => 'Prix (:cur)',
@@ -1912,4 +1912,5 @@ return [
     'product.wa_text' => 'Bonjour ! Je suis intéressé(e) par « :name » dans votre boutique Afriklink :',
     'validation.product_name' => 'Le nom du produit doit faire entre 2 et :max caractères.',
     'validation.stock_invalid' => 'Stock invalide (nombre entier).',
+    'validation.collection_required' => 'Choisissez un rayon / une catégorie pour cet article.',
 ];
