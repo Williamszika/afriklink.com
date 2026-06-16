@@ -50,26 +50,31 @@ $wallet       = $wallet ?? null;
     <?php /* ---- Performance du programme (côté vendeur) ---- */ ?>
     <?php $pStats = $program['stats'] ?? null; $pRecent = $program['recent'] ?? []; ?>
     <?php if ($pStats !== null): ?>
-        <div class="panel">
+        <?php $paidStr = empty($pStats['paid']) ? '0' : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $pStats['paid'], array_keys($pStats['paid']))); ?>
+        <div class="panel aff-perf-panel">
             <h2 class="panel-title"><?= icon('chart', ['size' => 18]) ?> <?= e(t('aff.perf_title')) ?></h2>
-            <div class="stat-grid cols-3">
-                <div class="stat-card">
-                    <div class="num"><?= icon('users', ['size' => 18]) ?> <?= (int) $pStats['affiliates'] ?></div>
-                    <div class="lbl"><?= e(t('aff.perf_affiliates')) ?></div>
+            <div class="perf-tiles">
+                <div class="perf-tile perf-tile--green">
+                    <span class="perf-coin"><?= icon('users', ['size' => 22]) ?></span>
+                    <span class="perf-num"><?= (int) $pStats['affiliates'] ?></span>
+                    <span class="perf-lbl"><?= e(t('aff.perf_affiliates')) ?></span>
                 </div>
-                <div class="stat-card">
-                    <div class="num"><?= icon('bag', ['size' => 18]) ?> <?= (int) $pStats['sales'] ?></div>
-                    <div class="lbl"><?= e(t('aff.perf_sales')) ?></div>
+                <div class="perf-tile perf-tile--teal">
+                    <span class="perf-coin"><?= icon('bag', ['size' => 22]) ?></span>
+                    <span class="perf-num"><?= (int) $pStats['sales'] ?></span>
+                    <span class="perf-lbl"><?= e(t('aff.perf_sales')) ?></span>
                 </div>
-                <div class="stat-card">
-                    <div class="num"><?= icon('wallet', ['size' => 18]) ?>
-                        <?= empty($pStats['paid']) ? '0' : e(implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $pStats['paid'], array_keys($pStats['paid'])))) ?>
-                    </div>
-                    <div class="lbl"><?= e(t('aff.perf_paid')) ?></div>
+                <div class="perf-tile perf-tile--gold">
+                    <span class="perf-coin"><?= icon('banknote', ['size' => 22]) ?></span>
+                    <span class="perf-num"><?= e($paidStr) ?></span>
+                    <span class="perf-lbl"><?= e(t('aff.perf_paid')) ?></span>
                 </div>
             </div>
             <?php if ($pRecent === []): ?>
-                <p class="muted"><?= e(t('aff.perf_none')) ?></p>
+                <div class="perf-empty">
+                    <span class="perf-empty-coin"><?= icon('sparkle', ['size' => 30]) ?></span>
+                    <p><?= e(t('aff.perf_none')) ?></p>
+                </div>
             <?php else: ?>
                 <div class="table-wrap">
                     <table class="data-table">
