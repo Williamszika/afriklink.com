@@ -734,6 +734,22 @@ function apparel_category_clean(?string $v): string
 }
 
 /**
+ * Nom d'une ligne de commande SANS sa déclinaison (taille/couleur/longueur), qui
+ * est conservée à part dans variant_label. Le titre vaut « Nom — déclinaison » ;
+ * on retire le suffixe exact pour un affichage structuré (nom + étiquette).
+ */
+function order_item_name(array $item): string
+{
+    $title = (string) ($item['title'] ?? '');
+    $vl    = (string) ($item['variant_label'] ?? '');
+    $suffix = ' — ' . $vl;
+    if ($vl !== '' && str_ends_with($title, $suffix)) {
+        return mb_substr($title, 0, mb_strlen($title) - mb_strlen($suffix));
+    }
+    return $title;
+}
+
+/**
  * Commission de la plateforme (en centimes) sur un sous-total donné.
  * SOURCE UNIQUE : config('payment.platform_commission_pct') (env PLATFORM_COMMISSION_PCT,
  * défaut 5 %). Bornée à [0 ; sous-total]. C'est ICI — et nulle part ailleurs — que se

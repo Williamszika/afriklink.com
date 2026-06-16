@@ -15,10 +15,10 @@ $qrSvg    = (string) ($qr_svg ?? '');       // QR (SVG inline) vers la commande,
 // Lignes : soit le détail panier, soit l'article unique (repli).
 $rows = [];
 if ($items === []) {
-    $rows[] = ['title' => (string) $order['product_name'], 'qty' => (int) $order['qty'], 'line' => $total];
+    $rows[] = ['name' => (string) $order['product_name'], 'variant' => '', 'qty' => (int) $order['qty'], 'line' => $total];
 } else {
     foreach ($items as $it) {
-        $rows[] = ['title' => (string) $it['title'], 'qty' => (int) $it['qty'], 'line' => (int) $it['line_total_cents']];
+        $rows[] = ['name' => order_item_name($it), 'variant' => (string) ($it['variant_label'] ?? ''), 'qty' => (int) $it['qty'], 'line' => (int) $it['line_total_cents']];
     }
 }
 ?>
@@ -102,6 +102,7 @@ if ($items === []) {
             font-size:.92rem; vertical-align:top; }
         .inv-table tbody tr:nth-child(even) td { background:var(--inv-cream); }
         .inv-table .it-title { font-weight:600; }
+        .inv-table .it-title .order-variant { display:inline-block; font-size:.85em; font-weight:700; color:var(--inv-forest); background:#eef4f0; padding:0 6px; border-radius:5px; margin-left:4px; }
         .inv-table td.num.amount { font-weight:700; color:var(--inv-forest); }
 
         /* Récap : QR (gauche) + tampon & totaux (droite) */
@@ -221,7 +222,7 @@ if ($items === []) {
                 <tbody>
                     <?php foreach ($rows as $r): $q = max(1, (int) $r['qty']); $unit = (int) round($r['line'] / $q); ?>
                         <tr>
-                            <td class="it-title"><?= e((string) $r['title']) ?></td>
+                            <td class="it-title"><?= e((string) $r['name']) ?><?php if (($r['variant'] ?? '') !== ''): ?> <span class="order-variant"><?= e((string) $r['variant']) ?></span><?php endif; ?></td>
                             <td class="num"><?= (int) $r['qty'] ?></td>
                             <td class="num"><?= e(format_price($unit, $cur)) ?></td>
                             <td class="num amount"><?= e(format_price((int) $r['line'], $cur)) ?></td>

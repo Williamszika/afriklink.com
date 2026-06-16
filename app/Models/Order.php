@@ -84,6 +84,16 @@ final class Order
             } catch (\Throwable) {
             }
         }
+        // Étiquette de déclinaison (taille/couleur/longueur) figée à la commande, pour
+        // l'afficher proprement dans le détail de commande et le reçu.
+        try {
+            db()->query('SELECT variant_label FROM order_items LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE order_items ADD COLUMN variant_label VARCHAR(120) NULL AFTER title');
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /** Ajoute les colonnes ajoutées après coup sur une table déjà créée. */
@@ -216,8 +226,8 @@ final class Order
             ]);
             $orderId = (int) $pdo->lastInsertId();
             $ins = $pdo->prepare(
-                'INSERT INTO order_items (order_id, product_id, variant_id, title, qty, unit_price_cents, line_total_cents)
-                 VALUES (:o, :p, :v, :t, :q, :u, :lt)'
+                'INSERT INTO order_items (order_id, product_id, variant_id, title, variant_label, qty, unit_price_cents, line_total_cents)
+                 VALUES (:o, :p, :v, :t, :vl, :q, :u, :lt)'
             );
             // Décompte du stock : atomique et borné (jamais négatif) — variante ET
             // produit (stock partagé online + POS). Le WHERE `stock >= :qmin`
@@ -233,6 +243,7 @@ final class Order
                 $ins->execute([
                     'o' => $orderId, 'p' => $l['product_id'], 'v' => $l['variant_id'] ?? null,
                     't' => mb_substr($l['title'], 0, 150),
+                    'vl' => ($l['variant_label'] ?? '') !== '' ? mb_substr((string) $l['variant_label'], 0, 120) : null,
                     'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty'],
                 ]);
                 if (!empty($l['variant_id'])) {
@@ -310,12 +321,13 @@ final class Order
                 'rs' => $header['register_session_id'] ?? null,
             ]);
             $orderId = (int) $pdo->lastInsertId();
-            $ins  = $pdo->prepare('INSERT INTO order_items (order_id, product_id, variant_id, title, qty, unit_price_cents, line_total_cents) VALUES (:o, :p, :v, :t, :q, :u, :lt)');
+            $ins  = $pdo->prepare('INSERT INTO order_items (order_id, product_id, variant_id, title, variant_label, qty, unit_price_cents, line_total_cents) VALUES (:o, :p, :v, :t, :vl, :q, :u, :lt)');
             $decV = $pdo->prepare('UPDATE product_variants SET stock = stock - :q WHERE id = :id AND stock IS NOT NULL AND stock >= :qm');
             $decP = $pdo->prepare('UPDATE products SET stock = stock - :q WHERE id = :id AND stock IS NOT NULL AND stock >= :qm');
             foreach ($lines as $l) {
                 $ins->execute(['o' => $orderId, 'p' => $l['product_id'], 'v' => $l['variant_id'] ?? null,
-                    't' => mb_substr($l['title'], 0, 150), 'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty']]);
+                    't' => mb_substr($l['title'], 0, 150), 'vl' => ($l['variant_label'] ?? '') !== '' ? mb_substr((string) $l['variant_label'], 0, 120) : null,
+                    'q' => $l['qty'], 'u' => $l['unit_price_cents'], 'lt' => $l['unit_price_cents'] * $l['qty']]);
                 if (!empty($l['variant_id'])) {
                     $decV->execute(['q' => $l['qty'], 'qm' => $l['qty'], 'id' => (int) $l['variant_id']]);
                     if ($decV->rowCount() === 0 && !self::isUnlimited('product_variants', (int) $l['variant_id'])) {

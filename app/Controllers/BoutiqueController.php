@@ -1356,11 +1356,13 @@ final class BoutiqueController
                     continue;
                 }
                 $lenLabel = rtrim(rtrim(number_format($cm / 100, 2, ',', ''), '0'), ',') . ' m';
+                $variantLabel = ($label !== '' ? $label . ' · ' : '') . $lenLabel;
                 $lines[] = [
                     'product_id'       => (int) $product['id'],
                     'variant_id'       => $variant !== null ? (int) $variant['id'] : null,
                     'public_id'        => $variant !== null ? (string) $variant['public_id'] : (string) $product['public_id'],
-                    'title'            => (string) $product['name'] . ($label !== '' ? ' — ' . $label : '') . ' — ' . $lenLabel,
+                    'title'            => (string) $product['name'] . ' — ' . $variantLabel,
+                    'variant_label'    => $variantLabel,
                     'qty'              => 1,
                     'unit_price_cents' => $lineTotal,
                     'length_cm'        => $cm,
@@ -1381,6 +1383,7 @@ final class BoutiqueController
                 'variant_id'       => $variant !== null ? (int) $variant['id'] : null,
                 'public_id'        => $variant !== null ? (string) $variant['public_id'] : (string) $product['public_id'],
                 'title'            => (string) $product['name'] . ($label !== '' ? ' — ' . $label : ''),
+                'variant_label'    => $label,
                 'qty'              => $qty,
                 'unit_price_cents' => $price,
             ];

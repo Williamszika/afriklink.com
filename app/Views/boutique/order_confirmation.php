@@ -51,7 +51,7 @@ $waText = rawurlencode(
 
     <ul class="cart-lines confirm-lines">
         <?php foreach ($items as $it): ?>
-            <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e((string) $it['title']) ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>
+            <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e(order_item_name($it)) ?><?php if (!empty($it['variant_label'])): ?> <span class="order-variant"><?= e((string) $it['variant_label']) ?></span><?php endif; ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>
         <?php endforeach; ?>
     </ul>
     <?php if (!empty($order['shipping_cents'])): ?>

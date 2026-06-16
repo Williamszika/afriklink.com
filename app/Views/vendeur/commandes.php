@@ -133,7 +133,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                             <?php if ($oItems !== []): ?>
                                 <ul class="cart-lines">
                                     <?php foreach ($oItems as $li): ?>
-                                        <li class="cart-line"><span><?= (int) $li['qty'] ?>× <?= e((string) $li['title']) ?></span> <strong><?= e(format_price((int) $li['line_total_cents'], (string) $o['currency'])) ?></strong></li>
+                                        <li class="cart-line"><span><?= (int) $li['qty'] ?>× <?= e(order_item_name($li)) ?><?php if (!empty($li['variant_label'])): ?> <span class="order-variant"><?= e((string) $li['variant_label']) ?></span><?php endif; ?></span> <strong><?= e(format_price((int) $li['line_total_cents'], (string) $o['currency'])) ?></strong></li>
                                     <?php endforeach; ?>
                                 </ul>
                                 <p class="order-line"><strong class="order-total"><?= e(t('rorder.total')) ?> : <?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></strong></p>
