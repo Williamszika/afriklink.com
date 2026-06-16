@@ -23,7 +23,8 @@ use App\Services\CloudinaryService;
                             </a>
                             <div class="cart-item-body">
                                 <a class="cart-item-name" href="<?= e($purl) ?>"><?= e((string) $p['name']) ?></a>
-                                <span class="muted"><?= e(format_price((int) $p['price_cents'], (string) $g['currency'])) ?></span>
+                                <?php $cpct = product_promo_pct($p); ?>
+                                <span class="muted"><?php if ($cpct > 0): ?><del><?= e(format_price((int) $p['price_cents'], (string) $g['currency'])) ?></del> <?php endif; ?><?= e(format_price((int) ($l['unit'] ?? $p['price_cents']), (string) $g['currency'])) ?><?php if ($cpct > 0): ?> <span class="discount-badge discount-badge--inline">−<?= $cpct ?>%</span><?php endif; ?></span>
                             </div>
                             <div class="cart-item-qty">
                                 <form method="post" action="<?= e(url('/panier/modifier')) ?>" class="inline-form cart-qty-form">

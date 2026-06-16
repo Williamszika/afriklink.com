@@ -68,7 +68,9 @@ foreach ($realVariants as $rv) {
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
                 <?php endif; ?>
-                <p class="listing-price"><?= render_partial('partials/price_dual', ['cents' => (int) $product['price_cents'], 'cur' => $cur]) ?></p>
+                <?php $pPct = product_promo_pct($product); $pEff = product_effective_unit_cents($product, (int) $product['price_cents']); ?>
+                <p class="listing-price"><?= render_partial('partials/price_dual', ['cents' => $pEff, 'cur' => $cur, 'compare' => $pPct > 0 ? (int) $product['price_cents'] : 0]) ?><?php if ($pPct > 0): ?> <span class="discount-badge discount-badge--inline">−<?= $pPct ?>%</span><?php endif; ?></p>
+                <?php if ($pPct > 0 && !empty($product['promo_until'])): ?><p class="promo-until-line"><?= icon('clock', ['size' => 14]) ?> <?= e(t('product.promo_until', ['date' => date('d/m/Y', (int) strtotime((string) $product['promo_until']))])) ?></p><?php endif; ?>
                 <p class="listing-tags">
                     <?php if ($inStock): ?>
                         <span class="badge badge-ok"><?= $product['stock'] === null ? e(t('product.in_stock')) : e(t('product.stock_n', ['n' => (int) $product['stock']])) ?></span>
@@ -93,7 +95,8 @@ foreach ($realVariants as $rv) {
                         <div class="variant-chips">
                             <?php foreach ($realVariants as $v):
                                 $vOut = $v['stock'] !== null && (int) $v['stock'] <= 0;
-                                $vPrice = $v['price_cents'] !== null ? (int) $v['price_cents'] : (int) $product['price_cents'];
+                                $vBase = $v['price_cents'] !== null ? (int) $v['price_cents'] : (int) $product['price_cents'];
+                                $vPrice = product_effective_unit_cents($product, $vBase);
                             ?>
                                 <label class="variant-chip<?= $vOut ? ' is-out' : '' ?>">
                                     <input type="radio" name="pick_variant" value="<?= e((string) $v['public_id']) ?>"
@@ -108,7 +111,7 @@ foreach ($realVariants as $rv) {
                     <div class="product-buy">
                         <button type="button" class="btn btn-primary btn-block buy-now-btn" data-buy-now="<?= e($buyId) ?>"><?= icon('zap', ['size' => 18]) ?> <?= e(t('bcart.buy_now')) ?></button>
                         <?php if ($realVariants === []): ?>
-                            <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => (int) $product['price_cents'], 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
+                            <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => $pEff, 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>

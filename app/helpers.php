@@ -614,6 +614,49 @@ function parse_price_to_cents(string $raw, string $currency): ?int
 }
 
 /**
+ * Promotion produit : le vendeur fixe un prix réduit (promo_price_cents) avec une
+ * fin facultative (promo_until). La promo est active si le prix réduit est > 0,
+ * strictement inférieur au prix normal, et non expirée.
+ */
+function product_promo_active(array $product): bool
+{
+    $promo = (int) ($product['promo_price_cents'] ?? 0);
+    $price = (int) ($product['price_cents'] ?? 0);
+    if ($promo <= 0 || $price <= 0 || $promo >= $price) {
+        return false;
+    }
+    $until = $product['promo_until'] ?? null;
+    return $until === null || $until === '' || strtotime((string) $until) >= time();
+}
+
+/** Pourcentage de réduction affiché (ex. 25). 0 si pas de promo active. */
+function product_promo_pct(array $product): int
+{
+    if (!product_promo_active($product)) {
+        return 0;
+    }
+    $price = (int) $product['price_cents'];
+    $promo = (int) $product['promo_price_cents'];
+    return (int) round(($price - $promo) / $price * 100);
+}
+
+/**
+ * Prix effectif (centimes) d'une ligne en appliquant la promo produit au prix de
+ * base (produit OU variante). La réduction s'applique proportionnellement, donc
+ * une variante au prix différent est remisée du même pourcentage. Toujours ≤ base.
+ */
+function product_effective_unit_cents(array $product, int $basePriceCents): int
+{
+    if (!product_promo_active($product)) {
+        return $basePriceCents;
+    }
+    $price = (int) $product['price_cents'];
+    $promo = (int) $product['promo_price_cents'];
+    $eff   = (int) round($basePriceCents * $promo / $price);
+    return max(0, min($basePriceCents, $eff));
+}
+
+/**
  * Commission de la plateforme (en centimes) sur un sous-total donné.
  * SOURCE UNIQUE : config('payment.platform_commission_pct') (env PLATFORM_COMMISSION_PCT,
  * défaut 5 %). Bornée à [0 ; sous-total]. C'est ICI — et nulle part ailleurs — que se

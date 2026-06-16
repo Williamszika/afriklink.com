@@ -1213,6 +1213,13 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .promo-badge { position:absolute; top:6px; right:6px; background:linear-gradient(135deg,#ffb020,#ff7a00); color:#fff; font-size:.66rem; font-weight:800; padding:2px 7px; border-radius:6px; letter-spacing:.02em; box-shadow:0 1px 4px rgba(0,0,0,.25); }
 .promo-badge--inline { position:static; display:inline-block; vertical-align:middle; margin-left:6px; }
 .pin-badge { position:absolute; bottom:6px; left:6px; background:rgba(11,122,75,.92); color:#fff; font-size:.72rem; line-height:1; padding:3px 6px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.25); }
+/* Promotion (réduction de prix) : badge −X% + prix barré */
+.discount-badge { position:absolute; bottom:6px; right:6px; background:var(--danger); color:#fff; font-size:.7rem; font-weight:800; line-height:1; padding:3px 7px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.25); z-index:2; }
+.discount-badge--inline { position:static; display:inline-block; vertical-align:middle; }
+.price-was { text-decoration:line-through; color:var(--muted); font-weight:500; font-size:.82em; margin-right:1px; }
+.price-now { color:var(--danger); font-weight:800; }
+.promo-until-line { color:var(--muted); font-size:.82rem; margin:4px 0 0; display:flex; align-items:center; gap:5px; }
+.promo-box > summary { font-weight:600; }
 .badge-pin { background:#fff7e6; color:#9a6700; border:1px solid #f0c674; }
 .caisse-minorder { margin:6px 0 0; font-size:.86rem; font-weight:700; color:var(--brand); }
 .caisse-minorder.is-below { color:#b42318; }

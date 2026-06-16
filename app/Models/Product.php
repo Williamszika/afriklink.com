@@ -47,6 +47,7 @@ final class Product
         );
         ProductVariant::ensureTable();
         self::migrateAffiliation();
+        self::migrate(); // colonnes promo/épinglé/rayon : garanties même avant toute vue catalogue
     }
 
     /** Ajoute les colonnes d'affiliation par produit aux tables existantes. Mémoïsé. */
@@ -79,13 +80,14 @@ final class Product
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, stock, video_public_id, video_duration, status, position)
-                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :stock, :vid, :vdur, :status, :pos)'
+                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, promo_price_cents, promo_until, stock, video_public_id, video_duration, status, position)
+                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :promo, :promo_until, :stock, :vid, :vdur, :status, :pos)'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $boutiqueId, 'uid' => $userId,
                 'name' => $data['name'], 'desc' => $data['description'],
-                'price' => $data['price_cents'], 'stock' => $data['stock'],
+                'price' => $data['price_cents'], 'promo' => $data['promo_price_cents'] ?? null,
+                'promo_until' => $data['promo_until'] ?? null, 'stock' => $data['stock'],
                 'vid' => $data['video_public_id'] ?? null, 'vdur' => $data['video_duration'] ?? null,
                 'status' => $data['status'], 'pos' => time() % 100000000,
             ]);
@@ -108,10 +110,12 @@ final class Product
     {
         $stmt = db()->prepare(
             'UPDATE products SET name = :name, description = :desc, price_cents = :price,
+                promo_price_cents = :promo, promo_until = :promo_until,
                 stock = :stock, video_public_id = :vid, video_duration = :vdur, status = :status WHERE id = :id'
         );
         $stmt->execute([
             'name' => $data['name'], 'desc' => $data['description'], 'price' => $data['price_cents'],
+            'promo' => $data['promo_price_cents'] ?? null, 'promo_until' => $data['promo_until'] ?? null,
             'stock' => $data['stock'], 'vid' => $data['video_public_id'] ?? null,
             'vdur' => $data['video_duration'] ?? null, 'status' => $data['status'], 'id' => $id,
         ]);
@@ -176,6 +180,16 @@ final class Product
         } catch (\Throwable) {
             try {
                 db()->exec('ALTER TABLE products ADD COLUMN collection VARCHAR(60) NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        // Promotion : prix réduit (NULL = pas de promo) + fin facultative (NULL = sans limite).
+        try {
+            db()->query('SELECT promo_price_cents FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products ADD COLUMN promo_price_cents BIGINT UNSIGNED NULL, ADD COLUMN promo_until DATETIME NULL');
             } catch (\Throwable) {
                 // déjà migré
             }
@@ -363,7 +377,7 @@ final class Product
                 'commission'  => 'p.affiliate_rate_bps DESC, p.price_cents DESC',
                 default       => 'p.id DESC',
             };
-            $sql = "SELECT p.id, p.public_id, p.name, p.price_cents, p.affiliate_rate_bps,
+            $sql = "SELECT p.id, p.public_id, p.name, p.price_cents, p.promo_price_cents, p.promo_until, p.affiliate_rate_bps,
                            b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency, b.category AS boutique_category
                       FROM products p JOIN boutiques b ON b.id = p.boutique_id
                      WHERE " . implode(' AND ', $where) . " ORDER BY {$order} LIMIT " . max(1, min(60, $limit));

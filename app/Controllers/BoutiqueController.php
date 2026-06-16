@@ -1316,9 +1316,11 @@ final class BoutiqueController
                 continue;
             }
             // Stock + prix : de la variante choisie si fournie, sinon du produit.
+            // Le prix promo éventuel du produit s'applique au prix de base (sécurité : figé serveur).
             $stock = $variant !== null ? $variant['stock'] : $product['stock'];
-            $price = ($variant !== null && $variant['price_cents'] !== null)
+            $base  = ($variant !== null && $variant['price_cents'] !== null)
                 ? (int) $variant['price_cents'] : (int) $product['price_cents'];
+            $price = product_effective_unit_cents($product, $base);
             $qty = max(1, min(99, (int) ($entry['qty'] ?? 0)));
             if ($stock !== null) {
                 $stock = (int) $stock;

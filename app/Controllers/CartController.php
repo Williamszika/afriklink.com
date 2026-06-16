@@ -34,9 +34,10 @@ final class CartController
             if (!isset($groups[$slug])) {
                 $groups[$slug] = ['slug' => $slug, 'name' => (string) $p['boutique_name'], 'currency' => (string) $p['currency'], 'lines' => [], 'subtotal' => 0];
             }
-            $line = (int) $p['price_cents'] * $qty;
+            $unit = product_effective_unit_cents($p, (int) $p['price_cents']);
+            $line = $unit * $qty;
             $groups[$slug]['subtotal'] += $line;
-            $groups[$slug]['lines'][] = ['product' => $p, 'qty' => $qty, 'main' => $mains[(int) $p['id']] ?? null, 'line_total' => $line];
+            $groups[$slug]['lines'][] = ['product' => $p, 'qty' => $qty, 'unit' => $unit, 'main' => $mains[(int) $p['id']] ?? null, 'line_total' => $line];
         }
 
         view('cart/index', [
@@ -65,7 +66,7 @@ final class CartController
             $items[] = [
                 'url'  => url('/boutique/' . $p['boutique_slug'] . '/p/' . $pid),
                 'name' => (string) $p['name'],
-                'sub'  => $qty . '× ' . format_price((int) $p['price_cents'], (string) $p['currency']),
+                'sub'  => $qty . '× ' . format_price(product_effective_unit_cents($p, (int) $p['price_cents']), (string) $p['currency']),
                 'main' => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80) : null,
             ];
             if (count($items) >= 6) {

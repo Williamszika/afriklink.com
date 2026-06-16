@@ -64,6 +64,25 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </div>
 
+        <details class="variants-box promo-box" <?= ($isEdit && (int) ($product['promo_price_cents'] ?? 0) > 0) || has_error('promo_price') ? 'open' : '' ?>>
+            <summary>🏷️ <?= e(t('product.f.promo_section')) ?></summary>
+            <p class="hint"><?= e(t('product.f.promo_hint')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="p-promo"><?= e(t('product.f.promo_price', ['cur' => $cur])) ?></label>
+                    <input type="text" id="p-promo" name="promo_price" inputmode="decimal" value="<?= old('promo_price') ?: ($isEdit ? e($fmtP($product['promo_price_cents'] ?? null)) : '') ?>" placeholder="<?= e(t('product.f.promo_price_ph')) ?>">
+                    <?php if (has_error('promo_price')): ?><p class="field-error"><?= e(error('promo_price')) ?></p><?php endif; ?>
+                </div>
+                <div>
+                    <label for="p-promo-until"><?= e(t('product.f.promo_until')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="date" id="p-promo-until" name="promo_until" min="<?= e(date('Y-m-d')) ?>"
+                           value="<?= old('promo_until') ?: ($isEdit && !empty($product['promo_until']) ? e(date('Y-m-d', (int) strtotime((string) $product['promo_until']))) : '') ?>">
+                    <p class="hint"><?= e(t('product.f.promo_until_hint')) ?></p>
+                    <?php if (has_error('promo_until')): ?><p class="field-error"><?= e(error('promo_until')) ?></p><?php endif; ?>
+                </div>
+            </div>
+        </details>
+
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e(t('variant.section')) ?></summary>
             <p class="hint"><?= e(t('variant.hint')) ?></p>

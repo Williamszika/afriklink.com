@@ -181,6 +181,32 @@ final class ProductController
             $errors['price'] = t('validation.price_invalid');
         }
 
+        // Promotion facultative : prix réduit (> 0 et < prix normal) + fin facultative.
+        $promoCents = null;
+        $promoUntil = null;
+        $promoRaw = trim((string) input_string('promo_price', ''));
+        if ($promoRaw !== '') {
+            $promoCents = parse_price_to_cents($promoRaw, $currency);
+            if ($promoCents === null || $promoCents <= 0) {
+                $errors['promo_price'] = t('validation.price_invalid');
+                $promoCents = null;
+            } elseif ($priceCents !== null && $promoCents >= $priceCents) {
+                $errors['promo_price'] = t('validation.promo_below_price');
+                $promoCents = null;
+            }
+        }
+        if ($promoCents !== null) {
+            $promoUntilRaw = trim((string) input_string('promo_until', ''));
+            if ($promoUntilRaw !== '') {
+                $ts = strtotime($promoUntilRaw . ' 23:59:59');
+                if ($ts === false || $ts < time()) {
+                    $errors['promo_until'] = t('validation.promo_date_invalid');
+                } else {
+                    $promoUntil = date('Y-m-d H:i:s', $ts);
+                }
+            }
+        }
+
         $stockRaw = trim((string) input_string('stock', ''));
         $stock = null; // null = illimité
         if ($stockRaw !== '') {
@@ -251,6 +277,7 @@ final class ProductController
 
         return [[
             'name' => $name, 'description' => $description, 'price_cents' => $priceCents,
+            'promo_price_cents' => $promoCents, 'promo_until' => $promoUntil,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
             'collection' => mb_substr(trim((string) input_string('collection', '')), 0, 60),

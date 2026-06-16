@@ -131,6 +131,8 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                         <?php
                         $m = $mains[(int) $pr['id']] ?? null;
                         $inStock = $pr['stock'] === null || (int) $pr['stock'] > 0;
+                        $promoPct = product_promo_pct($pr);
+                        $priceEff = product_effective_unit_cents($pr, (int) $pr['price_cents']);
                         ?>
                         <div class="product-cell">
                             <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $pr['public_id'])) ?>">
@@ -140,10 +142,11 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                                     <?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                                     <?php if (!empty($pr['pinned'])): ?><span class="pin-badge" title="<?= e(t('product.pinned')) ?>"><?= icon('pin', ['size' => 14]) ?></span><?php endif; ?>
                                     <?php if (\App\Models\Product::isPromoted($pr)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+                                    <?php if ($promoPct > 0): ?><span class="discount-badge">−<?= $promoPct ?>%</span><?php endif; ?>
                                     <?php if (!$inStock): ?><span class="card-out-badge"><?= e(t('product.out_of_stock')) ?></span><?php endif; ?>
                                 </span>
                                 <span class="product-card-name"><?= e((string) $pr['name']) ?></span>
-                                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $pr['price_cents'], 'cur' => $cur]) ?></span>
+                                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => $priceEff, 'cur' => $cur, 'compare' => $promoPct > 0 ? (int) $pr['price_cents'] : 0]) ?></span>
                                 <?php if (!empty($ratings[(int) $pr['id']]['count'])): ?>
                                     <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $ratings[(int) $pr['id']]['avg'], 'count' => $ratings[(int) $pr['id']]['count'], 'small' => true]) ?></span>
                                 <?php endif; ?>

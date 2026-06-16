@@ -36,7 +36,9 @@
                     $pLink = $link !== '' ? $link . '?to=' . rawurlencode($pPath) : url($pPath);
                     $pImg  = $mains[(int) $p['id']] ?? null;
                     $cur   = (string) $p['currency'];
-                    $earn  = affiliate_line_commission_cents((int) $p['price_cents'], (int) $p['affiliate_rate_bps']);
+                    $pPct  = product_promo_pct($p);
+                    $pEff  = product_effective_unit_cents($p, (int) $p['price_cents']);
+                    $earn  = affiliate_line_commission_cents($pEff, (int) $p['affiliate_rate_bps']);
                     ?>
                     <div class="aff-shop aff-product">
                         <a class="aff-product-head" href="<?= e(url($pPath)) ?>" target="_blank" rel="noopener">
@@ -49,7 +51,7 @@
                             </span>
                             <span class="aff-shop-id">
                                 <span class="aff-shop-name"><?= e((string) $p['name']) ?></span>
-                                <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?= e(format_price((int) $p['price_cents'], $cur)) ?></span>
+                                <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?php if ($pPct > 0): ?><del><?= e(format_price((int) $p['price_cents'], $cur)) ?></del> <strong><?= e(format_price($pEff, $cur)) ?></strong> <span class="discount-badge discount-badge--inline">−<?= $pPct ?>%</span><?php else: ?><?= e(format_price((int) $p['price_cents'], $cur)) ?><?php endif; ?></span>
                             </span>
                         </a>
                         <div class="aff-cat-earn"><?= icon('wallet', ['size' => 14]) ?> <?= e(t('aff.cat_earn', ['amount' => format_price($earn, $cur)])) ?> <span class="muted">/ <?= e(t('aff.cat_per_sale')) ?></span></div>
