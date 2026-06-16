@@ -324,17 +324,18 @@ final class ProductController
             $ln = preg_replace('/[^0-9]/', '', (string) input_string('per_longueur', ''));
             if ($ln !== null && $ln !== '') { $pe['longueur'] = (int) $ln; }
             $attributes = $pe !== [] ? (string) json_encode($pe, JSON_UNESCAPED_UNICODE) : null;
-        } elseif ($collection === 'Soins corps') {
-            // Soins corps : caractéristiques propres au type (JSON) + actifs ; déclinaison = contenance.
+        } elseif ($collection === 'Soins corps' || $collection === 'Soins visage') {
+            // Soins (corps/visage) : caractéristiques propres au type (JSON) + actifs ; déclinaison = contenance.
+            $kind = beauty_soins_kind($collection);
             $productType = beauty_clean(input_string('product_type', ''), array_keys(beauty_soins_types($collection)));
-            $atouts      = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), beauty_soins('atouts')));
+            $atouts      = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), beauty_soins($kind, 'atouts')));
             $line = '';
             $volRaw = trim((string) input_string('volume', ''));
             $volume = ($volRaw !== '' && is_numeric(str_replace(',', '.', $volRaw))) ? round((float) str_replace(',', '.', $volRaw), 2) : null;
             if ($volume !== null && ($volume < 0 || $volume > 999999)) { $volume = null; }
-            $volumeUnit = beauty_clean(input_string('volume_unit', ''), ['ml', 'g']);
+            $volumeUnit = beauty_clean(input_string('volume_unit', ''), ['ml', 'g', 'pcs']);
             if ($volumeUnit === '') { $volumeUnit = 'ml'; }
-            $pao = beauty_clean(input_string('pao', ''), beauty_pao());
+            $pao = beauty_clean(input_string('pao', ''), beauty_soins_pao());
             $sa = beauty_soins_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []), (array) ($_POST['soins_actif'] ?? []));
             $attributes = $sa !== [] ? (string) json_encode($sa, JSON_UNESCAPED_UNICODE) : null;
         } else {

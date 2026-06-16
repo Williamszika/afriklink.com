@@ -904,15 +904,18 @@ function beauty_perruque(?string $key = null): array
     return (array) ($cfg[$key] ?? []);
 }
 
-/** Sous-config des rayons Soins (champs, types, actifs…). */
-function beauty_soins(?string $key = null): array
+/** Sous-config d'un rayon de soins par genre ('corps' / 'visage') et clé. */
+function beauty_soins(string $kind, ?string $key = null): array
 {
-    $cfg = (array) config('beauty.soins', []);
+    $cfg = (array) config('beauty.soins.' . $kind, []);
     if ($key === null) { return $cfg; }
     return (array) ($cfg[$key] ?? []);
 }
 
-/** Suffixe de config selon le rayon de soins ('Soins visage' => 'visage', sinon 'corps'). */
+/** PAO commun aux soins. @return list<string> */
+function beauty_soins_pao(): array { return (array) config('beauty.soins.pao', []); }
+
+/** Genre de soin selon le rayon ('Soins visage' => 'visage', sinon 'corps'). */
 function beauty_soins_kind(?string $rayon): string
 {
     return trim((string) $rayon) === 'Soins visage' ? 'visage' : 'corps';
@@ -921,13 +924,13 @@ function beauty_soins_kind(?string $rayon): string
 /** @return array<string,array> Types de produit du rayon de soins. */
 function beauty_soins_types(?string $rayon): array
 {
-    return beauty_soins('types_' . beauty_soins_kind($rayon));
+    return beauty_soins(beauty_soins_kind($rayon), 'types');
 }
 
 /** @return array<string,string> Groupes (optgroups) du rayon de soins. */
 function beauty_soins_groups(?string $rayon): array
 {
-    return beauty_soins('groups_' . beauty_soins_kind($rayon));
+    return beauty_soins(beauty_soins_kind($rayon), 'groups');
 }
 
 /** Métadonnées d'un type de soin pour un rayon donné, ou null. */
@@ -939,20 +942,21 @@ function beauty_soins_type_meta(?string $rayon, ?string $type): ?array
 
 /**
  * Nettoie les caractéristiques d'un soin : seulement les champs du type, validés ;
- * + actifs (liste blanche). @return array<string,mixed>
+ * + actifs (liste blanche du rayon). @return array<string,mixed>
  */
 function beauty_soins_attr_clean(?string $rayon, ?string $type, array $attrs, array $actifs): array
 {
     $meta = beauty_soins_type_meta($rayon, $type);
     if ($meta === null) { return []; }
-    $defs = (array) beauty_soins('fields');
+    $kind = beauty_soins_kind($rayon);
+    $defs = beauty_soins($kind, 'fields');
     $out = [];
     foreach ((array) ($meta['fields'] ?? []) as $key) {
         $val = trim((string) ($attrs[$key] ?? ''));
         if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
     }
     if (!empty($meta['actifs'])) {
-        $keep = keep_in_list($actifs, (array) beauty_soins('actifs'));
+        $keep = keep_in_list($actifs, beauty_soins($kind, 'actifs'));
         if ($keep !== []) { $out['actifs'] = $keep; }
     }
     return $out;

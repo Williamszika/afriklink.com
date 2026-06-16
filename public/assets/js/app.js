@@ -2656,19 +2656,23 @@ document.addEventListener('click', function (ev) {
     var PERR_HUMAN = perrBox ? (perrBox.getAttribute('data-human-type') || '') : '';
     var PERR_LACE = []; try { PERR_LACE = perrBox ? JSON.parse(perrBox.getAttribute('data-lace-types') || '[]') : []; } catch (e) { PERR_LACE = []; }
     var ONGHEX = {}; try { ONGHEX = JSON.parse(cfgEl.getAttribute('data-ongles-hex') || '{}'); } catch (e) { ONGHEX = {}; }
-    // Soins corps (adaptatif au type, comme le maquillage) + actifs + conformité.
-    var SOINS_TYPES = parse('data-soins-types'), SOINS_FIELDS = parse('data-soins-fields');
+    // Soins (corps / visage) : adaptatif au type (comme le maquillage) + actifs + conformité.
+    var SOINS = parse('data-soins'); // { corps:{...}, visage:{...}, pao:[...] }
     var soinsTypeSel = document.getElementById('soins-type');
     var soinsUnitSel = document.getElementById('soins-unit');
     var soinsAttrsBox = document.querySelector('[data-soins-attrs]');
     var soinsRows = document.querySelector('[data-soins-rows]');
     var soinsTpl  = document.getElementById('soins-variant-template');
     var soinsChips = document.querySelector('[data-soins-chips]');
+    var soinsActifsChips = document.querySelector('[data-soins-actifs-chips]');
+    var soinsAtoutsChips = document.querySelector('[data-soins-atouts-chips]');
+    function soinsKind() { return (coll && coll.value === 'Soins visage') ? 'visage' : 'corps'; }
+    function soinsCfg() { return SOINS[soinsKind()] || {}; }
 
     function isOngles() { return !!(coll && coll.value === 'Ongles'); }
     function isParfum() { return !!(coll && coll.value === 'Parfums'); }
     function isPerruque() { return !!(coll && coll.value === 'Perruque'); }
-    function isSoins() { return !!(coll && coll.value === 'Soins corps'); }
+    function isSoins() { return !!(coll && (coll.value === 'Soins corps' || coll.value === 'Soins visage')); }
     function activeSection() {
         return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : (isPerruque() ? 'perruque' : (isSoins() ? 'soins' : 'maquillage')));
     }
@@ -2798,17 +2802,18 @@ document.addEventListener('click', function (ev) {
         update();
     }
 
-    /* ---------- Soins corps : caractéristiques adaptatives au type + actifs + conformité ---------- */
-    function soinsMeta() { return (soinsTypeSel && SOINS_TYPES[soinsTypeSel.value]) ? SOINS_TYPES[soinsTypeSel.value] : null; }
+    /* ---------- Soins (corps / visage) : adaptatif au type + actifs + conformité ---------- */
+    function soinsMeta() { var t = soinsCfg().types || {}; return (soinsTypeSel && t[soinsTypeSel.value]) ? t[soinsTypeSel.value] : null; }
     function buildSoinsAttrs() {
         if (!soinsAttrsBox) { return; }
+        var fields = soinsCfg().fields || {};
         var prev = {};
         soinsAttrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
         soinsAttrsBox.innerHTML = '';
         var m = soinsMeta();
         if (!m) { return; }
         (m.fields || []).forEach(function (key) {
-            var def = SOINS_FIELDS[key]; if (!def) { return; }
+            var def = fields[key]; if (!def) { return; }
             var wrap = document.createElement('div');
             var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
             var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
@@ -2821,11 +2826,65 @@ document.addEventListener('click', function (ev) {
             wrap.appendChild(sel); soinsAttrsBox.appendChild(wrap);
         });
     }
+    // Conformité : true si le type le force (corps) OU si le champ « warn_field » vaut « warn_value » (visage).
+    function soinsWarnOn() {
+        var m = soinsMeta(); if (!m) { return false; }
+        if (m.warn) { return true; }
+        var cfg = soinsCfg();
+        if (cfg.warn_field && soinsAttrsBox) {
+            var sel = soinsAttrsBox.querySelector('select[name="attr[' + cfg.warn_field + ']"]');
+            return !!(sel && sel.value === cfg.warn_value);
+        }
+        return false;
+    }
+    function refreshSoinsWarn() { var w = document.querySelector('[data-soins-warn]'); if (w) { w.hidden = !soinsWarnOn(); } }
+    // Reconstruit les listes du rayon de soins courant (corps ↔ visage) : type, actifs, atouts, tailles.
+    function rebuildSoins() {
+        var cfg = soinsCfg();
+        if (soinsTypeSel && cfg.types) {
+            var cur = soinsTypeSel.value;
+            soinsTypeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = soinsTypeSel.getAttribute('data-any') || '—'; soinsTypeSel.appendChild(o0);
+            var groups = cfg.groups || {};
+            Object.keys(groups).forEach(function (gk) {
+                var og = document.createElement('optgroup'); og.label = groups[gk];
+                Object.keys(cfg.types).forEach(function (tn) {
+                    if ((cfg.types[tn].group || '') !== gk) { return; }
+                    var op = document.createElement('option'); op.value = tn; op.textContent = tn;
+                    if (tn === cur) { op.selected = true; }
+                    og.appendChild(op);
+                });
+                soinsTypeSel.appendChild(og);
+            });
+            if (soinsTypeSel.value !== cur) { soinsTypeSel.value = ''; } // type invalide pour ce rayon
+        }
+        function fillChecks(box, list, name) {
+            if (!box) { return; }
+            box.innerHTML = '';
+            (list || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = name; inp.value = v;
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); box.appendChild(lab);
+            });
+        }
+        fillChecks(soinsActifsChips, cfg.actifs, 'soins_actif[]');
+        fillChecks(soinsAtoutsChips, cfg.atouts, 'atouts[]');
+        if (soinsChips) {
+            soinsChips.innerHTML = '';
+            (cfg.tailles || []).forEach(function (v) {
+                var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+                b.setAttribute('data-soins-chip', ''); b.setAttribute('data-val', v); b.textContent = v;
+                soinsChips.appendChild(b);
+            });
+        }
+        onSoinsType();
+    }
     function onSoinsType() {
         var m = soinsMeta();
         if (m && soinsUnitSel && m.unit) { soinsUnitSel.value = m.unit; }
         buildSoinsAttrs();
-        var warn = document.querySelector('[data-soins-warn]'); if (warn) { warn.hidden = !(m && m.warn); }
+        refreshSoinsWarn();
         var act = document.querySelector('[data-soins-actifs-box]'); if (act) { act.hidden = !(m && m.actifs); }
         var sh = document.querySelector('[data-soins-hint]');
         if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
@@ -2913,6 +2972,7 @@ document.addEventListener('click', function (ev) {
         }
         var stockF = document.getElementById('p-stock'); var s = stockF ? String(stockF.value || '').trim() : '';
         setText('stock', s !== '' ? (s + ' en stock') : 'Stock illimité');
+        if (isSoins()) { refreshSoinsWarn(); } // visage : conformité selon la préoccupation
     }
     function syncPhoto() {
         if (!imgBox) { return; }
@@ -2981,7 +3041,7 @@ document.addEventListener('click', function (ev) {
 
     /* ---------- Événements ---------- */
     if (typeSel) { typeSel.addEventListener('change', onType); }
-    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (!meta()) { buildChips(); } update(); }); }
+    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isSoins()) { rebuildSoins(); } if (!meta()) { buildChips(); } update(); }); }
     if (chips) {
         chips.addEventListener('click', function (ev) {
             var c = ev.target && ev.target.closest ? ev.target.closest('[data-bchip]') : null;
