@@ -157,6 +157,27 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                 </div>
             <?php endif; ?>
         </div>
+
+        <?php /* ---- Meilleurs apporteurs (qui vend le plus pour cette boutique) ---- */ ?>
+        <?php $pTop = $program['top'] ?? []; ?>
+        <?php if ($pTop !== []): ?>
+            <div class="panel">
+                <h2 class="panel-title"><?= icon('star', ['size' => 18]) ?> <?= e(t('aff.top_title')) ?></h2>
+                <p class="hint"><?= e(t('aff.top_lead')) ?></p>
+                <ol class="aff-top">
+                    <?php foreach ($pTop as $i => $tp): ?>
+                        <li class="aff-top-row">
+                            <span class="aff-top-rank rank-<?= (int) $i + 1 ?>"><?= (int) $i + 1 ?></span>
+                            <span class="aff-top-name"><?= e((string) $tp['name']) ?></span>
+                            <span class="aff-top-stats">
+                                <span class="muted"><?= (int) $tp['sales'] ?> <?= e(t('aff.top_sales')) ?></span>
+                                <strong><?= e(format_price((int) $tp['commission'], (string) $tp['currency'])) ?></strong>
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>
 

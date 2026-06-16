@@ -48,6 +48,7 @@ final class AffiliateController
                 'stats'    => Affiliate::programStats((int) $shop['id']),
                 'recent'   => Affiliate::programRecent((int) $shop['id'], 8),
                 'series'   => Affiliate::programSeries((int) $shop['id'], 14),
+                'top'      => Affiliate::topReferrersForBoutique((int) $shop['id'], 5),
             ];
         }
 

@@ -511,6 +511,42 @@ final class Affiliate
         }
     }
 
+    /**
+     * Meilleurs apporteurs (particuliers) d'une boutique : pseudo, nb de ventes,
+     * commissions générées. Affiche le pseudo (ou le nom) — pour que le vendeur
+     * identifie/récompense ceux qui vendent le plus.
+     * @return list<array{name:string, sales:int, commission:int, currency:string}>
+     */
+    public static function topReferrersForBoutique(int $boutiqueId, int $limit = 5): array
+    {
+        self::ensureTables();
+        if ($boutiqueId <= 0) {
+            return [];
+        }
+        try {
+            $stmt = db()->prepare(
+                'SELECT c.affiliate_id, COUNT(*) AS sales, COALESCE(SUM(c.commission_cents),0) AS commission,
+                        MAX(c.currency) AS currency, u.nickname, u.full_name
+                   FROM affiliate_conversions c LEFT JOIN users u ON u.id = c.affiliate_id
+                  WHERE c.boutique_id = :b
+                  GROUP BY c.affiliate_id, u.nickname, u.full_name
+                  ORDER BY sales DESC, commission DESC LIMIT ' . max(1, min(20, $limit))
+            );
+            $stmt->execute(['b' => $boutiqueId]);
+            $out = [];
+            foreach ($stmt->fetchAll() ?: [] as $r) {
+                $name = trim((string) ($r['nickname'] ?? '')) ?: trim((string) ($r['full_name'] ?? ''));
+                if ($name === '') {
+                    $name = 'Apporteur #' . (int) $r['affiliate_id'];
+                }
+                $out[] = ['name' => $name, 'sales' => (int) $r['sales'], 'commission' => (int) $r['commission'], 'currency' => (string) $r['currency']];
+            }
+            return $out;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     private static function cookie(string $value, int $expires, string $name = self::COOKIE): void
     {
         @setcookie($name, $value, [

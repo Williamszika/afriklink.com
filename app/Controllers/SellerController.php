@@ -241,6 +241,7 @@ final class SellerController
                 'stats'    => \App\Models\Affiliate::programStats((int) $shop['id']),
                 'recent'   => \App\Models\Affiliate::programRecent((int) $shop['id'], 8),
                 'series'   => \App\Models\Affiliate::programSeries((int) $shop['id'], 14),
+                'top'      => \App\Models\Affiliate::topReferrersForBoutique((int) $shop['id'], 5),
             ];
         }
         view('vendeur/affiliation', [

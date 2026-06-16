@@ -1049,6 +1049,16 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .aff-cat-earn .muted { font-weight:500; font-size:.78rem; }
 .aff-cat .aff-shop-name { white-space:normal; }
 .aff-cat .aff-product-head { align-items:flex-start; }
+/* Classement des meilleurs apporteurs (côté vendeur) */
+.aff-top { list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
+.aff-top-row { display:flex; align-items:center; gap:12px; padding:8px 10px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+.aff-top-rank { width:28px; height:28px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; background:var(--bg-2); color:var(--ink); box-shadow:0 2px 5px -2px rgba(16,36,30,.4); }
+.aff-top-rank.rank-1 { background:radial-gradient(circle at 35% 30%, #fff3cf, #e5a02e); color:#5a3a00; }
+.aff-top-rank.rank-2 { background:radial-gradient(circle at 35% 30%, #f1f3f5, #c3ccd2); color:#33414a; }
+.aff-top-rank.rank-3 { background:radial-gradient(circle at 35% 30%, #f7dcc0, #cd7f4b); color:#4a2a12; }
+.aff-top-name { font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.aff-top-stats { display:flex; align-items:center; gap:12px; font-size:.88rem; white-space:nowrap; }
+.aff-top-stats strong { color:var(--brand); }
 /* Bandeau d'incitation vendeur */
 .aff-nudge { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
 .aff-nudge-txt { min-width:0; }
