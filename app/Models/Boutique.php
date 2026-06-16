@@ -291,16 +291,17 @@ final class Boutique
         }
     }
 
-    /** Annuaire : boutiques publiées ayant activé l'affiliation, taux décroissant. @return list<array> */
+    /** Annuaire : boutiques publiées ayant ≥1 produit affilié, avec leur taux max. @return list<array> */
     public static function participating(int $limit = 60): array
     {
         self::ensureTable();
         try {
             $stmt = db()->prepare(
-                "SELECT id, user_id, slug, name, tagline, category, logo_public_id, city, country_code, affiliation_rate_pct
-                   FROM boutiques
-                  WHERE status = 'published' AND affiliation_enabled = 1
-                  ORDER BY affiliation_rate_pct DESC, id DESC LIMIT " . max(1, min(100, $limit))
+                "SELECT b.id, b.user_id, b.slug, b.name, b.tagline, b.category, b.logo_public_id, b.city, b.country_code,
+                        MAX(p.affiliate_rate_bps) AS max_bps
+                   FROM boutiques b JOIN products p ON p.boutique_id = b.id
+                  WHERE b.status = 'published' AND p.status = 'active' AND p.affiliate_enabled = 1
+                  GROUP BY b.id ORDER BY max_bps DESC, b.id DESC LIMIT " . max(1, min(100, $limit))
             );
             $stmt->execute();
             return $stmt->fetchAll() ?: [];

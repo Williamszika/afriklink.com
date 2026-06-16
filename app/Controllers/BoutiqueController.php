@@ -376,10 +376,10 @@ final class BoutiqueController
         $fbt    = \App\Services\Recommender::frequentlyBoughtTogether((int) $product['id'], 4);
         $recent = \App\Services\Recommender::recentlyViewed(6, (string) $product['public_id']);
         // Affiliation : lien « partager & gagner » pour un membre connecté (hors propriétaire),
-        // uniquement si la boutique a activé son programme (opt-in), au taux qu'elle a fixé.
+        // uniquement si CE PRODUIT est affilié, au taux fixé par le vendeur pour ce produit.
         $viewerId   = (int) (current_user_id() ?? 0);
-        $affProgram = \App\Models\Boutique::affiliationOf((int) $boutique['id']);
-        $affLink    = ($viewerId > 0 && !$isOwner && ($boutique['status'] ?? '') === 'published' && $affProgram['enabled'])
+        $affProduct = \App\Models\Product::affiliationOf((int) $product['id']);
+        $affLink    = ($viewerId > 0 && !$isOwner && ($boutique['status'] ?? '') === 'published' && $affProduct['enabled'] && $affProduct['bps'] > 0)
             ? url('/r/' . \App\Models\Affiliate::codeFor($viewerId) . '?to=' . rawurlencode('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']))
             : null;
         view('boutique/product', [
@@ -398,7 +398,7 @@ final class BoutiqueController
             'recently_viewed' => $recent,
             'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($fbt, $recent)),
             'aff_link'        => $affLink,
-            'aff_rate'        => rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'), ','),
+            'aff_rate'        => rtrim(rtrim(number_format($affProduct['bps'] / 100, 1, ',', ''), '0'), ','),
             'page_title' => (string) $product['name'],
             'meta' => [
                 'description' => $this->ogDescription(
@@ -1050,7 +1050,7 @@ final class BoutiqueController
         \App\Services\Cart::clearBoutique((int) $boutique['id']); // vide aussi le panier persistant
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
         // Affiliation : créditer l'apporteur si le visiteur vient d'un lien /r/{code} (one-shot, hors auto-parrainage).
-        \App\Models\Affiliate::attribute($publicId, (int) $boutique['id'], (int) $boutique['user_id'], $subtotal, $cur);
+        \App\Models\Affiliate::attribute($publicId, (int) $boutique['id'], (int) $boutique['user_id'], $lines, $subtotal, $cur);
 
         // Notifications (best-effort, n'empêchent jamais la commande) :
         // le vendeur reçoit l'alerte « nouvelle commande », le client une confirmation.

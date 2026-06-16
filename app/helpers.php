@@ -655,6 +655,27 @@ function affiliate_effective_pct(): float
     return round($platform * affiliate_share_pct() / 100, 2);
 }
 
+/** Plafond du taux d'affiliation PAR PRODUIT, en points de base (ex. 350 = 3,5 %). */
+function affiliate_max_bps(): int
+{
+    return (int) round(affiliate_effective_pct() * 100);
+}
+
+/** Borne un taux d'affiliation (points de base) dans [0 ; plafond]. */
+function affiliate_clamp_bps(int $bps): int
+{
+    return max(0, min(affiliate_max_bps(), $bps));
+}
+
+/** Commission (centimes) d'une ligne d'article pour un taux en points de base (borné). */
+function affiliate_line_commission_cents(int $lineTotalCents, int $rateBps): int
+{
+    if ($lineTotalCents <= 0 || $rateBps <= 0) {
+        return 0;
+    }
+    return (int) round($lineTotalCents * affiliate_clamp_bps($rateBps) / 10000);
+}
+
 /** Formate des centimes en prix lisible : « 12,50 € », « 15 000 F CFA ». */
 function format_price(int $cents, string $currency): string
 {

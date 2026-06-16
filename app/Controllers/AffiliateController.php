@@ -25,7 +25,7 @@ final class AffiliateController
         $affiliateId = Affiliate::userIdForCode($code);
         if ($affiliateId !== null) {
             Affiliate::recordClick($affiliateId, $target);
-            Affiliate::setRefCookie($code);
+            Affiliate::setRefCookie($code, $target);
         }
         redirect($target);
     }
@@ -112,19 +112,44 @@ final class AffiliateController
         redirect('/affiliation');
     }
 
-    /** Active/désactive le programme d'affiliation de SA boutique et fixe le taux. */
-    public function saveProgram(Request $request): void
+    /** Écran vendeur : la liste de SES produits, chacun activable en affiliation + son taux. */
+    public function vendorProducts(Request $request): void
     {
         $user = current_user() ?? [];
         $uid  = (int) ($user['id'] ?? 0);
         $shop = Boutique::findByUserId($uid);
         if ($shop === null) {
-            redirect('/affiliation'); // pas de boutique : rien à configurer
+            redirect('/affiliation'); // pas de boutique
         }
-        $enabled = input_string('enabled', '') === '1';
-        $rate    = (int) input_string('rate', '5');
-        Boutique::setAffiliation((int) $shop['id'], $uid, $enabled, $rate);
-        flash('success', t('aff.program_saved'));
-        redirect('/affiliation');
+        $products = Product::forBoutiqueAffiliation((int) $shop['id']);
+        view('affiliation/vendor_products', [
+            'user'       => $user,
+            'boutique'   => $shop,
+            'products'   => $products,
+            'mains'      => Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'max_pct'    => rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'), ','),
+            'page_title' => t('aff.vp_title'),
+        ]);
+    }
+
+    /** Enregistre les choix d'affiliation par produit (activation + taux), pour SES produits. */
+    public function vendorProductsSave(Request $request): void
+    {
+        $user = current_user() ?? [];
+        $uid  = (int) ($user['id'] ?? 0);
+        $shop = Boutique::findByUserId($uid);
+        if ($shop === null) {
+            redirect('/affiliation');
+        }
+        $enabled = is_array($_POST['enabled'] ?? null) ? $_POST['enabled'] : [];
+        $rates   = is_array($_POST['rate'] ?? null) ? $_POST['rate'] : [];
+        foreach (Product::forBoutiqueAffiliation((int) $shop['id']) as $p) {
+            $pid  = (int) $p['id'];
+            $isOn = (string) ($enabled[$pid] ?? '') === '1';
+            $pct  = (float) str_replace(',', '.', (string) ($rates[$pid] ?? '0'));
+            Product::setAffiliation($pid, $uid, $isOn, (int) round($pct * 100));
+        }
+        flash('success', t('aff.vp_saved'));
+        redirect('/affiliation/mes-produits');
     }
 }

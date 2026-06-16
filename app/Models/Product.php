@@ -27,6 +27,8 @@ final class Product
                 video_duration  DECIMAL(6,2) NULL,
                 status      VARCHAR(12) NOT NULL DEFAULT \'active\',
                 position    INT NOT NULL DEFAULT 0,
+                affiliate_enabled  TINYINT(1) NOT NULL DEFAULT 0,
+                affiliate_rate_bps SMALLINT UNSIGNED NOT NULL DEFAULT 0,
                 created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 KEY idx_products_boutique (boutique_id, status, position)
@@ -44,6 +46,28 @@ final class Product
             )'
         );
         ProductVariant::ensureTable();
+        self::migrateAffiliation();
+    }
+
+    /** Ajoute les colonnes d'affiliation par produit aux tables existantes. Mémoïsé. */
+    private static function migrateAffiliation(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            db()->query('SELECT affiliate_enabled FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products
+                    ADD COLUMN affiliate_enabled  TINYINT(1) NOT NULL DEFAULT 0,
+                    ADD COLUMN affiliate_rate_bps SMALLINT UNSIGNED NOT NULL DEFAULT 0');
+            } catch (\Throwable) {
+                // course entre instances : une autre a déjà migré
+            }
+        }
     }
 
     /** @param list<array{public_id:string,width:?int,height:?int}> $photos */
@@ -312,23 +336,105 @@ final class Product
     }
 
     /**
-     * Produits actifs des boutiques participant à l'affiliation (opt-in), pour
-     * l'annuaire « à partager ». Plus le taux est élevé, plus le produit remonte.
-     * @return list<array> p.* + boutique_slug/name/currency + affiliation_rate_pct
+     * Produits AFFILIÉS (réglés produit par produit) des boutiques publiées, pour
+     * l'annuaire/catalogue « à partager ». Filtres : q (nom), category, boutique (slug), sort.
+     * @return list<array> p.* + boutique_slug/name/currency/category + affiliate_rate_bps
      */
-    public static function participating(int $limit = 12): array
+    public static function participating(int $limit = 12, array $filters = []): array
     {
         try {
-            $stmt = db()->prepare(
-                "SELECT p.id, p.public_id, p.name, p.price_cents, p.status,
-                        b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency,
-                        b.affiliation_rate_pct AS affiliation_rate_pct
-                   FROM products p JOIN boutiques b ON b.id = p.boutique_id
-                  WHERE b.status = 'published' AND b.affiliation_enabled = 1 AND p.status = 'active'
-                  ORDER BY b.affiliation_rate_pct DESC, p.id DESC LIMIT " . max(1, min(48, $limit))
-            );
-            $stmt->execute();
+            $where = ["b.status = 'published'", "p.status = 'active'", 'p.affiliate_enabled = 1'];
+            $args  = [];
+            if (!empty($filters['q'])) {
+                $where[] = 'p.name LIKE :q';
+                $args['q'] = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $filters['q']) . '%';
+            }
+            if (!empty($filters['category'])) {
+                $where[] = 'b.category = :cat';
+                $args['cat'] = (string) $filters['category'];
+            }
+            if (!empty($filters['boutique'])) {
+                $where[] = 'b.slug = :bs';
+                $args['bs'] = (string) $filters['boutique'];
+            }
+            $order = match ((string) ($filters['sort'] ?? '')) {
+                'price_asc'   => 'p.price_cents ASC',
+                'price_desc'  => 'p.price_cents DESC',
+                'commission'  => 'p.affiliate_rate_bps DESC, p.price_cents DESC',
+                default       => 'p.id DESC',
+            };
+            $sql = "SELECT p.id, p.public_id, p.name, p.price_cents, p.affiliate_rate_bps,
+                           b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency, b.category AS boutique_category
+                      FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                     WHERE " . implode(' AND ', $where) . " ORDER BY {$order} LIMIT " . max(1, min(60, $limit));
+            $stmt = db()->prepare($sql);
+            $stmt->execute($args);
             return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Réglages d'affiliation d'un produit. @return array{enabled:bool, bps:int} */
+    public static function affiliationOf(int $productId): array
+    {
+        try {
+            $st = db()->prepare('SELECT affiliate_enabled, affiliate_rate_bps FROM products WHERE id = :id LIMIT 1');
+            $st->execute(['id' => $productId]);
+            $r = $st->fetch();
+            if ($r === false) {
+                return ['enabled' => false, 'bps' => 0];
+            }
+            return ['enabled' => (bool) (int) $r['affiliate_enabled'], 'bps' => affiliate_clamp_bps((int) $r['affiliate_rate_bps'])];
+        } catch (\Throwable) {
+            return ['enabled' => false, 'bps' => 0];
+        }
+    }
+
+    /** Réglages d'affiliation pour un lot de produits (calcul de commission par article).
+     *  @return array<int, array{enabled:bool, bps:int}> */
+    public static function affiliationMapFor(array $productIds): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $productIds))));
+        if ($ids === []) {
+            return [];
+        }
+        try {
+            $in = implode(',', array_fill(0, count($ids), '?'));
+            $st = db()->prepare("SELECT id, affiliate_enabled, affiliate_rate_bps FROM products WHERE id IN ($in)");
+            $st->execute($ids);
+            $map = [];
+            foreach ($st->fetchAll() ?: [] as $r) {
+                $map[(int) $r['id']] = ['enabled' => (bool) (int) $r['affiliate_enabled'], 'bps' => affiliate_clamp_bps((int) $r['affiliate_rate_bps'])];
+            }
+            return $map;
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Active/désactive l'affiliation d'un produit + fixe le taux (bps borné). Appartenance vérifiée. */
+    public static function setAffiliation(int $productId, int $ownerUserId, bool $enabled, int $bps): bool
+    {
+        self::ensureTables();
+        try {
+            $st = db()->prepare('UPDATE products SET affiliate_enabled = :e, affiliate_rate_bps = :b WHERE id = :id AND user_id = :u');
+            $st->execute(['e' => $enabled ? 1 : 0, 'b' => affiliate_clamp_bps($bps), 'id' => $productId, 'u' => $ownerUserId]);
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** Produits d'une boutique + leurs réglages d'affiliation (écran vendeur). @return list<array> */
+    public static function forBoutiqueAffiliation(int $boutiqueId): array
+    {
+        self::ensureTables();
+        try {
+            $st = db()->prepare('SELECT id, public_id, name, price_cents, status, affiliate_enabled, affiliate_rate_bps
+                                   FROM products WHERE boutique_id = :b ORDER BY position ASC, id DESC');
+            $st->execute(['b' => $boutiqueId]);
+            return $st->fetchAll() ?: [];
         } catch (\Throwable) {
             return [];
         }

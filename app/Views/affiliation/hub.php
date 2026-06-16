@@ -9,7 +9,7 @@ $rateLbl = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'
     <div class="aff-hero">
         <?php if ($can_earn): ?>
             <h1><?= icon('banknote', ['size' => 26]) ?> <?= e(t('aff.hub_title')) ?>
-                <span class="badge badge-ok"><?= e(t('aff.rate_badge', ['rate' => $rateLbl])) ?></span>
+                <span class="badge badge-ok"><?= e(t('aff.upto', ['rate' => $rateLbl])) ?></span>
             </h1>
             <p class="lead"><?= e(t('aff.hub_lead')) ?></p>
         <?php else: ?>

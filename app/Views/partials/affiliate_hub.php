@@ -30,18 +30,9 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
 <!-- A. Configuration du programme — réservée au VENDEUR qui possède une boutique -->
 <?php if ($program !== null): ?>
     <div class="panel">
-        <h2 class="panel-title"><?= icon('store', ['size' => 18]) ?> <?= e(t('aff.program_title')) ?>
-            <span class="badge <?= $program['enabled'] ? 'badge-ok' : 'badge-muted' ?>"><?= e($program['enabled'] ? t('aff.program_on') : t('aff.program_off')) ?></span>
-        </h2>
+        <h2 class="panel-title"><?= icon('store', ['size' => 18]) ?> <?= e(t('aff.program_title')) ?></h2>
         <p class="muted"><?= e(t('aff.program_lead')) ?></p>
-        <form method="post" action="<?= e(url('/affiliation/programme')) ?>" class="aff-program-form">
-            <?= csrf_field() ?>
-            <label class="switch-row">
-                <input type="checkbox" name="enabled" value="1" <?= $program['enabled'] ? 'checked' : '' ?>>
-                <span><?= e(t('aff.program_enable')) ?></span>
-            </label>
-            <button type="submit" class="btn btn-primary btn-sm"><?= e(t('aff.program_save')) ?></button>
-        </form>
+        <p><a class="btn btn-primary btn-sm" href="<?= e(url('/affiliation/mes-produits')) ?>"><?= icon('tag', ['size' => 15]) ?> <?= e(t('aff.program_manage')) ?></a></p>
         <p class="hint"><?= e(t('aff.program_hint', ['rate' => $effRateLabel])) ?></p>
     </div>
 
@@ -261,7 +252,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
                 <?php foreach ($directory as $shop): ?>
                     <?php
                     $slug     = (string) $shop['slug'];
-                    $shopRate = (int) $shop['affiliation_rate_pct'];
+                    $shopMax  = rtrim(rtrim(number_format(((int) ($shop['max_bps'] ?? 0)) / 100, 1, ',', ''), '0'), ',');
                     $shopLink = $link !== '' ? $link . '?to=' . rawurlencode('/boutique/' . $slug) : url('/boutique/' . $slug);
                     $logoId   = (string) ($shop['logo_public_id'] ?? '');
                     $place    = place_label((string) ($shop['city'] ?? ''), (string) ($shop['country_code'] ?? ''));
@@ -277,7 +268,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
                                 <span class="aff-shop-name"><?= e((string) $shop['name']) ?></span>
                                 <?php if ($place !== ''): ?><span class="aff-shop-place"><?= e($place) ?></span><?php endif; ?>
                             </span>
-                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $effRateLabel])) ?></span>
+                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.upto', ['rate' => $shopMax])) ?></span>
                         </a>
                         <button type="button" class="btn btn-ghost btn-sm btn-block" data-copy="<?= e($shopLink) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= icon('copy', ['size' => 15]) ?> <?= e(t('aff.directory_copy')) ?></button>
                     </div>
@@ -297,6 +288,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
                     $pPath = '/boutique/' . (string) $p['boutique_slug'] . '/p/' . (string) $p['public_id'];
                     $pLink = $link !== '' ? $link . '?to=' . rawurlencode($pPath) : url($pPath);
                     $pImg  = $dir_mains[(int) $p['id']] ?? null;
+                    $pRate = rtrim(rtrim(number_format(((int) ($p['affiliate_rate_bps'] ?? 0)) / 100, 1, ',', ''), '0'), ',');
                     ?>
                     <div class="aff-shop aff-product">
                         <a class="aff-product-head" href="<?= e(url($pPath)) ?>" target="_blank" rel="noopener">
@@ -311,7 +303,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
                                 <span class="aff-shop-name"><?= e((string) $p['name']) ?></span>
                                 <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
                             </span>
-                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $effRateLabel])) ?></span>
+                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $pRate])) ?></span>
                         </a>
                         <button type="button" class="btn btn-ghost btn-sm btn-block" data-copy="<?= e($pLink) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= icon('copy', ['size' => 15]) ?> <?= e(t('aff.directory_copy')) ?></button>
                     </div>

@@ -18,6 +18,7 @@ final class Affiliate
     public const RATE_PCT = 5;
 
     private const COOKIE = 'aff_ref';
+    private const COOKIE_TGT = 'aff_tgt'; // cible (produit/boutique) du lien cliqué
 
     public static function ensureTables(): void
     {
@@ -47,6 +48,7 @@ final class Affiliate
                 commission_cents BIGINT UNSIGNED NOT NULL DEFAULT 0,
                 currency         CHAR(3) NOT NULL DEFAULT \'EUR\',
                 paid_out_at      DATETIME NULL,
+                target           VARCHAR(300) NULL,
                 created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_aff_conv (affiliate_id, id)
             )'
@@ -54,7 +56,7 @@ final class Affiliate
         self::migrate();
     }
 
-    /** Ajoute paid_out_at aux tables existantes (versement portefeuille). Mémoïsé. */
+    /** Ajoute paid_out_at / target aux tables existantes. Mémoïsé. */
     private static function migrate(): void
     {
         static $done = false;
@@ -62,13 +64,15 @@ final class Affiliate
             return;
         }
         $done = true;
-        try {
-            db()->query('SELECT paid_out_at FROM affiliate_conversions LIMIT 1');
-        } catch (\Throwable) {
+        foreach (['paid_out_at' => 'DATETIME NULL', 'target' => 'VARCHAR(300) NULL'] as $col => $type) {
             try {
-                db()->exec('ALTER TABLE affiliate_conversions ADD COLUMN paid_out_at DATETIME NULL');
+                db()->query("SELECT {$col} FROM affiliate_conversions LIMIT 1");
             } catch (\Throwable) {
-                // course entre instances : une autre a déjà migré
+                try {
+                    db()->exec("ALTER TABLE affiliate_conversions ADD COLUMN {$col} {$type}");
+                } catch (\Throwable) {
+                    // course entre instances : une autre a déjà migré
+                }
             }
         }
     }
@@ -167,10 +171,11 @@ final class Affiliate
         }
     }
 
-    /** Pose le cookie de parrainage (30 jours) côté visiteur. */
-    public static function setRefCookie(string $code): void
+    /** Pose le cookie de parrainage (30 jours) + mémorise la cible du lien cliqué. */
+    public static function setRefCookie(string $code, string $target = ''): void
     {
         self::cookie($code, time() + 2592000);
+        self::cookie(mb_substr($target, 0, 300), time() + 2592000, self::COOKIE_TGT);
     }
 
     /**
@@ -179,13 +184,15 @@ final class Affiliate
      * Opt-in : seules les boutiques ayant activé leur programme reversent une commission,
      * au taux qu'elles ont fixé.
      */
-    public static function attribute(string $orderPublicId, int $boutiqueId, int $sellerUserId, int $subtotalCents, string $currency): void
+    public static function attribute(string $orderPublicId, int $boutiqueId, int $sellerUserId, array $lines, int $subtotalCents, string $currency): void
     {
-        $code = trim((string) ($_COOKIE[self::COOKIE] ?? ''));
+        $code   = trim((string) ($_COOKIE[self::COOKIE] ?? ''));
+        $target = trim((string) ($_COOKIE[self::COOKIE_TGT] ?? ''));
         if ($code === '') {
             return;
         }
-        self::cookie('', time() - 3600); // consommer le cookie
+        self::cookie('', time() - 3600);                   // consomme le cookie code
+        self::cookie('', time() - 3600, self::COOKIE_TGT); // consomme le cookie cible
         $affiliateId = self::userIdForCode($code);
         if ($affiliateId === null || $affiliateId === $sellerUserId) {
             return; // lien inconnu ou auto-parrainage
@@ -196,30 +203,51 @@ final class Affiliate
         if (($affiliate['account_type'] ?? '') === 'professionnel') {
             return;
         }
-        $program = Boutique::affiliationOf($boutiqueId);
-        if (!$program['enabled']) {
-            return; // la boutique n'a pas activé l'affiliation
-        }
-        // La commission de l'apporteur est PRÉLEVÉE SUR la commission plateforme
-        // (jamais en plus). Montant provisoire ici (basé sur le sous-total) ;
-        // il sera recalculé sur la commission réelle au moment du paiement.
-        $commission = affiliate_commission_cents(platform_commission_cents($subtotalCents));
+        // Commission PAR PRODUIT : somme des commissions des articles affiliés (taux
+        // fixé par le vendeur, borné). Prélevée sur la commission plateforme — donc
+        // plafonnée à celle-ci (le vendeur ne paie jamais en plus, AfrikaLink garde ≥ son minimum).
+        $commission = self::commissionForLines($lines);
         if ($commission <= 0) {
-            return;
+            return; // aucun article affilié dans la commande
         }
-        self::recordConversion($affiliateId, $orderPublicId, $boutiqueId, $subtotalCents, $commission, $currency);
+        $commission = min($commission, platform_commission_cents($subtotalCents));
+        self::recordConversion($affiliateId, $orderPublicId, $boutiqueId, $subtotalCents, $commission, $currency, $target);
     }
 
-    public static function recordConversion(int $affiliateId, string $orderPublicId, int $boutiqueId, int $amountCents, int $commissionCents, string $currency): void
+    /** Somme des commissions d'affiliation des articles d'une commande (par produit). */
+    private static function commissionForLines(array $lines): int
+    {
+        $pids = [];
+        foreach ($lines as $l) {
+            $pid = (int) ($l['product_id'] ?? 0);
+            if ($pid > 0) {
+                $pids[] = $pid;
+            }
+        }
+        $map = \App\Models\Product::affiliationMapFor($pids);
+        $total = 0;
+        foreach ($lines as $l) {
+            $aff = $map[(int) ($l['product_id'] ?? 0)] ?? null;
+            if ($aff === null || !$aff['enabled'] || $aff['bps'] <= 0) {
+                continue;
+            }
+            $lineTotal = (int) ($l['line_total_cents'] ?? ((int) ($l['qty'] ?? 0) * (int) ($l['unit_price_cents'] ?? 0)));
+            $total += affiliate_line_commission_cents($lineTotal, (int) $aff['bps']);
+        }
+        return $total;
+    }
+
+    public static function recordConversion(int $affiliateId, string $orderPublicId, int $boutiqueId, int $amountCents, int $commissionCents, string $currency, string $target = ''): void
     {
         self::ensureTables();
         try {
             db()->prepare(
-                'INSERT INTO affiliate_conversions (affiliate_id, order_public_id, boutique_id, amount_cents, commission_cents, currency)
-                 VALUES (:a, :o, :b, :amt, :com, :cur)'
+                'INSERT INTO affiliate_conversions (affiliate_id, order_public_id, boutique_id, amount_cents, commission_cents, currency, target)
+                 VALUES (:a, :o, :b, :amt, :com, :cur, :tgt)'
             )->execute([
                 'a' => $affiliateId, 'o' => $orderPublicId, 'b' => $boutiqueId,
                 'amt' => max(0, $amountCents), 'com' => max(0, $commissionCents), 'cur' => mb_substr($currency, 0, 3),
+                'tgt' => $target !== '' ? mb_substr($target, 0, 300) : null,
             ]);
         } catch (\Throwable) {
             // doublon (commande déjà créditée) : idempotent, on ignore.
@@ -248,11 +276,12 @@ final class Affiliate
             if ($row === false || $row['paid_out_at'] !== null) {
                 return; // pas d'apporteur, ou déjà versé
             }
-            // Commission finale = part de la commission plateforme RÉELLE (si fournie),
-            // sinon la valeur provisoire enregistrée à l'attribution. Jamais en plus.
-            $commission = $platformFeeCents > 0
-                ? affiliate_commission_cents($platformFeeCents)
-                : (int) $row['commission_cents'];
+            // Commission = celle calculée à l'attribution (somme par produit), plafonnée
+            // à la commission plateforme RÉELLE si connue (jamais plus — sécurité argent).
+            $commission = (int) $row['commission_cents'];
+            if ($platformFeeCents > 0) {
+                $commission = min($commission, $platformFeeCents);
+            }
             if ($commission <= 0) {
                 return;
             }
@@ -306,6 +335,72 @@ final class Affiliate
         } catch (\Throwable) {
             return [];
         }
+    }
+
+    /* ---- Suivi PAR LIEN (apporteur particulier) -------------------------- */
+
+    /**
+     * Statistiques par lien partagé (par cible) : clics, ventes, gains par devise.
+     * @return list<array{target:string, clicks:int, sales:int, earnings:array<string,int>}>
+     */
+    public static function linkStats(int $affiliateId, int $limit = 100): array
+    {
+        self::ensureTables();
+        if ($affiliateId <= 0) {
+            return [];
+        }
+        $rows = [];
+        try {
+            $c = db()->prepare('SELECT target AS t, COUNT(*) AS n FROM affiliate_clicks WHERE affiliate_id = :a GROUP BY target');
+            $c->execute(['a' => $affiliateId]);
+            foreach ($c->fetchAll() ?: [] as $r) {
+                $t = (string) ($r['t'] ?? '');
+                $rows[$t] ??= ['target' => $t, 'clicks' => 0, 'sales' => 0, 'earnings' => []];
+                $rows[$t]['clicks'] = (int) $r['n'];
+            }
+            $v = db()->prepare('SELECT target AS t, currency, COUNT(*) AS n, COALESCE(SUM(commission_cents),0) AS s
+                                  FROM affiliate_conversions WHERE affiliate_id = :a GROUP BY target, currency');
+            $v->execute(['a' => $affiliateId]);
+            foreach ($v->fetchAll() ?: [] as $r) {
+                $t = (string) ($r['t'] ?? '');
+                $rows[$t] ??= ['target' => $t, 'clicks' => 0, 'sales' => 0, 'earnings' => []];
+                $rows[$t]['sales'] += (int) $r['n'];
+                $rows[$t]['earnings'][(string) $r['currency']] = (int) $r['s'];
+            }
+        } catch (\Throwable) {
+        }
+        $out = array_values($rows);
+        usort($out, static fn (array $a, array $b): int => ($b['sales'] <=> $a['sales']) ?: ($b['clicks'] <=> $a['clicks']));
+        return array_slice($out, 0, max(1, $limit));
+    }
+
+    /** Libellé lisible d'une cible de lien (nom du produit ou de la boutique), best-effort. */
+    public static function labelForTarget(?string $target): string
+    {
+        $t = trim((string) $target);
+        if ($t === '' || $t === '/') {
+            return '';
+        }
+        try {
+            if (preg_match('#^/boutique/[^/]+/p/([^/?#]+)#', $t, $m)) {
+                $st = db()->prepare('SELECT name FROM products WHERE public_id = :p LIMIT 1');
+                $st->execute(['p' => $m[1]]);
+                $name = $st->fetchColumn();
+                if ($name !== false) {
+                    return (string) $name;
+                }
+            }
+            if (preg_match('#^/boutique/([^/?#]+)#', $t, $m)) {
+                $st = db()->prepare('SELECT name FROM boutiques WHERE slug = :s LIMIT 1');
+                $st->execute(['s' => $m[1]]);
+                $name = $st->fetchColumn();
+                if ($name !== false) {
+                    return (string) $name;
+                }
+            }
+        } catch (\Throwable) {
+        }
+        return $t;
     }
 
     /* ---- Performance d'un programme (côté vendeur, par boutique) ---------- */
@@ -404,9 +499,9 @@ final class Affiliate
         }
     }
 
-    private static function cookie(string $value, int $expires): void
+    private static function cookie(string $value, int $expires, string $name = self::COOKIE): void
     {
-        @setcookie(self::COOKIE, $value, [
+        @setcookie($name, $value, [
             'expires'  => $expires,
             'path'     => '/',
             'secure'   => request_is_https(),
@@ -414,9 +509,9 @@ final class Affiliate
             'samesite' => 'Lax',
         ]);
         if ($value === '') {
-            unset($_COOKIE[self::COOKIE]);
+            unset($_COOKIE[$name]);
         } else {
-            $_COOKIE[self::COOKIE] = $value;
+            $_COOKIE[$name] = $value;
         }
     }
 }
