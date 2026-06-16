@@ -341,6 +341,43 @@ final class Affiliate
         return $out;
     }
 
+    /**
+     * Évolution journalière (N derniers jours) des indicateurs d'affiliation d'une
+     * boutique, pour les graphiques : apporteurs actifs, ventes, commissions (centimes).
+     * @return list<array{date:string,label:string,affiliates:int,sales:int,commission:int}>
+     */
+    public static function programSeries(int $boutiqueId, int $days = 14): array
+    {
+        self::ensureTables();
+        $days = max(7, min(60, $days));
+        $buckets = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-$i day"));
+            $buckets[$d] = ['date' => $d, 'label' => date('d/m', strtotime($d)), 'affiliates' => 0, 'sales' => 0, 'commission' => 0];
+        }
+        if ($boutiqueId > 0) {
+            try {
+                $stmt = db()->prepare(
+                    'SELECT DATE(created_at) d, COUNT(*) n, COUNT(DISTINCT affiliate_id) a, COALESCE(SUM(commission_cents),0) c
+                       FROM affiliate_conversions
+                      WHERE boutique_id = :b AND created_at >= :since
+                      GROUP BY DATE(created_at)'
+                );
+                $stmt->execute(['b' => $boutiqueId, 'since' => date('Y-m-d', strtotime('-' . ($days - 1) . ' day')) . ' 00:00:00']);
+                foreach ($stmt->fetchAll() ?: [] as $r) {
+                    $d = (string) $r['d'];
+                    if (isset($buckets[$d])) {
+                        $buckets[$d]['sales']      = (int) $r['n'];
+                        $buckets[$d]['affiliates'] = (int) $r['a'];
+                        $buckets[$d]['commission'] = (int) $r['c'];
+                    }
+                }
+            } catch (\Throwable) {
+            }
+        }
+        return array_values($buckets);
+    }
+
     /** Dernières ventes attribuées à des apporteurs pour CETTE boutique. @return list<array> */
     public static function programRecent(int $boutiqueId, int $limit = 8): array
     {

@@ -240,6 +240,7 @@ final class SellerController
                 'boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate'],
                 'stats'    => \App\Models\Affiliate::programStats((int) $shop['id']),
                 'recent'   => \App\Models\Affiliate::programRecent((int) $shop['id'], 8),
+                'series'   => \App\Models\Affiliate::programSeries((int) $shop['id'], 14),
             ];
         }
         view('vendeur/affiliation', [

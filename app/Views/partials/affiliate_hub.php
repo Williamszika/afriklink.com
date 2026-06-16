@@ -50,32 +50,102 @@ $wallet       = $wallet ?? null;
     <?php /* ---- Performance du programme (côté vendeur) ---- */ ?>
     <?php $pStats = $program['stats'] ?? null; $pRecent = $program['recent'] ?? []; ?>
     <?php if ($pStats !== null): ?>
-        <?php $paidStr = empty($pStats['paid']) ? '0' : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $pStats['paid'], array_keys($pStats['paid']))); ?>
+        <?php
+        $paidStr = empty($pStats['paid']) ? '0' : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $pStats['paid'], array_keys($pStats['paid'])));
+        $series  = $program['series'] ?? [];
+        $curP    = (string) ($program['boutique']['currency'] ?? 'EUR');
+        $maxAff  = $maxSales = $maxCom = 0;
+        foreach ($series as $d) {
+            $maxAff   = max($maxAff, (int) $d['affiliates']);
+            $maxSales = max($maxSales, (int) $d['sales']);
+            $maxCom   = max($maxCom, (int) $d['commission']);
+        }
+        $hasData = ((int) ($pStats['sales'] ?? 0)) > 0 && $series !== [];
+        // Rend les colonnes 3D d'une série (hauteurs en %, animation décalée via --i).
+        $bars = static function (array $series, string $key, int $max, ?string $cur): string {
+            ob_start();
+            $i = 0;
+            foreach ($series as $d) {
+                $v     = (int) $d[$key];
+                $pct   = $max > 0 && $v > 0 ? max(4, (int) round($v / $max * 100)) : 0;
+                $value = $key === 'commission' && $cur ? format_price($v, $cur) : (string) $v;
+                echo '<div class="perf-col" title="' . e($d['label'] . ' · ' . $value) . '">'
+                    . '<span class="perf-bar" style="height:' . $pct . '%;--i:' . $i . '"></span>'
+                    . '<span class="perf-col-x">' . e((string) $d['label']) . '</span></div>';
+                $i++;
+            }
+            return (string) ob_get_clean();
+        };
+        ?>
         <div class="panel aff-perf-panel">
             <h2 class="panel-title"><?= icon('chart', ['size' => 18]) ?> <?= e(t('aff.perf_title')) ?></h2>
-            <div class="perf-tiles">
-                <div class="perf-tile perf-tile--green">
-                    <span class="perf-coin"><?= icon('users', ['size' => 22]) ?></span>
-                    <span class="perf-num"><?= (int) $pStats['affiliates'] ?></span>
-                    <span class="perf-lbl"><?= e(t('aff.perf_affiliates')) ?></span>
+
+            <?php if ($hasData): ?>
+                <p class="hint perf-hint"><?= e(t('aff.chart_hint')) ?></p>
+                <div class="perf-interactive">
+                    <input type="radio" name="perf-metric" id="perfm-aff" class="perf-radio" checked>
+                    <input type="radio" name="perf-metric" id="perfm-sales" class="perf-radio">
+                    <input type="radio" name="perf-metric" id="perfm-com" class="perf-radio">
+                    <div class="perf-tiles">
+                        <label for="perfm-aff" class="perf-tile perf-tile--green">
+                            <span class="perf-coin"><?= icon('users', ['size' => 22]) ?></span>
+                            <span class="perf-num"><?= (int) $pStats['affiliates'] ?></span>
+                            <span class="perf-lbl"><?= e(t('aff.perf_affiliates')) ?></span>
+                            <span class="perf-pick"><?= icon('chart', ['size' => 13]) ?></span>
+                        </label>
+                        <label for="perfm-sales" class="perf-tile perf-tile--teal">
+                            <span class="perf-coin"><?= icon('bag', ['size' => 22]) ?></span>
+                            <span class="perf-num"><?= (int) $pStats['sales'] ?></span>
+                            <span class="perf-lbl"><?= e(t('aff.perf_sales')) ?></span>
+                            <span class="perf-pick"><?= icon('chart', ['size' => 13]) ?></span>
+                        </label>
+                        <label for="perfm-com" class="perf-tile perf-tile--gold">
+                            <span class="perf-coin"><?= icon('banknote', ['size' => 22]) ?></span>
+                            <span class="perf-num"><?= e($paidStr) ?></span>
+                            <span class="perf-lbl"><?= e(t('aff.perf_paid')) ?></span>
+                            <span class="perf-pick"><?= icon('chart', ['size' => 13]) ?></span>
+                        </label>
+                    </div>
+                    <div class="perf-charts">
+                        <figure class="perf-chart perf-chart--aff">
+                            <figcaption class="perf-chart-cap"><?= e(t('aff.perf_affiliates')) ?> · <?= e(t('aff.chart_period')) ?></figcaption>
+                            <div class="perf-graph"><?= $bars($series, 'affiliates', $maxAff, null) ?></div>
+                        </figure>
+                        <figure class="perf-chart perf-chart--sales">
+                            <figcaption class="perf-chart-cap"><?= e(t('aff.perf_sales')) ?> · <?= e(t('aff.chart_period')) ?></figcaption>
+                            <div class="perf-graph"><?= $bars($series, 'sales', $maxSales, null) ?></div>
+                        </figure>
+                        <figure class="perf-chart perf-chart--com">
+                            <figcaption class="perf-chart-cap"><?= e(t('aff.perf_paid')) ?> · <?= e(t('aff.chart_period')) ?></figcaption>
+                            <div class="perf-graph"><?= $bars($series, 'commission', $maxCom, $curP) ?></div>
+                        </figure>
+                    </div>
                 </div>
-                <div class="perf-tile perf-tile--teal">
-                    <span class="perf-coin"><?= icon('bag', ['size' => 22]) ?></span>
-                    <span class="perf-num"><?= (int) $pStats['sales'] ?></span>
-                    <span class="perf-lbl"><?= e(t('aff.perf_sales')) ?></span>
+            <?php else: ?>
+                <div class="perf-tiles">
+                    <div class="perf-tile perf-tile--green">
+                        <span class="perf-coin"><?= icon('users', ['size' => 22]) ?></span>
+                        <span class="perf-num"><?= (int) $pStats['affiliates'] ?></span>
+                        <span class="perf-lbl"><?= e(t('aff.perf_affiliates')) ?></span>
+                    </div>
+                    <div class="perf-tile perf-tile--teal">
+                        <span class="perf-coin"><?= icon('bag', ['size' => 22]) ?></span>
+                        <span class="perf-num"><?= (int) $pStats['sales'] ?></span>
+                        <span class="perf-lbl"><?= e(t('aff.perf_sales')) ?></span>
+                    </div>
+                    <div class="perf-tile perf-tile--gold">
+                        <span class="perf-coin"><?= icon('banknote', ['size' => 22]) ?></span>
+                        <span class="perf-num"><?= e($paidStr) ?></span>
+                        <span class="perf-lbl"><?= e(t('aff.perf_paid')) ?></span>
+                    </div>
                 </div>
-                <div class="perf-tile perf-tile--gold">
-                    <span class="perf-coin"><?= icon('banknote', ['size' => 22]) ?></span>
-                    <span class="perf-num"><?= e($paidStr) ?></span>
-                    <span class="perf-lbl"><?= e(t('aff.perf_paid')) ?></span>
-                </div>
-            </div>
-            <?php if ($pRecent === []): ?>
                 <div class="perf-empty">
                     <span class="perf-empty-coin"><?= icon('sparkle', ['size' => 30]) ?></span>
                     <p><?= e(t('aff.perf_none')) ?></p>
                 </div>
-            <?php else: ?>
+            <?php endif; ?>
+
+            <?php if ($pRecent !== []): ?>
                 <div class="table-wrap">
                     <table class="data-table">
                         <thead><tr>

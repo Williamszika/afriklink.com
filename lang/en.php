@@ -1671,6 +1671,8 @@ return [
     'aff.perf_paid' => 'Commissions paid',
     'aff.perf_none' => 'No affiliate sales yet. Enable the program and let referrers share your shop!',
     'aff.col_status' => 'Status',
+    'aff.chart_hint' => 'Click a metric to see its 14-day evolution.',
+    'aff.chart_period' => 'Last 14 days',
     'wallet.source.affiliate' => 'Affiliate commission',
     'ads.title' => 'Advertising',
     'ads.lead' => 'Promote a product (:days days, free in simulation): it moves to the top of your shop, gets a “Sponsored” badge and appears on the homepage.',

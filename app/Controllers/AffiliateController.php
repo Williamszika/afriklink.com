@@ -47,6 +47,7 @@ final class AffiliateController
                 'boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate'],
                 'stats'    => Affiliate::programStats((int) $shop['id']),
                 'recent'   => Affiliate::programRecent((int) $shop['id'], 8),
+                'series'   => Affiliate::programSeries((int) $shop['id'], 14),
             ];
         }
 

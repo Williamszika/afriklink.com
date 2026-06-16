@@ -1076,6 +1076,46 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 @keyframes perf-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-7px); } }
 @media (max-width:560px) { .perf-tiles { grid-template-columns:1fr; } }
 @media (prefers-reduced-motion:reduce) { .perf-tile, .perf-empty-coin { animation:none; } .perf-tile:hover { transform:none; } }
+/* Tuiles cliquables (sans JS, via radio:checked) + graphiques 3D évolutifs */
+.perf-hint { margin:2px 0 12px; }
+.perf-radio { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.perf-interactive .perf-tile { cursor:pointer; -webkit-user-select:none; user-select:none; }
+.perf-pick { position:absolute; top:10px; right:10px; width:24px; height:24px; border-radius:50%; display:inline-flex;
+    align-items:center; justify-content:center; opacity:0; transform:scale(.7); transition:opacity .2s, transform .2s;
+    background:rgba(255,255,255,.25); color:#fff; }
+.perf-tile--gold .perf-pick { background:rgba(36,20,0,.18); color:#3a2400; }
+#perfm-aff:checked ~ .perf-tiles label[for="perfm-aff"],
+#perfm-sales:checked ~ .perf-tiles label[for="perfm-sales"],
+#perfm-com:checked ~ .perf-tiles label[for="perfm-com"] {
+    transform:translateY(-4px);
+    box-shadow:0 0 0 3px rgba(229,160,46,.65), 0 1px 0 rgba(255,255,255,.3) inset, 0 26px 40px -18px rgba(16,36,30,.6); }
+#perfm-aff:checked ~ .perf-tiles label[for="perfm-aff"] .perf-pick,
+#perfm-sales:checked ~ .perf-tiles label[for="perfm-sales"] .perf-pick,
+#perfm-com:checked ~ .perf-tiles label[for="perfm-com"] .perf-pick { opacity:1; transform:scale(1); }
+#perfm-aff:focus-visible ~ .perf-tiles label[for="perfm-aff"],
+#perfm-sales:focus-visible ~ .perf-tiles label[for="perfm-sales"],
+#perfm-com:focus-visible ~ .perf-tiles label[for="perfm-com"] { outline:3px solid var(--afk-or,#E5A02E); outline-offset:2px; }
+.perf-charts { margin-top:16px; }
+.perf-chart { display:none; margin:0; border:1px solid var(--border); border-radius:16px; padding:14px 14px 10px;
+    background:linear-gradient(180deg,#fff,var(--bg)); box-shadow:var(--shadow-xs); }
+#perfm-aff:checked ~ .perf-charts .perf-chart--aff,
+#perfm-sales:checked ~ .perf-charts .perf-chart--sales,
+#perfm-com:checked ~ .perf-charts .perf-chart--com { display:block; }
+.perf-chart-cap { font-size:.8rem; font-weight:700; color:var(--ink); margin-bottom:4px; }
+.perf-graph { display:flex; align-items:flex-end; gap:5px; height:180px; padding:16px 2px 0; perspective:700px; }
+.perf-col { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+.perf-bar { width:100%; max-width:30px; min-height:3px; border-radius:7px 7px 2px 2px; position:relative; transform-origin:bottom;
+    animation:bar-grow .6s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--i,0) * .035s);
+    box-shadow:0 8px 14px -7px rgba(16,36,30,.55), 1px 0 0 rgba(0,0,0,.12) inset, -1px 0 0 rgba(255,255,255,.18) inset; }
+.perf-bar::before { content:""; position:absolute; left:0; right:0; top:0; height:9px; border-radius:7px 7px 0 0;
+    background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); }
+.perf-chart--aff   .perf-bar { background:linear-gradient(100deg,#3c9a7d,#103D30); }
+.perf-chart--sales .perf-bar { background:linear-gradient(100deg,#54c79e,#155f49); }
+.perf-chart--com   .perf-bar { background:linear-gradient(100deg,#f6cd78,#d6871d); }
+.perf-col-x { font-size:.56rem; color:var(--muted); white-space:nowrap; }
+@keyframes bar-grow { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+@media (max-width:560px) { .perf-col:nth-child(even) .perf-col-x { visibility:hidden; } }
+@media (prefers-reduced-motion:reduce) { .perf-bar { animation:none; } }
 .table-wrap { overflow-x:auto; }
 .data-table { width:100%; border-collapse:collapse; font-size:.9rem; }
 .data-table th, .data-table td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--border); white-space:nowrap; }

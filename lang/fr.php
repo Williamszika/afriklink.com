@@ -1671,6 +1671,8 @@ return [
     'aff.perf_paid' => 'Commissions versées',
     'aff.perf_none' => 'Aucune vente via affiliation pour l’instant. Activez le programme et laissez les apporteurs partager votre boutique !',
     'aff.col_status' => 'Statut',
+    'aff.chart_hint' => 'Cliquez un indicateur pour afficher son évolution sur 14 jours.',
+    'aff.chart_period' => '14 derniers jours',
     'wallet.source.affiliate' => 'Commission d’affiliation',
     'ads.title' => 'Publicité',
     'ads.lead' => 'Mettez un produit en avant (:days jours, gratuit en simulation) : il passe en tête de votre vitrine, reçoit un badge « Sponsorisé » et apparaît sur l’accueil.',
