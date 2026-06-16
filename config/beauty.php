@@ -107,4 +107,33 @@ return [
             ['Vert', '#2F6B4F'], ['Bleu', '#2A4A8A'], ['Champagne', '#E6D3A0'], ['Noir', '#16130F'],
         ],
     ],
+
+    // ----- Rayon « Ongles » : faux ongles (formulaire dédié). -----
+    // Centré sur forme + longueur (déclinaisons), design, couleur et pose. Tout va
+    // dans products.attributes (JSON) ; les variantes = forme (size) × longueur (color).
+    'ongles' => [
+        'product_types' => [
+            'Faux ongles à coller (press-on)', 'Capsules à customiser (tips)',
+            'Kit complet (avec pose)', 'Faux ongles réutilisables',
+        ],
+        'materials' => ['ABS', 'Gel / Soft gel', 'Acrylique', 'PET'],
+        'formes'    => ['Amande', 'Carré', 'Carré arrondi', 'Ovale', 'Rond', 'Ballerine / Cercueil', 'Stiletto', 'Sirène'],
+        'longueurs' => ['Court', 'Moyen', 'Long', 'Extra-long'],
+        'designs'   => ['Uni / Nude', 'French', 'Ombré', 'Pailleté', 'Chromé / Aurora', 'Mat', 'Brillant', 'Nail art', 'Strass', 'Animal print', 'Marbré', 'Fleurs'],
+        'couleurs'  => [
+            ['Nude', '#E7C2B4'], ['French', '#F4ECE3'], ['Rouge', '#C41E3A'], ['Bordeaux', '#6E1322'],
+            ['Rose', '#E8538B'], ['Fuchsia', '#C2185B'], ['Bleu nuit', '#1F2D54'], ['Émeraude', '#0F6B4F'],
+            ['Noir', '#16130F'], ['Doré', '#CDA64A'], ['Argent', '#C7CCD1'], ['Lavande', '#B6A7E0'],
+        ],
+        'kit'    => ['Colle', 'Stickers adhésifs', 'Lime', 'Bâtonnet bois', 'Lingette alcool', 'Repousse-cuticules'],
+        'atouts' => ['Réutilisable', 'Fait main', 'Vegan', 'Pose rapide', 'Waterproof', 'Sans danger'],
+        // Options oui/non (cases) : clé => libellé.
+        'toggles' => [
+            'glue'     => 'Colle incluse',
+            'stickers' => 'Adhésifs (stickers) inclus',
+            'lamp'     => 'Lampe UV/LED requise',
+            'reusable' => 'Réutilisable',
+        ],
+    ],
 ];
+

@@ -2642,6 +2642,22 @@ document.addEventListener('click', function (ev) {
     var chips    = document.querySelector('[data-beauty-chips]');
     var rowsBox  = document.querySelector('[data-beauty-rows]');
     var tpl      = document.getElementById('bvariant-template');
+    var ongRows  = document.querySelector('[data-ong-rows]');
+    var ongTpl   = document.getElementById('ong-variant-template');
+    var ONGHEX = {}; try { ONGHEX = JSON.parse(cfgEl.getAttribute('data-ongles-hex') || '{}'); } catch (e) { ONGHEX = {}; }
+
+    function isOngles() { return !!(coll && coll.value === 'Ongles'); }
+
+    // Affiche la section (maquillage / ongles) correspondant au rayon ; désactive les
+    // champs des sections masquées pour qu'ils ne soient pas envoyés (pas de conflit).
+    function toggleSections() {
+        var active = isOngles() ? 'ongles' : 'maquillage';
+        document.querySelectorAll('[data-beauty-section]').forEach(function (sec) {
+            var on = sec.getAttribute('data-beauty-section') === active;
+            sec.hidden = !on;
+            sec.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        });
+    }
 
     function meta() { return (typeSel && TYPES[typeSel.value]) ? TYPES[typeSel.value] : null; }
 
@@ -2762,9 +2778,15 @@ document.addEventListener('click', function (ev) {
         if (!root) { return; }
         setText('brand', fval('brand'));
         if (nameOut) { nameOut.textContent = fval('name') || nameDefault; }
-        setText('type', fval('type'));
-        var vol = num(fval('volume'));
-        setText('vol', vol > 0 ? ('· ' + vol + ' ' + unit) : '');
+        if (isOngles()) {
+            setText('type', fval('forme'));
+            var ln = fval('longueur'), tp = fval('tips');
+            setText('vol', (ln ? '· ' + ln : '') + (tp ? (ln ? ' · ' : '· ') + tp + ' capsules' : ''));
+        } else {
+            setText('type', fval('type'));
+            var vol = num(fval('volume'));
+            setText('vol', vol > 0 ? ('· ' + vol + ' ' + unit) : '');
+        }
         var price = num(fval('price')), promo = num(fval('promo'));
         var now = (promo > 0 && promo < price) ? promo : price;
         setText('price', now > 0 ? fmt(now) : '');
@@ -2774,14 +2796,21 @@ document.addEventListener('click', function (ev) {
             if (badge) { badge.textContent = '-' + Math.round((1 - promo / price) * 100) + '%'; badge.hidden = false; }
         } else { if (old) { old.hidden = true; } if (badge) { badge.hidden = true; } }
         var tones = root.querySelector('[data-pv-tones]');
-        if (tones && rowsBox) {
+        if (tones) {
             tones.innerHTML = '';
-            rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) {
-                var nm = r.querySelector('input[name="var_name[]"]'); if (!nm || !nm.value.trim()) { return; }
-                var hx = r.querySelector('input[name="var_hex[]"]');
-                var dot = document.createElement('span'); dot.className = 'pv-tone'; dot.title = nm.value.trim();
-                dot.style.background = hx ? hx.value : '#d8c3a8'; tones.appendChild(dot);
-            });
+            if (isOngles()) {
+                document.querySelectorAll('input[name="ong_couleur[]"]:checked').forEach(function (c) {
+                    var dot = document.createElement('span'); dot.className = 'pv-tone'; dot.title = c.value;
+                    dot.style.background = ONGHEX[c.value] || '#d8c3a8'; tones.appendChild(dot);
+                });
+            } else if (rowsBox) {
+                rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) {
+                    var nm = r.querySelector('input[name="var_name[]"]'); if (!nm || !nm.value.trim()) { return; }
+                    var hx = r.querySelector('input[name="var_hex[]"]');
+                    var dot = document.createElement('span'); dot.className = 'pv-tone'; dot.title = nm.value.trim();
+                    dot.style.background = hx ? hx.value : '#d8c3a8'; tones.appendChild(dot);
+                });
+            }
         }
         var stockF = document.getElementById('p-stock'); var s = stockF ? String(stockF.value || '').trim() : '';
         setText('stock', s !== '' ? (s + ' en stock') : 'Stock illimité');
@@ -2794,9 +2823,16 @@ document.addEventListener('click', function (ev) {
         } else if (!imgBox.querySelector('.pv-img-empty')) { imgBox.innerHTML = imgEmpty; }
     }
 
+    // Ajoute une ligne de déclinaison faux-ongles (forme × longueur).
+    function addOngRow() {
+        if (!ongTpl || !ongTpl.content || !ongRows) { return null; }
+        ongRows.appendChild(ongTpl.content.cloneNode(true));
+        return ongRows.lastElementChild;
+    }
+
     /* ---------- Événements ---------- */
     if (typeSel) { typeSel.addEventListener('change', onType); }
-    if (coll) { coll.addEventListener('change', function () { if (!meta()) { buildChips(); } }); }
+    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (!meta()) { buildChips(); } update(); }); }
     if (chips) {
         chips.addEventListener('click', function (ev) {
             var c = ev.target && ev.target.closest ? ev.target.closest('[data-bchip]') : null;
@@ -2806,7 +2842,8 @@ document.addEventListener('click', function (ev) {
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         if (ev.target.closest('[data-beauty-add]')) { var r = addRow(null); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
-        var del = ev.target.closest('[data-beauty-del]');
+        if (ev.target.closest('[data-ong-add]')) { var ro = addOngRow(); if (ro) { var fo = ro.querySelector('select'); if (fo) { fo.focus(); } } return; }
+        var del = ev.target.closest('[data-beauty-del], [data-ong-del]');
         if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); update(); } }
     });
     form.addEventListener('input', update);
@@ -2815,6 +2852,7 @@ document.addEventListener('click', function (ev) {
     if (previews && 'MutationObserver' in window) { new MutationObserver(syncPhoto).observe(previews, { childList: true, subtree: true }); }
 
     // État initial.
+    toggleSections();
     buildChips(); applyNuanceCol();
     update(); syncPhoto();
 })();

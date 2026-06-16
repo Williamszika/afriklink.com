@@ -98,23 +98,36 @@ foreach ($realVariants as $rv) {
                     ? $pAxis['label']
                     : ($pVertical === 'phone' ? t('phone.f.storage') : t('variant.size'));
                 $apTags = [];
+                $pColorLabel = t('variant.color');
+                $pOngColors = [];
                 if ($pVertical === 'phone') {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['model'])) { $apTags[] = (string) $product['model']; }
                     if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }
                 } elseif ($pVertical === 'beauty') {
+                    $isOng = (string) ($product['collection'] ?? '') === 'Ongles';
+                    $bAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
-                    if (!empty($product['line'])) { $apTags[] = (string) $product['line']; }
-                    if (((float) ($product['volume'] ?? 0)) > 0) {
-                        $apTags[] = rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml');
+                    if ($isOng) {
+                        $pSizeLabel  = t('ongles.f.forme');
+                        $pColorLabel = t('ongles.f.length');
+                        if (!empty($bAttr['forme']))    { $apTags[] = (string) $bAttr['forme']; }
+                        if (!empty($bAttr['longueur'])) { $apTags[] = (string) $bAttr['longueur']; }
+                        if (!empty($bAttr['material']))  { $apTags[] = (string) $bAttr['material']; }
+                        if (!empty($bAttr['tips_count'])) { $apTags[] = (int) $bAttr['tips_count'] . ' ' . mb_strtolower(t('ongles.f.tips')); }
+                        if (!empty($bAttr['wear_days']))  { $apTags[] = t('ongles.f.wear') . ' ' . (int) $bAttr['wear_days'] . ' ' . t('ongles.f.days'); }
+                        foreach ((array) ($bAttr['designs'] ?? []) as $d) { $apTags[] = (string) $d; }
+                        $hexMap = ongles_couleur_hex();
+                        foreach ((array) ($bAttr['couleurs'] ?? []) as $cn) { $pOngColors[] = ['n' => (string) $cn, 'c' => $hexMap[(string) $cn] ?? '#ccc']; }
+                    } else {
+                        if (!empty($product['line'])) { $apTags[] = (string) $product['line']; }
+                        if (((float) ($product['volume'] ?? 0)) > 0) {
+                            $apTags[] = rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml');
+                        }
+                        foreach ($bAttr as $av) { if (is_scalar($av)) { $av = trim((string) $av); if ($av !== '') { $apTags[] = $av; } } }
+                        if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                     }
-                    // Caractéristiques propres au type (attributes JSON) : valeurs auto-descriptives.
-                    foreach ((json_decode((string) ($product['attributes'] ?? ''), true) ?: []) as $av) {
-                        $av = trim((string) $av);
-                        if ($av !== '') { $apTags[] = $av; }
-                    }
-                    if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                 } else {
                     if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
                     if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
@@ -124,6 +137,7 @@ foreach ($realVariants as $rv) {
                 ?>
                 <?php if ($apTags !== []): ?><p class="listing-apparel"><?= icon('tag', ['size' => 14]) ?> <?= e(implode(' · ', $apTags)) ?></p><?php endif; ?>
                 <?php if ($pAtouts !== []): ?><p class="listing-atouts"><?php foreach ($pAtouts as $a): ?><span class="atout-badge"><?= e($a) ?></span><?php endforeach; ?></p><?php endif; ?>
+                <?php if ($pOngColors !== []): ?><p class="listing-tones"><?php foreach ($pOngColors as $oc): ?><span class="listing-tone" style="background:<?= e($oc['c']) ?>" title="<?= e($oc['n']) ?>"></span><?php endforeach; ?></p><?php endif; ?>
                 <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line"><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.badge')) ?></p><?php endif; ?>
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
@@ -163,7 +177,7 @@ foreach ($realVariants as $rv) {
                         <?php endif; ?>
                         <?php if ($vColors !== []): ?>
                             <div class="variant-axis">
-                                <p class="variant-pick-label"><?= e(t('variant.color')) ?> <span class="variant-pick-val" data-axis-val="color"></span></p>
+                                <p class="variant-pick-label"><?= e($pColorLabel) ?> <span class="variant-pick-val" data-axis-val="color"></span></p>
                                 <div class="variant-chips">
                                     <?php foreach ($vColors as $co): ?>
                                         <label class="variant-chip"><input type="radio" name="pick_color" value="<?= e($co) ?>"><span><?= e($co) ?></span></label>

@@ -160,6 +160,19 @@ $fmtP = static function ($cents) use ($cur): string {
         $savedAttrs = isset($rawOld['attr']) && is_array($rawOld['attr'])
             ? $rawOld['attr']
             : (json_decode((string) ($product['attributes'] ?? ''), true) ?: []);
+        // Rayon « Ongles » (faux ongles) : sous-formulaire dédié.
+        $isOngles = ($curCol === 'Ongles');
+        $ongAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+        $ongScalar = static fn (string $k): string => (string) ($rawOld['ong_' . $k] ?? ($ongAttrs[$k] ?? ''));
+        $ongList = static function (string $k) use ($rawOld, $ongAttrs): array {
+            return isset($rawOld['ong_' . $k]) && is_array($rawOld['ong_' . $k])
+                ? array_map('strval', $rawOld['ong_' . $k])
+                : array_map('strval', (array) ($ongAttrs[$k] ?? []));
+        };
+        $ongBool = static fn (string $k): bool => isset($rawOld['ong_' . $k])
+            ? ((string) $rawOld['ong_' . $k] !== '' && (string) $rawOld['ong_' . $k] !== '0')
+            : (bool) ($ongAttrs[$k] ?? false);
+        $secAttr = static fn (string $sec, bool $on): string => ' data-beauty-section="' . $sec . '"' . ($on ? '' : ' hidden');
         ?>
         <div data-beauty
              data-types="<?= e((string) json_encode(beauty_types(), JSON_UNESCAPED_UNICODE)) ?>"
@@ -167,12 +180,14 @@ $fmtP = static function ($cents) use ($cur): string {
              data-palettes="<?= e((string) json_encode(beauty_palettes(), JSON_UNESCAPED_UNICODE)) ?>"
              data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"
              data-nuances="<?= e((string) json_encode(beauty_nuances(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-ongles-hex="<?= e((string) json_encode(ongles_couleur_hex(), JSON_UNESCAPED_UNICODE)) ?>"
              data-hint-specs="<?= e(t('beauty.sec.specs_hint')) ?>" data-hint-pick="<?= e(t('beauty.sec.specs_pick')) ?>" hidden></div>
+        <label for="p-brand"><?= e(t('beauty.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+        <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
+
+        <!-- ================= MAQUILLAGE ================= -->
+        <div<?= $secAttr('maquillage', !$isOngles) ?>>
         <div class="grid-2">
-            <div>
-                <label for="p-brand"><?= e(t('beauty.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
-            </div>
             <div>
                 <label for="p-ptype"><?= e(t('beauty.f.type')) ?> <span class="req">*</span></label>
                 <select id="p-ptype" name="product_type" data-pv="type" data-beauty-type>
@@ -186,9 +201,11 @@ $fmtP = static function ($cents) use ($cur): string {
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div>
+                <label for="p-line"><?= e(t('beauty.f.line')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="p-line" name="line" maxlength="80" value="<?= e($bcur('line')) ?>" placeholder="<?= e(t('beauty.f.line_ph')) ?>">
+            </div>
         </div>
-        <label for="p-line"><?= e(t('beauty.f.line')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-        <input type="text" id="p-line" name="line" maxlength="80" value="<?= e($bcur('line')) ?>" placeholder="<?= e(t('beauty.f.line_ph')) ?>">
 
         <details class="variants-box" open>
             <summary>🧴 <?= e(t('beauty.sec.specs')) ?></summary>
@@ -250,6 +267,113 @@ $fmtP = static function ($cents) use ($cur): string {
                 <?php endforeach; ?>
             </div>
         </details>
+        </div><!-- /maquillage -->
+
+        <!-- ================= ONGLES (faux ongles) ================= -->
+        <div<?= $secAttr('ongles', $isOngles) ?>>
+        <div class="grid-2">
+            <div>
+                <label for="o-type"><?= e(t('beauty.f.type')) ?> <span class="req">*</span></label>
+                <select id="o-type" name="product_type">
+                    <?php foreach (beauty_ongles('product_types') as $ot): ?>
+                        <option value="<?= e($ot) ?>" <?= $curType === $ot ? 'selected' : '' ?>><?= e($ot) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="o-material"><?= e(t('ongles.f.material')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <select id="o-material" name="ong_material">
+                    <option value="">—</option>
+                    <?php foreach (beauty_ongles('materials') as $m): ?><option value="<?= e($m) ?>" <?= $ongScalar('material') === $m ? 'selected' : '' ?>><?= e($m) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>📐 <?= e(t('ongles.sec.shape')) ?></summary>
+            <p class="hint"><?= e(t('ongles.sec.shape_hint')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="o-forme"><?= e(t('ongles.f.forme')) ?> <span class="req">*</span></label>
+                    <select id="o-forme" name="ong_forme" data-pv="forme">
+                        <option value="">— <?= e(t('beauty.f.type_any')) ?> —</option>
+                        <?php foreach (beauty_ongles('formes') as $f): ?><option value="<?= e($f) ?>" <?= $ongScalar('forme') === $f ? 'selected' : '' ?>><?= e($f) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="o-long"><?= e(t('ongles.f.length')) ?> <span class="req">*</span></label>
+                    <select id="o-long" name="ong_longueur" data-pv="longueur">
+                        <option value="">— <?= e(t('beauty.f.type_any')) ?> —</option>
+                        <?php foreach (beauty_ongles('longueurs') as $l): ?><option value="<?= e($l) ?>" <?= $ongScalar('longueur') === $l ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div>
+                    <label for="o-tips"><?= e(t('ongles.f.tips')) ?></label>
+                    <input type="text" id="o-tips" name="ong_tips" inputmode="numeric" maxlength="3" value="<?= e($ongScalar('tips_count')) ?>" placeholder="24" data-pv="tips">
+                </div>
+                <div>
+                    <label for="o-sizes"><?= e(t('ongles.f.sizes')) ?></label>
+                    <input type="text" id="o-sizes" name="ong_sizes" inputmode="numeric" maxlength="3" value="<?= e($ongScalar('sizes_count')) ?>" placeholder="10">
+                </div>
+                <div>
+                    <label for="o-wear"><?= e(t('ongles.f.wear')) ?></label>
+                    <div class="input-suffix">
+                        <input type="text" id="o-wear" name="ong_wear" inputmode="numeric" maxlength="3" value="<?= e($ongScalar('wear_days')) ?>" placeholder="7">
+                        <span class="input-suffix-tag"><?= e(t('ongles.f.days')) ?></span>
+                    </div>
+                </div>
+            </div>
+        </details>
+
+        <details class="variants-box" open>
+            <summary>🎨 <?= e(t('ongles.sec.design')) ?></summary>
+            <label><?= e(t('ongles.f.designs')) ?></label>
+            <div class="chip-checks">
+                <?php $selD = $ongList('designs'); foreach (beauty_ongles('designs') as $d): ?>
+                    <label class="chip-check"><input type="checkbox" name="ong_design[]" value="<?= e($d) ?>" <?= in_array($d, $selD, true) ? 'checked' : '' ?>><span><?= e($d) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <label style="margin-top:12px"><?= e(t('ongles.f.colors')) ?></label>
+            <div class="chip-checks">
+                <?php $selC = $ongList('couleurs'); foreach (beauty_ongles('couleurs') as $cr): $cn = (string) $cr[0]; $ch = (string) $cr[1]; ?>
+                    <label class="chip-check chip-check--tone"><input type="checkbox" name="ong_couleur[]" value="<?= e($cn) ?>" <?= in_array($cn, $selC, true) ? 'checked' : '' ?>><span><span class="chip-dot" style="background:<?= e($ch) ?>"></span><?= e($cn) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+
+        <details class="variants-box" open>
+            <summary>🧰 <?= e(t('ongles.sec.kit')) ?></summary>
+            <label><?= e(t('ongles.f.kit')) ?></label>
+            <div class="chip-checks">
+                <?php $selK = $ongList('kit'); foreach (beauty_ongles('kit') as $k): ?>
+                    <label class="chip-check"><input type="checkbox" name="ong_kit[]" value="<?= e($k) ?>" <?= in_array($k, $selK, true) ? 'checked' : '' ?>><span><?= e($k) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <div class="toggle-rows">
+                <?php foreach (beauty_ongles('toggles') as $tk => $tl): ?>
+                    <label class="check-row"><input type="checkbox" name="ong_<?= e($tk) ?>" value="1" <?= $ongBool($tk) ? 'checked' : '' ?>><span><?= e($tl) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="o-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="o-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e($bcur('ean')) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="o-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="o-sku" name="sku" class="mono" maxlength="40" value="<?= e($bcur('sku')) ?>" placeholder="FO-FRENCH-M">
+                </div>
+            </div>
+            <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php foreach (beauty_ongles('atouts') as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $selAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+        </div><!-- /ongles -->
         <?php endif; ?>
 
         <div class="grid-2">
@@ -303,7 +427,14 @@ $fmtP = static function ($cents) use ($cur): string {
                 'price'  => $v['price_cents'] ?? null,
             ];
         }
+        // Faux-ongles : déclinaison = forme (size) × longueur (color).
+        $oRows = [];
+        foreach ($realVariants as $v) {
+            $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+            $oRows[] = ['forme' => (string) ($attr['size'] ?? ''), 'long' => (string) ($attr['color'] ?? ''), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
+        }
         ?>
+        <div<?= $secAttr('maquillage', !$isOngles) ?>>
         <details class="variants-box" data-beauty-decl <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <span data-beauty-decl-title><?= e($declLabel) ?></span></summary>
             <p class="hint"><?= e(t('beauty.decl.hint')) ?></p>
@@ -350,6 +481,54 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
             </template>
         </details>
+        </div><!-- /maquillage decl -->
+
+        <div<?= $secAttr('ongles', $isOngles) ?>>
+        <details class="variants-box" data-ong-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('ongles.sec.variants')) ?></summary>
+            <p class="hint"><?= e(t('ongles.sec.variants_hint')) ?></p>
+            <div class="bvariant-rows ong-rows" data-ong-rows>
+                <div class="bvariant-head ong-head">
+                    <span><?= e(t('ongles.f.forme')) ?></span>
+                    <span><?= e(t('ongles.f.length')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($oRows as $orow): ?>
+                    <div class="bvariant-row ong-row">
+                        <select name="var_size[]" aria-label="<?= e(t('ongles.f.forme')) ?>">
+                            <option value="">—</option>
+                            <?php foreach (beauty_ongles('formes') as $f): ?><option value="<?= e($f) ?>" <?= $orow['forme'] === $f ? 'selected' : '' ?>><?= e($f) ?></option><?php endforeach; ?>
+                        </select>
+                        <select name="var_color[]" aria-label="<?= e(t('ongles.f.length')) ?>">
+                            <option value="">—</option>
+                            <?php foreach (beauty_ongles('longueurs') as $l): ?><option value="<?= e($l) ?>" <?= $orow['long'] === $l ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
+                        </select>
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $orow['stock'] !== null ? (int) $orow['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($orow['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-ong-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-ong-add>+ <?= e(t('ongles.f.add')) ?></button>
+            <template id="ong-variant-template">
+                <div class="bvariant-row ong-row">
+                    <select name="var_size[]" aria-label="<?= e(t('ongles.f.forme')) ?>">
+                        <option value="">—</option>
+                        <?php foreach (beauty_ongles('formes') as $f): ?><option value="<?= e($f) ?>"><?= e($f) ?></option><?php endforeach; ?>
+                    </select>
+                    <select name="var_color[]" aria-label="<?= e(t('ongles.f.length')) ?>">
+                        <option value="">—</option>
+                        <?php foreach (beauty_ongles('longueurs') as $l): ?><option value="<?= e($l) ?>"><?= e($l) ?></option><?php endforeach; ?>
+                    </select>
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-ong-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /ongles decl -->
         <?php else: ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>

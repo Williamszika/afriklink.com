@@ -867,6 +867,38 @@ function beauty_atouts_clean(array $vals): string
     return implode(', ', $keep);
 }
 
+/* ----- Rayon « Ongles » : faux ongles ----- */
+
+/** Sous-config du rayon Ongles (formes, longueurs, designs, couleurs, kit, atouts, toggles). */
+function beauty_ongles(?string $key = null): array
+{
+    $cfg = (array) config('beauty.ongles', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,string> Couleur d'ongle (nom) => hex. */
+function ongles_couleur_hex(): array
+{
+    $map = [];
+    foreach (beauty_ongles('couleurs') as $row) {
+        $row = array_values((array) $row);
+        if (($row[0] ?? '') !== '') { $map[(string) $row[0]] = (string) ($row[1] ?? ''); }
+    }
+    return $map;
+}
+
+/** Filtre une liste soumise contre une liste blanche (sans doublon). @return list<string> */
+function keep_in_list(array $vals, array $allowed): array
+{
+    $keep = [];
+    foreach ($vals as $v) {
+        $v = trim((string) $v);
+        if (in_array($v, $allowed, true) && !in_array($v, $keep, true)) { $keep[] = $v; }
+    }
+    return $keep;
+}
+
 /**
  * Vertical du formulaire produit selon la catégorie de la boutique :
  * 'phone' (électronique), 'apparel' (mode/vêtements), 'beauty' (beauté &

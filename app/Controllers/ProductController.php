@@ -233,35 +233,62 @@ final class ProductController
         $model = mb_substr(trim((string) input_string('model', '')), 0, 80);
         $itemCondition = phone_condition_clean(input_string('item_condition', ''));
 
-        // Beauté & cosmétiques (v2 adaptatif) : type de produit + gamme, contenance
-        // + unité, PAO, péremption, EAN, SKU, atouts (CSV), composition (INCI), et les
-        // caractéristiques PROPRES AU TYPE en JSON (attributes), validées en liste blanche.
-        $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
-        $line        = mb_substr(trim((string) input_string('line', '')), 0, 80);
-        $volumeRaw   = trim((string) input_string('volume', ''));
-        $volume      = ($volumeRaw !== '' && is_numeric(str_replace(',', '.', $volumeRaw)))
-            ? round((float) str_replace(',', '.', $volumeRaw), 2) : null;
-        if ($volume !== null && ($volume < 0 || $volume > 999999)) { $volume = null; }
-        $volumeUnit  = beauty_clean(input_string('volume_unit', ''), beauty_volume_units());
-        if ($volumeUnit === '') { $volumeUnit = 'ml'; }
-        $pao         = beauty_clean(input_string('pao', ''), beauty_pao());
-        $expiryRaw   = trim((string) input_string('expiry_date', ''));
-        $expiryDate  = ($expiryRaw !== '' && strtotime($expiryRaw) !== false) ? date('Y-m-d', (int) strtotime($expiryRaw)) : null;
-        $ean         = mb_substr(preg_replace('/[^0-9]/', '', (string) input_string('ean', '')) ?? '', 0, 20);
-        $sku         = mb_substr(trim((string) input_string('sku', '')), 0, 40);
-        $atouts      = beauty_atouts_clean((array) ($_POST['atouts'] ?? []));
-        $ingredients = mb_substr(trim((string) input_string('ingredients', '')), 0, 2000);
-        $attrsClean  = beauty_attr_clean($productType, (array) ($_POST['attr'] ?? []));
-        $attributes  = $attrsClean !== [] ? (string) json_encode($attrsClean, JSON_UNESCAPED_UNICODE) : null;
-
-        // Rayon / catégorie (menu déroulant) : valeur choisie, ou saisie libre si « Autre ».
-        // Désormais OBLIGATOIRE : c'est le rayon qui pilote l'axe de déclinaison du produit.
+        // Rayon / catégorie : OBLIGATOIRE — pilote l'axe de déclinaison ET le sous-formulaire.
         $collSel    = (string) input_string('collection_select', '');
         $collection = $collSel === '__other__'
             ? mb_substr(trim((string) input_string('collection_other', '')), 0, 60)
             : mb_substr(trim($collSel), 0, 60);
         if ($collection === '') {
             $errors['collection'] = t('validation.collection_required');
+        }
+
+        // Beauté & cosmétiques — champs communs.
+        $ean         = mb_substr(preg_replace('/[^0-9]/', '', (string) input_string('ean', '')) ?? '', 0, 20);
+        $sku         = mb_substr(trim((string) input_string('sku', '')), 0, 40);
+        $expiryRaw   = trim((string) input_string('expiry_date', ''));
+        $expiryDate  = ($expiryRaw !== '' && strtotime($expiryRaw) !== false) ? date('Y-m-d', (int) strtotime($expiryRaw)) : null;
+        $ingredients = mb_substr(trim((string) input_string('ingredients', '')), 0, 2000);
+
+        if ($collection === 'Ongles') {
+            // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
+            $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));
+            $atouts      = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), beauty_ongles('atouts')));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $oa = [];
+            $f  = beauty_clean(input_string('ong_forme', ''), beauty_ongles('formes'));
+            $l  = beauty_clean(input_string('ong_longueur', ''), beauty_ongles('longueurs'));
+            $mt = beauty_clean(input_string('ong_material', ''), beauty_ongles('materials'));
+            if ($f !== '')  { $oa['forme'] = $f; }
+            if ($l !== '')  { $oa['longueur'] = $l; }
+            if ($mt !== '') { $oa['material'] = $mt; }
+            foreach (['tips' => 'tips_count', 'sizes' => 'sizes_count', 'wear' => 'wear_days'] as $pf => $pk) {
+                $n = preg_replace('/[^0-9]/', '', (string) input_string('ong_' . $pf, ''));
+                if ($n !== null && $n !== '') { $oa[$pk] = min(999, (int) $n); }
+            }
+            foreach (['glue', 'stickers', 'lamp', 'reusable'] as $bk) {
+                if ((string) input_string('ong_' . $bk, '') !== '') { $oa[$bk] = true; }
+            }
+            $dz = keep_in_list((array) ($_POST['ong_design'] ?? []), beauty_ongles('designs'));
+            $cz = keep_in_list((array) ($_POST['ong_couleur'] ?? []), array_map(static fn ($c) => (string) $c[0], beauty_ongles('couleurs')));
+            $kz = keep_in_list((array) ($_POST['ong_kit'] ?? []), beauty_ongles('kit'));
+            if ($dz !== []) { $oa['designs'] = $dz; }
+            if ($cz !== []) { $oa['couleurs'] = $cz; }
+            if ($kz !== []) { $oa['kit'] = $kz; }
+            $attributes = $oa !== [] ? (string) json_encode($oa, JSON_UNESCAPED_UNICODE) : null;
+        } else {
+            // Maquillage (v2 adaptatif au type) : caractéristiques propres au type en JSON.
+            $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
+            $line        = mb_substr(trim((string) input_string('line', '')), 0, 80);
+            $volumeRaw   = trim((string) input_string('volume', ''));
+            $volume      = ($volumeRaw !== '' && is_numeric(str_replace(',', '.', $volumeRaw)))
+                ? round((float) str_replace(',', '.', $volumeRaw), 2) : null;
+            if ($volume !== null && ($volume < 0 || $volume > 999999)) { $volume = null; }
+            $volumeUnit  = beauty_clean(input_string('volume_unit', ''), beauty_volume_units());
+            if ($volumeUnit === '') { $volumeUnit = 'ml'; }
+            $pao         = beauty_clean(input_string('pao', ''), beauty_pao());
+            $atouts      = beauty_atouts_clean((array) ($_POST['atouts'] ?? []));
+            $attrsClean  = beauty_attr_clean($productType, (array) ($_POST['attr'] ?? []));
+            $attributes  = $attrsClean !== [] ? (string) json_encode($attrsClean, JSON_UNESCAPED_UNICODE) : null;
         }
 
         $status = whitelist((string) input_string('status', 'active'), ['active', 'hidden'], 'active');

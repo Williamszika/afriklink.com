@@ -1985,6 +1985,12 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .chip-check:hover span{border-color:var(--brand)}
 .chip-check input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
 .chip-check input:focus-visible+span{box-shadow:0 0 0 3px rgba(20,80,46,.22)}
+.chip-check--tone span{display:inline-flex;align-items:center;gap:7px}
+.chip-check .chip-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);flex:none}
+.toggle-rows{display:grid;gap:7px;margin:12px 0 4px}
+.ong-head,.ong-row{grid-template-columns:1.3fr 1fr .8fr 1fr 34px}
+.ong-row select{margin:0}
+@media(max-width:680px){.ong-row{grid-template-columns:1fr 1fr}}
 
 .auth-card--beauty{max-width:1040px}
 .pf-plain{display:contents}
@@ -2011,6 +2017,8 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 /* Atouts (fiche client) + pastille teinte dans le sélecteur */
 .listing-atouts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
 .atout-badge{font:600 .72rem inherit;background:var(--brand-50);color:var(--brand);border:1px solid var(--brand-100);border-radius:999px;padding:3px 9px}
+.listing-tones{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 0}
+.listing-tone{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.14)}
 .variant-chip--tone span{display:inline-flex;align-items:center;gap:6px}
 .variant-chip .chip-dot{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:none}
 .chip-nuance{font-size:.66rem;color:var(--muted,#857a66);font-weight:400;opacity:.85}
