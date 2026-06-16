@@ -187,6 +187,9 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
 </footer>
 
 <?= render_partial('partials/cookie_consent') ?>
+<?php if ($user !== null && empty($user['email']) && (string) ($_COOKIE['nl_seen'] ?? '') !== '1'): ?>
+    <?= render_partial('partials/newsletter_popup') ?>
+<?php endif; ?>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>
 </html>

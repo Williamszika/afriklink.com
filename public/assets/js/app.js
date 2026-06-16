@@ -2652,6 +2652,41 @@ document.addEventListener('click', function (ev) {
     update();
 })();
 
+/* ---- Encart newsletter (comptes par téléphone) : abonnement AJAX, refus = jamais plus ---- */
+(function () {
+    var pop = document.querySelector('[data-newsletter-pop]');
+    if (!pop) { return; }
+    function setSeen() { document.cookie = 'nl_seen=1; path=/; max-age=31536000; samesite=Lax'; }
+    function close() { pop.classList.remove('is-in'); setTimeout(function () { pop.hidden = true; }, 250); }
+    setTimeout(function () { pop.hidden = false; requestAnimationFrame(function () { pop.classList.add('is-in'); }); }, 6500);
+    Array.prototype.forEach.call(pop.querySelectorAll('[data-nl-decline]'), function (b) {
+        b.addEventListener('click', function () { setSeen(); close(); });
+    });
+    var form = pop.querySelector('[data-nl-form]');
+    if (form) {
+        form.addEventListener('submit', function (ev) {
+            ev.preventDefault();
+            var email = pop.querySelector('[data-nl-email]');
+            var btn = pop.querySelector('[data-nl-submit]');
+            if (!email || !email.value) { return; }
+            if (btn) { btn.disabled = true; }
+            fetch(form.getAttribute('action'), { method: 'POST', headers: { 'Accept': 'application/json' }, body: new FormData(form) })
+                .then(function (r) { return r.json(); })
+                .then(function (j) {
+                    if (j && j.ok) {
+                        setSeen();
+                        var done = pop.querySelector('[data-nl-done]');
+                        if (done) { done.hidden = false; }
+                        if (form) { form.hidden = true; }
+                        var no = pop.querySelector('.nl-pop-no'); if (no) { no.hidden = true; }
+                        setTimeout(close, 2600);
+                    } else if (btn) { btn.disabled = false; email.focus(); }
+                })
+                .catch(function () { if (btn) { btn.disabled = false; } });
+        });
+    }
+})();
+
 /* ---- Anti double-soumission sur les formulaires sensibles ([data-submit-once]) :
    vente en caisse, ouverture/clôture de session, commande. Évite la double-vente /
    double-commande sur double-clic ou réseau lent. La désactivation est différée

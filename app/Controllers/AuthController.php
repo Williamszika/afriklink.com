@@ -115,6 +115,8 @@ final class AuthController
         clear_old();
 
         if ($email !== null) {
+            // Inscription par e-mail : abonnement automatique à la newsletter.
+            \App\Models\NewsletterSubscriber::subscribe($email, current_locale(), 'signup');
             $this->sendVerificationEmail(['id' => $userId, 'email' => $email]);
             flash('success', t('flash.registered'));
             redirect('/verify-email/notice');

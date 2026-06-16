@@ -1973,6 +1973,20 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .listing-apparel{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:.85rem;font-weight:600;margin:2px 0 0}
 /* Déclinaison (taille/couleur/longueur) dans le détail de commande & le reçu */
 .order-variant{display:inline-block;background:var(--brand-50);color:var(--brand);font-size:.8em;font-weight:700;padding:1px 8px;border-radius:6px;margin-left:4px;white-space:nowrap;vertical-align:middle}
+/* Encart newsletter (comptes par téléphone) */
+.nl-pop{position:fixed;right:20px;bottom:20px;z-index:1200;width:330px;max-width:calc(100vw - 32px);background:#fff;border:1px solid var(--border);border-top:4px solid var(--accent);border-radius:16px;padding:20px 20px 16px;box-shadow:0 24px 54px -20px rgba(16,36,30,.5);transform:translateY(22px);opacity:0;transition:transform .32s ease,opacity .32s ease}
+.nl-pop.is-in{transform:translateY(0);opacity:1}
+.nl-pop-x{position:absolute;top:9px;right:12px;border:0;background:transparent;font-size:1rem;color:var(--muted);cursor:pointer;line-height:1}
+.nl-pop-cauri{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;background:var(--brand-50);border-radius:12px;margin-bottom:11px}
+.nl-pop-cauri .cauri{width:25px;height:33px}
+.nl-pop-title{margin:0 0 6px;font-size:1.12rem;font-weight:800;color:var(--brand);line-height:1.25}
+.nl-pop-text{margin:0 0 14px;font-size:.9rem;line-height:1.5;color:var(--ink-soft)}
+.nl-pop-form input{width:100%;margin:0 0 8px}
+.nl-pop-no{display:block;width:100%;margin:9px 0 0;border:0;background:transparent;color:var(--muted);font-size:.85rem;cursor:pointer;text-decoration:underline}
+.nl-pop-done{text-align:center;padding:14px 0 8px}
+.nl-pop-check{display:inline-flex;width:48px;height:48px;align-items:center;justify-content:center;border-radius:50%;background:var(--brand);color:#fff;font-size:1.6rem;font-weight:800;margin-bottom:10px}
+.nl-pop-done p{margin:0;font-weight:700;color:var(--brand)}
+@media(max-width:480px){.nl-pop{right:12px;left:12px;bottom:12px;width:auto}}
 /* Vente au mètre (tissus/pagnes) */
 .price-unit{font-size:.62em;font-weight:600;color:var(--muted);vertical-align:middle}
 .meter-buy{margin:10px 0 12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card)}

@@ -106,6 +106,7 @@ return [
     ['POST', '/affiliation/mes-produits', [AffiliateController::class, 'vendorProductsSave'], ['auth', 'csrf', 'throttle:aff,40,3600']],
     ['POST', '/affiliation/retrait',   [AffiliateController::class, 'withdraw'],     ['auth', 'csrf', 'throttle:wd,20,3600']],
     ['POST', '/newsletter',        [NewsletterController::class, 'subscribe'], ['csrf', 'throttle:news,20,3600']],
+    ['POST', '/newsletter/popup',  [NewsletterController::class, 'popup'],     ['csrf', 'throttle:news,20,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
     ['POST', '/mes-adresses/{id}/defaut', [AddressController::class, 'setDefault'], ['auth', 'csrf']],
