@@ -79,21 +79,18 @@ final class Product
         $publicId = uuid();
         $pdo->beginTransaction();
         try {
-            $stmt = $pdo->prepare(
-                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, promo_price_cents, promo_until, stock, audience, garment_category, sale_unit, brand, model, item_condition, video_public_id, video_duration, status, position)
-                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :promo, :promo_until, :stock, :aud, :gcat, :unit, :brand, :model, :cond, :vid, :vdur, :status, :pos)'
-            );
-            $stmt->execute([
-                'pid' => $publicId, 'bid' => $boutiqueId, 'uid' => $userId,
-                'name' => $data['name'], 'desc' => $data['description'],
-                'price' => $data['price_cents'], 'promo' => $data['promo_price_cents'] ?? null,
-                'promo_until' => $data['promo_until'] ?? null, 'stock' => $data['stock'],
-                'aud' => $data['audience'] ?? null, 'gcat' => $data['garment_category'] ?? null,
-                'unit' => $data['sale_unit'] ?? 'piece',
-                'brand' => $data['brand'] ?? null, 'model' => $data['model'] ?? null, 'cond' => $data['item_condition'] ?? null,
-                'vid' => $data['video_public_id'] ?? null, 'vdur' => $data['video_duration'] ?? null,
-                'status' => $data['status'], 'pos' => time() % 100000000,
-            ]);
+            // Colonnes de base (toujours présentes) + colonnes optionnelles écrites
+            // SEULEMENT si elles existent : la création ne casse jamais même si la base
+            // n'a pas (encore) été migrée (ex. droits ALTER restreints sur TiDB).
+            $cols = [
+                'public_id' => $publicId, 'boutique_id' => $boutiqueId, 'user_id' => $userId,
+                'name' => $data['name'], 'description' => $data['description'],
+                'price_cents' => $data['price_cents'], 'stock' => $data['stock'],
+                'status' => $data['status'], 'position' => time() % 100000000,
+            ];
+            $cols += self::optionalColumns($data);
+            $names = array_keys($cols);
+            $pdo->prepare('INSERT INTO products (`' . implode('`,`', $names) . '`) VALUES (:' . implode(', :', $names) . ')')->execute($cols);
             $productId = (int) $pdo->lastInsertId();
             self::replacePhotos($pdo, $productId, $photos);
             $pdo->commit();
@@ -111,22 +108,56 @@ final class Product
 
     public static function update(int $id, array $data): void
     {
-        $stmt = db()->prepare(
-            'UPDATE products SET name = :name, description = :desc, price_cents = :price,
-                promo_price_cents = :promo, promo_until = :promo_until,
-                audience = :aud, garment_category = :gcat, sale_unit = :unit,
-                brand = :brand, model = :model, item_condition = :cond,
-                stock = :stock, video_public_id = :vid, video_duration = :vdur, status = :status WHERE id = :id'
-        );
-        $stmt->execute([
-            'name' => $data['name'], 'desc' => $data['description'], 'price' => $data['price_cents'],
-            'promo' => $data['promo_price_cents'] ?? null, 'promo_until' => $data['promo_until'] ?? null,
-            'aud' => $data['audience'] ?? null, 'gcat' => $data['garment_category'] ?? null,
-            'unit' => $data['sale_unit'] ?? 'piece',
-            'brand' => $data['brand'] ?? null, 'model' => $data['model'] ?? null, 'cond' => $data['item_condition'] ?? null,
-            'stock' => $data['stock'], 'vid' => $data['video_public_id'] ?? null,
-            'vdur' => $data['video_duration'] ?? null, 'status' => $data['status'], 'id' => $id,
-        ]);
+        // Mêmes colonnes de base + optionnelles (uniquement si présentes) que create().
+        $set = [
+            'name' => $data['name'], 'description' => $data['description'],
+            'price_cents' => $data['price_cents'], 'stock' => $data['stock'], 'status' => $data['status'],
+        ] + self::optionalColumns($data);
+        $assign = implode(', ', array_map(static fn (string $c): string => "`$c` = :$c", array_keys($set)));
+        $set['id'] = $id;
+        db()->prepare("UPDATE products SET {$assign} WHERE id = :id")->execute($set);
+    }
+
+    /** Colonnes produit OPTIONNELLES, incluses seulement si elles existent en base. */
+    private static function optionalColumns(array $data): array
+    {
+        $exists = self::existingColumns();
+        $candidates = [
+            'promo_price_cents' => $data['promo_price_cents'] ?? null,
+            'promo_until'       => $data['promo_until'] ?? null,
+            'audience'          => $data['audience'] ?? null,
+            'garment_category'  => $data['garment_category'] ?? null,
+            'sale_unit'         => $data['sale_unit'] ?? 'piece',
+            'brand'             => $data['brand'] ?? null,
+            'model'             => $data['model'] ?? null,
+            'item_condition'    => $data['item_condition'] ?? null,
+            'video_public_id'   => $data['video_public_id'] ?? null,
+            'video_duration'    => $data['video_duration'] ?? null,
+        ];
+        $out = [];
+        foreach ($candidates as $col => $val) {
+            if (isset($exists[$col])) {
+                $out[$col] = $val;
+            }
+        }
+        return $out;
+    }
+
+    /** Colonnes RÉELLES de la table products (mémoïsé) — pour ne jamais écrire une colonne absente. */
+    private static function existingColumns(): array
+    {
+        static $cols = null;
+        if ($cols === null) {
+            $cols = [];
+            try {
+                foreach (db()->query('SHOW COLUMNS FROM products')->fetchAll() ?: [] as $r) {
+                    $cols[(string) ($r['Field'] ?? '')] = true;
+                }
+            } catch (\Throwable) {
+                $cols = [];
+            }
+        }
+        return $cols;
     }
 
     /** @param list<array{public_id:string,width:?int,height:?int}> $photos */
