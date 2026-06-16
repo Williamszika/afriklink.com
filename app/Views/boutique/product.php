@@ -131,7 +131,7 @@ foreach ($realVariants as $rv) {
                 ]) ?>
                 <?php if (!empty($aff_link)): ?>
                     <div class="aff-share">
-                        <p class="aff-share-cta"><?= icon('wallet', ['size' => 16]) ?> <?= e(t('aff.share_cta', ['rate' => (int) ($aff_rate ?? 5)])) ?></p>
+                        <p class="aff-share-cta"><?= icon('wallet', ['size' => 16]) ?> <?= e(t('aff.share_cta', ['rate' => (string) ($aff_rate ?? '')])) ?></p>
                         <div class="aff-link-row">
                             <input type="text" class="aff-link-input" value="<?= e($aff_link) ?>" readonly aria-label="<?= e(t('aff.your_link')) ?>">
                             <button type="button" class="btn btn-ghost btn-sm" data-copy="<?= e($aff_link) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= e(t('aff.copy')) ?></button>

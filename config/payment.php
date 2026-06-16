@@ -16,6 +16,12 @@ return [
     // SOURCE UNIQUE de la commission marketplace — calcul via platform_commission_cents().
     'platform_commission_pct' => (float) env('PLATFORM_COMMISSION_PCT', 5.0),
 
+    // Part (%) de la commission plateforme reversée à l'apporteur d'affiliation.
+    // La commission affilié sort de CETTE commission (jamais en plus) : le vendeur
+    // garde sa part intacte. 70 % de 5 % => l'affilié touche ≈ 3,5 % de la vente,
+    // et AfrikaLink conserve ≈ 1,5 %.
+    'affiliate_share_pct' => (float) env('AFFILIATE_SHARE_PCT', 70.0),
+
     // Fournisseur par défaut proposé au vendeur.
     'default' => 'simulation',
 

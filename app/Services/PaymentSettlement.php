@@ -41,25 +41,28 @@ final class PaymentSettlement
             }
         }
 
+        // Commission plateforme calculée UNE fois ; elle se partage entre AfrikaLink
+        // et l'apporteur (le vendeur n'est jamais impacté).
+        $sellerId    = (int) ($payment['user_id'] ?? 0);
+        $amount      = (int) ($payment['amount_cents'] ?? 0);
+        $platformFee = platform_commission_cents($amount);
+
         // Crédite le portefeuille du vendeur de SA PART (montant − commission
         // plateforme). Best-effort ; ne bloque jamais la confirmation.
         try {
-            $sellerId = (int) ($payment['user_id'] ?? 0);
-            $amount   = (int) ($payment['amount_cents'] ?? 0);
             if ($sellerId > 0 && $amount > 0) {
-                $share = $amount - platform_commission_cents($amount);
-                \App\Models\Wallet::credit($sellerId, $share, (string) ($payment['currency'] ?? 'EUR'), 'sale', $ref);
+                \App\Models\Wallet::credit($sellerId, $amount - $platformFee, (string) ($payment['currency'] ?? 'EUR'), 'sale', $ref);
             }
         } catch (\Throwable) {
         }
 
-        // Commission d'affiliation : versée au portefeuille de l'apporteur dès que la
-        // commande boutique est réellement payée (idempotent). Best-effort.
+        // Commission d'affiliation : PRÉLEVÉE SUR la commission plateforme (jamais en
+        // plus), versée à l'apporteur dès que la commande boutique est payée. Idempotent.
         try {
             if ($orderId > 0 && $kind !== 'restaurant') {
                 $orderPublicId = Order::publicIdById($orderId);
                 if ($orderPublicId !== null) {
-                    \App\Models\Affiliate::payoutForOrder($orderPublicId);
+                    \App\Models\Affiliate::payoutForOrder($orderPublicId, $platformFee);
                 }
             }
         } catch (\Throwable) {

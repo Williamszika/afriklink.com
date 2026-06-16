@@ -629,6 +629,32 @@ function platform_commission_cents(int $subtotalCents): int
     return (int) min($subtotalCents, (int) round($subtotalCents * $pct / 100));
 }
 
+/** Part (%) de la commission plateforme reversée à l'apporteur. Défaut 50 %. */
+function affiliate_share_pct(): float
+{
+    return max(0.0, min(100.0, (float) config('payment.affiliate_share_pct', 50.0)));
+}
+
+/**
+ * Commission de l'apporteur (centimes) — PRÉLEVÉE SUR la commission plateforme,
+ * jamais en plus : le vendeur ne paie pas deux fois. Bornée à [0 ; commission plateforme].
+ * Modèle : prix → commission AfrikaLink → dont une part (affiliate_share_pct) à l'apporteur.
+ */
+function affiliate_commission_cents(int $platformFeeCents): int
+{
+    if ($platformFeeCents <= 0) {
+        return 0;
+    }
+    return (int) min($platformFeeCents, (int) round($platformFeeCents * affiliate_share_pct() / 100));
+}
+
+/** Taux EFFECTIF reversé à l'apporteur sur une vente (% du prix), pour l'affichage. */
+function affiliate_effective_pct(): float
+{
+    $platform = max(0.0, min(100.0, (float) config('payment.platform_commission_pct', 5.0)));
+    return round($platform * affiliate_share_pct() / 100, 2);
+}
+
 /** Formate des centimes en prix lisible : « 12,50 € », « 15 000 F CFA ». */
 function format_price(int $cents, string $currency): string
 {

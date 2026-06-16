@@ -200,7 +200,10 @@ final class Affiliate
         if (!$program['enabled']) {
             return; // la boutique n'a pas activé l'affiliation
         }
-        $commission = self::commissionFor($subtotalCents, $program['rate']);
+        // La commission de l'apporteur est PRÉLEVÉE SUR la commission plateforme
+        // (jamais en plus). Montant provisoire ici (basé sur le sous-total) ;
+        // il sera recalculé sur la commission réelle au moment du paiement.
+        $commission = affiliate_commission_cents(platform_commission_cents($subtotalCents));
         if ($commission <= 0) {
             return;
         }
@@ -228,7 +231,7 @@ final class Affiliate
      * fois, lorsque la commande est réellement payée (appelé par PaymentSettlement).
      * Idempotent : un verrou atomique (paid_out_at) empêche tout double crédit.
      */
-    public static function payoutForOrder(string $orderPublicId): void
+    public static function payoutForOrder(string $orderPublicId, int $platformFeeCents = 0): void
     {
         $orderPublicId = trim($orderPublicId);
         if ($orderPublicId === '') {
@@ -245,13 +248,17 @@ final class Affiliate
             if ($row === false || $row['paid_out_at'] !== null) {
                 return; // pas d'apporteur, ou déjà versé
             }
-            $commission = (int) $row['commission_cents'];
+            // Commission finale = part de la commission plateforme RÉELLE (si fournie),
+            // sinon la valeur provisoire enregistrée à l'attribution. Jamais en plus.
+            $commission = $platformFeeCents > 0
+                ? affiliate_commission_cents($platformFeeCents)
+                : (int) $row['commission_cents'];
             if ($commission <= 0) {
                 return;
             }
             // Verrou : seul le premier à poser paid_out_at crédite (anti double-paiement).
-            $lock = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NOW() WHERE id = :id AND paid_out_at IS NULL');
-            $lock->execute(['id' => (int) $row['id']]);
+            $lock = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NOW(), commission_cents = :com WHERE id = :id AND paid_out_at IS NULL');
+            $lock->execute(['com' => $commission, 'id' => (int) $row['id']]);
             if ($lock->rowCount() < 1) {
                 return; // un autre traitement a déjà versé
             }

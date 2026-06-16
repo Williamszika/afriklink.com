@@ -23,6 +23,8 @@ $directory    = $directory ?? [];
 $dir_products = $dir_products ?? [];
 $dir_mains    = $dir_mains ?? [];
 $wallet       = $wallet ?? null;
+// Taux EFFECTIF reversé à l'apporteur (part de la commission AfrikaLink) — uniforme.
+$effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'), ',');
 ?>
 
 <!-- A. Configuration du programme — réservée au VENDEUR qui possède une boutique -->
@@ -38,13 +40,9 @@ $wallet       = $wallet ?? null;
                 <input type="checkbox" name="enabled" value="1" <?= $program['enabled'] ? 'checked' : '' ?>>
                 <span><?= e(t('aff.program_enable')) ?></span>
             </label>
-            <label class="aff-rate-field">
-                <span><?= e(t('aff.program_rate')) ?></span>
-                <input type="number" name="rate" min="1" max="30" step="1" value="<?= (int) $program['rate'] ?>" inputmode="numeric">
-            </label>
             <button type="submit" class="btn btn-primary btn-sm"><?= e(t('aff.program_save')) ?></button>
         </form>
-        <p class="hint"><?= e(t('aff.program_hint')) ?></p>
+        <p class="hint"><?= e(t('aff.program_hint', ['rate' => $effRateLabel])) ?></p>
     </div>
 
     <?php /* ---- Performance du programme (côté vendeur) ---- */ ?>
@@ -279,7 +277,7 @@ $wallet       = $wallet ?? null;
                                 <span class="aff-shop-name"><?= e((string) $shop['name']) ?></span>
                                 <?php if ($place !== ''): ?><span class="aff-shop-place"><?= e($place) ?></span><?php endif; ?>
                             </span>
-                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $shopRate])) ?></span>
+                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $effRateLabel])) ?></span>
                         </a>
                         <button type="button" class="btn btn-ghost btn-sm btn-block" data-copy="<?= e($shopLink) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= icon('copy', ['size' => 15]) ?> <?= e(t('aff.directory_copy')) ?></button>
                     </div>
@@ -313,7 +311,7 @@ $wallet       = $wallet ?? null;
                                 <span class="aff-shop-name"><?= e((string) $p['name']) ?></span>
                                 <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
                             </span>
-                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => (int) $p['affiliation_rate_pct']])) ?></span>
+                            <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $effRateLabel])) ?></span>
                         </a>
                         <button type="button" class="btn btn-ghost btn-sm btn-block" data-copy="<?= e($pLink) ?>" data-copied="✓ <?= e(t('shop.copied')) ?>"><?= icon('copy', ['size' => 15]) ?> <?= e(t('aff.directory_copy')) ?></button>
                     </div>

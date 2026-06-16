@@ -398,7 +398,7 @@ final class BoutiqueController
             'recently_viewed' => $recent,
             'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($fbt, $recent)),
             'aff_link'        => $affLink,
-            'aff_rate'        => $affProgram['rate'],
+            'aff_rate'        => rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'), ','),
             'page_title' => (string) $product['name'],
             'meta' => [
                 'description' => $this->ogDescription(
