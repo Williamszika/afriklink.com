@@ -201,6 +201,7 @@ return [
     // Boutique en ligne (assistant de création + gestion + page publique)
     ['GET',  '/boutique/creer',  [BoutiqueController::class, 'create'],  ['auth']],
     ['POST', '/boutique/creer',  [BoutiqueController::class, 'submit'],  ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/vendeur/boutique-active', [BoutiqueController::class, 'switchBoutique'], ['auth', 'csrf']],
     ['GET',  '/api/boutique/slug', [BoutiqueController::class, 'checkSlug'], ['auth', 'throttle:slug,120,3600']],
     ['GET',  '/boutique/gerer',  [BoutiqueController::class, 'manage'],  ['auth']],
     ['POST', '/boutique/publier', [BoutiqueController::class, 'publish'], ['auth', 'csrf']],

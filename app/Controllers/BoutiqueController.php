@@ -37,9 +37,7 @@ final class BoutiqueController
     public function create(Request $request): void
     {
         $user = $this->sellerOrRedirect();
-        if (Boutique::findByUserId((int) $user['id']) !== null) {
-            redirect('/boutique/gerer'); // une boutique par compte (pour l'instant)
-        }
+        // Multi-boutique : un vendeur peut créer plusieurs boutiques (mode, téléphones…).
         $step = $this->clampStep((int) input_string('etape', '1'));
         view('boutique/create', [
             'step'        => $step,
@@ -48,6 +46,17 @@ final class BoutiqueController
             'media_ready' => CloudinaryService::configured(),
             'suggestSlug' => Boutique::uniqueSlug((string) ($user['full_name'] ?? 'boutique')),
         ]);
+    }
+
+    /** Change la boutique ACTIVE du vendeur (multi-boutique). */
+    public function switchBoutique(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $bid = (int) input_string('boutique_id', '0');
+        if (Boutique::ownedBy($bid, (int) $user['id'])) {
+            $_SESSION['boutique_id'] = $bid;
+        }
+        redirect('/vendeur');
     }
 
     public function submit(Request $request): void
@@ -1687,6 +1696,11 @@ final class BoutiqueController
         ]);
 
         AuditLog::record($userId, 'shop.created', 'boutique', null, ['public_id' => $publicId], $request->ipBinary());
+        // Multi-boutique : la boutique fraîchement créée devient la boutique active.
+        $newShop = Boutique::findByPublicId($publicId);
+        if ($newShop !== null) {
+            $_SESSION['boutique_id'] = (int) $newShop['id'];
+        }
         try {
             if (\App\Services\StorefrontAlert::send($user, 'boutique', (string) $s1['name'], url('/boutique/gerer'))) {
                 flash('info', t('vitrine.mail_sent_flash'));

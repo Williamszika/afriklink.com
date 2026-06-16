@@ -177,6 +177,7 @@ return [
     'seller.profile_title'    => 'Seller profile',
     'seller.nav.aria'         => 'Seller menu',
     'seller.nav.overview'     => 'Overview',
+    'seller.shop_switch.new'  => 'New shop',
     'seller.nav.storefronts'  => 'My storefronts',
     'seller.nav.orders'       => 'Orders',
     'seller.nav.messages'     => 'Messages',

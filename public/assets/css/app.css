@@ -2033,6 +2033,19 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .top-bar-track{display:block;height:8px;border-radius:6px;background:var(--brand-50);overflow:hidden}
 .top-bar-fill{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--brand-300),var(--brand));animation:top-grow .9s ease;transform-origin:left}
 @keyframes top-grow{from{transform:scaleX(0)}}
+/* Sélecteur de boutique (multi-boutique) */
+.shop-switch{margin:0 0 14px;position:relative}
+.shop-switch-cur{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:11px;background:var(--card);cursor:pointer;font-weight:600;font-size:.9rem;list-style:none}
+.shop-switch-cur::-webkit-details-marker{display:none}
+.shop-switch-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)}
+.shop-switch-caret{color:var(--muted);font-size:.78rem;transition:transform .2s}
+.shop-switch[open] .shop-switch-caret{transform:rotate(180deg)}
+.shop-switch-menu{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--card);border:1px solid var(--border);border-radius:11px;box-shadow:0 18px 36px -16px rgba(16,36,30,.55);padding:5px;display:flex;flex-direction:column;gap:2px}
+.shop-switch-form{margin:0}
+.shop-switch-opt{display:block;width:100%;text-align:left;padding:8px 10px;border:0;background:transparent;border-radius:8px;font-size:.88rem;color:var(--ink);cursor:pointer}
+.shop-switch-opt:hover{background:var(--brand-50)}
+.shop-switch-opt.is-active{color:var(--brand);font-weight:700}
+.shop-switch-new{display:block;padding:8px 10px;margin-top:3px;border-top:1px solid var(--border);color:var(--brand);font-weight:600;font-size:.86rem}
 /* Comparaison mois vs mois dernier */
 .rev-delta{display:inline-block;margin-left:8px;font-weight:800;font-size:.85rem;padding:1px 8px;border-radius:7px;vertical-align:middle}
 .rev-delta.is-up{color:#1E8F6E;background:rgba(30,143,110,.12)}

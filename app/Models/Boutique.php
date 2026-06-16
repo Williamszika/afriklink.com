@@ -487,15 +487,56 @@ final class Boutique
         return $publicId;
     }
 
+    /**
+     * Boutique ACTIVE du vendeur (multi-boutique). Si l'utilisateur COURANT a
+     * sélectionné une de SES boutiques (session), on la renvoie ; sinon la première.
+     * Ainsi tout le back-office vendeur suit la boutique active sans réécrire les appels.
+     */
     public static function findByUserId(int $userId): ?array
     {
         try {
+            $active = (int) ($_SESSION['boutique_id'] ?? 0);
+            if ($active > 0 && current_user_id() === $userId) {
+                $stmt = db()->prepare('SELECT * FROM boutiques WHERE id = :id AND user_id = :uid LIMIT 1');
+                $stmt->execute(['id' => $active, 'uid' => $userId]);
+                $row = $stmt->fetch();
+                if ($row !== false) {
+                    return $row;
+                }
+            }
             $stmt = db()->prepare('SELECT * FROM boutiques WHERE user_id = :uid ORDER BY id LIMIT 1');
             $stmt->execute(['uid' => $userId]);
             $row = $stmt->fetch();
             return $row !== false ? $row : null;
         } catch (\Throwable) {
             return null;
+        }
+    }
+
+    /** Toutes les boutiques d'un vendeur (multi-boutique). @return list<array> */
+    public static function allForUser(int $userId): array
+    {
+        try {
+            $stmt = db()->prepare('SELECT * FROM boutiques WHERE user_id = :uid ORDER BY id');
+            $stmt->execute(['uid' => $userId]);
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /** Vrai si la boutique appartient au vendeur (validation du changement de boutique active). */
+    public static function ownedBy(int $boutiqueId, int $userId): bool
+    {
+        if ($boutiqueId <= 0) {
+            return false;
+        }
+        try {
+            $stmt = db()->prepare('SELECT 1 FROM boutiques WHERE id = :id AND user_id = :uid LIMIT 1');
+            $stmt->execute(['id' => $boutiqueId, 'uid' => $userId]);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable) {
+            return false;
         }
     }
 

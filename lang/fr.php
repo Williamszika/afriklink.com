@@ -177,6 +177,7 @@ return [
     'seller.profile_title'    => 'Profil vendeur',
     'seller.nav.aria'         => 'Menu vendeur',
     'seller.nav.overview'     => 'Vue d’ensemble',
+    'seller.shop_switch.new'  => 'Nouvelle boutique',
     'seller.nav.storefronts'  => 'Mes vitrines',
     'seller.nav.orders'       => 'Commandes',
     'seller.nav.messages'     => 'Messages',
