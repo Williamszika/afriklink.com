@@ -888,6 +888,14 @@ function ongles_couleur_hex(): array
     return $map;
 }
 
+/** Sous-config du rayon Parfums (concentrations, genres, familles, tailles…). */
+function beauty_parfum(?string $key = null): array
+{
+    $cfg = (array) config('beauty.parfum', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
 /** Filtre une liste soumise contre une liste blanche (sans doublon). @return list<string> */
 function keep_in_list(array $vals, array $allowed): array
 {

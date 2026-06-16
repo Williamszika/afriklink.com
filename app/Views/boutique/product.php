@@ -106,10 +106,21 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }
                 } elseif ($pVertical === 'beauty') {
                     $isOng = (string) ($product['collection'] ?? '') === 'Ongles';
+                    $isPar = (string) ($product['collection'] ?? '') === 'Parfums';
                     $bAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
-                    if ($isOng) {
+                    if ($isPar) {
+                        $pSizeLabel = t('parfum.f.volume');
+                        if (!empty($bAttr['genre']))   { $apTags[] = (string) $bAttr['genre']; }
+                        if (!empty($bAttr['famille']))  { $apTags[] = (string) $bAttr['famille']; }
+                        if (((float) ($product['volume'] ?? 0)) > 0) { $apTags[] = (int) $product['volume'] . ' ml'; }
+                        if (!empty($bAttr['sillage'])) { $apTags[] = t('parfum.f.sillage') . ' ' . (string) $bAttr['sillage']; }
+                        if (!empty($bAttr['tenue']))   { $apTags[] = t('parfum.f.tenue') . ' ' . (string) $bAttr['tenue']; }
+                        if (!empty($bAttr['alcool']))  { $apTags[] = (string) $bAttr['alcool']; }
+                        if (!empty($bAttr['format']))  { $apTags[] = (string) $bAttr['format']; }
+                        foreach ((array) ($bAttr['occasions'] ?? []) as $o) { $apTags[] = (string) $o; }
+                    } elseif ($isOng) {
                         $pSizeLabel  = t('ongles.f.forme');
                         $pColorLabel = t('ongles.f.length');
                         if (!empty($bAttr['forme']))    { $apTags[] = (string) $bAttr['forme']; }
@@ -278,6 +289,22 @@ foreach ($realVariants as $rv) {
                     <p class="listing-description"><?= nl2br(e((string) $product['ingredients'])) ?></p>
                 <?php endif; ?>
             </details>
+        </div>
+    <?php endif; ?>
+
+    <?php
+    $parNotesD = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+    $parNotesD = is_array($parNotesD['notes'] ?? null) ? $parNotesD['notes'] : [];
+    ?>
+    <?php if ($pVertical === 'beauty' && $parNotesD !== []): ?>
+        <div class="panel">
+            <h2 class="panel-title">🔺 <?= e(t('parfum.sec.pyramid')) ?></h2>
+            <div class="pyr-read">
+                <?php foreach (['tete' => 'parfum.f.top', 'coeur' => 'parfum.f.heart', 'fond' => 'parfum.f.base'] as $nk => $lbl): ?>
+                    <?php if (empty($parNotesD[$nk])) { continue; } ?>
+                    <p class="pyr-read-row"><span class="pyr-read-tag pyr-<?= e($nk) ?>"><?= e(t($lbl)) ?></span> <?= e((string) $parNotesD[$nk]) ?></p>
+                <?php endforeach; ?>
+            </div>
         </div>
     <?php endif; ?>
 

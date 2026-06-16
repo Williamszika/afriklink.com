@@ -1988,6 +1988,20 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .chip-check--tone span{display:inline-flex;align-items:center;gap:7px}
 .chip-check .chip-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);flex:none}
 .toggle-rows{display:grid;gap:7px;margin:12px 0 4px}
+/* Pyramide olfactive (parfum) */
+.pyr{display:grid;gap:10px;margin-top:6px}
+.pyr-lvl{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}
+.pyr-tag{display:flex;align-items:center;gap:8px;font:600 .72rem var(--afk-mono,monospace);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.pyr-b{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent}
+.pyr-lvl.t .pyr-b{border-bottom:9px solid var(--brand-100)}
+.pyr-lvl.c .pyr-b{border-bottom:9px solid var(--accent)}
+.pyr-lvl.f .pyr-b{border-bottom:9px solid var(--brand)}
+@media(max-width:560px){.pyr-lvl{grid-template-columns:1fr;gap:4px}}
+.pyr-read{display:grid;gap:8px}
+.pyr-read-tag{display:inline-block;font:600 .68rem var(--afk-mono,monospace);letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:2px 8px;border-radius:6px;margin-right:6px}
+.pyr-read-tag.pyr-tete{background:var(--accent)}
+.pyr-read-tag.pyr-coeur{background:var(--brand-300,#3c7a66)}
+.pyr-read-tag.pyr-fond{background:var(--brand)}
 .ong-head,.ong-row{grid-template-columns:1.3fr 1fr .8fr 1fr 34px}
 .ong-row select{margin:0}
 @media(max-width:680px){.ong-row{grid-template-columns:1fr 1fr}}

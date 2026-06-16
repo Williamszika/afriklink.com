@@ -160,8 +160,10 @@ $fmtP = static function ($cents) use ($cur): string {
         $savedAttrs = isset($rawOld['attr']) && is_array($rawOld['attr'])
             ? $rawOld['attr']
             : (json_decode((string) ($product['attributes'] ?? ''), true) ?: []);
-        // Rayon « Ongles » (faux ongles) : sous-formulaire dédié.
+        // Sous-formulaire beauté piloté par le rayon : Ongles / Parfums / (sinon) Maquillage.
         $isOngles = ($curCol === 'Ongles');
+        $isParfum = ($curCol === 'Parfums');
+        $beautySec = $isOngles ? 'ongles' : ($isParfum ? 'parfum' : 'maquillage');
         $ongAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
         $ongScalar = static fn (string $k): string => (string) ($rawOld['ong_' . $k] ?? ($ongAttrs[$k] ?? ''));
         $ongList = static function (string $k) use ($rawOld, $ongAttrs): array {
@@ -172,7 +174,16 @@ $fmtP = static function ($cents) use ($cur): string {
         $ongBool = static fn (string $k): bool => isset($rawOld['ong_' . $k])
             ? ((string) $rawOld['ong_' . $k] !== '' && (string) $rawOld['ong_' . $k] !== '0')
             : (bool) ($ongAttrs[$k] ?? false);
-        $secAttr = static fn (string $sec, bool $on): string => ' data-beauty-section="' . $sec . '"' . ($on ? '' : ' hidden');
+        // Parfum : specs (genre, famille…), pyramide (notes), occasions.
+        $parScalar = static fn (string $k): string => (string) ($rawOld['par_' . $k] ?? ($ongAttrs[$k] ?? ''));
+        $parList = static function (string $k) use ($rawOld, $ongAttrs): array {
+            return isset($rawOld['par_' . $k]) && is_array($rawOld['par_' . $k])
+                ? array_map('strval', $rawOld['par_' . $k])
+                : array_map('strval', (array) ($ongAttrs[$k] ?? []));
+        };
+        $parNotes = (array) ($ongAttrs['notes'] ?? []);
+        $parNote = static fn (string $k): string => (string) ($rawOld['par_note_' . $k] ?? ($parNotes[$k] ?? ''));
+        $secAttr = static fn (string $sec): string => ' data-beauty-section="' . $sec . '"' . ($sec === $beautySec ? '' : ' hidden');
         ?>
         <div data-beauty
              data-types="<?= e((string) json_encode(beauty_types(), JSON_UNESCAPED_UNICODE)) ?>"
@@ -186,7 +197,7 @@ $fmtP = static function ($cents) use ($cur): string {
         <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
 
         <!-- ================= MAQUILLAGE ================= -->
-        <div<?= $secAttr('maquillage', !$isOngles) ?>>
+        <div<?= $secAttr('maquillage') ?>>
         <div class="grid-2">
             <div>
                 <label for="p-ptype"><?= e(t('beauty.f.type')) ?> <span class="req">*</span></label>
@@ -270,7 +281,7 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /maquillage -->
 
         <!-- ================= ONGLES (faux ongles) ================= -->
-        <div<?= $secAttr('ongles', $isOngles) ?>>
+        <div<?= $secAttr('ongles') ?>>
         <div class="grid-2">
             <div>
                 <label for="o-type"><?= e(t('beauty.f.type')) ?> <span class="req">*</span></label>
@@ -374,6 +385,118 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
         </div><!-- /ongles -->
+
+        <!-- ================= PARFUMS ================= -->
+        <div<?= $secAttr('parfum') ?>>
+        <div class="grid-2">
+            <div>
+                <label for="par-type"><?= e(t('parfum.f.concentration')) ?> <span class="req">*</span></label>
+                <select id="par-type" name="product_type" data-pv="type">
+                    <option value="">— <?= e(t('beauty.f.type_any')) ?> —</option>
+                    <?php foreach (beauty_parfum('concentrations') as $pc): ?><option value="<?= e($pc) ?>" <?= $curType === $pc ? 'selected' : '' ?>><?= e($pc) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="par-genre"><?= e(t('parfum.f.genre')) ?> <span class="req">*</span></label>
+                <select id="par-genre" name="par_genre" data-pv="genre">
+                    <option value="">—</option>
+                    <?php foreach (beauty_parfum('genres') as $g): ?><option value="<?= e($g) ?>" <?= $parScalar('genre') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>🌸 <?= e(t('beauty.sec.specs')) ?></summary>
+            <div class="grid-3">
+                <div>
+                    <label for="par-famille"><?= e(t('parfum.f.family')) ?></label>
+                    <select id="par-famille" name="par_famille" data-pv="famille">
+                        <option value="">—</option>
+                        <?php foreach (beauty_parfum('familles') as $f): ?><option value="<?= e($f) ?>" <?= $parScalar('famille') === $f ? 'selected' : '' ?>><?= e($f) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="par-format"><?= e(t('parfum.f.format')) ?></label>
+                    <select id="par-format" name="par_format">
+                        <option value="">—</option>
+                        <?php foreach (beauty_parfum('formats') as $f): ?><option value="<?= e($f) ?>" <?= $parScalar('format') === $f ? 'selected' : '' ?>><?= e($f) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="par-alcool"><?= e(t('parfum.f.alcool')) ?></label>
+                    <select id="par-alcool" name="par_alcool">
+                        <option value="">—</option>
+                        <?php foreach (beauty_parfum('alcool') as $a): ?><option value="<?= e($a) ?>" <?= $parScalar('alcool') === $a ? 'selected' : '' ?>><?= e($a) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div>
+                    <label for="par-sillage"><?= e(t('parfum.f.sillage')) ?></label>
+                    <select id="par-sillage" name="par_sillage">
+                        <option value="">—</option>
+                        <?php foreach (beauty_parfum('sillages') as $s): ?><option value="<?= e($s) ?>" <?= $parScalar('sillage') === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="par-tenue"><?= e(t('parfum.f.tenue')) ?></label>
+                    <select id="par-tenue" name="par_tenue">
+                        <option value="">—</option>
+                        <?php foreach (beauty_parfum('tenues') as $tn): ?><option value="<?= e($tn) ?>" <?= $parScalar('tenue') === $tn ? 'selected' : '' ?>><?= e($tn) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="par-pao"><?= e(t('beauty.f.pao')) ?></label>
+                    <select id="par-pao" name="pao">
+                        <option value="">—</option>
+                        <?php foreach (beauty_parfum('pao') as $pp): ?><option value="<?= e($pp) ?>" <?= $bcur('pao') === $pp ? 'selected' : '' ?>><?= e($pp) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div>
+                    <label for="par-volume"><?= e(t('parfum.f.volume')) ?></label>
+                    <div class="input-suffix">
+                        <input type="text" id="par-volume" name="volume" inputmode="numeric" value="<?= e($volCur) ?>" placeholder="100" data-pv="volume">
+                        <span class="input-suffix-tag">ml</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="par-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="par-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e($bcur('ean')) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="par-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="par-sku" name="sku" class="mono" maxlength="40" value="<?= e($bcur('sku')) ?>" placeholder="PARF-YARA-100">
+                </div>
+            </div>
+            <label><?= e(t('parfum.f.occasions')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php $selO = $parList('occasions'); foreach (beauty_parfum('occasions') as $o): ?>
+                    <label class="chip-check"><input type="checkbox" name="par_occasions[]" value="<?= e($o) ?>" <?= in_array($o, $selO, true) ? 'checked' : '' ?>><span><?= e($o) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php foreach (beauty_parfum('atouts') as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $selAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+
+        <details class="variants-box" open>
+            <summary>🔺 <?= e(t('parfum.sec.pyramid')) ?></summary>
+            <p class="hint"><?= e(t('parfum.sec.pyramid_hint')) ?></p>
+            <div class="pyr">
+                <div class="pyr-lvl t"><span class="pyr-tag"><span class="pyr-b"></span><?= e(t('parfum.f.top')) ?></span>
+                    <input type="text" name="par_note_tete" maxlength="160" value="<?= e($parNote('tete')) ?>" placeholder="<?= e(t('parfum.f.top_ph')) ?>"></div>
+                <div class="pyr-lvl c"><span class="pyr-tag"><span class="pyr-b"></span><?= e(t('parfum.f.heart')) ?></span>
+                    <input type="text" name="par_note_coeur" maxlength="160" value="<?= e($parNote('coeur')) ?>" placeholder="<?= e(t('parfum.f.heart_ph')) ?>"></div>
+                <div class="pyr-lvl f"><span class="pyr-tag"><span class="pyr-b"></span><?= e(t('parfum.f.base')) ?></span>
+                    <input type="text" name="par_note_fond" maxlength="160" value="<?= e($parNote('fond')) ?>" placeholder="<?= e(t('parfum.f.base_ph')) ?>"></div>
+            </div>
+        </details>
+        </div><!-- /parfum -->
         <?php endif; ?>
 
         <div class="grid-2">
@@ -434,7 +557,7 @@ $fmtP = static function ($cents) use ($cur): string {
             $oRows[] = ['forme' => (string) ($attr['size'] ?? ''), 'long' => (string) ($attr['color'] ?? ''), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
         }
         ?>
-        <div<?= $secAttr('maquillage', !$isOngles) ?>>
+        <div<?= $secAttr('maquillage') ?>>
         <details class="variants-box" data-beauty-decl <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <span data-beauty-decl-title><?= e($declLabel) ?></span></summary>
             <p class="hint"><?= e(t('beauty.decl.hint')) ?></p>
@@ -483,7 +606,7 @@ $fmtP = static function ($cents) use ($cur): string {
         </details>
         </div><!-- /maquillage decl -->
 
-        <div<?= $secAttr('ongles', $isOngles) ?>>
+        <div<?= $secAttr('ongles') ?>>
         <details class="variants-box" data-ong-decl <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e(t('ongles.sec.variants')) ?></summary>
             <p class="hint"><?= e(t('ongles.sec.variants_hint')) ?></p>
@@ -529,6 +652,44 @@ $fmtP = static function ($cents) use ($cur): string {
             </template>
         </details>
         </div><!-- /ongles decl -->
+
+        <div<?= $secAttr('parfum') ?>>
+        <details class="variants-box" data-par-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('parfum.sec.sizes')) ?></summary>
+            <p class="hint"><?= e(t('parfum.sec.sizes_hint')) ?></p>
+            <div class="axis-suggest" data-par-chips-box>
+                <span class="axis-suggest-label"><strong><?= e(t('parfum.f.volume')) ?></strong> · <?= e(t('variant.suggest_hint')) ?></span>
+                <div class="axis-suggest-chips" data-par-chips>
+                    <?php foreach (beauty_parfum('tailles') as $tl): ?><button type="button" class="axis-chip" data-par-chip data-val="<?= e($tl) ?>"><?= e($tl) ?></button><?php endforeach; ?>
+                </div>
+            </div>
+            <div class="bvariant-rows par-rows" data-par-rows>
+                <div class="bvariant-head par-head">
+                    <span><?= e(t('parfum.f.volume')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($oRows as $orow): ?>
+                    <div class="bvariant-row par-row">
+                        <input type="text" name="var_size[]" value="<?= e($orow['forme']) ?>" maxlength="20" placeholder="50 ml" aria-label="<?= e(t('parfum.f.volume')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $orow['stock'] !== null ? (int) $orow['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($orow['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-par-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-par-add>+ <?= e(t('parfum.f.add')) ?></button>
+            <template id="par-variant-template">
+                <div class="bvariant-row par-row">
+                    <input type="text" name="var_size[]" maxlength="20" placeholder="50 ml" aria-label="<?= e(t('parfum.f.volume')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-par-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /parfum decl -->
         <?php else: ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>

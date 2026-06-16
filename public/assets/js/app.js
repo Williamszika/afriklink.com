@@ -2644,14 +2644,19 @@ document.addEventListener('click', function (ev) {
     var tpl      = document.getElementById('bvariant-template');
     var ongRows  = document.querySelector('[data-ong-rows]');
     var ongTpl   = document.getElementById('ong-variant-template');
+    var parRows  = document.querySelector('[data-par-rows]');
+    var parTpl   = document.getElementById('par-variant-template');
+    var parChips = document.querySelector('[data-par-chips]');
     var ONGHEX = {}; try { ONGHEX = JSON.parse(cfgEl.getAttribute('data-ongles-hex') || '{}'); } catch (e) { ONGHEX = {}; }
 
     function isOngles() { return !!(coll && coll.value === 'Ongles'); }
+    function isParfum() { return !!(coll && coll.value === 'Parfums'); }
+    function activeSection() { return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : 'maquillage'); }
 
-    // Affiche la section (maquillage / ongles) correspondant au rayon ; désactive les
-    // champs des sections masquées pour qu'ils ne soient pas envoyés (pas de conflit).
+    // Affiche la section (maquillage / ongles / parfum) du rayon ; désactive les champs
+    // des sections masquées pour qu'ils ne soient pas envoyés (pas de conflit).
     function toggleSections() {
-        var active = isOngles() ? 'ongles' : 'maquillage';
+        var active = activeSection();
         document.querySelectorAll('[data-beauty-section]').forEach(function (sec) {
             var on = sec.getAttribute('data-beauty-section') === active;
             sec.hidden = !on;
@@ -2765,7 +2770,12 @@ document.addEventListener('click', function (ev) {
     var curInt = root ? root.getAttribute('data-cur-int') === '1' : false;
     var cur = root ? (root.getAttribute('data-cur') || '') : '';
     function out(n) { return root ? root.querySelector('[data-pv-out="' + n + '"]') : null; }
-    function fval(n) { var f = document.querySelector('[data-pv="' + n + '"]'); return f ? String(f.value || '').trim() : ''; }
+    // Lit le champ [data-pv] ACTIF (non désactivé) : plusieurs sections partagent une clé.
+    function fval(n) {
+        var list = document.querySelectorAll('[data-pv="' + n + '"]');
+        for (var i = 0; i < list.length; i++) { if (!list[i].disabled) { return String(list[i].value || '').trim(); } }
+        return list[0] ? String(list[0].value || '').trim() : '';
+    }
     function num(s) { return parseFloat(String(s).replace(',', '.')) || 0; }
     function fmt(n) { n = curInt ? Math.round(n) : Math.round(n * 100) / 100; return n.toLocaleString('fr-FR', curInt ? {} : { maximumFractionDigits: 2 }) + ' ' + cur; }
     function setText(n, t) { var el = out(n); if (el) { el.textContent = t; } }
@@ -2782,6 +2792,10 @@ document.addEventListener('click', function (ev) {
             setText('type', fval('forme'));
             var ln = fval('longueur'), tp = fval('tips');
             setText('vol', (ln ? '· ' + ln : '') + (tp ? (ln ? ' · ' : '· ') + tp + ' capsules' : ''));
+        } else if (isParfum()) {
+            setText('type', fval('type'));
+            var g = fval('genre'), pv = fval('volume'), fm = fval('famille');
+            setText('vol', (g ? '· ' + g : '') + (pv ? ' · ' + pv + ' ml' : '') + (fm ? ' · ' + fm : ''));
         } else {
             setText('type', fval('type'));
             var vol = num(fval('volume'));
@@ -2829,6 +2843,26 @@ document.addEventListener('click', function (ev) {
         ongRows.appendChild(ongTpl.content.cloneNode(true));
         return ongRows.lastElementChild;
     }
+    // Parfum : déclinaison par contenance (ml). Un clic sur une taille remplit/ajoute une ligne.
+    function addParRow(val) {
+        if (!parTpl || !parTpl.content || !parRows) { return null; }
+        parRows.appendChild(parTpl.content.cloneNode(true));
+        var row = parRows.lastElementChild;
+        if (row && val) { var s = row.querySelector('input[name="var_size[]"]'); if (s) { s.value = val; } }
+        return row;
+    }
+    function fillParSize(val) {
+        var empty = null;
+        parRows.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { if (!empty && !i.value.trim()) { empty = i; } });
+        if (empty) { empty.value = val; } else { addParRow(val); }
+        update();
+    }
+    if (parChips) {
+        parChips.addEventListener('click', function (ev) {
+            var c = ev.target && ev.target.closest ? ev.target.closest('[data-par-chip]') : null;
+            if (c) { ev.preventDefault(); fillParSize(c.getAttribute('data-val')); }
+        });
+    }
 
     /* ---------- Événements ---------- */
     if (typeSel) { typeSel.addEventListener('change', onType); }
@@ -2843,7 +2877,8 @@ document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         if (ev.target.closest('[data-beauty-add]')) { var r = addRow(null); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
         if (ev.target.closest('[data-ong-add]')) { var ro = addOngRow(); if (ro) { var fo = ro.querySelector('select'); if (fo) { fo.focus(); } } return; }
-        var del = ev.target.closest('[data-beauty-del], [data-ong-del]');
+        if (ev.target.closest('[data-par-add]')) { var rp = addParRow(''); if (rp) { var fp = rp.querySelector('input'); if (fp) { fp.focus(); } } return; }
+        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del]');
         if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); update(); } }
     });
     form.addEventListener('input', update);

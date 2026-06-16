@@ -135,5 +135,26 @@ return [
             'reusable' => 'Réutilisable',
         ],
     ],
+
+    // ----- Rayon « Parfums » : déclinaison par CONTENANCE (ml). -----
+    // Concentration (product_type) + genre + famille olfactive + pyramide (tête/cœur/fond).
+    // Specs dans products.attributes ; variantes = contenance (size). Aucune couleur.
+    'parfum' => [
+        'concentrations' => [
+            'Eau de Cologne', 'Eau de Toilette', 'Eau de Parfum', 'Extrait de Parfum',
+            'Eau Fraîche', 'Brume parfumée', 'Huile parfumée / Attar',
+        ],
+        'genres'   => ['Femme', 'Homme', 'Mixte / Unisexe'],
+        'familles' => ['Floral', 'Boisé', 'Oriental / Ambré', 'Hespéridé / Agrumes', 'Fougère', 'Chypré', 'Gourmand', 'Aromatique', 'Cuir', 'Musqué', 'Aquatique'],
+        'formats'  => ['Vaporisateur / spray', 'Splash', 'Roll-on', 'Solide', 'Recharge / refill', 'Coffret'],
+        'alcool'   => ['Avec alcool', 'Sans alcool'],
+        'sillages' => ['Léger', 'Modéré', 'Puissant', 'Très puissant'],
+        'tenues'   => ['Moins de 4h', '4 à 6h', '6 à 8h', '8 à 12h', 'Plus de 12h'],
+        'pao'      => ['12M', '24M', '36M'],
+        'tailles'  => ['10 ml', '30 ml', '50 ml', '75 ml', '100 ml', '150 ml', '200 ml'],
+        'occasions' => ['Jour', 'Soir', 'Été', 'Hiver', 'Printemps', 'Automne', 'Toutes saisons'],
+        'atouts'   => ['Vegan', 'Halal', 'Rechargeable', 'Coffret cadeau', 'Testé dermatologiquement', 'Édition limitée'],
+    ],
 ];
+
 

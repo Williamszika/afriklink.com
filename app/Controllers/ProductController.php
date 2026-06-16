@@ -275,6 +275,28 @@ final class ProductController
             if ($cz !== []) { $oa['couleurs'] = $cz; }
             if ($kz !== []) { $oa['kit'] = $kz; }
             $attributes = $oa !== [] ? (string) json_encode($oa, JSON_UNESCAPED_UNICODE) : null;
+        } elseif ($collection === 'Parfums') {
+            // Parfum : concentration (product_type) + specs + pyramide ; déclinaison = contenance.
+            $productType = beauty_clean(input_string('product_type', ''), beauty_parfum('concentrations'));
+            $atouts      = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), beauty_parfum('atouts')));
+            $line = ''; $pao = beauty_clean(input_string('pao', ''), beauty_parfum('pao'));
+            $vr = preg_replace('/[^0-9]/', '', (string) input_string('volume', ''));
+            $volume = ($vr !== null && $vr !== '') ? min(999999.0, (float) $vr) : null;
+            $volumeUnit = 'ml';
+            $pa = [];
+            foreach (['genre' => 'genres', 'famille' => 'familles', 'format' => 'formats', 'alcool' => 'alcool', 'sillage' => 'sillages', 'tenue' => 'tenues'] as $f => $listKey) {
+                $v = beauty_clean(input_string('par_' . $f, ''), beauty_parfum($listKey));
+                if ($v !== '') { $pa[$f] = $v; }
+            }
+            $notes = [];
+            foreach (['tete', 'coeur', 'fond'] as $nk) {
+                $nv = mb_substr(trim((string) input_string('par_note_' . $nk, '')), 0, 160);
+                if ($nv !== '') { $notes[$nk] = $nv; }
+            }
+            if ($notes !== []) { $pa['notes'] = $notes; }
+            $occ = keep_in_list((array) ($_POST['par_occasions'] ?? []), beauty_parfum('occasions'));
+            if ($occ !== []) { $pa['occasions'] = $occ; }
+            $attributes = $pa !== [] ? (string) json_encode($pa, JSON_UNESCAPED_UNICODE) : null;
         } else {
             // Maquillage (v2 adaptatif au type) : caractéristiques propres au type en JSON.
             $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
