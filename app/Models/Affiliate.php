@@ -203,14 +203,13 @@ final class Affiliate
         if (($affiliate['account_type'] ?? '') === 'professionnel') {
             return;
         }
-        // Commission PAR PRODUIT : somme des commissions des articles affiliés (taux
-        // fixé par le vendeur, borné). Prélevée sur la commission plateforme — donc
-        // plafonnée à celle-ci (le vendeur ne paie jamais en plus, AfrikaLink garde ≥ son minimum).
+        // Commission PAR PRODUIT : somme des (R − part plateforme) des articles affiliés.
+        // Le taux R est fixé par le vendeur et retranché de SA part : pas de plafond ici.
+        // Montant provisoire ; finalisé au paiement (mêmes taux) par settleBoutiqueOrder().
         $commission = self::commissionForLines($lines);
         if ($commission <= 0) {
             return; // aucun article affilié dans la commande
         }
-        $commission = min($commission, platform_commission_cents($subtotalCents));
         self::recordConversion($affiliateId, $orderPublicId, $boutiqueId, $subtotalCents, $commission, $currency, $target);
     }
 
@@ -255,45 +254,63 @@ final class Affiliate
     }
 
     /**
-     * Verse la commission d'une commande au PORTEFEUILLE de l'apporteur, une seule
-     * fois, lorsque la commande est réellement payée (appelé par PaymentSettlement).
-     * Idempotent : un verrou atomique (paid_out_at) empêche tout double crédit.
+     * Règle une commande boutique PAYÉE et renvoie la part VENDEUR (centimes).
+     * - Vente sans apporteur : part vendeur = montant − commission plateforme normale.
+     * - Vente via apporteur : pour chaque article affilié, R % est retranché du vendeur
+     *   (dont la plateforme garde sa part fixe et l'apporteur touche R − part). L'apporteur
+     *   est crédité une seule fois (verrou atomique paid_out_at). Conservation : vendeur +
+     *   apporteur + plateforme = montant payé.
      */
-    public static function payoutForOrder(string $orderPublicId, int $platformFeeCents = 0): void
+    public static function settleBoutiqueOrder(int $orderId, string $orderPublicId, int $amountCents, string $currency): int
     {
-        $orderPublicId = trim($orderPublicId);
-        if ($orderPublicId === '') {
-            return;
-        }
         self::ensureTables();
+        $normalSeller = $amountCents - platform_commission_cents($amountCents);
         try {
-            $stmt = db()->prepare(
-                'SELECT id, affiliate_id, commission_cents, currency, paid_out_at
-                   FROM affiliate_conversions WHERE order_public_id = :o LIMIT 1'
-            );
+            $stmt = db()->prepare('SELECT id, affiliate_id, paid_out_at FROM affiliate_conversions WHERE order_public_id = :o LIMIT 1');
             $stmt->execute(['o' => $orderPublicId]);
-            $row = $stmt->fetch();
-            if ($row === false || $row['paid_out_at'] !== null) {
-                return; // pas d'apporteur, ou déjà versé
+            $conv = $stmt->fetch();
+            if ($conv === false) {
+                return $normalSeller; // vente directe (sans apporteur)
             }
-            // Commission = celle calculée à l'attribution (somme par produit), plafonnée
-            // à la commission plateforme RÉELLE si connue (jamais plus — sécurité argent).
-            $commission = (int) $row['commission_cents'];
-            if ($platformFeeCents > 0) {
-                $commission = min($commission, $platformFeeCents);
+            $items = \App\Models\Order::items($orderId);
+            $pids = [];
+            foreach ($items as $it) {
+                $pid = (int) ($it['product_id'] ?? 0);
+                if ($pid > 0) {
+                    $pids[] = $pid;
+                }
             }
-            if ($commission <= 0) {
-                return;
+            $map = \App\Models\Product::affiliationMapFor($pids);
+            $subtotal = 0;
+            $deduction = 0;
+            $affiliate = 0;
+            foreach ($items as $it) {
+                $lt = (int) ($it['line_total_cents'] ?? 0);
+                $subtotal += $lt;
+                $aff = $map[(int) ($it['product_id'] ?? 0)] ?? null;
+                if ($aff !== null && $aff['enabled'] && $aff['bps'] > 0) {
+                    $deduction += affiliate_line_deduction_cents($lt, (int) $aff['bps']);   // R %
+                    $affiliate += affiliate_line_commission_cents($lt, (int) $aff['bps']);  // R − part plateforme
+                } else {
+                    $deduction += platform_commission_cents($lt);                            // commission normale
+                }
             }
-            // Verrou : seul le premier à poser paid_out_at crédite (anti double-paiement).
-            $lock = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NOW(), commission_cents = :com WHERE id = :id AND paid_out_at IS NULL');
-            $lock->execute(['com' => $commission, 'id' => (int) $row['id']]);
-            if ($lock->rowCount() < 1) {
-                return; // un autre traitement a déjà versé
+            $rest = $amountCents - $subtotal;
+            if ($rest > 0) {
+                $deduction += platform_commission_cents($rest); // livraison / divers à la commission normale
             }
-            Wallet::credit((int) $row['affiliate_id'], $commission, (string) $row['currency'], 'affiliate', $orderPublicId);
+            $deduction = min($amountCents, max(0, $deduction));
+            // Crédit de l'apporteur, une seule fois (idempotent).
+            if ($affiliate > 0 && $conv['paid_out_at'] === null) {
+                $lock = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NOW(), commission_cents = :c WHERE id = :id AND paid_out_at IS NULL');
+                $lock->execute(['c' => $affiliate, 'id' => (int) $conv['id']]);
+                if ($lock->rowCount() >= 1) {
+                    Wallet::credit((int) $conv['affiliate_id'], $affiliate, $currency, 'affiliate', $orderPublicId);
+                }
+            }
+            return $amountCents - $deduction;
         } catch (\Throwable) {
-            // best-effort : ne bloque jamais la confirmation de paiement
+            return $normalSeller;
         }
     }
 

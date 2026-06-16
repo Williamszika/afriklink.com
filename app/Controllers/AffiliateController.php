@@ -127,7 +127,8 @@ final class AffiliateController
             'boutique'   => $shop,
             'products'   => $products,
             'mains'      => Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
-            'max_pct'    => rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'), ','),
+            'max_pct'    => rtrim(rtrim(number_format(affiliate_max_rate_bps() / 100, 1, ',', ''), '0'), ','),
+            'keep_pct'   => rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',', ''), '0'), ','),
             'page_title' => t('aff.vp_title'),
         ]);
     }

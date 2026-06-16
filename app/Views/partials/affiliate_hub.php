@@ -24,7 +24,7 @@ $dir_products = $dir_products ?? [];
 $dir_mains    = $dir_mains ?? [];
 $wallet       = $wallet ?? null;
 // Taux EFFECTIF reversé à l'apporteur (part de la commission AfrikaLink) — uniforme.
-$effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', ''), '0'), ',');
+$effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',', ''), '0'), ','); // part plateforme (1,5 %)
 ?>
 
 <!-- A. Configuration du programme — réservée au VENDEUR qui possède une boutique -->
@@ -252,7 +252,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
                 <?php foreach ($directory as $shop): ?>
                     <?php
                     $slug     = (string) $shop['slug'];
-                    $shopMax  = rtrim(rtrim(number_format(((int) ($shop['max_bps'] ?? 0)) / 100, 1, ',', ''), '0'), ',');
+                    $shopMax  = rtrim(rtrim(number_format(max(0, (int) ($shop['max_bps'] ?? 0) - affiliate_keep_bps()) / 100, 1, ',', ''), '0'), ',');
                     $shopLink = $link !== '' ? $link . '?to=' . rawurlencode('/boutique/' . $slug) : url('/boutique/' . $slug);
                     $logoId   = (string) ($shop['logo_public_id'] ?? '');
                     $place    = place_label((string) ($shop['city'] ?? ''), (string) ($shop['country_code'] ?? ''));
@@ -288,7 +288,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_effective_pct(), 1, ',', '')
                     $pPath = '/boutique/' . (string) $p['boutique_slug'] . '/p/' . (string) $p['public_id'];
                     $pLink = $link !== '' ? $link . '?to=' . rawurlencode($pPath) : url($pPath);
                     $pImg  = $dir_mains[(int) $p['id']] ?? null;
-                    $pRate = rtrim(rtrim(number_format(((int) ($p['affiliate_rate_bps'] ?? 0)) / 100, 1, ',', ''), '0'), ',');
+                    $pRate = rtrim(rtrim(number_format(max(0, (int) ($p['affiliate_rate_bps'] ?? 0) - affiliate_keep_bps()) / 100, 1, ',', ''), '0'), ',');
                     ?>
                     <div class="aff-shop aff-product">
                         <a class="aff-product-head" href="<?= e(url($pPath)) ?>" target="_blank" rel="noopener">

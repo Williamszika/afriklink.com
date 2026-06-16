@@ -629,51 +629,65 @@ function platform_commission_cents(int $subtotalCents): int
     return (int) min($subtotalCents, (int) round($subtotalCents * $pct / 100));
 }
 
-/** Part (%) de la commission plateforme reversée à l'apporteur. Défaut 50 %. */
-function affiliate_share_pct(): float
-{
-    return max(0.0, min(100.0, (float) config('payment.affiliate_share_pct', 50.0)));
-}
-
 /**
- * Commission de l'apporteur (centimes) — PRÉLEVÉE SUR la commission plateforme,
- * jamais en plus : le vendeur ne paie pas deux fois. Bornée à [0 ; commission plateforme].
- * Modèle : prix → commission AfrikaLink → dont une part (affiliate_share_pct) à l'apporteur.
+ * Affiliation PAR PRODUIT — modèle : le vendeur fixe un taux R % (ce qu'il veut, dans
+ * les bornes). Sur une vente via lien d'apporteur, R % est retranché du vendeur, dont
+ * la plateforme garde 1,5 % (fixe) et l'apporteur touche R − 1,5 %.
+ * Les taux sont stockés en points de base (350 = 3,50 %).
  */
-function affiliate_commission_cents(int $platformFeeCents): int
+
+/** Part FIXE (%) que la plateforme garde sur une vente affiliée. Défaut 1,5 %. */
+function affiliate_platform_keep_pct(): float
 {
-    if ($platformFeeCents <= 0) {
-        return 0;
-    }
-    return (int) min($platformFeeCents, (int) round($platformFeeCents * affiliate_share_pct() / 100));
+    return max(0.0, min(100.0, (float) config('payment.affiliate_platform_keep_pct', 1.5)));
 }
 
-/** Taux EFFECTIF reversé à l'apporteur sur une vente (% du prix), pour l'affichage. */
-function affiliate_effective_pct(): float
+/** Part plateforme (points de base) sur une vente affiliée (ex. 150 = 1,5 %). */
+function affiliate_keep_bps(): int
 {
-    $platform = max(0.0, min(100.0, (float) config('payment.platform_commission_pct', 5.0)));
-    return round($platform * affiliate_share_pct() / 100, 2);
+    return (int) round(affiliate_platform_keep_pct() * 100);
 }
 
-/** Plafond du taux d'affiliation PAR PRODUIT, en points de base (ex. 350 = 3,5 %). */
-function affiliate_max_bps(): int
+/** Taux d'affiliation MIN qu'un vendeur peut fixer (= la part plateforme), en bps. */
+function affiliate_min_rate_bps(): int
 {
-    return (int) round(affiliate_effective_pct() * 100);
+    return affiliate_keep_bps();
 }
 
-/** Borne un taux d'affiliation (points de base) dans [0 ; plafond]. */
+/** Taux d'affiliation MAX qu'un vendeur peut fixer, en bps (défaut 50 %). */
+function affiliate_max_rate_bps(): int
+{
+    return (int) round(max(0.0, min(100.0, (float) config('payment.affiliate_max_rate_pct', 50.0))) * 100);
+}
+
+/** Borne le taux fixé par le vendeur (bps) : 0 = désactivé, sinon dans [min ; max]. */
 function affiliate_clamp_bps(int $bps): int
 {
-    return max(0, min(affiliate_max_bps(), $bps));
-}
-
-/** Commission (centimes) d'une ligne d'article pour un taux en points de base (borné). */
-function affiliate_line_commission_cents(int $lineTotalCents, int $rateBps): int
-{
-    if ($lineTotalCents <= 0 || $rateBps <= 0) {
+    if ($bps <= 0) {
         return 0;
     }
-    return (int) round($lineTotalCents * affiliate_clamp_bps($rateBps) / 10000);
+    return max(affiliate_min_rate_bps(), min(affiliate_max_rate_bps(), $bps));
+}
+
+/** Déduction VENDEUR (centimes) sur une ligne affiliée : le taux PLEIN R % fixé par le vendeur. */
+function affiliate_line_deduction_cents(int $lineTotalCents, int $rateBps): int
+{
+    $bps = affiliate_clamp_bps($rateBps);
+    if ($lineTotalCents <= 0 || $bps <= 0) {
+        return 0;
+    }
+    return (int) round($lineTotalCents * $bps / 10000);
+}
+
+/** Commission de l'APPORTEUR (centimes) sur une ligne : R − part plateforme (ex. R − 1,5 %). */
+function affiliate_line_commission_cents(int $lineTotalCents, int $rateBps): int
+{
+    $bps = affiliate_clamp_bps($rateBps);
+    if ($lineTotalCents <= 0 || $bps <= 0) {
+        return 0;
+    }
+    $affBps = max(0, $bps - affiliate_keep_bps());
+    return (int) round($lineTotalCents * $affBps / 10000);
 }
 
 /** Formate des centimes en prix lisible : « 12,50 € », « 15 000 F CFA ». */

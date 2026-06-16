@@ -1,12 +1,13 @@
 <?php
-/** @var array $boutique  @var list<array> $products  @var array<int,string> $mains  @var string $max_pct */
-$cur    = (string) ($boutique['currency'] ?? 'EUR');
-$maxBps = affiliate_max_bps();
+/** @var array $boutique  @var list<array> $products  @var array<int,string> $mains  @var string $max_pct  @var string $keep_pct */
+$cur     = (string) ($boutique['currency'] ?? 'EUR');
+$maxBps  = affiliate_max_rate_bps();
+$keepPct = $keep_pct ?? '1,5';
 ?>
 <section class="aff-vp">
     <div class="aff-hero">
         <h1><?= icon('tag', ['size' => 26]) ?> <?= e(t('aff.vp_title')) ?></h1>
-        <p class="lead"><?= e(t('aff.vp_lead', ['max' => $max_pct])) ?></p>
+        <p class="lead"><?= e(t('aff.vp_lead', ['max' => $max_pct, 'keep' => $keepPct])) ?></p>
     </div>
 
     <div class="panel">
@@ -31,8 +32,9 @@ $maxBps = affiliate_max_bps();
                             $pid   = (int) $p['id'];
                             $bps   = (int) $p['affiliate_rate_bps'];
                             $isOn  = (int) $p['affiliate_enabled'] === 1;
-                            $val   = $bps > 0 ? rtrim(rtrim(number_format($bps / 100, 1, '.', ''), '0'), '.') : $max_pct;
-                            $earn  = affiliate_line_commission_cents((int) $p['price_cents'], $bps > 0 ? $bps : $maxBps);
+                            $dfBps = $bps > 0 ? $bps : 500; // défaut 5 % à l'activation
+                            $val   = rtrim(rtrim(number_format($dfBps / 100, 1, '.', ''), '0'), '.');
+                            $earn  = affiliate_line_commission_cents((int) $p['price_cents'], $dfBps);
                             $img   = $mains[$pid] ?? null;
                             ?>
                             <tr>
@@ -55,7 +57,7 @@ $maxBps = affiliate_max_bps();
                                     </label>
                                 </td>
                                 <td class="num">
-                                    <input class="aff-vp-rate" type="number" name="rate[<?= $pid ?>]" min="0" max="<?= e($max_pct) ?>" step="0.1" value="<?= e($val) ?>" inputmode="decimal"> %
+                                    <input class="aff-vp-rate" type="number" name="rate[<?= $pid ?>]" min="<?= e(number_format(affiliate_min_rate_bps() / 100, 1, '.', '')) ?>" max="<?= e(number_format($maxBps / 100, 0, '.', '')) ?>" step="0.5" value="<?= e($val) ?>" inputmode="decimal"> %
                                 </td>
                                 <td class="num"><?= e(format_price($earn, $cur)) ?></td>
                             </tr>
@@ -63,7 +65,7 @@ $maxBps = affiliate_max_bps();
                         </tbody>
                     </table>
                 </div>
-                <p class="hint"><?= e(t('aff.vp_hint', ['max' => $max_pct])) ?></p>
+                <p class="hint"><?= e(t('aff.vp_hint', ['max' => $max_pct, 'keep' => $keepPct])) ?></p>
                 <button type="submit" class="btn btn-primary"><?= e(t('aff.vp_save')) ?></button>
             </form>
         <?php endif; ?>
