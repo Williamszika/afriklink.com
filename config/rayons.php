@@ -31,7 +31,7 @@ return [
             'Soins corps'  => 'volume',
             'Maquillage'   => 'teinte',
             'Parfums'      => 'volume',
-            'Cheveux'      => 'volume',
+            'Perruque'     => 'pouce',
             'Ongles'       => 'teinte',
         ],
         'maison' => [
@@ -88,6 +88,7 @@ return [
         'volume'   => ['label' => 'Contenance', 'opts' => ['30 ml', '50 ml', '100 ml', '200 ml', '500 ml', '1 L']],
         'poids'    => ['label' => 'Poids',      'opts' => ['100 g', '250 g', '500 g', '1 kg', '2 kg', '5 kg']],
         'teinte'   => ['label' => 'Teinte',     'opts' => []],
+        'pouce'    => ['label' => 'Longueur',   'opts' => ['8"', '10"', '12"', '14"', '16"', '18"', '20"', '22"', '24"', '26"', '28"', '30"']],
         'age'      => ['label' => 'Âge',        'opts' => ['0-3 mois', '3-6 mois', '6-12 mois', '1 an', '2 ans', '3 ans', '4 ans']],
         'dim'      => ['label' => 'Dimension',  'opts' => ['90×190', '140×190', '160×200', '180×200']],
         'pneu'     => ['label' => 'Dimension',  'opts' => []],
