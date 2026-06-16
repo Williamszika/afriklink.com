@@ -766,10 +766,58 @@ function phone_condition_clean(?string $v): string
     return in_array($v, phone_conditions(), true) ? $v : '';
 }
 
+/* ---------- Beauté & cosmétiques ---------- */
+
+/** @return list<string> */
+function beauty_product_types(): array { return (array) config('beauty.product_types', []); }
+/** @return list<string> */
+function beauty_finishes(): array { return (array) config('beauty.finishes', []); }
+/** @return list<string> */
+function beauty_skin_types(): array { return (array) config('beauty.skin_types', []); }
+/** @return list<string> */
+function beauty_coverages(): array { return (array) config('beauty.coverages', []); }
+/** @return list<string> */
+function beauty_pao(): array { return (array) config('beauty.pao', []); }
+/** @return list<string> */
+function beauty_volume_units(): array { return (array) config('beauty.volume_units', ['ml']); }
+/** @return list<string> */
+function beauty_atouts(): array { return (array) config('beauty.atouts', []); }
+
+/** @return array<string,string> Teinte (nom) => pastille couleur hex. */
+function beauty_teinte_hex(): array { return (array) config('beauty.teinte_hex', []); }
+
+/** Pastille couleur (hex) déduite du NOM d'une teinte, ou null si inconnue. */
+function beauty_hex_for(?string $teinte): ?string
+{
+    $map = beauty_teinte_hex();
+    $key = trim((string) $teinte);
+    return $map[$key] ?? null;
+}
+
+/** Valide une valeur beauté contre une liste blanche ('' = non précisé). */
+function beauty_clean(?string $v, array $allowed): string
+{
+    $v = trim((string) $v);
+    return in_array($v, $allowed, true) ? $v : '';
+}
+
+/** Nettoie/valide la liste d'atouts soumise → CSV des atouts connus. */
+function beauty_atouts_clean(array $vals): string
+{
+    $allowed = beauty_atouts();
+    $keep = [];
+    foreach ($vals as $v) {
+        $v = trim((string) $v);
+        if (in_array($v, $allowed, true) && !in_array($v, $keep, true)) { $keep[] = $v; }
+    }
+    return implode(', ', $keep);
+}
+
 /**
  * Vertical du formulaire produit selon la catégorie de la boutique :
- * 'phone' (électronique), 'apparel' (mode/vêtements) ou 'generic' (le reste).
- * Les produits respectent ainsi la catégorie principale (verrouillée) de la boutique.
+ * 'phone' (électronique), 'apparel' (mode/vêtements), 'beauty' (beauté &
+ * cosmétiques) ou 'generic' (le reste). Les produits respectent ainsi la
+ * catégorie principale (verrouillée) de la boutique.
  */
 function product_vertical(?string $boutiqueCategory): string
 {
@@ -779,6 +827,9 @@ function product_vertical(?string $boutiqueCategory): string
     }
     if (in_array($cat, (array) config('apparel.shop_categories', ['mode']), true)) {
         return 'apparel';
+    }
+    if (in_array($cat, (array) config('beauty.shop_categories', ['beaute']), true)) {
+        return 'beauty';
     }
     return 'generic';
 }

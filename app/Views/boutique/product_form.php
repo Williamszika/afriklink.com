@@ -5,9 +5,10 @@ use App\Services\CloudinaryService;
 $isEdit = $mode === 'edit';
 $cur    = (string) $boutique['currency'];
 $boutiqueCat = (string) ($boutique['category'] ?? '');
-$vertical  = product_vertical($boutiqueCat); // 'phone' | 'apparel' | 'generic'
+$vertical  = product_vertical($boutiqueCat); // 'phone' | 'apparel' | 'beauty' | 'generic'
 $isPhone   = $vertical === 'phone';
 $isApparel = $vertical === 'apparel';
+$isBeauty  = $vertical === 'beauty';
 
 // Rayon courant : sur re-render d'erreur on relit les champs réellement postés
 // (collection_select / collection_other), sinon la valeur enregistrée du produit.
@@ -52,13 +53,14 @@ $fmtP = static function ($cents) use ($cur): string {
         : rtrim(rtrim(number_format(((int) $cents) / 100, 2, '.', ''), '0'), '.');
 };
 ?>
-<section class="auth-card auth-card--wide">
+<section class="auth-card <?= $isBeauty ? 'auth-card--beauty' : 'auth-card--wide' ?>">
     <h1>📦 <?= e($isEdit ? t('product.edit_title') : t('product.add_title')) ?></h1>
     <p class="muted"><?= e($boutique['name']) ?> · <?= e($cur) ?></p>
 
     <?php if (!$media_ready): ?>
         <div class="notice notice-warning"><p><?= e(t('listing.media_unconfigured')) ?></p></div>
     <?php else: ?>
+    <div class="<?= $isBeauty ? 'pf-grid' : 'pf-plain' ?>">
     <form method="post" action="<?= e(url($action)) ?>" id="product-form" novalidate
           data-uploading="<?= e(t('kyc.uploading')) ?>" data-max="<?= $maxPhotos ?>">
         <?= csrf_field() ?>
@@ -67,7 +69,7 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <label for="p-name"><?= e(t('product.f.name')) ?></label>
         <input type="text" id="p-name" name="name" value="<?= old('name') ?: e((string) ($product['name'] ?? '')) ?>"
-               required maxlength="<?= (int) config('shop.product_name_max', 150) ?>" placeholder="<?= e(t('product.f.name_ph')) ?>">
+               required maxlength="<?= (int) config('shop.product_name_max', 150) ?>" placeholder="<?= e(t('product.f.name_ph')) ?>" data-pv="name">
         <?php if (has_error('name')): ?><p class="field-error"><?= e(error('name')) ?></p><?php endif; ?>
 
         <?php
@@ -141,12 +143,112 @@ $fmtP = static function ($cents) use ($cur): string {
                 <p class="hint"><?= e(t('product.f.garment_hint')) ?></p>
             </div>
         </div>
+        <?php elseif ($isBeauty): ?>
+        <?php
+        $rawOld = $_SESSION['_old'] ?? [];
+        $bcur = static fn (string $k): string => (string) ($rawOld[$k] ?? ($product[$k] ?? ''));
+        $selAtouts = isset($rawOld['atouts']) && is_array($rawOld['atouts'])
+            ? array_map('strval', $rawOld['atouts'])
+            : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+        $volCur = $bcur('volume');
+        $volCur = ($volCur !== '' && (float) str_replace(',', '.', $volCur) > 0)
+            ? rtrim(rtrim(number_format((float) str_replace(',', '.', $volCur), 2, '.', ''), '0'), '.') : '';
+        $expCur = $bcur('expiry_date');
+        $expCur = ($expCur !== '' && strtotime($expCur) !== false) ? date('Y-m-d', (int) strtotime($expCur)) : '';
+        ?>
+        <div class="grid-2">
+            <div>
+                <label for="p-brand"><?= e(t('beauty.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
+            </div>
+            <div>
+                <label for="p-ptype"><?= e(t('beauty.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <select id="p-ptype" name="product_type" data-pv="type">
+                    <option value=""><?= e(t('beauty.f.type_any')) ?></option>
+                    <?php foreach (beauty_product_types() as $pt): ?>
+                        <option value="<?= e($pt) ?>" <?= $bcur('product_type') === $pt ? 'selected' : '' ?>><?= e($pt) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>🧴 <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint"><?= e(t('beauty.sec.specs_hint')) ?></p>
+            <div class="grid-3">
+                <div>
+                    <label for="p-volume"><?= e(t('beauty.f.volume')) ?></label>
+                    <div class="input-suffix">
+                        <input type="text" id="p-volume" name="volume" inputmode="decimal" value="<?= e($volCur) ?>" placeholder="30" data-pv="volume">
+                        <span class="input-suffix-tag" data-pv-unit><?= e($bcur('volume_unit') ?: 'ml') ?></span>
+                    </div>
+                </div>
+                <div>
+                    <label for="p-unit"><?= e(t('beauty.f.unit')) ?></label>
+                    <select id="p-unit" name="volume_unit" data-pv="unit">
+                        <?php foreach (beauty_volume_units() as $u): ?>
+                            <option value="<?= e($u) ?>" <?= ($bcur('volume_unit') ?: 'ml') === $u ? 'selected' : '' ?>><?= e($u) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="p-finish"><?= e(t('beauty.f.finish')) ?></label>
+                    <select id="p-finish" name="finish">
+                        <option value="">—</option>
+                        <?php foreach (beauty_finishes() as $f): ?><option value="<?= e($f) ?>" <?= $bcur('finish') === $f ? 'selected' : '' ?>><?= e($f) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div>
+                    <label for="p-skin"><?= e(t('beauty.f.skin')) ?></label>
+                    <select id="p-skin" name="skin_type">
+                        <option value=""><?= e(t('beauty.f.skin_any')) ?></option>
+                        <?php foreach (beauty_skin_types() as $s): ?><option value="<?= e($s) ?>" <?= $bcur('skin_type') === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="p-coverage"><?= e(t('beauty.f.coverage')) ?></label>
+                    <select id="p-coverage" name="coverage">
+                        <option value="">—</option>
+                        <?php foreach (beauty_coverages() as $c): ?><option value="<?= e($c) ?>" <?= $bcur('coverage') === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="p-pao"><?= e(t('beauty.f.pao')) ?></label>
+                    <select id="p-pao" name="pao">
+                        <option value="">—</option>
+                        <?php foreach (beauty_pao() as $pp): ?><option value="<?= e($pp) ?>" <?= $bcur('pao') === $pp ? 'selected' : '' ?>><?= e($pp) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div>
+                    <label for="p-expiry"><?= e(t('beauty.f.expiry')) ?></label>
+                    <input type="date" id="p-expiry" name="expiry_date" min="<?= e(date('Y-m-d')) ?>" value="<?= e($expCur) ?>">
+                </div>
+                <div>
+                    <label for="p-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="p-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e($bcur('ean')) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="p-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="p-sku" name="sku" class="mono" maxlength="40" value="<?= e($bcur('sku')) ?>" placeholder="FT-IVOIRE-30">
+                </div>
+            </div>
+            <label><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php foreach (beauty_atouts() as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $selAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
         <?php endif; ?>
 
         <div class="grid-2">
             <div>
                 <label for="p-price"><?= e(t('product.f.price', ['cur' => $cur])) ?></label>
-                <input type="text" id="p-price" name="price" value="<?= old('price') ?: e($priceVal) ?>" inputmode="decimal" required placeholder="0">
+                <input type="text" id="p-price" name="price" value="<?= old('price') ?: e($priceVal) ?>" inputmode="decimal" required placeholder="0" data-pv="price">
                 <?php if (has_error('price')): ?><p class="field-error"><?= e(error('price')) ?></p><?php endif; ?>
             </div>
             <div>
@@ -164,7 +266,7 @@ $fmtP = static function ($cents) use ($cur): string {
             <div class="grid-2">
                 <div>
                     <label for="p-promo"><?= e(t('product.f.promo_price', ['cur' => $cur])) ?></label>
-                    <input type="text" id="p-promo" name="promo_price" inputmode="decimal" value="<?= old('promo_price') ?: ($isEdit ? e($fmtP($product['promo_price_cents'] ?? null)) : '') ?>" placeholder="<?= e(t('product.f.promo_price_ph')) ?>">
+                    <input type="text" id="p-promo" name="promo_price" inputmode="decimal" value="<?= old('promo_price') ?: ($isEdit ? e($fmtP($product['promo_price_cents'] ?? null)) : '') ?>" placeholder="<?= e(t('product.f.promo_price_ph')) ?>" data-pv="promo">
                     <?php if (has_error('promo_price')): ?><p class="field-error"><?= e(error('promo_price')) ?></p><?php endif; ?>
                 </div>
                 <div>
@@ -190,7 +292,8 @@ $fmtP = static function ($cents) use ($cur): string {
                  data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>"
                  data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"
                  data-base-label="<?= e($baseLabel) ?>" data-base-ph="<?= e($basePh) ?>"
-                 data-base-opts="<?= e((string) json_encode(array_values($baseOpts), JSON_UNESCAPED_UNICODE)) ?>">
+                 data-base-opts="<?= e((string) json_encode(array_values($baseOpts), JSON_UNESCAPED_UNICODE)) ?>"
+                 data-teinte-hex="<?= e((string) json_encode(beauty_teinte_hex(), JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="variant-head">
                     <span data-axis-label><?= e($sizeLabel) ?></span>
                     <span><?= e(t('variant.color')) ?></span>
@@ -230,6 +333,12 @@ $fmtP = static function ($cents) use ($cur): string {
         <label for="p-desc"><?= e(t('product.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <textarea id="p-desc" name="description" rows="4" maxlength="<?= (int) config('shop.product_desc_max', 3000) ?>"><?= old('description') ?: e((string) ($product['description'] ?? '')) ?></textarea>
         <?php if (has_error('description')): ?><p class="field-error"><?= e(error('description')) ?></p><?php endif; ?>
+
+        <?php if ($isBeauty): ?>
+        <label for="p-inci"><?= e(t('beauty.f.ingredients')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+        <textarea id="p-inci" name="ingredients" rows="3" maxlength="2000" placeholder="Aqua, Glycerin, Titanium Dioxide…"><?= e($bcur('ingredients')) ?></textarea>
+        <p class="hint"><?= e(t('beauty.f.ingredients_hint')) ?></p>
+        <?php endif; ?>
 
         <label><?= e(t('product.f.photos', ['max' => $maxPhotos])) ?></label>
         <div class="upload-zone" id="product-photo-zone">
@@ -277,6 +386,27 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <button type="submit" class="btn btn-primary btn-block" id="product-submit"><?= e($isEdit ? t('profile.save') : t('product.add')) ?></button>
     </form>
+    <?php if ($isBeauty): ?>
+    <aside class="pf-preview" data-pv-root data-cur="<?= e($cur) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>">
+        <p class="pv-eyebrow"><?= e(t('beauty.preview.title')) ?></p>
+        <div class="pv-card">
+            <div class="pv-img" data-pv-img><span class="pv-img-empty"><?= e(t('beauty.preview.add_photo')) ?></span></div>
+            <div class="pv-body">
+                <div class="pv-brand" data-pv-out="brand"></div>
+                <div class="pv-name" data-pv-out="name"><?= e(t('beauty.preview.name_ph')) ?></div>
+                <div class="pv-meta"><span data-pv-out="type"></span><span data-pv-out="vol"></span></div>
+                <div class="pv-price">
+                    <span class="pv-now" data-pv-out="price"></span>
+                    <del class="pv-old" data-pv-out="old" hidden></del>
+                    <span class="pv-badge" data-pv-out="disc" hidden></span>
+                </div>
+                <div class="pv-tones" data-pv-tones></div>
+                <div class="pv-note" data-pv-out="stock"></div>
+            </div>
+        </div>
+    </aside>
+    <?php endif; ?>
+    </div>
     <?php endif; ?>
 
     <p class="auth-alt"><a href="<?= e(url('/boutique/gerer')) ?>">← <?= e(t('shop.back_manage')) ?></a></p>

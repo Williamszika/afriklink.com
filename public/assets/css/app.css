@@ -280,6 +280,7 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .hint { font-size: .82rem; color: var(--muted); margin: 6px 0 0; }
 .field-error { color: var(--danger); font-size: .85rem; margin: 6px 0 0; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 
 /* Dashboard meta */
 .meta { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 20px 0; }
@@ -469,6 +470,7 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 @media (max-width: 600px) {
     .main-nav { display: none; }
     .grid-2 { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
     .choice-grid { grid-template-columns: 1fr; }
 }
 
@@ -1967,8 +1969,50 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .axis-suggest-label{display:block;font-size:.78rem;color:var(--afk-encre-2,#5b6b65);margin-bottom:6px}
 .axis-suggest-label strong{color:var(--brand)}
 .axis-suggest-chips{display:flex;flex-wrap:wrap;gap:6px}
-.axis-chip{font:600 .82rem/1 inherit;background:var(--brand-50);color:var(--brand);border:1px solid var(--brand-100);padding:6px 11px;border-radius:999px;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+.axis-chip{display:inline-flex;align-items:center;gap:6px;font:600 .82rem/1 inherit;background:var(--brand-50);color:var(--brand);border:1px solid var(--brand-100);padding:6px 11px;border-radius:999px;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
 .axis-chip:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+.axis-chip .chip-dot{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:none}
+
+/* — Beauté & cosmétiques : formulaire enrichi + aperçu — */
+.mono{font-family:var(--afk-mono,"Space Mono",ui-monospace,monospace)}
+.input-suffix{position:relative}
+.input-suffix-tag{position:absolute;right:11px;top:50%;transform:translateY(-50%);font:600 .8rem var(--afk-mono,monospace);color:var(--muted,#857a66);pointer-events:none}
+.input-suffix input{padding-right:48px}
+.chip-checks{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px}
+.chip-check{position:relative;cursor:pointer}
+.chip-check input{position:absolute;opacity:0;width:0;height:0}
+.chip-check span{display:inline-block;border:1px solid var(--afk-ligne,#e4d8bb);background:#fff;border-radius:999px;padding:7px 13px;font-size:.85rem;transition:.12s;user-select:none}
+.chip-check:hover span{border-color:var(--brand)}
+.chip-check input:checked+span{background:var(--brand);border-color:var(--brand);color:#fff}
+.chip-check input:focus-visible+span{box-shadow:0 0 0 3px rgba(20,80,46,.22)}
+
+.auth-card--beauty{max-width:1040px}
+.pf-plain{display:contents}
+.pf-grid{display:grid;grid-template-columns:1fr;gap:22px;align-items:start}
+@media(min-width:920px){.pf-grid{grid-template-columns:1fr 300px}}
+.pf-preview{position:sticky;top:18px}
+.pv-eyebrow{font:600 .7rem var(--afk-mono,monospace);letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.pv-card{background:#fff;border:1px solid var(--afk-ligne,#e4d8bb);border-radius:14px;overflow:hidden}
+.pv-img{aspect-ratio:1/1;background:var(--brand-50);display:grid;place-items:center;color:var(--muted,#857a66)}
+.pv-img img{width:100%;height:100%;object-fit:cover}
+.pv-img-empty{font-size:.8rem}
+.pv-body{padding:14px 16px 18px}
+.pv-brand{font:600 .68rem var(--afk-mono,monospace);letter-spacing:.13em;text-transform:uppercase;color:var(--accent);min-height:.9em}
+.pv-name{font-family:var(--afk-display,inherit);font-weight:700;font-size:1.05rem;color:var(--brand);margin:3px 0 2px}
+.pv-meta{font-size:.8rem;color:var(--muted,#857a66);display:flex;gap:6px;flex-wrap:wrap}
+.pv-meta span:empty{display:none}
+.pv-price{margin-top:12px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.pv-now{font:700 1.2rem var(--afk-mono,monospace);color:var(--ink,#2a2017)}
+.pv-old{font:.82rem var(--afk-mono,monospace);color:var(--muted,#857a66)}
+.pv-badge{display:inline-block;background:var(--danger,#c0392b);color:#fff;font:600 .7rem var(--afk-mono,monospace);padding:3px 8px;border-radius:6px}
+.pv-tones{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.pv-tone{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.14)}
+.pv-note{font:.7rem var(--afk-mono,monospace);color:var(--muted,#857a66);margin-top:13px}
+/* Atouts (fiche client) + pastille teinte dans le sélecteur */
+.listing-atouts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}
+.atout-badge{font:600 .72rem inherit;background:var(--brand-50);color:var(--brand);border:1px solid var(--brand-100);border-radius:999px;padding:3px 9px}
+.variant-chip--tone span{display:inline-flex;align-items:center;gap:6px}
+.variant-chip .chip-dot{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.18);flex:none}
 
 /* — Sélecteur de déclinaison (fiche produit) — */
 .variant-pick{margin:8px 0 12px}

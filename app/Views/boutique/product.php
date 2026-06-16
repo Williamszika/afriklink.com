@@ -98,12 +98,25 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['model'])) { $apTags[] = (string) $product['model']; }
                     if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }
+                } elseif ($pVertical === 'beauty') {
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (((float) ($product['volume'] ?? 0)) > 0) {
+                        $apTags[] = rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml');
+                    }
+                    if (!empty($product['finish'])) { $apTags[] = (string) $product['finish']; }
+                    if (!empty($product['coverage'])) { $apTags[] = (string) $product['coverage']; }
+                    if (!empty($product['skin_type'])) { $apTags[] = (string) $product['skin_type']; }
+                    if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                 } else {
                     if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
                     if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
                 }
+                // Atouts (Vegan, Bio…) en petits badges sous les caractéristiques.
+                $pAtouts = array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
                 ?>
                 <?php if ($apTags !== []): ?><p class="listing-apparel"><?= icon('tag', ['size' => 14]) ?> <?= e(implode(' · ', $apTags)) ?></p><?php endif; ?>
+                <?php if ($pAtouts !== []): ?><p class="listing-atouts"><?php foreach ($pAtouts as $a): ?><span class="atout-badge"><?= e($a) ?></span><?php endforeach; ?></p><?php endif; ?>
                 <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line"><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.badge')) ?></p><?php endif; ?>
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
@@ -135,8 +148,8 @@ foreach ($realVariants as $rv) {
                             <div class="variant-axis">
                                 <p class="variant-pick-label"><?= e($pSizeLabel) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
                                 <div class="variant-chips">
-                                    <?php foreach ($vSizes as $sz): ?>
-                                        <label class="variant-chip"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?= e($sz) ?></span></label>
+                                    <?php foreach ($vSizes as $sz): $hx = $pVertical === 'beauty' ? beauty_hex_for($sz) : null; ?>
+                                        <label class="variant-chip<?= $hx ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?php if ($hx): ?><span class="chip-dot" style="background:<?= e($hx) ?>"></span><?php endif; ?><?= e($sz) ?></span></label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -228,6 +241,22 @@ foreach ($realVariants as $rv) {
         <div class="panel">
             <h2 class="panel-title"><?= e(t('product.f.description')) ?></h2>
             <p class="listing-description"><?= nl2br(e((string) $product['description'])) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($pVertical === 'beauty' && (!empty($product['ingredients']) || !empty($product['expiry_date']) || !empty($product['ean']))): ?>
+        <div class="panel">
+            <details class="variants-box"<?= !empty($product['ingredients']) ? ' open' : '' ?>>
+                <summary>🧴 <?= e(t('beauty.sec.specs')) ?></summary>
+                <?php if (((float) ($product['volume'] ?? 0)) > 0): ?><p class="muted"><?= e(t('beauty.f.volume')) ?> : <strong><?= e(rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.')) ?> <?= e((string) ($product['volume_unit'] ?: 'ml')) ?></strong></p><?php endif; ?>
+                <?php if (!empty($product['pao'])): ?><p class="muted"><?= e(t('beauty.f.pao')) ?> : <strong><?= e((string) $product['pao']) ?></strong></p><?php endif; ?>
+                <?php if (!empty($product['expiry_date'])): ?><p class="muted"><?= e(t('beauty.f.expiry')) ?> : <strong><?= e(date('d/m/Y', (int) strtotime((string) $product['expiry_date']))) ?></strong></p><?php endif; ?>
+                <?php if (!empty($product['ean'])): ?><p class="muted mono"><?= e(t('beauty.f.ean')) ?> : <?= e((string) $product['ean']) ?></p><?php endif; ?>
+                <?php if (!empty($product['ingredients'])): ?>
+                    <p class="muted" style="margin-top:8px"><strong><?= e(t('beauty.f.ingredients')) ?></strong></p>
+                    <p class="listing-description"><?= nl2br(e((string) $product['ingredients'])) ?></p>
+                <?php endif; ?>
+            </details>
         </div>
     <?php endif; ?>
 

@@ -2530,6 +2530,8 @@ document.addEventListener('click', function (ev) {
     var basePh    = rows.getAttribute('data-base-ph') || '';
     var baseOpts  = [];
     try { baseOpts = JSON.parse(rows.getAttribute('data-base-opts') || '[]'); } catch (e) { baseOpts = []; }
+    var teinteHex = {};
+    try { teinteHex = JSON.parse(rows.getAttribute('data-teinte-hex') || '{}'); } catch (e) { teinteHex = {}; }
 
     function rayonAxis() {
         if (!coll) { return null; }
@@ -2559,8 +2561,16 @@ document.addEventListener('click', function (ev) {
         sChips.innerHTML = '';
         (list || []).forEach(function (s) {
             var b = document.createElement('button');
-            b.type = 'button'; b.className = 'axis-chip'; b.setAttribute('data-axis-chip', '');
-            b.textContent = s; sChips.appendChild(b);
+            b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-axis-chip', ''); b.setAttribute('data-val', s);
+            // Pastille couleur pour les teintes (maquillage) : swatch déduit du nom.
+            if (teinteHex[s]) {
+                var dot = document.createElement('span');
+                dot.className = 'chip-dot'; dot.style.background = teinteHex[s];
+                b.appendChild(dot);
+            }
+            b.appendChild(document.createTextNode(s));
+            sChips.appendChild(b);
         });
         sBox.hidden = !(list && list.length);
     }
@@ -2599,7 +2609,7 @@ document.addEventListener('click', function (ev) {
     if (sChips) {
         sChips.addEventListener('click', function (ev) {
             var chip = ev.target && ev.target.closest ? ev.target.closest('[data-axis-chip]') : null;
-            if (chip) { ev.preventDefault(); fillSize(chip.textContent); }
+            if (chip) { ev.preventDefault(); fillSize(chip.getAttribute('data-val') || chip.textContent); }
         });
     }
     if (coll) {
@@ -2613,6 +2623,99 @@ document.addEventListener('click', function (ev) {
     if (gar)  { gar.addEventListener('change', refresh); }
     rows.addEventListener('al:variant-added', refresh);
     refresh();
+})();
+
+/* ---- Beauté : suffixe d'unité + aperçu fiche en direct (CSP-safe, sans Alpine) ---- */
+(function () {
+    var root = document.querySelector('[data-pv-root]');
+    if (!root) { return; }
+    var form = document.getElementById('product-form');
+    var rows = document.querySelector('[data-variant-rows]');
+    var curInt = root.getAttribute('data-cur-int') === '1';
+    var cur = root.getAttribute('data-cur') || '';
+    var hex = {};
+    try { hex = rows ? JSON.parse(rows.getAttribute('data-teinte-hex') || '{}') : {}; } catch (e) { hex = {}; }
+
+    function field(name) { return document.querySelector('[data-pv="' + name + '"]'); }
+    function out(name) { return root.querySelector('[data-pv-out="' + name + '"]'); }
+    function val(name) { var f = field(name); return f ? String(f.value || '').trim() : ''; }
+    function num(s) { return parseFloat(String(s).replace(',', '.')) || 0; }
+    function fmt(n) {
+        n = curInt ? Math.round(n) : Math.round(n * 100) / 100;
+        return n.toLocaleString('fr-FR', curInt ? {} : { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' ' + cur;
+    }
+
+    var nameOut = out('name');
+    var nameDefault = nameOut ? nameOut.textContent : '';
+    var imgBox = root.querySelector('[data-pv-img]');
+    var imgEmpty = imgBox ? imgBox.innerHTML : '';
+
+    function setText(name, txt) { var el = out(name); if (el) { el.textContent = txt; } }
+
+    function update() {
+        setText('brand', val('brand'));
+        if (nameOut) { nameOut.textContent = val('name') || nameDefault; }
+        setText('type', val('type'));
+        var vol = num(val('volume')), unit = val('unit') || 'ml';
+        setText('vol', vol > 0 ? ('· ' + vol + ' ' + unit) : '');
+        var tag = document.querySelector('[data-pv-unit]'); // suffixe dans le champ
+        if (tag) { tag.textContent = unit; }
+
+        var price = num(val('price')), promo = num(val('promo'));
+        var now = (promo > 0 && promo < price) ? promo : price;
+        setText('price', now > 0 ? fmt(now) : '');
+        var old = out('old'), badge = out('disc');
+        if (promo > 0 && promo < price) {
+            if (old) { old.textContent = fmt(price); old.hidden = false; }
+            if (badge) { badge.textContent = '-' + Math.round((1 - promo / price) * 100) + '%'; badge.hidden = false; }
+        } else {
+            if (old) { old.hidden = true; }
+            if (badge) { badge.hidden = true; }
+        }
+
+        // Teintes (pastilles) à partir des déclinaisons saisies.
+        var tones = root.querySelector('[data-pv-tones]');
+        if (tones && rows) {
+            tones.innerHTML = '';
+            var seen = {};
+            Array.prototype.forEach.call(rows.querySelectorAll('input[name="var_size[]"]'), function (inp) {
+                var v = String(inp.value || '').trim();
+                if (!v || seen[v]) { return; }
+                seen[v] = 1;
+                var dot = document.createElement('span');
+                dot.className = 'pv-tone'; dot.title = v;
+                dot.style.background = hex[v] || '#d8c3a8';
+                tones.appendChild(dot);
+            });
+        }
+
+        var stockF = document.getElementById('p-stock');
+        var s = stockF ? String(stockF.value || '').trim() : '';
+        setText('stock', s !== '' ? (s + ' en stock') : 'Stock illimité');
+    }
+
+    function syncPhoto() {
+        if (!imgBox) { return; }
+        var src = document.querySelector('#product-previews .preview:not(.preview-video) img');
+        if (src && src.getAttribute('src')) {
+            imgBox.innerHTML = '';
+            var img = document.createElement('img'); img.src = src.getAttribute('src'); img.alt = '';
+            imgBox.appendChild(img);
+        } else if (!imgBox.querySelector('.pv-img-empty')) {
+            imgBox.innerHTML = imgEmpty;
+        }
+    }
+
+    if (form) {
+        form.addEventListener('input', update);
+        form.addEventListener('change', update);
+    }
+    var previews = document.getElementById('product-previews');
+    if (previews && 'MutationObserver' in window) {
+        new MutationObserver(syncPhoto).observe(previews, { childList: true, subtree: true });
+    }
+    update();
+    syncPhoto();
 })();
 
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */

@@ -233,6 +233,26 @@ final class ProductController
         $model = mb_substr(trim((string) input_string('model', '')), 0, 80);
         $itemCondition = phone_condition_clean(input_string('item_condition', ''));
 
+        // Beauté & cosmétiques : type, contenance + unité, finition, type de peau,
+        // couvrance, PAO, péremption, EAN, SKU, atouts (CSV), composition (INCI).
+        $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
+        $volumeRaw   = trim((string) input_string('volume', ''));
+        $volume      = ($volumeRaw !== '' && is_numeric(str_replace(',', '.', $volumeRaw)))
+            ? round((float) str_replace(',', '.', $volumeRaw), 2) : null;
+        if ($volume !== null && ($volume < 0 || $volume > 999999)) { $volume = null; }
+        $volumeUnit  = beauty_clean(input_string('volume_unit', ''), beauty_volume_units());
+        if ($volumeUnit === '') { $volumeUnit = 'ml'; }
+        $finish      = beauty_clean(input_string('finish', ''), beauty_finishes());
+        $skinType    = beauty_clean(input_string('skin_type', ''), beauty_skin_types());
+        $coverage    = beauty_clean(input_string('coverage', ''), beauty_coverages());
+        $pao         = beauty_clean(input_string('pao', ''), beauty_pao());
+        $expiryRaw   = trim((string) input_string('expiry_date', ''));
+        $expiryDate  = ($expiryRaw !== '' && strtotime($expiryRaw) !== false) ? date('Y-m-d', (int) strtotime($expiryRaw)) : null;
+        $ean         = mb_substr(preg_replace('/[^0-9]/', '', (string) input_string('ean', '')) ?? '', 0, 20);
+        $sku         = mb_substr(trim((string) input_string('sku', '')), 0, 40);
+        $atouts      = beauty_atouts_clean((array) ($_POST['atouts'] ?? []));
+        $ingredients = mb_substr(trim((string) input_string('ingredients', '')), 0, 2000);
+
         // Rayon / catégorie (menu déroulant) : valeur choisie, ou saisie libre si « Autre ».
         // Désormais OBLIGATOIRE : c'est le rayon qui pilote l'axe de déclinaison du produit.
         $collSel    = (string) input_string('collection_select', '');
@@ -304,6 +324,18 @@ final class ProductController
             'brand' => $brand !== '' ? $brand : null,
             'model' => $model !== '' ? $model : null,
             'item_condition' => $itemCondition !== '' ? $itemCondition : null,
+            'product_type' => $productType !== '' ? $productType : null,
+            'volume' => $volume,
+            'volume_unit' => $volume !== null ? $volumeUnit : null,
+            'finish' => $finish !== '' ? $finish : null,
+            'skin_type' => $skinType !== '' ? $skinType : null,
+            'coverage' => $coverage !== '' ? $coverage : null,
+            'pao' => $pao !== '' ? $pao : null,
+            'expiry_date' => $expiryDate,
+            'ean' => $ean !== '' ? $ean : null,
+            'sku' => $sku !== '' ? $sku : null,
+            'atouts' => $atouts !== '' ? $atouts : null,
+            'ingredients' => $ingredients !== '' ? $ingredients : null,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
             'collection' => $collection,

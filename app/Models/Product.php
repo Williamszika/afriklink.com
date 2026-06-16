@@ -131,6 +131,18 @@ final class Product
             'brand'             => $data['brand'] ?? null,
             'model'             => $data['model'] ?? null,
             'item_condition'    => $data['item_condition'] ?? null,
+            'product_type'      => $data['product_type'] ?? null,
+            'volume'            => $data['volume'] ?? null,
+            'volume_unit'       => $data['volume_unit'] ?? null,
+            'finish'            => $data['finish'] ?? null,
+            'skin_type'         => $data['skin_type'] ?? null,
+            'coverage'          => $data['coverage'] ?? null,
+            'pao'               => $data['pao'] ?? null,
+            'expiry_date'       => $data['expiry_date'] ?? null,
+            'ean'               => $data['ean'] ?? null,
+            'sku'               => $data['sku'] ?? null,
+            'atouts'            => $data['atouts'] ?? null,
+            'ingredients'       => $data['ingredients'] ?? null,
             'video_public_id'   => $data['video_public_id'] ?? null,
             'video_duration'    => $data['video_duration'] ?? null,
         ];
@@ -256,6 +268,29 @@ final class Product
                     ADD COLUMN brand VARCHAR(60) NULL,
                     ADD COLUMN model VARCHAR(80) NULL,
                     ADD COLUMN item_condition VARCHAR(20) NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        // Beauté & cosmétiques : type de produit, contenance + unité, finition,
+        // type de peau, couvrance, PAO, péremption, EAN, SKU, atouts (CSV), INCI.
+        try {
+            db()->query('SELECT product_type FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec("ALTER TABLE products
+                    ADD COLUMN product_type VARCHAR(40) NULL,
+                    ADD COLUMN volume DECIMAL(8,2) NULL,
+                    ADD COLUMN volume_unit VARCHAR(8) NULL,
+                    ADD COLUMN finish VARCHAR(20) NULL,
+                    ADD COLUMN skin_type VARCHAR(20) NULL,
+                    ADD COLUMN coverage VARCHAR(12) NULL,
+                    ADD COLUMN pao VARCHAR(8) NULL,
+                    ADD COLUMN expiry_date DATE NULL,
+                    ADD COLUMN ean VARCHAR(20) NULL,
+                    ADD COLUMN sku VARCHAR(40) NULL,
+                    ADD COLUMN atouts VARCHAR(255) NULL,
+                    ADD COLUMN ingredients TEXT NULL");
             } catch (\Throwable) {
                 // déjà migré
             }
