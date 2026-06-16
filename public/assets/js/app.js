@@ -2564,6 +2564,17 @@ document.addEventListener('click', function (ev) {
     filter();
 })();
 
+/* ---- Création boutique : indice quand la catégorie « électronique » est choisie ---- */
+(function () {
+    var sel = document.querySelector('[data-shop-cat]');
+    var hint = document.querySelector('[data-cat-phone-hint]');
+    if (!sel || !hint) { return; }
+    sel.addEventListener('change', function () {
+        var opt = sel.options[sel.selectedIndex];
+        hint.hidden = !(opt && opt.getAttribute('data-vertical') === 'phone');
+    });
+})();
+
 /* ---- Vente au mètre : aperçu du total (longueur × prix au mètre) ---- */
 (function () {
     var box = document.querySelector('[data-meter-buy]');

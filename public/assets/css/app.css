@@ -2046,6 +2046,7 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .shop-switch-opt:hover{background:var(--brand-50)}
 .shop-switch-opt.is-active{color:var(--brand);font-weight:700}
 .shop-switch-new{display:block;padding:8px 10px;margin-top:3px;border-top:1px solid var(--border);color:var(--brand);font-weight:600;font-size:.86rem}
+.cat-phone-hint{margin:7px 0 0;padding:9px 12px;background:var(--brand-50);border-left:3px solid var(--accent);border-radius:8px;color:var(--ink-soft);font-size:.85rem;line-height:1.45}
 /* Comparaison mois vs mois dernier */
 .rev-delta{display:inline-block;margin-left:8px;font-weight:800;font-size:.85rem;padding:1px 8px;border-radius:7px;vertical-align:middle}
 .rev-delta.is-up{color:#1E8F6E;background:rgba(30,143,110,.12)}

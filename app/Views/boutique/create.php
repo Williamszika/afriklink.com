@@ -89,13 +89,14 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
             <?php if (has_error('description')): ?><p class="field-error"><?= e(error('description')) ?></p><?php endif; ?>
 
             <label for="shop-cat"><?= e(t('shop.f.category')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-            <select id="shop-cat" name="category">
+            <select id="shop-cat" name="category" data-shop-cat>
                 <option value=""><?= e(t('field.choose')) ?></option>
                 <?php $selCat = old('category') ?: (string) ($s1['category'] ?? ''); ?>
                 <?php foreach ($cats as $c): ?>
-                    <option value="<?= e($c) ?>" <?= $selCat === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option>
+                    <option value="<?= e($c) ?>" data-vertical="<?= e(product_vertical($c)) ?>" <?= $selCat === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option>
                 <?php endforeach; ?>
             </select>
+            <p class="hint cat-phone-hint" data-cat-phone-hint<?= product_vertical($selCat) === 'phone' ? '' : ' hidden' ?>>📱 <?= e(t('shop.f.category_phone_hint')) ?></p>
 
             <?= render_partial('partials/contact_fields', [
                 'values'  => $s1['contacts'] ?? [],

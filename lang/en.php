@@ -800,6 +800,7 @@ return [
     'shop.f.tagline_ph' => 'E.g.: Wax fashion made in Dakar',
     'shop.f.description' => 'Shop description',
     'shop.f.category' => 'Main category',
+    'shop.f.category_phone_hint' => 'Phones & electronics shop: each product will have brand, model, storage and condition.',
     'shop.f.currency' => 'Price currency',
     'shop.f.zones' => 'Areas served',
     'shop.zone.city' => '🏠 My city',

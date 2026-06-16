@@ -800,6 +800,7 @@ return [
     'shop.f.tagline_ph' => 'Ex. : La mode wax made in Dakar',
     'shop.f.description' => 'Description de la boutique',
     'shop.f.category' => 'Catégorie principale',
+    'shop.f.category_phone_hint' => 'Boutique téléphones & électronique : chaque produit aura marque, modèle, stockage et état.',
     'shop.f.currency' => 'Devise des prix',
     'shop.f.zones' => 'Zones desservies',
     'shop.zone.city' => '🏠 Ma ville',
