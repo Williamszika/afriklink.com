@@ -769,29 +769,64 @@ function phone_condition_clean(?string $v): string
 /* ---------- Beauté & cosmétiques ---------- */
 
 /** @return list<string> */
-function beauty_product_types(): array { return (array) config('beauty.product_types', []); }
-/** @return list<string> */
-function beauty_finishes(): array { return (array) config('beauty.finishes', []); }
-/** @return list<string> */
-function beauty_skin_types(): array { return (array) config('beauty.skin_types', []); }
-/** @return list<string> */
-function beauty_coverages(): array { return (array) config('beauty.coverages', []); }
-/** @return list<string> */
 function beauty_pao(): array { return (array) config('beauty.pao', []); }
 /** @return list<string> */
 function beauty_volume_units(): array { return (array) config('beauty.volume_units', ['ml']); }
 /** @return list<string> */
 function beauty_atouts(): array { return (array) config('beauty.atouts', []); }
+/** @return list<string> Nuances de carnation (très claire → très foncée). */
+function beauty_nuances(): array { return (array) config('beauty.nuances', []); }
 
-/** @return array<string,string> Teinte (nom) => pastille couleur hex. */
-function beauty_teinte_hex(): array { return (array) config('beauty.teinte_hex', []); }
+/** @return array<string,array{label:string,opts:list<string>}> Définitions des champs de caractéristiques. */
+function beauty_fields(): array { return (array) config('beauty.fields', []); }
+/** @return array<string,array> Configuration par type de produit. */
+function beauty_types(): array { return (array) config('beauty.types', []); }
+/** @return array<string,string> Groupes de types (teint/levres/yeux => libellé). */
+function beauty_groups(): array { return (array) config('beauty.groups', []); }
+/** @return array<string,list<array>> Palettes de déclinaison. */
+function beauty_palettes(): array { return (array) config('beauty.palettes', []); }
 
-/** Pastille couleur (hex) déduite du NOM d'une teinte, ou null si inconnue. */
-function beauty_hex_for(?string $teinte): ?string
+/** @return list<string> Noms des types de produit maquillage. */
+function beauty_product_types(): array { return array_keys(beauty_types()); }
+
+/** Métadonnées d'un type de produit, ou null si inconnu. */
+function beauty_type_meta(?string $type): ?array
 {
-    $map = beauty_teinte_hex();
-    $key = trim((string) $teinte);
-    return $map[$key] ?? null;
+    $t = beauty_types()[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/** Une palette de déclinaison normalisée : [ ['name'=>…,'hex'=>…,'nuance'=>…], … ]. @return list<array> */
+function beauty_palette(?string $key): array
+{
+    $out = [];
+    foreach ((array) (beauty_palettes()[(string) $key] ?? []) as $row) {
+        $row = array_values((array) $row);
+        $out[] = ['name' => (string) ($row[0] ?? ''), 'hex' => (string) ($row[1] ?? ''), 'nuance' => (string) ($row[2] ?? '')];
+    }
+    return $out;
+}
+
+/** Carte nom → hex sur TOUTES les palettes (pour dessiner le swatch d'une déclinaison). @return array<string,string> */
+function beauty_hex_map(): array
+{
+    static $map = null;
+    if ($map === null) {
+        $map = [];
+        foreach (beauty_palettes() as $rows) {
+            foreach ((array) $rows as $row) {
+                $row = array_values((array) $row);
+                if (($row[0] ?? '') !== '') { $map[(string) $row[0]] = (string) ($row[1] ?? ''); }
+            }
+        }
+    }
+    return $map;
+}
+
+/** Pastille couleur (hex) déduite du NOM d'une déclinaison, ou null si inconnue. */
+function beauty_hex_for(?string $name): ?string
+{
+    return beauty_hex_map()[trim((string) $name)] ?? null;
 }
 
 /** Valide une valeur beauté contre une liste blanche ('' = non précisé). */
@@ -799,6 +834,25 @@ function beauty_clean(?string $v, array $allowed): string
 {
     $v = trim((string) $v);
     return in_array($v, $allowed, true) ? $v : '';
+}
+
+/**
+ * Nettoie les caractéristiques (attributes) soumises pour un type donné :
+ * ne garde que les champs du type, chaque valeur validée contre ses options.
+ * @return array<string,string>
+ */
+function beauty_attr_clean(?string $type, array $attrs): array
+{
+    $meta = beauty_type_meta($type);
+    if ($meta === null) { return []; }
+    $defs = beauty_fields();
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        $val = trim((string) ($attrs[$key] ?? ''));
+        $opts = (array) ($defs[$key]['opts'] ?? []);
+        if ($val !== '' && in_array($val, $opts, true)) { $out[$key] = $val; }
+    }
+    return $out;
 }
 
 /** Nettoie/valide la liste d'atouts soumise → CSV des atouts connus. */

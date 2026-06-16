@@ -2625,97 +2625,198 @@ document.addEventListener('click', function (ev) {
     refresh();
 })();
 
-/* ---- Beauté : suffixe d'unité + aperçu fiche en direct (CSP-safe, sans Alpine) ---- */
+/* ---- Beauté v2 : formulaire ADAPTATIF au type de produit + aperçu (CSP-safe) ---- */
 (function () {
-    var root = document.querySelector('[data-pv-root]');
-    if (!root) { return; }
-    var form = document.getElementById('product-form');
-    var rows = document.querySelector('[data-variant-rows]');
-    var curInt = root.getAttribute('data-cur-int') === '1';
-    var cur = root.getAttribute('data-cur') || '';
-    var hex = {};
-    try { hex = rows ? JSON.parse(rows.getAttribute('data-teinte-hex') || '{}') : {}; } catch (e) { hex = {}; }
+    var cfgEl = document.querySelector('[data-beauty]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(attr) { try { return JSON.parse(cfgEl.getAttribute(attr) || 'null') || {}; } catch (e) { return {}; } }
+    var TYPES = parse('data-types'), FIELDS = parse('data-fields'), PALETTES = parse('data-palettes'), AXES = parse('data-axes');
+    var NUANCES = []; try { NUANCES = JSON.parse(cfgEl.getAttribute('data-nuances') || '[]') || []; } catch (e) { NUANCES = []; }
 
-    function field(name) { return document.querySelector('[data-pv="' + name + '"]'); }
-    function out(name) { return root.querySelector('[data-pv-out="' + name + '"]'); }
-    function val(name) { var f = field(name); return f ? String(f.value || '').trim() : ''; }
-    function num(s) { return parseFloat(String(s).replace(',', '.')) || 0; }
-    function fmt(n) {
-        n = curInt ? Math.round(n) : Math.round(n * 100) / 100;
-        return n.toLocaleString('fr-FR', curInt ? {} : { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' ' + cur;
+    var typeSel = document.getElementById('p-ptype');
+    var unitSel = document.getElementById('p-unit');
+    var coll    = document.querySelector('[data-collection-select]');
+    var attrsBox = document.querySelector('[data-beauty-attrs]');
+    var chipsBox = document.querySelector('[data-beauty-chips-box]');
+    var chips    = document.querySelector('[data-beauty-chips]');
+    var rowsBox  = document.querySelector('[data-beauty-rows]');
+    var tpl      = document.getElementById('bvariant-template');
+
+    function meta() { return (typeSel && TYPES[typeSel.value]) ? TYPES[typeSel.value] : null; }
+
+    // Déclinaisons proposées : palette du type, sinon repli sur l'axe du rayon (Longueur, Contenance…).
+    function declItems() {
+        var m = meta();
+        if (m && m.decl && PALETTES[m.decl]) {
+            return PALETTES[m.decl].map(function (r) { return { name: r[0], hex: r[1] || '', nuance: r[2] || '' }; });
+        }
+        if (coll) {
+            var opt = coll.options[coll.selectedIndex];
+            var ax = opt ? (opt.getAttribute('data-axis') || '') : '';
+            if (ax && AXES[ax] && (AXES[ax].opts || []).length) {
+                return AXES[ax].opts.map(function (o) { return { name: o, hex: '', nuance: '' }; });
+            }
+        }
+        return [];
+    }
+    function hasNuance() { var m = meta(); return !!(m && m.decl === 'teinte'); }
+
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        attrsBox.innerHTML = '';
+        var m = meta();
+        if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = FIELDS[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
     }
 
-    var nameOut = out('name');
-    var nameDefault = nameOut ? nameOut.textContent : '';
-    var imgBox = root.querySelector('[data-pv-img]');
-    var imgEmpty = imgBox ? imgBox.innerHTML : '';
+    function buildChips() {
+        if (!chips) { return; }
+        var items = declItems();
+        chips.innerHTML = '';
+        items.forEach(function (it) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'axis-chip'; b.setAttribute('data-bchip', '');
+            b.setAttribute('data-name', it.name); b.setAttribute('data-hex', it.hex); b.setAttribute('data-nuance', it.nuance);
+            if (it.hex) { var d = document.createElement('span'); d.className = 'chip-dot'; d.style.background = it.hex; b.appendChild(d); }
+            b.appendChild(document.createTextNode(it.name));
+            chips.appendChild(b);
+        });
+        if (chipsBox) { chipsBox.hidden = items.length === 0; }
+    }
 
-    function setText(name, txt) { var el = out(name); if (el) { el.textContent = txt; } }
+    function applyNuanceCol() {
+        if (rowsBox) { rowsBox.classList.toggle('has-nuance', hasNuance()); }
+        var hint = document.querySelector('[data-beauty-nuance-hint]');
+        if (hint) { hint.hidden = !hasNuance(); }
+    }
+
+    function addRow(it) {
+        if (!tpl || !tpl.content || !rowsBox) { return null; }
+        rowsBox.appendChild(tpl.content.cloneNode(true));
+        var row = rowsBox.lastElementChild;
+        if (row && it) {
+            var nm = row.querySelector('input[name="var_name[]"]'); if (nm) { nm.value = it.name || ''; }
+            var hx = row.querySelector('input[name="var_hex[]"]'); if (hx && it.hex) { hx.value = it.hex; }
+            var nz = row.querySelector('select[name="var_nuance[]"]'); if (nz && it.nuance) { nz.value = it.nuance; }
+        }
+        return row;
+    }
+    // Clic sur une suggestion : remplit une ligne vide, sinon en crée une.
+    function fillDecl(it) {
+        var empty = null;
+        rowsBox.querySelectorAll('input[name="var_name[]"]').forEach(function (inp) { if (!empty && !inp.value.trim()) { empty = inp; } });
+        if (empty) {
+            var row = empty.closest('.bvariant-row');
+            empty.value = it.name || '';
+            var hx = row.querySelector('input[name="var_hex[]"]'); if (hx && it.hex) { hx.value = it.hex; }
+            var nz = row.querySelector('select[name="var_nuance[]"]'); if (nz && it.nuance) { nz.value = it.nuance; }
+        } else { addRow(it); }
+        update();
+    }
+
+    function setText2(sel, txt) { document.querySelectorAll(sel).forEach(function (el) { el.textContent = txt; }); }
+
+    function onType() {
+        var m = meta();
+        if (m && unitSel && m.unit) { unitSel.value = m.unit; }
+        buildAttrs(); buildChips(); applyNuanceCol();
+        var label = (m && m.decl_label) ? m.decl_label : 'Couleurs';
+        setText2('[data-beauty-decl-title]', label);
+        setText2('[data-beauty-decl-label]', label);
+        var sh = document.querySelector('[data-beauty-specs-hint]');
+        if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
+        var d = document.querySelector('[data-beauty-decl]'); if (d) { d.open = true; }
+        update();
+    }
+
+    /* ---------- Aperçu fiche ---------- */
+    var root = document.querySelector('[data-pv-root]');
+    var curInt = root ? root.getAttribute('data-cur-int') === '1' : false;
+    var cur = root ? (root.getAttribute('data-cur') || '') : '';
+    function out(n) { return root ? root.querySelector('[data-pv-out="' + n + '"]') : null; }
+    function fval(n) { var f = document.querySelector('[data-pv="' + n + '"]'); return f ? String(f.value || '').trim() : ''; }
+    function num(s) { return parseFloat(String(s).replace(',', '.')) || 0; }
+    function fmt(n) { n = curInt ? Math.round(n) : Math.round(n * 100) / 100; return n.toLocaleString('fr-FR', curInt ? {} : { maximumFractionDigits: 2 }) + ' ' + cur; }
+    function setText(n, t) { var el = out(n); if (el) { el.textContent = t; } }
+    var nameOut = out('name'); var nameDefault = nameOut ? nameOut.textContent : '';
+    var imgBox = root ? root.querySelector('[data-pv-img]') : null; var imgEmpty = imgBox ? imgBox.innerHTML : '';
 
     function update() {
-        setText('brand', val('brand'));
-        if (nameOut) { nameOut.textContent = val('name') || nameDefault; }
-        setText('type', val('type'));
-        var vol = num(val('volume')), unit = val('unit') || 'ml';
-        setText('vol', vol > 0 ? ('· ' + vol + ' ' + unit) : '');
-        var tag = document.querySelector('[data-pv-unit]'); // suffixe dans le champ
+        var tag = document.querySelector('[data-pv-unit]'); var unit = fval('unit') || 'ml';
         if (tag) { tag.textContent = unit; }
-
-        var price = num(val('price')), promo = num(val('promo'));
+        if (!root) { return; }
+        setText('brand', fval('brand'));
+        if (nameOut) { nameOut.textContent = fval('name') || nameDefault; }
+        setText('type', fval('type'));
+        var vol = num(fval('volume'));
+        setText('vol', vol > 0 ? ('· ' + vol + ' ' + unit) : '');
+        var price = num(fval('price')), promo = num(fval('promo'));
         var now = (promo > 0 && promo < price) ? promo : price;
         setText('price', now > 0 ? fmt(now) : '');
         var old = out('old'), badge = out('disc');
         if (promo > 0 && promo < price) {
             if (old) { old.textContent = fmt(price); old.hidden = false; }
             if (badge) { badge.textContent = '-' + Math.round((1 - promo / price) * 100) + '%'; badge.hidden = false; }
-        } else {
-            if (old) { old.hidden = true; }
-            if (badge) { badge.hidden = true; }
-        }
-
-        // Teintes (pastilles) à partir des déclinaisons saisies.
+        } else { if (old) { old.hidden = true; } if (badge) { badge.hidden = true; } }
         var tones = root.querySelector('[data-pv-tones]');
-        if (tones && rows) {
+        if (tones && rowsBox) {
             tones.innerHTML = '';
-            var seen = {};
-            Array.prototype.forEach.call(rows.querySelectorAll('input[name="var_size[]"]'), function (inp) {
-                var v = String(inp.value || '').trim();
-                if (!v || seen[v]) { return; }
-                seen[v] = 1;
-                var dot = document.createElement('span');
-                dot.className = 'pv-tone'; dot.title = v;
-                dot.style.background = hex[v] || '#d8c3a8';
-                tones.appendChild(dot);
+            rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) {
+                var nm = r.querySelector('input[name="var_name[]"]'); if (!nm || !nm.value.trim()) { return; }
+                var hx = r.querySelector('input[name="var_hex[]"]');
+                var dot = document.createElement('span'); dot.className = 'pv-tone'; dot.title = nm.value.trim();
+                dot.style.background = hx ? hx.value : '#d8c3a8'; tones.appendChild(dot);
             });
         }
-
-        var stockF = document.getElementById('p-stock');
-        var s = stockF ? String(stockF.value || '').trim() : '';
+        var stockF = document.getElementById('p-stock'); var s = stockF ? String(stockF.value || '').trim() : '';
         setText('stock', s !== '' ? (s + ' en stock') : 'Stock illimité');
     }
-
     function syncPhoto() {
         if (!imgBox) { return; }
         var src = document.querySelector('#product-previews .preview:not(.preview-video) img');
         if (src && src.getAttribute('src')) {
-            imgBox.innerHTML = '';
-            var img = document.createElement('img'); img.src = src.getAttribute('src'); img.alt = '';
-            imgBox.appendChild(img);
-        } else if (!imgBox.querySelector('.pv-img-empty')) {
-            imgBox.innerHTML = imgEmpty;
-        }
+            imgBox.innerHTML = ''; var img = document.createElement('img'); img.src = src.getAttribute('src'); img.alt = ''; imgBox.appendChild(img);
+        } else if (!imgBox.querySelector('.pv-img-empty')) { imgBox.innerHTML = imgEmpty; }
     }
 
-    if (form) {
-        form.addEventListener('input', update);
-        form.addEventListener('change', update);
+    /* ---------- Événements ---------- */
+    if (typeSel) { typeSel.addEventListener('change', onType); }
+    if (coll) { coll.addEventListener('change', function () { if (!meta()) { buildChips(); } }); }
+    if (chips) {
+        chips.addEventListener('click', function (ev) {
+            var c = ev.target && ev.target.closest ? ev.target.closest('[data-bchip]') : null;
+            if (c) { ev.preventDefault(); fillDecl({ name: c.getAttribute('data-name'), hex: c.getAttribute('data-hex'), nuance: c.getAttribute('data-nuance') }); }
+        });
     }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        if (ev.target.closest('[data-beauty-add]')) { var r = addRow(null); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
+        var del = ev.target.closest('[data-beauty-del]');
+        if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); update(); } }
+    });
+    form.addEventListener('input', update);
+    form.addEventListener('change', update);
     var previews = document.getElementById('product-previews');
-    if (previews && 'MutationObserver' in window) {
-        new MutationObserver(syncPhoto).observe(previews, { childList: true, subtree: true });
-    }
-    update();
-    syncPhoto();
+    if (previews && 'MutationObserver' in window) { new MutationObserver(syncPhoto).observe(previews, { childList: true, subtree: true }); }
+
+    // État initial.
+    buildChips(); applyNuanceCol();
+    update(); syncPhoto();
 })();
 
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */

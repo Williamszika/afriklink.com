@@ -143,6 +143,8 @@ final class Product
             'sku'               => $data['sku'] ?? null,
             'atouts'            => $data['atouts'] ?? null,
             'ingredients'       => $data['ingredients'] ?? null,
+            'line'              => $data['line'] ?? null,
+            'attributes'        => $data['attributes'] ?? null,
             'video_public_id'   => $data['video_public_id'] ?? null,
             'video_duration'    => $data['video_duration'] ?? null,
         ];
@@ -291,6 +293,18 @@ final class Product
                     ADD COLUMN sku VARCHAR(40) NULL,
                     ADD COLUMN atouts VARCHAR(255) NULL,
                     ADD COLUMN ingredients TEXT NULL");
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        // Beauté v2 : caractéristiques propres au type (JSON souple) + gamme/ligne.
+        try {
+            db()->query('SELECT line FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products
+                    ADD COLUMN line VARCHAR(80) NULL,
+                    ADD COLUMN attributes TEXT NULL');
             } catch (\Throwable) {
                 // déjà migré
             }

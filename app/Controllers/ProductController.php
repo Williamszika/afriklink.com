@@ -233,18 +233,17 @@ final class ProductController
         $model = mb_substr(trim((string) input_string('model', '')), 0, 80);
         $itemCondition = phone_condition_clean(input_string('item_condition', ''));
 
-        // Beauté & cosmétiques : type, contenance + unité, finition, type de peau,
-        // couvrance, PAO, péremption, EAN, SKU, atouts (CSV), composition (INCI).
+        // Beauté & cosmétiques (v2 adaptatif) : type de produit + gamme, contenance
+        // + unité, PAO, péremption, EAN, SKU, atouts (CSV), composition (INCI), et les
+        // caractéristiques PROPRES AU TYPE en JSON (attributes), validées en liste blanche.
         $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
+        $line        = mb_substr(trim((string) input_string('line', '')), 0, 80);
         $volumeRaw   = trim((string) input_string('volume', ''));
         $volume      = ($volumeRaw !== '' && is_numeric(str_replace(',', '.', $volumeRaw)))
             ? round((float) str_replace(',', '.', $volumeRaw), 2) : null;
         if ($volume !== null && ($volume < 0 || $volume > 999999)) { $volume = null; }
         $volumeUnit  = beauty_clean(input_string('volume_unit', ''), beauty_volume_units());
         if ($volumeUnit === '') { $volumeUnit = 'ml'; }
-        $finish      = beauty_clean(input_string('finish', ''), beauty_finishes());
-        $skinType    = beauty_clean(input_string('skin_type', ''), beauty_skin_types());
-        $coverage    = beauty_clean(input_string('coverage', ''), beauty_coverages());
         $pao         = beauty_clean(input_string('pao', ''), beauty_pao());
         $expiryRaw   = trim((string) input_string('expiry_date', ''));
         $expiryDate  = ($expiryRaw !== '' && strtotime($expiryRaw) !== false) ? date('Y-m-d', (int) strtotime($expiryRaw)) : null;
@@ -252,6 +251,8 @@ final class ProductController
         $sku         = mb_substr(trim((string) input_string('sku', '')), 0, 40);
         $atouts      = beauty_atouts_clean((array) ($_POST['atouts'] ?? []));
         $ingredients = mb_substr(trim((string) input_string('ingredients', '')), 0, 2000);
+        $attrsClean  = beauty_attr_clean($productType, (array) ($_POST['attr'] ?? []));
+        $attributes  = $attrsClean !== [] ? (string) json_encode($attrsClean, JSON_UNESCAPED_UNICODE) : null;
 
         // Rayon / catégorie (menu déroulant) : valeur choisie, ou saisie libre si « Autre ».
         // Désormais OBLIGATOIRE : c'est le rayon qui pilote l'axe de déclinaison du produit.
@@ -325,17 +326,16 @@ final class ProductController
             'model' => $model !== '' ? $model : null,
             'item_condition' => $itemCondition !== '' ? $itemCondition : null,
             'product_type' => $productType !== '' ? $productType : null,
+            'line' => $line !== '' ? $line : null,
             'volume' => $volume,
             'volume_unit' => $volume !== null ? $volumeUnit : null,
-            'finish' => $finish !== '' ? $finish : null,
-            'skin_type' => $skinType !== '' ? $skinType : null,
-            'coverage' => $coverage !== '' ? $coverage : null,
             'pao' => $pao !== '' ? $pao : null,
             'expiry_date' => $expiryDate,
             'ean' => $ean !== '' ? $ean : null,
             'sku' => $sku !== '' ? $sku : null,
             'atouts' => $atouts !== '' ? $atouts : null,
             'ingredients' => $ingredients !== '' ? $ingredients : null,
+            'attributes' => $attributes,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
             'collection' => $collection,
@@ -351,35 +351,64 @@ final class ProductController
     private function syncVariants(int $productId, array $boutique, ?int $fieldStock, int $priceCents): ?int
     {
         $cur    = (string) $boutique['currency'];
-        $sizes  = (array) ($_POST['var_size'] ?? []);
-        $colors = (array) ($_POST['var_color'] ?? []);
         $prices = (array) ($_POST['var_price'] ?? []);
         $stocks = (array) ($_POST['var_stock'] ?? []);
         $rows = [];
         $seen = [];
-        foreach ($sizes as $i => $sz) {
-            $size  = mb_substr(trim((string) $sz), 0, 60);
-            $color = mb_substr(trim((string) ($colors[$i] ?? '')), 0, 60);
-            $stockRaw = trim((string) ($stocks[$i] ?? ''));
-            $priceRaw = trim((string) ($prices[$i] ?? ''));
-            if ($size === '' && $color === '') {
-                continue; // ligne vide
+        if (isset($_POST['var_name'])) {
+            // Éditeur BEAUTÉ : déclinaison = nom + pastille couleur (hex) + nuance (carnation).
+            $names   = (array) $_POST['var_name'];
+            $hexes   = (array) ($_POST['var_hex'] ?? []);
+            $nuances = (array) ($_POST['var_nuance'] ?? []);
+            $allowNuance = beauty_nuances();
+            foreach ($names as $i => $nm) {
+                $name = mb_substr(trim((string) $nm), 0, 60);
+                if ($name === '') { continue; }
+                $key = mb_strtolower($name);
+                if (isset($seen[$key])) { continue; }
+                $seen[$key] = true;
+                $attrs = ['size' => $name];
+                $hex = trim((string) ($hexes[$i] ?? ''));
+                if (preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) { $attrs['hex'] = strtoupper($hex); }
+                $nz = trim((string) ($nuances[$i] ?? ''));
+                if (in_array($nz, $allowNuance, true)) { $attrs['nuance'] = $nz; }
+                $stockRaw = trim((string) ($stocks[$i] ?? ''));
+                $priceRaw = trim((string) ($prices[$i] ?? ''));
+                $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
+                $rows[] = [
+                    'attributes' => $attrs,
+                    'label'      => mb_substr($name . ($nz !== '' ? ' · ' . $nz : ''), 0, 120),
+                    'stock'      => ($stockRaw !== '' && ctype_digit($stockRaw)) ? (int) $stockRaw : null,
+                    'price'      => ($price !== null && $price >= 0) ? $price : null,
+                ];
             }
-            $key = mb_strtolower($size . '|' . $color);
-            if (isset($seen[$key])) {
-                continue; // combinaison taille+couleur en double
+        } else {
+            $sizes  = (array) ($_POST['var_size'] ?? []);
+            $colors = (array) ($_POST['var_color'] ?? []);
+            foreach ($sizes as $i => $sz) {
+                $size  = mb_substr(trim((string) $sz), 0, 60);
+                $color = mb_substr(trim((string) ($colors[$i] ?? '')), 0, 60);
+                $stockRaw = trim((string) ($stocks[$i] ?? ''));
+                $priceRaw = trim((string) ($prices[$i] ?? ''));
+                if ($size === '' && $color === '') {
+                    continue; // ligne vide
+                }
+                $key = mb_strtolower($size . '|' . $color);
+                if (isset($seen[$key])) {
+                    continue; // combinaison taille+couleur en double
+                }
+                $seen[$key] = true;
+                $attrs = [];
+                if ($size !== '')  { $attrs['size']  = $size; }
+                if ($color !== '') { $attrs['color'] = $color; }
+                $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
+                $rows[] = [
+                    'attributes' => $attrs,
+                    'label'      => mb_substr(implode(' · ', array_values($attrs)), 0, 120),
+                    'stock'      => ($stockRaw !== '' && ctype_digit($stockRaw)) ? (int) $stockRaw : null,
+                    'price'      => ($price !== null && $price >= 0) ? $price : null,
+                ];
             }
-            $seen[$key] = true;
-            $attrs = [];
-            if ($size !== '')  { $attrs['size']  = $size; }
-            if ($color !== '') { $attrs['color'] = $color; }
-            $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
-            $rows[] = [
-                'attributes' => $attrs,
-                'label'      => mb_substr(implode(' · ', array_values($attrs)), 0, 120),
-                'stock'      => ($stockRaw !== '' && ctype_digit($stockRaw)) ? (int) $stockRaw : null,
-                'price'      => ($price !== null && $price >= 0) ? $price : null,
-            ];
         }
         ProductVariant::deleteForProduct($productId);
         if ($rows === []) {

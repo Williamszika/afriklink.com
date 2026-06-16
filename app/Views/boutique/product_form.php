@@ -155,26 +155,44 @@ $fmtP = static function ($cents) use ($cur): string {
             ? rtrim(rtrim(number_format((float) str_replace(',', '.', $volCur), 2, '.', ''), '0'), '.') : '';
         $expCur = $bcur('expiry_date');
         $expCur = ($expCur !== '' && strtotime($expCur) !== false) ? date('Y-m-d', (int) strtotime($expCur)) : '';
+        $curType   = $bcur('product_type');
+        $typeMeta  = beauty_type_meta($curType);
+        $savedAttrs = isset($rawOld['attr']) && is_array($rawOld['attr'])
+            ? $rawOld['attr']
+            : (json_decode((string) ($product['attributes'] ?? ''), true) ?: []);
         ?>
+        <div data-beauty
+             data-types="<?= e((string) json_encode(beauty_types(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-fields="<?= e((string) json_encode(beauty_fields(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-palettes="<?= e((string) json_encode(beauty_palettes(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-nuances="<?= e((string) json_encode(beauty_nuances(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-hint-specs="<?= e(t('beauty.sec.specs_hint')) ?>" data-hint-pick="<?= e(t('beauty.sec.specs_pick')) ?>" hidden></div>
         <div class="grid-2">
             <div>
                 <label for="p-brand"><?= e(t('beauty.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
             </div>
             <div>
-                <label for="p-ptype"><?= e(t('beauty.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <select id="p-ptype" name="product_type" data-pv="type">
+                <label for="p-ptype"><?= e(t('beauty.f.type')) ?> <span class="req">*</span></label>
+                <select id="p-ptype" name="product_type" data-pv="type" data-beauty-type>
                     <option value=""><?= e(t('beauty.f.type_any')) ?></option>
-                    <?php foreach (beauty_product_types() as $pt): ?>
-                        <option value="<?= e($pt) ?>" <?= $bcur('product_type') === $pt ? 'selected' : '' ?>><?= e($pt) ?></option>
+                    <?php foreach (beauty_groups() as $gk => $glabel): ?>
+                        <optgroup label="<?= e($glabel) ?>">
+                            <?php foreach (beauty_types() as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                <option value="<?= e($tname) ?>" <?= $curType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
                     <?php endforeach; ?>
                 </select>
             </div>
         </div>
+        <label for="p-line"><?= e(t('beauty.f.line')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+        <input type="text" id="p-line" name="line" maxlength="80" value="<?= e($bcur('line')) ?>" placeholder="<?= e(t('beauty.f.line_ph')) ?>">
 
         <details class="variants-box" open>
             <summary>🧴 <?= e(t('beauty.sec.specs')) ?></summary>
-            <p class="hint"><?= e(t('beauty.sec.specs_hint')) ?></p>
+            <p class="hint" data-beauty-specs-hint><?= e($typeMeta ? t('beauty.sec.specs_hint') : t('beauty.sec.specs_pick')) ?></p>
             <div class="grid-3">
                 <div>
                     <label for="p-volume"><?= e(t('beauty.f.volume')) ?></label>
@@ -192,35 +210,24 @@ $fmtP = static function ($cents) use ($cur): string {
                     </select>
                 </div>
                 <div>
-                    <label for="p-finish"><?= e(t('beauty.f.finish')) ?></label>
-                    <select id="p-finish" name="finish">
-                        <option value="">—</option>
-                        <?php foreach (beauty_finishes() as $f): ?><option value="<?= e($f) ?>" <?= $bcur('finish') === $f ? 'selected' : '' ?>><?= e($f) ?></option><?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
-            <div class="grid-3">
-                <div>
-                    <label for="p-skin"><?= e(t('beauty.f.skin')) ?></label>
-                    <select id="p-skin" name="skin_type">
-                        <option value=""><?= e(t('beauty.f.skin_any')) ?></option>
-                        <?php foreach (beauty_skin_types() as $s): ?><option value="<?= e($s) ?>" <?= $bcur('skin_type') === $s ? 'selected' : '' ?>><?= e($s) ?></option><?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
-                    <label for="p-coverage"><?= e(t('beauty.f.coverage')) ?></label>
-                    <select id="p-coverage" name="coverage">
-                        <option value="">—</option>
-                        <?php foreach (beauty_coverages() as $c): ?><option value="<?= e($c) ?>" <?= $bcur('coverage') === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
-                    </select>
-                </div>
-                <div>
                     <label for="p-pao"><?= e(t('beauty.f.pao')) ?></label>
                     <select id="p-pao" name="pao">
                         <option value="">—</option>
                         <?php foreach (beauty_pao() as $pp): ?><option value="<?= e($pp) ?>" <?= $bcur('pao') === $pp ? 'selected' : '' ?>><?= e($pp) ?></option><?php endforeach; ?>
                     </select>
                 </div>
+            </div>
+            <!-- Caractéristiques propres au TYPE (générées selon le type choisi). -->
+            <div class="grid-3" data-beauty-attrs>
+                <?php if ($typeMeta): foreach ((array) ($typeMeta['fields'] ?? []) as $fk): $fd = beauty_fields()[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($savedAttrs[$fk] ?? ''); ?>
+                    <div>
+                        <label><?= e((string) $fd['label']) ?></label>
+                        <select name="attr[<?= e($fk) ?>]">
+                            <option value="">—</option>
+                            <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endforeach; endif; ?>
             </div>
             <div class="grid-3">
                 <div>
@@ -279,6 +286,71 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
 
+        <?php if ($isBeauty): ?>
+        <?php
+        $declLabel = (string) ($typeMeta['decl_label'] ?? t('beauty.decl.colors'));
+        $hasNuance = ($typeMeta['decl'] ?? '') === 'teinte';
+        $hasDecl   = $typeMeta !== null && !empty($typeMeta['decl']);
+        $bRows = [];
+        foreach ($realVariants as $v) {
+            $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+            $nm   = (string) ($attr['size'] ?? ($v['label'] ?? ''));
+            $bRows[] = [
+                'name'   => $nm,
+                'hex'    => (string) ($attr['hex'] ?? (beauty_hex_for($nm) ?? '#C9A06A')),
+                'nuance' => (string) ($attr['nuance'] ?? ''),
+                'stock'  => $v['stock'],
+                'price'  => $v['price_cents'] ?? null,
+            ];
+        }
+        ?>
+        <details class="variants-box" data-beauty-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <span data-beauty-decl-title><?= e($declLabel) ?></span></summary>
+            <p class="hint"><?= e(t('beauty.decl.hint')) ?></p>
+            <p class="hint nuance-hint" data-beauty-nuance-hint<?= $hasNuance ? '' : ' hidden' ?>>💡 <?= e(t('beauty.decl.nuance_hint')) ?></p>
+            <div class="axis-suggest" data-beauty-chips-box<?= $hasDecl ? '' : ' hidden' ?>>
+                <span class="axis-suggest-label"><strong data-beauty-decl-label><?= e($declLabel) ?></strong> · <?= e(t('variant.suggest_hint')) ?></span>
+                <div class="axis-suggest-chips" data-beauty-chips></div>
+            </div>
+            <div class="bvariant-rows<?= $hasNuance ? ' has-nuance' : '' ?>" data-beauty-rows>
+                <div class="bvariant-head">
+                    <span><?= e(t('beauty.decl.name')) ?></span>
+                    <span><?= e(t('beauty.decl.color')) ?></span>
+                    <span class="bcol-nuance"><?= e(t('beauty.decl.nuance')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($bRows as $bv): ?>
+                    <div class="bvariant-row">
+                        <input type="text" name="var_name[]" value="<?= e($bv['name']) ?>" maxlength="60" placeholder="<?= e(t('beauty.decl.name_ph')) ?>" aria-label="<?= e(t('beauty.decl.name')) ?>">
+                        <input type="color" name="var_hex[]" value="<?= e($bv['hex'] !== '' ? $bv['hex'] : '#C9A06A') ?>" aria-label="<?= e(t('beauty.decl.color')) ?>">
+                        <select name="var_nuance[]" class="bcol-nuance" aria-label="<?= e(t('beauty.decl.nuance')) ?>">
+                            <option value=""><?= e(t('beauty.decl.nuance')) ?>…</option>
+                            <?php foreach (beauty_nuances() as $nz): ?><option value="<?= e($nz) ?>" <?= $bv['nuance'] === $nz ? 'selected' : '' ?>><?= e($nz) ?></option><?php endforeach; ?>
+                        </select>
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $bv['stock'] !== null ? (int) $bv['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($bv['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-beauty-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-beauty-add>+ <?= e(t('beauty.decl.add')) ?></button>
+            <template id="bvariant-template">
+                <div class="bvariant-row">
+                    <input type="text" name="var_name[]" maxlength="60" placeholder="<?= e(t('beauty.decl.name_ph')) ?>" aria-label="<?= e(t('beauty.decl.name')) ?>">
+                    <input type="color" name="var_hex[]" value="#C9A06A" aria-label="<?= e(t('beauty.decl.color')) ?>">
+                    <select name="var_nuance[]" class="bcol-nuance" aria-label="<?= e(t('beauty.decl.nuance')) ?>">
+                        <option value=""><?= e(t('beauty.decl.nuance')) ?>…</option>
+                        <?php foreach (beauty_nuances() as $nz): ?><option value="<?= e($nz) ?>"><?= e($nz) ?></option><?php endforeach; ?>
+                    </select>
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-beauty-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        <?php else: ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>
             <p class="hint"><?= e($varHint) ?></p>
@@ -292,8 +364,7 @@ $fmtP = static function ($cents) use ($cur): string {
                  data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>"
                  data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"
                  data-base-label="<?= e($baseLabel) ?>" data-base-ph="<?= e($basePh) ?>"
-                 data-base-opts="<?= e((string) json_encode(array_values($baseOpts), JSON_UNESCAPED_UNICODE)) ?>"
-                 data-teinte-hex="<?= e((string) json_encode(beauty_teinte_hex(), JSON_UNESCAPED_UNICODE)) ?>">
+                 data-base-opts="<?= e((string) json_encode(array_values($baseOpts), JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="variant-head">
                     <span data-axis-label><?= e($sizeLabel) ?></span>
                     <span><?= e(t('variant.color')) ?></span>
@@ -329,6 +400,7 @@ $fmtP = static function ($cents) use ($cur): string {
             <datalist id="size-suggest"><?php foreach ($sizeOpts as $s): ?><option value="<?= e($s) ?>"></option><?php endforeach; ?></datalist>
             <datalist id="color-suggest"><?php foreach (['Noir','Blanc','Gris','Rouge','Bleu','Vert','Jaune','Orange','Rose','Violet','Marron','Beige'] as $c): ?><option value="<?= e($c) ?>"></option><?php endforeach; ?></datalist>
         </details>
+        <?php endif; ?>
 
         <label for="p-desc"><?= e(t('product.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <textarea id="p-desc" name="description" rows="4" maxlength="<?= (int) config('shop.product_desc_max', 3000) ?>"><?= old('description') ?: e((string) ($product['description'] ?? '')) ?></textarea>

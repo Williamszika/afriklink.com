@@ -36,6 +36,8 @@ foreach ($realVariants as $rv) {
 $vSizes = [];
 $vColors = [];
 $vMap = [];
+$vSizeHex = [];   // beauté : pastille couleur par teinte (attributes.hex)
+$vSizeNuance = []; // beauté : carnation par teinte
 foreach ($realVariants as $rv) {
     $a  = is_array($rv['attributes'] ?? null) ? $rv['attributes'] : (json_decode((string) ($rv['attributes'] ?? ''), true) ?: []);
     $sz = (string) ($a['size'] ?? '');
@@ -43,6 +45,8 @@ foreach ($realVariants as $rv) {
     if ($sz === '' && $co === '' && trim((string) ($rv['label'] ?? '')) !== '') { $sz = (string) $rv['label']; }
     if ($sz !== '' && !in_array($sz, $vSizes, true)) { $vSizes[] = $sz; }
     if ($co !== '' && !in_array($co, $vColors, true)) { $vColors[] = $co; }
+    if ($sz !== '' && !empty($a['hex']))    { $vSizeHex[$sz] = (string) $a['hex']; }
+    if ($sz !== '' && !empty($a['nuance'])) { $vSizeNuance[$sz] = (string) $a['nuance']; }
     $vBase = $rv['price_cents'] !== null ? (int) $rv['price_cents'] : (int) $product['price_cents'];
     $vMap[] = [
         'id'    => (string) $rv['public_id'],
@@ -101,12 +105,15 @@ foreach ($realVariants as $rv) {
                 } elseif ($pVertical === 'beauty') {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($product['line'])) { $apTags[] = (string) $product['line']; }
                     if (((float) ($product['volume'] ?? 0)) > 0) {
                         $apTags[] = rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml');
                     }
-                    if (!empty($product['finish'])) { $apTags[] = (string) $product['finish']; }
-                    if (!empty($product['coverage'])) { $apTags[] = (string) $product['coverage']; }
-                    if (!empty($product['skin_type'])) { $apTags[] = (string) $product['skin_type']; }
+                    // Caractéristiques propres au type (attributes JSON) : valeurs auto-descriptives.
+                    foreach ((json_decode((string) ($product['attributes'] ?? ''), true) ?: []) as $av) {
+                        $av = trim((string) $av);
+                        if ($av !== '') { $apTags[] = $av; }
+                    }
                     if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                 } else {
                     if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
@@ -148,8 +155,8 @@ foreach ($realVariants as $rv) {
                             <div class="variant-axis">
                                 <p class="variant-pick-label"><?= e($pSizeLabel) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
                                 <div class="variant-chips">
-                                    <?php foreach ($vSizes as $sz): $hx = $pVertical === 'beauty' ? beauty_hex_for($sz) : null; ?>
-                                        <label class="variant-chip<?= $hx ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?php if ($hx): ?><span class="chip-dot" style="background:<?= e($hx) ?>"></span><?php endif; ?><?= e($sz) ?></span></label>
+                                    <?php foreach ($vSizes as $sz): $hx = $pVertical === 'beauty' ? ($vSizeHex[$sz] ?? beauty_hex_for($sz)) : null; $nz = $vSizeNuance[$sz] ?? ''; ?>
+                                        <label class="variant-chip<?= $hx ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?php if ($hx): ?><span class="chip-dot" style="background:<?= e($hx) ?>"></span><?php endif; ?><?= e($sz) ?><?php if ($nz !== ''): ?> <small class="chip-nuance"><?= e($nz) ?></small><?php endif; ?></span></label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
