@@ -10,6 +10,9 @@
  * Les libellés sont traduits via i18n : apparel.aud.* / apparel.grp.* / apparel.cat.*
  */
 return [
+    // Catégories de boutique qui activent le mode « prêt-à-porter » (champs vêtements).
+    'shop_categories' => ['mode'],
+
     // Publics visés.
     'audiences' => ['homme', 'femme', 'unisexe', 'enfant'],
 

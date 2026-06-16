@@ -67,7 +67,7 @@ final class BoutiqueController
         $step = $this->clampStep((int) input_string('etape', '1'));
 
         [$data, $errors] = match ($step) {
-            1 => $this->validateStep1((int) $user['id']),
+            1 => $this->validateStep1((int) $user['id'], true), // catégorie obligatoire à la création
             2 => $this->validateStep2(),
             3 => $this->validateStep3(),
         };
@@ -167,7 +167,8 @@ final class BoutiqueController
         $d2 = $this->verifiedGeo($d2, $boutique);
         Boutique::update((int) $boutique['id'], [
             'name' => $d1['name'], 'tagline' => $d1['tagline'], 'description' => $d1['description'],
-            'category' => $d1['category'],
+            // Catégorie principale VERROUILLÉE : on conserve celle de la création.
+            'category' => (string) ($boutique['category'] ?? ''),
             'logo_public_id' => $this->resolveImage($d1['logo_public_id'] ?? null, $boutique['logo_public_id'] ?? null),
             'banners' => $this->verifiedBanners($d1['banner_ids'] ?? [], Boutique::banners((int) $boutique['id'])),
             'currency' => $d2['currency'], 'shop_type' => $d2['shop_type'], 'address' => $d2['address'],
@@ -1483,7 +1484,7 @@ final class BoutiqueController
 
     /* ---- Validation des étapes ------------------------------------- */
 
-    private function validateStep1(int $userId): array
+    private function validateStep1(int $userId, bool $requireCategory = false): array
     {
         $errors = [];
         $nameMax = (int) config('shop.name_max', 80);
@@ -1519,6 +1520,10 @@ final class BoutiqueController
             $errors['description'] = t('validation.too_long', ['max' => config('shop.desc_max', 1500)]);
         }
         $category = whitelist((string) input_string('category', ''), config('listings.categories', []), null);
+        // Catégorie principale obligatoire à la CRÉATION (puis verrouillée).
+        if ($requireCategory && $category === null) {
+            $errors['category'] = t('validation.shop_category');
+        }
 
         // Canaux de contact : valeurs normalisées (vides ignorées) + canal principal.
         $contacts = [];

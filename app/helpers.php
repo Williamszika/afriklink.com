@@ -768,11 +768,19 @@ function phone_condition_clean(?string $v): string
 
 /**
  * Vertical du formulaire produit selon la catégorie de la boutique :
- * 'phone' (électronique → marque/modèle/état + stockage×couleur) sinon 'apparel'.
+ * 'phone' (électronique), 'apparel' (mode/vêtements) ou 'generic' (le reste).
+ * Les produits respectent ainsi la catégorie principale (verrouillée) de la boutique.
  */
 function product_vertical(?string $boutiqueCategory): string
 {
-    return in_array((string) $boutiqueCategory, (array) config('phone.shop_categories', []), true) ? 'phone' : 'apparel';
+    $cat = (string) $boutiqueCategory;
+    if (in_array($cat, (array) config('phone.shop_categories', []), true)) {
+        return 'phone';
+    }
+    if (in_array($cat, (array) config('apparel.shop_categories', ['mode']), true)) {
+        return 'apparel';
+    }
+    return 'generic';
 }
 
 /**

@@ -79,10 +79,12 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
                 <input type="text" id="shop-tagline" name="tagline" value="<?= $v('tagline') ?>" maxlength="<?= (int) config('shop.tagline_max', 120) ?>">
                 <label for="shop-desc"><?= e(t('shop.f.description')) ?></label>
                 <textarea id="shop-desc" name="description" rows="3" maxlength="<?= (int) config('shop.desc_max', 1500) ?>"><?= $v('description') ?></textarea>
-                <label for="shop-cat"><?= e(t('shop.f.category')) ?></label>
-                <select id="shop-cat" name="category"><option value=""><?= e(t('field.choose')) ?></option>
-                    <?php foreach ($cats as $c): ?><option value="<?= e($c) ?>" <?= $selCat === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option><?php endforeach; ?>
-                </select>
+                <label><?= e(t('shop.f.category')) ?></label>
+                <div class="locked-field">
+                    <span><?= !empty($boutique['category']) ? e(t('listing.cat.' . $boutique['category'])) : '—' ?></span>
+                    <span class="locked-badge"><?= icon('shield', ['size' => 13]) ?> <?= e(t('shop.f.category_locked')) ?></span>
+                </div>
+                <p class="hint"><?= e(t('shop.f.category_lock_hint')) ?></p>
 
                 <?php [$ctVals, $ctPrimary] = \App\Services\ContactChannels::forBoutique($boutique); ?>
                 <?= render_partial('partials/contact_fields', ['values' => $ctVals, 'primary' => $ctPrimary, 'country' => (string) ($boutique['country_code'] ?? '')]) ?>

@@ -88,15 +88,17 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
             <textarea id="shop-desc" name="description" rows="3" maxlength="<?= (int) config('shop.desc_max', 1500) ?>"><?= $val('description', $s1) ?></textarea>
             <?php if (has_error('description')): ?><p class="field-error"><?= e(error('description')) ?></p><?php endif; ?>
 
-            <label for="shop-cat"><?= e(t('shop.f.category')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-            <select id="shop-cat" name="category" data-shop-cat>
+            <label for="shop-cat"><?= e(t('shop.f.category')) ?> <span class="req">*</span></label>
+            <select id="shop-cat" name="category" data-shop-cat required>
                 <option value=""><?= e(t('field.choose')) ?></option>
                 <?php $selCat = old('category') ?: (string) ($s1['category'] ?? ''); ?>
                 <?php foreach ($cats as $c): ?>
                     <option value="<?= e($c) ?>" data-vertical="<?= e(product_vertical($c)) ?>" <?= $selCat === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option>
                 <?php endforeach; ?>
             </select>
+            <p class="hint"><?= e(t('shop.f.category_lock_hint')) ?></p>
             <p class="hint cat-phone-hint" data-cat-phone-hint<?= product_vertical($selCat) === 'phone' ? '' : ' hidden' ?>>📱 <?= e(t('shop.f.category_phone_hint')) ?></p>
+            <?php if (has_error('category')): ?><p class="field-error"><?= e(error('category')) ?></p><?php endif; ?>
 
             <?= render_partial('partials/contact_fields', [
                 'values'  => $s1['contacts'] ?? [],

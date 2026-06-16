@@ -2055,6 +2055,9 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .shop-switch-opt.is-active{color:var(--brand);font-weight:700}
 .shop-switch-new{display:block;padding:8px 10px;margin-top:3px;border-top:1px solid var(--border);color:var(--brand);font-weight:600;font-size:.86rem}
 .cat-phone-hint{margin:7px 0 0;padding:9px 12px;background:var(--brand-50);border-left:3px solid var(--accent);border-radius:8px;color:var(--ink-soft);font-size:.85rem;line-height:1.45}
+.req{color:var(--danger);font-weight:700}
+.locked-field{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--brand-50);font-weight:600;color:var(--ink)}
+.locked-badge{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:var(--brand);background:#fff;border:1px solid var(--border);padding:3px 9px;border-radius:7px;white-space:nowrap}
 /* Comparaison mois vs mois dernier */
 .rev-delta{display:inline-block;margin-left:8px;font-weight:800;font-size:.85rem;padding:1px 8px;border-radius:7px;vertical-align:middle}
 .rev-delta.is-up{color:#1E8F6E;background:rgba(30,143,110,.12)}

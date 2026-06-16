@@ -4,11 +4,20 @@ use App\Services\CloudinaryService;
 
 $isEdit = $mode === 'edit';
 $cur    = (string) $boutique['currency'];
-$vertical = product_vertical((string) ($boutique['category'] ?? '')); // 'phone' ou 'apparel'
+$vertical  = product_vertical((string) ($boutique['category'] ?? '')); // 'phone' | 'apparel' | 'generic'
 $isPhone   = $vertical === 'phone';
-$sizeLabel = $isPhone ? t('phone.f.storage') : t('variant.size');
-$sizePh    = $isPhone ? t('phone.f.storage_ph') : t('variant.size_ph');
-$sizeOpts  = $isPhone ? phone_storage() : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
+$isApparel = $vertical === 'apparel';
+if ($isPhone) {
+    $sizeLabel = t('phone.f.storage'); $sizePh = t('phone.f.storage_ph'); $sizeOpts = phone_storage();
+    $varSection = t('phone.f.variants'); $varHint = t('phone.f.variants_hint');
+} elseif ($isApparel) {
+    $sizeLabel = t('variant.size'); $sizePh = t('variant.size_ph');
+    $sizeOpts = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
+    $varSection = t('variant.section'); $varHint = t('variant.hint');
+} else {
+    $sizeLabel = t('variant.option'); $sizePh = t('variant.option_ph'); $sizeOpts = [];
+    $varSection = t('variant.section_generic'); $varHint = t('variant.hint_generic');
+}
 $action = $isEdit ? '/boutique/produits/' . $product['public_id'] . '/modifier' : '/boutique/produits';
 $maxPhotos = (int) config('shop.product_max_photos', 6);
 $existingIds = array_map(static fn (array $p): string => (string) $p['cloud_public_id'], $photos);
@@ -84,7 +93,7 @@ $fmtP = static function ($cents) use ($cur): string {
             <?php endforeach; ?>
         </select>
         <p class="hint"><?= e(t('phone.f.hint')) ?></p>
-        <?php else: ?>
+        <?php elseif ($isApparel): ?>
         <div class="grid-2">
             <div>
                 <label for="p-audience"><?= e(t('product.f.audience')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -150,8 +159,8 @@ $fmtP = static function ($cents) use ($cur): string {
         </details>
 
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
-            <summary>🎚️ <?= e($isPhone ? t('phone.f.variants') : t('variant.section')) ?></summary>
-            <p class="hint"><?= e($isPhone ? t('phone.f.variants_hint') : t('variant.hint')) ?></p>
+            <summary>🎚️ <?= e($varSection) ?></summary>
+            <p class="hint"><?= e($varHint) ?></p>
             <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="variant-head">
                     <span><?= e($sizeLabel) ?></span>
