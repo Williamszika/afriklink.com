@@ -57,7 +57,8 @@ $fmtP = static function ($cents) use ($cur): string {
         $curCol = (string) (old('collection') ?: (string) ($product['collection'] ?? ''));
         $catOpts = [];
         foreach ($cols as $c) { if (trim((string) $c) !== '') { $catOpts[(string) $c] = (string) $c; } }
-        foreach ((array) config('listings.categories', []) as $gc) { $lbl = t('listing.cat.' . $gc); $catOpts[$lbl] = $lbl; }
+        // Rayons suggérés selon la catégorie VERROUILLÉE de la boutique (pas les autres catégories).
+        foreach (shop_rayons_for((string) ($boutique['category'] ?? '')) as $r) { $catOpts[(string) $r] = (string) $r; }
         ksort($catOpts, SORT_NATURAL | SORT_FLAG_CASE);
         $isOther = $curCol !== '' && !isset($catOpts[$curCol]);
         ?>

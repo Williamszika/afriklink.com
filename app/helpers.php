@@ -783,6 +783,12 @@ function product_vertical(?string $boutiqueCategory): string
     return 'generic';
 }
 
+/** @return list<string> Rayons suggérés pour la catégorie principale de la boutique. */
+function shop_rayons_for(?string $category): array
+{
+    return (array) (config('rayons', [])[(string) $category] ?? []);
+}
+
 /**
  * Nom d'une ligne de commande SANS sa déclinaison (taille/couleur/longueur), qui
  * est conservée à part dans variant_label. Le titre vaut « Nom — déclinaison » ;
