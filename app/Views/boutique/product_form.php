@@ -160,10 +160,11 @@ $fmtP = static function ($cents) use ($cur): string {
         $savedAttrs = isset($rawOld['attr']) && is_array($rawOld['attr'])
             ? $rawOld['attr']
             : (json_decode((string) ($product['attributes'] ?? ''), true) ?: []);
-        // Sous-formulaire beauté piloté par le rayon : Ongles / Parfums / (sinon) Maquillage.
+        // Sous-formulaire beauté piloté par le rayon : Ongles / Parfums / Perruque / (sinon) Maquillage.
         $isOngles = ($curCol === 'Ongles');
         $isParfum = ($curCol === 'Parfums');
-        $beautySec = $isOngles ? 'ongles' : ($isParfum ? 'parfum' : 'maquillage');
+        $isPerruque = ($curCol === 'Perruque');
+        $beautySec = $isOngles ? 'ongles' : ($isParfum ? 'parfum' : ($isPerruque ? 'perruque' : 'maquillage'));
         $ongAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
         $ongScalar = static fn (string $k): string => (string) ($rawOld['ong_' . $k] ?? ($ongAttrs[$k] ?? ''));
         $ongList = static function (string $k) use ($rawOld, $ongAttrs): array {
@@ -183,6 +184,11 @@ $fmtP = static function ($cents) use ($cur): string {
         };
         $parNotes = (array) ($ongAttrs['notes'] ?? []);
         $parNote = static fn (string $k): string => (string) ($rawOld['par_note_' . $k] ?? ($parNotes[$k] ?? ''));
+        // Perruque : specs (cheveux, texture, densité…), champs adaptatifs (humain / lace).
+        $perScalar = static fn (string $k): string => (string) ($rawOld['per_' . $k] ?? ($ongAttrs[$k] ?? ''));
+        $humanType = (string) config('beauty.perruque.human_type', 'Cheveux naturels (humains)');
+        $perHuman = $perScalar('hair_type') === $humanType;
+        $perLace  = in_array($curType, (array) beauty_perruque('lace_types'), true);
         $secAttr = static fn (string $sec): string => ' data-beauty-section="' . $sec . '"' . ($sec === $beautySec ? '' : ' hidden');
         ?>
         <div data-beauty
@@ -497,6 +503,114 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
         </div><!-- /parfum -->
+
+        <!-- ================= PERRUQUE ================= -->
+        <div<?= $secAttr('perruque') ?> data-perr data-human-type="<?= e($humanType) ?>"
+             data-lace-types="<?= e((string) json_encode(array_values((array) beauty_perruque('lace_types')), JSON_UNESCAPED_UNICODE)) ?>">
+        <div class="grid-2">
+            <div>
+                <label for="per-type"><?= e(t('perruque.f.construction')) ?> <span class="req">*</span></label>
+                <select id="per-type" name="product_type" data-pv="type" data-perr-type>
+                    <option value="">— <?= e(t('beauty.f.type_any')) ?> —</option>
+                    <?php foreach (beauty_perruque('constructions') as $c): ?><option value="<?= e($c) ?>" <?= $curType === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="per-hair"><?= e(t('perruque.f.hair_type')) ?> <span class="req">*</span></label>
+                <select id="per-hair" name="per_hair_type" data-pv="hair" data-perr-hair>
+                    <option value="">—</option>
+                    <?php foreach (beauty_perruque('hair_types') as $h): ?><option value="<?= e($h) ?>" <?= $perScalar('hair_type') === $h ? 'selected' : '' ?>><?= e($h) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>✨ <?= e(t('beauty.sec.specs')) ?></summary>
+            <div class="grid-3">
+                <div>
+                    <label for="per-texture"><?= e(t('perruque.f.texture')) ?></label>
+                    <select id="per-texture" name="per_texture" data-pv="texture">
+                        <option value="">—</option>
+                        <?php foreach (beauty_perruque('textures') as $tx): ?><option value="<?= e($tx) ?>" <?= $perScalar('texture') === $tx ? 'selected' : '' ?>><?= e($tx) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="per-densite"><?= e(t('perruque.f.density')) ?></label>
+                    <select id="per-densite" name="per_densite">
+                        <option value="">—</option>
+                        <?php foreach (beauty_perruque('densites') as $d): ?><option value="<?= e($d) ?>" <?= $perScalar('densite') === $d ? 'selected' : '' ?>><?= e($d) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="per-cap"><?= e(t('perruque.f.cap')) ?></label>
+                    <select id="per-cap" name="per_cap_size">
+                        <option value="">—</option>
+                        <?php foreach (beauty_perruque('cap_sizes') as $cs): ?><option value="<?= e($cs) ?>" <?= $perScalar('cap_size') === $cs ? 'selected' : '' ?>><?= e($cs) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <!-- Cheveux naturels : qualité + origine (affiché seulement si cheveux humains). -->
+            <div class="adaptive" data-perr-when="human"<?= $perHuman ? '' : ' hidden' ?>>
+                <p class="adaptive-label"><?= e(t('perruque.f.human_label')) ?></p>
+                <div class="grid-2">
+                    <div>
+                        <label for="per-qualite"><?= e(t('perruque.f.quality')) ?></label>
+                        <select id="per-qualite" name="per_qualite">
+                            <option value="">—</option>
+                            <?php foreach (beauty_perruque('qualites') as $q): ?><option value="<?= e($q) ?>" <?= $perScalar('qualite') === $q ? 'selected' : '' ?>><?= e($q) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="per-origine"><?= e(t('perruque.f.origin')) ?></label>
+                        <select id="per-origine" name="per_origine">
+                            <option value="">—</option>
+                            <?php foreach (beauty_perruque('origines') as $o): ?><option value="<?= e($o) ?>" <?= $perScalar('origine') === $o ? 'selected' : '' ?>><?= e($o) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="grid-3">
+                <!-- Couleur de lace : seulement pour les lace wigs. -->
+                <div data-perr-when="lace"<?= $perLace ? '' : ' hidden' ?>>
+                    <label for="per-lace"><?= e(t('perruque.f.lace_color')) ?></label>
+                    <select id="per-lace" name="per_lace_color">
+                        <option value="">—</option>
+                        <?php foreach (beauty_perruque('lace_colors') as $lc): ?><option value="<?= e($lc) ?>" <?= $perScalar('lace_color') === $lc ? 'selected' : '' ?>><?= e($lc) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="per-long"><?= e(t('perruque.f.length')) ?></label>
+                    <div class="input-suffix">
+                        <input type="text" id="per-long" name="per_longueur" inputmode="numeric" maxlength="3" value="<?= e($perScalar('longueur')) ?>" placeholder="18" data-pv="longueur">
+                        <span class="input-suffix-tag">in</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="per-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="per-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e($bcur('ean')) ?>" placeholder="3600000000000">
+                </div>
+            </div>
+            <label><?= e(t('perruque.f.color')) ?></label>
+            <div class="chip-checks chip-checks--radio">
+                <?php $curCoul = $perScalar('couleur'); foreach (beauty_perruque('couleurs') as $cr): $cn = (string) $cr[0]; $chx = (string) $cr[1]; ?>
+                    <label class="chip-check chip-check--tone"><input type="radio" name="per_couleur" value="<?= e($cn) ?>" <?= $curCoul === $cn ? 'checked' : '' ?>><span><span class="chip-dot" style="background:<?= e($chx) ?>"></span><?= e($cn) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <div class="grid-2" style="margin-top:12px">
+                <div>
+                    <label for="per-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="per-sku" name="sku" class="mono" maxlength="40" value="<?= e($bcur('sku')) ?>" placeholder="PERR-BW-18">
+                </div>
+                <div></div>
+            </div>
+            <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php foreach (beauty_perruque('atouts') as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $selAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+        </div><!-- /perruque -->
         <?php endif; ?>
 
         <div class="grid-2">
@@ -690,6 +804,64 @@ $fmtP = static function ($cents) use ($cur): string {
             </template>
         </details>
         </div><!-- /parfum decl -->
+
+        <div<?= $secAttr('perruque') ?>>
+        <?php
+        $perRows = [];
+        foreach ($realVariants as $v) {
+            $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+            $perRows[] = [
+                'long'  => (string) ($attr['size'] ?? ''),
+                'coul'  => (string) ($attr['color'] ?? ''),
+                'hex'   => (string) ($attr['hex'] ?? (perruque_couleur_hex()[(string) ($attr['color'] ?? '')] ?? '#1A1410')),
+                'stock' => $v['stock'],
+                'price' => $v['price_cents'] ?? null,
+            ];
+        }
+        ?>
+        <details class="variants-box" data-perr-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('perruque.sec.variants')) ?></summary>
+            <p class="hint"><?= e(t('perruque.sec.variants_hint')) ?></p>
+            <div class="axis-suggest" data-perr-chips-box>
+                <span class="axis-suggest-label"><strong><?= e(t('perruque.f.length')) ?></strong> · <?= e(t('variant.suggest_hint')) ?></span>
+                <div class="axis-suggest-chips" data-perr-chips>
+                    <?php foreach (beauty_perruque('longueurs') as $ln): ?><button type="button" class="axis-chip" data-perr-chip data-val="<?= e($ln) ?>"><?= e($ln) ?>"</button><?php endforeach; ?>
+                </div>
+            </div>
+            <div class="bvariant-rows perr-rows" data-perr-rows>
+                <div class="bvariant-head perr-head">
+                    <span><?= e(t('perruque.f.length')) ?></span>
+                    <span><?= e(t('perruque.f.color')) ?></span>
+                    <span></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($perRows as $pr): ?>
+                    <div class="bvariant-row perr-row">
+                        <div class="input-suffix"><input type="text" name="var_size[]" value="<?= e($pr['long']) ?>" maxlength="5" inputmode="numeric" placeholder="18" aria-label="<?= e(t('perruque.f.length')) ?>"><span class="input-suffix-tag">in</span></div>
+                        <input type="text" name="var_color[]" value="<?= e($pr['coul']) ?>" maxlength="40" placeholder="<?= e(t('perruque.f.color_ph')) ?>" list="perr-color-list" aria-label="<?= e(t('perruque.f.color')) ?>">
+                        <input type="color" name="var_hex[]" value="<?= e($pr['hex'] !== '' ? $pr['hex'] : '#1A1410') ?>" aria-label="<?= e(t('perruque.f.color')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $pr['stock'] !== null ? (int) $pr['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($pr['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-perr-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-perr-add>+ <?= e(t('perruque.f.add')) ?></button>
+            <template id="perr-variant-template">
+                <div class="bvariant-row perr-row">
+                    <div class="input-suffix"><input type="text" name="var_size[]" maxlength="5" inputmode="numeric" placeholder="18" aria-label="<?= e(t('perruque.f.length')) ?>"><span class="input-suffix-tag">in</span></div>
+                    <input type="text" name="var_color[]" maxlength="40" placeholder="<?= e(t('perruque.f.color_ph')) ?>" list="perr-color-list" aria-label="<?= e(t('perruque.f.color')) ?>">
+                    <input type="color" name="var_hex[]" value="#1A1410" aria-label="<?= e(t('perruque.f.color')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-perr-del aria-label="✕">✕</button>
+                </div>
+            </template>
+            <datalist id="perr-color-list"><?php foreach (beauty_perruque('couleurs') as $cr): ?><option value="<?= e((string) $cr[0]) ?>"></option><?php endforeach; ?></datalist>
+        </details>
+        </div><!-- /perruque decl -->
         <?php else: ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>

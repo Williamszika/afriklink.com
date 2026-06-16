@@ -896,6 +896,25 @@ function beauty_parfum(?string $key = null): array
     return (array) ($cfg[$key] ?? []);
 }
 
+/** Sous-config du rayon Perruque (constructions, textures, couleurs, longueurs…). */
+function beauty_perruque(?string $key = null): array
+{
+    $cfg = (array) config('beauty.perruque', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,string> Couleur de perruque (nom) => hex. */
+function perruque_couleur_hex(): array
+{
+    $map = [];
+    foreach (beauty_perruque('couleurs') as $row) {
+        $row = array_values((array) $row);
+        if (($row[0] ?? '') !== '') { $map[(string) $row[0]] = (string) ($row[1] ?? ''); }
+    }
+    return $map;
+}
+
 /** Filtre une liste soumise contre une liste blanche (sans doublon). @return list<string> */
 function keep_in_list(array $vals, array $allowed): array
 {

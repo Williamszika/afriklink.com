@@ -155,6 +155,32 @@ return [
         'occasions' => ['Jour', 'Soir', 'Été', 'Hiver', 'Printemps', 'Automne', 'Toutes saisons'],
         'atouts'   => ['Vegan', 'Halal', 'Rechargeable', 'Coffret cadeau', 'Testé dermatologiquement', 'Édition limitée'],
     ],
+
+    // ----- Rayon « Perruque » : déclinaison LONGUEUR × COULEUR. -----
+    // Champs adaptatifs : qualité/origine si cheveux naturels ; couleur de lace si lace wig.
+    'perruque' => [
+        'constructions' => ['Lace frontal', 'Lace closure', 'Full lace', 'HD lace', '360 lace', 'U-part', 'Headband (bandeau)', 'Glueless', 'Sans lace / capless'],
+        // Constructions « lace » qui affichent la couleur de lace.
+        'lace_types' => ['Lace frontal', 'Lace closure', 'Full lace', 'HD lace', '360 lace'],
+        'hair_types' => ['Cheveux naturels (humains)', 'Synthétique', 'Fibre haute température', 'Mélange'],
+        // Type de cheveux qui affiche qualité + origine (cheveux naturels).
+        'human_type' => 'Cheveux naturels (humains)',
+        'textures'   => ['Lisse / Straight', 'Body wave', 'Deep wave', 'Water wave', 'Loose wave', 'Bouclé / Curly', 'Crépu / Kinky', 'Kinky straight', 'Yaki', 'Afro'],
+        'densites'   => ['130%', '150%', '180%', '200%', '250%'],
+        'qualites'   => ['Remy', 'Virgin / Vierge', 'Non-Remy'],
+        'origines'   => ['Brésilien', 'Péruvien', 'Indien', 'Malaisien', 'Cambodgien', 'Européen'],
+        'cap_sizes'  => ['Small (~21")', 'Medium (~22.5")', 'Large (~24")'],
+        'lace_colors' => ['Transparent', 'HD', 'Medium brown', 'Dark brown'],
+        'longueurs'  => ['10', '12', '14', '16', '18', '20', '22', '24', '26', '30'],
+        'couleurs'   => [
+            ['Naturel 1B', '#1A1410'], ['Noir Jet 1', '#0D0B09'], ['Brun foncé 2', '#3A261C'],
+            ['Châtain 4', '#5B3A25'], ['Brun 6', '#6E4A2E'], ['Miel 27', '#B5824A'],
+            ['Blond 613', '#E4C98A'], ['Ombré', '#7A4A2E'], ['Burgundy 99J', '#5C1B2A'],
+            ['Rouge', '#8A1F2B'], ['Highlight', '#A06A3C'], ['Gris / Argent', '#B8B8B8'],
+        ],
+        'atouts' => ['Pre-plucked', 'Baby hair', 'Nœuds décolorés', 'Glueless', 'Coloriable', 'Lissable / bouclable', '100% Remy', 'Coupe possible'],
+    ],
 ];
+
 
 

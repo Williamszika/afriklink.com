@@ -37,6 +37,7 @@ $vSizes = [];
 $vColors = [];
 $vMap = [];
 $vSizeHex = [];   // beauté : pastille couleur par teinte (attributes.hex)
+$vColorHex = [];  // perruque : pastille couleur par couleur de l'axe « color »
 $vSizeNuance = []; // beauté : carnation par teinte
 foreach ($realVariants as $rv) {
     $a  = is_array($rv['attributes'] ?? null) ? $rv['attributes'] : (json_decode((string) ($rv['attributes'] ?? ''), true) ?: []);
@@ -46,6 +47,7 @@ foreach ($realVariants as $rv) {
     if ($sz !== '' && !in_array($sz, $vSizes, true)) { $vSizes[] = $sz; }
     if ($co !== '' && !in_array($co, $vColors, true)) { $vColors[] = $co; }
     if ($sz !== '' && !empty($a['hex']))    { $vSizeHex[$sz] = (string) $a['hex']; }
+    if ($co !== '' && !empty($a['hex']))    { $vColorHex[$co] = (string) $a['hex']; }
     if ($sz !== '' && !empty($a['nuance'])) { $vSizeNuance[$sz] = (string) $a['nuance']; }
     $vBase = $rv['price_cents'] !== null ? (int) $rv['price_cents'] : (int) $product['price_cents'];
     $vMap[] = [
@@ -105,12 +107,21 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['model'])) { $apTags[] = (string) $product['model']; }
                     if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }
                 } elseif ($pVertical === 'beauty') {
-                    $isOng = (string) ($product['collection'] ?? '') === 'Ongles';
-                    $isPar = (string) ($product['collection'] ?? '') === 'Parfums';
+                    $col0  = (string) ($product['collection'] ?? '');
+                    $isOng = $col0 === 'Ongles';
+                    $isPar = $col0 === 'Parfums';
+                    $isPer = $col0 === 'Perruque';
                     $bAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
-                    if ($isPar) {
+                    if ($isPer) {
+                        $pSizeLabel = t('perruque.f.length');
+                        $pColorLabel = t('perruque.f.color');
+                        foreach (['hair_type', 'texture', 'densite', 'qualite', 'origine', 'lace_color', 'cap_size'] as $pk) {
+                            if (!empty($bAttr[$pk])) { $apTags[] = (string) $bAttr[$pk]; }
+                        }
+                        if (!empty($bAttr['longueur'])) { $apTags[] = (int) $bAttr['longueur'] . '"'; }
+                    } elseif ($isPar) {
                         $pSizeLabel = t('parfum.f.volume');
                         if (!empty($bAttr['genre']))   { $apTags[] = (string) $bAttr['genre']; }
                         if (!empty($bAttr['famille']))  { $apTags[] = (string) $bAttr['famille']; }
@@ -190,8 +201,8 @@ foreach ($realVariants as $rv) {
                             <div class="variant-axis">
                                 <p class="variant-pick-label"><?= e($pColorLabel) ?> <span class="variant-pick-val" data-axis-val="color"></span></p>
                                 <div class="variant-chips">
-                                    <?php foreach ($vColors as $co): ?>
-                                        <label class="variant-chip"><input type="radio" name="pick_color" value="<?= e($co) ?>"><span><?= e($co) ?></span></label>
+                                    <?php foreach ($vColors as $co): $chx = $vColorHex[$co] ?? ($pVertical === 'beauty' ? perruque_couleur_hex()[$co] ?? null : null); ?>
+                                        <label class="variant-chip<?= $chx ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_color" value="<?= e($co) ?>"><span><?php if ($chx): ?><span class="chip-dot" style="background:<?= e($chx) ?>"></span><?php endif; ?><?= e($co) ?></span></label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>

@@ -297,6 +297,33 @@ final class ProductController
             $occ = keep_in_list((array) ($_POST['par_occasions'] ?? []), beauty_parfum('occasions'));
             if ($occ !== []) { $pa['occasions'] = $occ; }
             $attributes = $pa !== [] ? (string) json_encode($pa, JSON_UNESCAPED_UNICODE) : null;
+        } elseif ($collection === 'Perruque') {
+            // Perruque : specs cheveux + champs adaptatifs (humain → qualité/origine ; lace → couleur lace).
+            $productType = beauty_clean(input_string('product_type', ''), beauty_perruque('constructions'));
+            $atouts      = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), beauty_perruque('atouts')));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $pe = [];
+            $hair = beauty_clean(input_string('per_hair_type', ''), beauty_perruque('hair_types'));
+            if ($hair !== '') { $pe['hair_type'] = $hair; }
+            foreach (['texture' => 'textures', 'densite' => 'densites', 'cap_size' => 'cap_sizes'] as $f => $lk) {
+                $v = beauty_clean(input_string('per_' . $f, ''), beauty_perruque($lk));
+                if ($v !== '') { $pe[$f] = $v; }
+            }
+            if ($hair === (string) config('beauty.perruque.human_type', '')) {
+                $q = beauty_clean(input_string('per_qualite', ''), beauty_perruque('qualites'));
+                $o = beauty_clean(input_string('per_origine', ''), beauty_perruque('origines'));
+                if ($q !== '') { $pe['qualite'] = $q; }
+                if ($o !== '') { $pe['origine'] = $o; }
+            }
+            if (in_array($productType, (array) beauty_perruque('lace_types'), true)) {
+                $lc = beauty_clean(input_string('per_lace_color', ''), beauty_perruque('lace_colors'));
+                if ($lc !== '') { $pe['lace_color'] = $lc; }
+            }
+            $coul = trim((string) input_string('per_couleur', ''));
+            if (in_array($coul, array_map(static fn ($c) => (string) $c[0], beauty_perruque('couleurs')), true)) { $pe['couleur'] = $coul; }
+            $ln = preg_replace('/[^0-9]/', '', (string) input_string('per_longueur', ''));
+            if ($ln !== null && $ln !== '') { $pe['longueur'] = (int) $ln; }
+            $attributes = $pe !== [] ? (string) json_encode($pe, JSON_UNESCAPED_UNICODE) : null;
         } else {
             // Maquillage (v2 adaptatif au type) : caractéristiques propres au type en JSON.
             $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
@@ -434,6 +461,7 @@ final class ProductController
         } else {
             $sizes  = (array) ($_POST['var_size'] ?? []);
             $colors = (array) ($_POST['var_color'] ?? []);
+            $hexes  = (array) ($_POST['var_hex'] ?? []); // perruque : pastille couleur par déclinaison
             foreach ($sizes as $i => $sz) {
                 $size  = mb_substr(trim((string) $sz), 0, 60);
                 $color = mb_substr(trim((string) ($colors[$i] ?? '')), 0, 60);
@@ -450,6 +478,8 @@ final class ProductController
                 $attrs = [];
                 if ($size !== '')  { $attrs['size']  = $size; }
                 if ($color !== '') { $attrs['color'] = $color; }
+                $hex = trim((string) ($hexes[$i] ?? ''));
+                if (preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) { $attrs['hex'] = strtoupper($hex); }
                 $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
                 $rows[] = [
                     'attributes' => $attrs,

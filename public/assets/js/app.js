@@ -2647,11 +2647,32 @@ document.addEventListener('click', function (ev) {
     var parRows  = document.querySelector('[data-par-rows]');
     var parTpl   = document.getElementById('par-variant-template');
     var parChips = document.querySelector('[data-par-chips]');
+    var perrRows = document.querySelector('[data-perr-rows]');
+    var perrTpl  = document.getElementById('perr-variant-template');
+    var perrChips = document.querySelector('[data-perr-chips]');
+    var perrBox  = document.querySelector('[data-perr]');
+    var perHairSel = document.getElementById('per-hair');
+    var perTypeSel = document.getElementById('per-type');
+    var PERR_HUMAN = perrBox ? (perrBox.getAttribute('data-human-type') || '') : '';
+    var PERR_LACE = []; try { PERR_LACE = perrBox ? JSON.parse(perrBox.getAttribute('data-lace-types') || '[]') : []; } catch (e) { PERR_LACE = []; }
     var ONGHEX = {}; try { ONGHEX = JSON.parse(cfgEl.getAttribute('data-ongles-hex') || '{}'); } catch (e) { ONGHEX = {}; }
 
     function isOngles() { return !!(coll && coll.value === 'Ongles'); }
     function isParfum() { return !!(coll && coll.value === 'Parfums'); }
-    function activeSection() { return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : 'maquillage'); }
+    function isPerruque() { return !!(coll && coll.value === 'Perruque'); }
+    function activeSection() { return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : (isPerruque() ? 'perruque' : 'maquillage')); }
+
+    // Perruque : champs adaptatifs (qualité/origine si cheveux humains ; couleur de lace si lace wig).
+    function refreshPerrAdaptive() {
+        if (!perrBox) { return; }
+        var human = perHairSel && perHairSel.value === PERR_HUMAN;
+        var lace = perTypeSel && PERR_LACE.indexOf(perTypeSel.value) !== -1;
+        perrBox.querySelectorAll('[data-perr-when]').forEach(function (b) {
+            var on = (b.getAttribute('data-perr-when') === 'human') ? human : lace;
+            b.hidden = !on;
+            b.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        });
+    }
 
     // Affiche la section (maquillage / ongles / parfum) du rayon ; désactive les champs
     // des sections masquées pour qu'ils ne soient pas envoyés (pas de conflit).
@@ -2662,6 +2683,7 @@ document.addEventListener('click', function (ev) {
             sec.hidden = !on;
             sec.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
         });
+        refreshPerrAdaptive();
     }
 
     function meta() { return (typeSel && TYPES[typeSel.value]) ? TYPES[typeSel.value] : null; }
@@ -2796,6 +2818,10 @@ document.addEventListener('click', function (ev) {
             setText('type', fval('type'));
             var g = fval('genre'), pv = fval('volume'), fm = fval('famille');
             setText('vol', (g ? '· ' + g : '') + (pv ? ' · ' + pv + ' ml' : '') + (fm ? ' · ' + fm : ''));
+        } else if (isPerruque()) {
+            setText('type', fval('type'));
+            var tx = fval('texture'), pl = fval('longueur'), ht = fval('hair');
+            setText('vol', (tx ? '· ' + tx : '') + (pl ? ' · ' + pl + '"' : '') + (ht ? ' · ' + ht : ''));
         } else {
             setText('type', fval('type'));
             var vol = num(fval('volume'));
@@ -2863,6 +2889,28 @@ document.addEventListener('click', function (ev) {
             if (c) { ev.preventDefault(); fillParSize(c.getAttribute('data-val')); }
         });
     }
+    // Perruque : déclinaison longueur × couleur. Un clic sur une longueur remplit/ajoute une ligne.
+    function addPerrRow(val) {
+        if (!perrTpl || !perrTpl.content || !perrRows) { return null; }
+        perrRows.appendChild(perrTpl.content.cloneNode(true));
+        var row = perrRows.lastElementChild;
+        if (row && val) { var s = row.querySelector('input[name="var_size[]"]'); if (s) { s.value = val; } }
+        return row;
+    }
+    function fillPerrSize(val) {
+        var empty = null;
+        perrRows.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { if (!empty && !i.value.trim()) { empty = i; } });
+        if (empty) { empty.value = val; } else { addPerrRow(val); }
+        update();
+    }
+    if (perrChips) {
+        perrChips.addEventListener('click', function (ev) {
+            var c = ev.target && ev.target.closest ? ev.target.closest('[data-perr-chip]') : null;
+            if (c) { ev.preventDefault(); fillPerrSize(c.getAttribute('data-val')); }
+        });
+    }
+    if (perHairSel) { perHairSel.addEventListener('change', function () { refreshPerrAdaptive(); update(); }); }
+    if (perTypeSel) { perTypeSel.addEventListener('change', function () { refreshPerrAdaptive(); update(); }); }
 
     /* ---------- Événements ---------- */
     if (typeSel) { typeSel.addEventListener('change', onType); }
@@ -2878,7 +2926,8 @@ document.addEventListener('click', function (ev) {
         if (ev.target.closest('[data-beauty-add]')) { var r = addRow(null); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
         if (ev.target.closest('[data-ong-add]')) { var ro = addOngRow(); if (ro) { var fo = ro.querySelector('select'); if (fo) { fo.focus(); } } return; }
         if (ev.target.closest('[data-par-add]')) { var rp = addParRow(''); if (rp) { var fp = rp.querySelector('input'); if (fp) { fp.focus(); } } return; }
-        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del]');
+        if (ev.target.closest('[data-perr-add]')) { var rpe = addPerrRow(''); if (rpe) { var fpe = rpe.querySelector('input'); if (fpe) { fpe.focus(); } } return; }
+        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del], [data-perr-del]');
         if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); update(); } }
     });
     form.addEventListener('input', update);
