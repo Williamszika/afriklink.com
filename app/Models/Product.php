@@ -557,6 +557,10 @@ final class Product
         if (!empty($f['in_stock'])) { $where[] = '(p.stock IS NULL OR p.stock > 0)'; }
         if ($min !== null) { $where[] = 'p.price_cents >= :pmin'; $args['pmin'] = $min * 100; }
         if ($max !== null) { $where[] = 'p.price_cents <= :pmax'; $args['pmax'] = $max * 100; }
+        $aud = (string) ($f['audience'] ?? '');
+        if ($aud !== '') { $where[] = 'p.audience = :aud'; $args['aud'] = $aud; }
+        $garment = (string) ($f['garment'] ?? '');
+        if ($garment !== '') { $where[] = 'p.garment_category = :garment'; $args['garment'] = $garment; }
 
         $order = match ((string) ($f['sort'] ?? 'recent')) {
             'price_asc'  => 'p.price_cents ASC',

@@ -75,6 +75,8 @@ final class HomeController
             'min'      => preg_replace('/\D+/', '', (string) input_string('min', '')),
             'max'      => preg_replace('/\D+/', '', (string) input_string('max', '')),
             'sort'     => whitelist((string) input_string('tri', 'recent'), ['recent', 'price_asc', 'price_desc'], 'recent'),
+            'audience' => apparel_audience_clean(input_string('genre', '')),
+            'garment'  => apparel_category_clean(input_string('vetement', '')),
             'limit'    => $limit,
             'offset'   => ($page - 1) * $limit,
         ];

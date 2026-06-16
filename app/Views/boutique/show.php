@@ -115,11 +115,36 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     </div>
                 <?php endif; ?>
             </div>
-            <?php $rayons = $collections ?? []; $curRayon = $rayon ?? ''; if ($rayons !== []): $sfx = ($sort ?? '') !== '' ? '&tri=' . $sort : ''; ?>
+            <?php
+            $shopQS = static function (array $over) use ($boutique, $rayon, $sort, $genre, $vetement): string {
+                $p = array_merge(array_filter([
+                    'rayon' => $rayon ?? '', 'tri' => $sort ?? '', 'genre' => $genre ?? '', 'vetement' => $vetement ?? '',
+                ], static fn ($v): bool => $v !== '' && $v !== null), $over);
+                $p = array_filter($p, static fn ($v): bool => $v !== '' && $v !== null);
+                return url('/boutique/' . $boutique['slug'] . ($p !== [] ? '?' . http_build_query($p) : ''));
+            };
+            ?>
+            <?php if (!empty($shop_genres)): ?>
                 <div class="shop-rayons">
-                    <a class="chip-filter<?= $curRayon === '' ? ' is-active' : '' ?>" href="<?= e(url('/boutique/' . $boutique['slug'] . (($sort ?? '') !== '' ? '?tri=' . $sort : ''))) ?>"><?= e(t('shop.rayon_all')) ?></a>
+                    <a class="chip-filter<?= ($genre ?? '') === '' ? ' is-active' : '' ?>" href="<?= e($shopQS(['genre' => ''])) ?>"><?= e(t('shop.genre_all')) ?></a>
+                    <?php foreach ($shop_genres as $g): ?>
+                        <a class="chip-filter<?= ($genre ?? '') === $g ? ' is-active' : '' ?>" href="<?= e($shopQS(['genre' => $g])) ?>"><?= e(t('apparel.aud.' . $g)) ?></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <?php if (!empty($shop_garments)): ?>
+                <div class="shop-rayons">
+                    <a class="chip-filter<?= ($vetement ?? '') === '' ? ' is-active' : '' ?>" href="<?= e($shopQS(['vetement' => ''])) ?>"><?= e(t('shop.garment_all')) ?></a>
+                    <?php foreach ($shop_garments as $g): ?>
+                        <a class="chip-filter<?= ($vetement ?? '') === $g ? ' is-active' : '' ?>" href="<?= e($shopQS(['vetement' => $g])) ?>"><?= e(t('apparel.cat.' . $g)) ?></a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <?php $rayons = $collections ?? []; $curRayon = $rayon ?? ''; if ($rayons !== []): ?>
+                <div class="shop-rayons">
+                    <a class="chip-filter<?= $curRayon === '' ? ' is-active' : '' ?>" href="<?= e($shopQS(['rayon' => ''])) ?>"><?= e(t('shop.rayon_all')) ?></a>
                     <?php foreach ($rayons as $c): ?>
-                        <a class="chip-filter<?= $curRayon === $c ? ' is-active' : '' ?>" href="<?= e(url('/boutique/' . $boutique['slug'] . '?rayon=' . rawurlencode((string) $c) . $sfx)) ?>"><?= e((string) $c) ?></a>
+                        <a class="chip-filter<?= $curRayon === $c ? ' is-active' : '' ?>" href="<?= e($shopQS(['rayon' => (string) $c])) ?>"><?= e((string) $c) ?></a>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>

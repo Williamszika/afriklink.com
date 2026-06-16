@@ -311,6 +311,15 @@ final class BoutiqueController
                 };
             });
         }
+        // Filtres prêt-à-porter réellement présents dans cette boutique (n'afficher que l'utile).
+        $shopGenres = [];
+        $shopGarments = [];
+        foreach ($products as $p) {
+            $a = (string) ($p['audience'] ?? '');
+            $g = (string) ($p['garment_category'] ?? '');
+            if ($a !== '' && !in_array($a, $shopGenres, true)) { $shopGenres[] = $a; }
+            if ($g !== '' && !in_array($g, $shopGarments, true)) { $shopGarments[] = $g; }
+        }
         // Rayons (catégories de produits) : filtre optionnel de la vitrine.
         $collections = \App\Models\Product::collectionsFor((int) $boutique['id'], true);
         $rayon = whitelist((string) input_string('rayon', ''), $collections, '');
@@ -319,6 +328,14 @@ final class BoutiqueController
                 $products,
                 static fn (array $p): bool => (string) ($p['collection'] ?? '') === $rayon
             ));
+        }
+        $genre = apparel_audience_clean(input_string('genre', ''));
+        if ($genre !== '') {
+            $products = array_values(array_filter($products, static fn (array $p): bool => (string) ($p['audience'] ?? '') === $genre));
+        }
+        $vet = apparel_category_clean(input_string('vetement', ''));
+        if ($vet !== '') {
+            $products = array_values(array_filter($products, static fn (array $p): bool => (string) ($p['garment_category'] ?? '') === $vet));
         }
         $banners  = Boutique::banners((int) $boutique['id']);
         $ogImage  = $banners[0] ?? ($boutique['logo_public_id'] ?? null);
@@ -331,6 +348,10 @@ final class BoutiqueController
             'products' => $products,
             'collections' => $collections,
             'rayon'    => $rayon,
+            'shop_genres'   => $shopGenres,
+            'shop_garments' => $shopGarments,
+            'genre'    => $genre,
+            'vetement' => $vet,
             'sort'     => $sort,
             'mains'    => \App\Models\Product::mainPhotos($ids),
             'ratings'  => $ratings,

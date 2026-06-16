@@ -9,6 +9,7 @@ $countries = $countries ?? [];
 $baseParams = array_filter([
     'q' => $f['q'], 'categorie' => $f['category'], 'pays' => $f['country'], 'ville' => $f['city'],
     'stock' => !empty($f['in_stock']) ? '1' : '', 'min' => $f['min'], 'max' => $f['max'], 'tri' => $f['sort'],
+    'genre' => $f['audience'] ?? '', 'vetement' => $f['garment'] ?? '',
 ], static fn ($v): bool => $v !== '' && $v !== null);
 $qs = static fn (array $over): string => http_build_query(array_merge($baseParams, $over));
 ?>
@@ -22,6 +23,25 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
             <option value=""><?= e(t('explore.all_categories')) ?></option>
             <?php foreach ($categories as $c): ?>
                 <option value="<?= e($c) ?>" <?= $f['category'] === $c ? 'selected' : '' ?>><?= e(t('listing.cat.' . $c)) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <select name="genre" class="explore-filter" aria-label="<?= e(t('product.f.audience')) ?>">
+            <option value=""><?= e(t('explore.genre_all')) ?></option>
+            <?php foreach (apparel_audiences() as $aud): ?>
+                <option value="<?= e($aud) ?>" <?= ($f['audience'] ?? '') === $aud ? 'selected' : '' ?>><?= e(t('apparel.aud.' . $aud)) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <select name="vetement" class="explore-filter" aria-label="<?= e(t('product.f.garment')) ?>">
+            <option value=""><?= e(t('explore.garment_all')) ?></option>
+            <?php
+            $byGroup = [];
+            foreach (apparel_categories() as $gk => $gc) { $byGroup[(string) $gc[0]][$gk] = $gc; }
+            foreach ($byGroup as $grp => $cats): ?>
+                <optgroup label="<?= e(t('apparel.grp.' . $grp)) ?>">
+                    <?php foreach ($cats as $gk => $gc): ?>
+                        <option value="<?= e((string) $gk) ?>" <?= ($f['garment'] ?? '') === (string) $gk ? 'selected' : '' ?>><?= e(t('apparel.cat.' . $gk)) ?></option>
+                    <?php endforeach; ?>
+                </optgroup>
             <?php endforeach; ?>
         </select>
         <?php if ($countries !== []): ?>
