@@ -76,15 +76,64 @@ final class AffiliateController
             $data['directory']    = Boutique::participating(60);
             $data['dir_products'] = $products;
             $data['dir_mains']    = Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products));
+            $cc = (string) ($user['country_code'] ?? '');
             $data['wallet']       = [
                 'balance'     => Wallet::balanceCents($uid),
                 'currency'    => $cur,
                 'threshold'   => Wallet::thresholdCents($cur),
                 'can'         => Wallet::canWithdraw($uid),
                 'withdrawals' => Wallet::withdrawalsFor($uid),
+                'country'     => $cc,
+                'providers'   => payout_providers_for($cc),
             ];
         }
         view('affiliation/hub', $data);
+    }
+
+    /** Catalogue des produits affiliés à partager, avec filtres (recherche, catégorie, tri). */
+    public function products(Request $request): void
+    {
+        $user    = current_user() ?? [];
+        $uid     = (int) ($user['id'] ?? 0);
+        $canEarn = ($user['account_type'] ?? '') !== 'professionnel';
+        $code    = $canEarn ? Affiliate::codeFor($uid) : '';
+        $filters = [
+            'q'        => trim((string) input_string('q', '')),
+            'category' => (string) input_string('cat', ''),
+            'sort'     => (string) input_string('tri', ''),
+        ];
+        $products = Product::participating(60, $filters);
+        view('affiliation/products', [
+            'user'       => $user,
+            'code'       => $code,
+            'link'       => $code !== '' ? url('/r/' . $code) : '',
+            'products'   => $products,
+            'mains'      => Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'filters'    => $filters,
+            'categories' => (array) config('listings.categories', []),
+            'page_title' => t('aff.cat_title'),
+        ]);
+    }
+
+    /** Suivi PAR LIEN : pour chaque lien partagé, clics / ventes / gains. */
+    public function links(Request $request): void
+    {
+        $user    = current_user() ?? [];
+        $uid     = (int) ($user['id'] ?? 0);
+        $canEarn = ($user['account_type'] ?? '') !== 'professionnel';
+        $code    = $canEarn ? Affiliate::codeFor($uid) : '';
+        $rows    = Affiliate::linkStats($uid, 100);
+        foreach ($rows as &$r) {
+            $r['label'] = Affiliate::labelForTarget((string) ($r['target'] ?? ''));
+        }
+        unset($r);
+        view('affiliation/links', [
+            'user'       => $user,
+            'code'       => $code,
+            'link'       => $code !== '' ? url('/r/' . $code) : '',
+            'rows'       => $rows,
+            'page_title' => t('aff.links_title'),
+        ]);
     }
 
     /** Demande de retrait du solde (commissions d'affiliation) — ouvert à tout membre. */

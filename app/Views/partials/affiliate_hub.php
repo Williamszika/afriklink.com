@@ -198,6 +198,12 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
         </div>
     </div>
 
+    <!-- 2a. Accès rapides : catalogue + suivi par lien -->
+    <div class="aff-quick">
+        <a class="btn btn-primary" href="<?= e(url('/affiliation/produits')) ?>"><?= icon('bag', ['size' => 16]) ?> <?= e(t('aff.cat_title')) ?></a>
+        <a class="btn btn-ghost" href="<?= e(url('/affiliation/liens')) ?>"><?= icon('link', ['size' => 16]) ?> <?= e(t('aff.links_title')) ?></a>
+    </div>
+
     <!-- 2b. Portefeuille : solde + retrait -->
     <?php if ($wallet !== null): ?>
         <div class="panel">
@@ -209,6 +215,9 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                     <strong class="aff-wallet-amount"><?= e(format_price((int) $wallet['balance'], (string) $wallet['currency'])) ?></strong>
                 </div>
                 <?php if (!empty($wallet['can'])): ?>
+                    <?php if (!empty($wallet['providers'])): $cn = country_name((string) ($wallet['country'] ?? '')); ?>
+                        <p class="hint aff-wd-providers"><?= e(t('aff.wd_providers', ['list' => implode(', ', $wallet['providers'])])) ?><?= $cn !== '' ? ' (' . e($cn) . ')' : '' ?></p>
+                    <?php endif; ?>
                     <form method="post" action="<?= e(url('/affiliation/retrait')) ?>" class="aff-wd-form">
                         <?= csrf_field() ?>
                         <label class="aff-wd-field">

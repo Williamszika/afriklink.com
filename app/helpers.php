@@ -690,6 +690,14 @@ function affiliate_line_commission_cents(int $lineTotalCents, int $rateBps): int
     return (int) round($lineTotalCents * $affBps / 10000);
 }
 
+/** Moyens de retrait proposés pour un pays (Mobile Money local + virement). @return list<string> */
+function payout_providers_for(?string $countryCode): array
+{
+    $map  = (array) config('payment.payout_providers', []);
+    $list = $map[strtoupper((string) $countryCode)] ?? null;
+    return is_array($list) && $list !== [] ? $list : ['Mobile Money', 'Virement bancaire'];
+}
+
 /** Formate des centimes en prix lisible : « 12,50 € », « 15 000 F CFA ». */
 function format_price(int $cents, string $currency): string
 {

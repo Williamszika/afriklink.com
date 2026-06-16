@@ -100,6 +100,8 @@ return [
     ['GET',  '/mes-achats',        [DashboardController::class, 'purchases'], ['auth']],
     // Affiliation — hub universel (tout membre) : lien perso, gains, annuaire des boutiques participantes.
     ['GET',  '/affiliation',           [AffiliateController::class, 'hub'],          ['auth']],
+    ['GET',  '/affiliation/produits',  [AffiliateController::class, 'products'],     ['auth']],
+    ['GET',  '/affiliation/liens',     [AffiliateController::class, 'links'],        ['auth']],
     ['GET',  '/affiliation/mes-produits', [AffiliateController::class, 'vendorProducts'],     ['auth']],
     ['POST', '/affiliation/mes-produits', [AffiliateController::class, 'vendorProductsSave'], ['auth', 'csrf', 'throttle:aff,40,3600']],
     ['POST', '/affiliation/retrait',   [AffiliateController::class, 'withdraw'],     ['auth', 'csrf', 'throttle:wd,20,3600']],

@@ -24,6 +24,22 @@ return [
     // Taux d'affiliation MAX qu'un vendeur peut fixer par produit (garde-fou).
     'affiliate_max_rate_pct' => (float) env('AFFILIATE_MAX_RATE_PCT', 50.0),
 
+    // Moyens de retrait proposés selon le pays (Mobile Money local + virement).
+    'payout_providers' => [
+        'SN' => ['Wave', 'Orange Money', 'Free Money'],
+        'CI' => ['Wave', 'Orange Money', 'MTN MoMo', 'Moov Money'],
+        'ML' => ['Orange Money', 'Moov Money'],
+        'BF' => ['Orange Money', 'Moov Money'],
+        'BJ' => ['MTN MoMo', 'Moov Money'],
+        'TG' => ['T-Money', 'Moov Money'],
+        'CM' => ['Orange Money', 'MTN MoMo'],
+        'NG' => ['Virement bancaire', 'OPay', 'Paystack'],
+        'KE' => ['M-Pesa', 'Airtel Money'],
+        'GH' => ['MTN MoMo', 'Vodafone Cash'],
+        'CD' => ['M-Pesa', 'Orange Money', 'Airtel Money'],
+        'CG' => ['MTN MoMo', 'Airtel Money'],
+    ],
+
     // Fournisseur par défaut proposé au vendeur.
     'default' => 'simulation',
 
