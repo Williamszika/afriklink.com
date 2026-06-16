@@ -338,6 +338,40 @@ final class ProductController
             $pao = beauty_clean(input_string('pao', ''), beauty_soins_pao());
             $sa = beauty_soins_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []), (array) ($_POST['soins_actif'] ?? []));
             $attributes = $sa !== [] ? (string) json_encode($sa, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (product_vertical((string) ($boutique['category'] ?? '')) === 'beauty' && $collection !== '' && $collection !== 'Maquillage') {
+            // AUTRE — rayon beauté libre/personnalisé : type, caractéristiques (libellé→valeur),
+            // axe de déclinaison et atouts TOUS libres (validation par longueur/quantité).
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = '';
+            $volRaw = trim((string) input_string('volume', ''));
+            $volume = ($volRaw !== '' && is_numeric(str_replace(',', '.', $volRaw))) ? round((float) str_replace(',', '.', $volRaw), 2) : null;
+            if ($volume !== null && ($volume < 0 || $volume > 999999)) { $volume = null; }
+            $volumeUnit = beauty_clean(input_string('volume_unit', ''), ['ml', 'g', 'pcs']);
+            if ($volumeUnit === '') { $volumeUnit = 'ml'; }
+            $pao = beauty_clean(input_string('pao', ''), ['6M', '12M', '18M', '24M', '36M']);
+            // Atouts libres (suggérés + personnalisés) : nettoyés, max 20.
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            // Caractéristiques libres (libellé → valeur), max 20.
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $specs = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($specs[$lb])) { $specs[$lb] = $vv; }
+                if (count($specs) >= 20) { break; }
+            }
+            $aAttr = [];
+            if ($specs !== []) { $aAttr['specs'] = $specs; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $aAttr['variant_axis'] = $axis; }
+            $attributes = $aAttr !== [] ? (string) json_encode($aAttr, JSON_UNESCAPED_UNICODE) : null;
         } else {
             // Maquillage (v2 adaptatif au type) : caractéristiques propres au type en JSON.
             $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
@@ -492,8 +526,9 @@ final class ProductController
                 $attrs = [];
                 if ($size !== '')  { $attrs['size']  = $size; }
                 if ($color !== '') { $attrs['color'] = $color; }
+                // hex pris en compte sauf si l'éditeur « autre » a désactivé la couleur.
                 $hex = trim((string) ($hexes[$i] ?? ''));
-                if (preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) { $attrs['hex'] = strtoupper($hex); }
+                if (((string) ($_POST['var_has_color'] ?? '1')) !== '0' && preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) { $attrs['hex'] = strtoupper($hex); }
                 $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
                 $rows[] = [
                     'attributes' => $attrs,

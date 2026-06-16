@@ -962,6 +962,42 @@ function beauty_soins_attr_clean(?string $rayon, ?string $type, array $attrs, ar
     return $out;
 }
 
+/** Sous-config « Autre / nouveau rayon » beauté (suggestions, axes, conformité, R). */
+function beauty_autre(?string $key = null): array
+{
+    $cfg = (array) config('beauty.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Identifiant (slug) d'un libellé de rayon — même logique que le JS (sans accents, tirets). */
+function beauty_slug(?string $label): string
+{
+    $s = mb_strtolower(trim((string) $label), 'UTF-8');
+    $s = strtr($s, [
+        'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a', 'ã' => 'a', 'å' => 'a', 'ç' => 'c',
+        'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e', 'î' => 'i', 'ï' => 'i', 'í' => 'i', 'ì' => 'i',
+        'ô' => 'o', 'ö' => 'o', 'ó' => 'o', 'õ' => 'o', 'ò' => 'o', 'ù' => 'u', 'û' => 'u', 'ü' => 'u', 'ú' => 'u',
+        'ñ' => 'n', 'ÿ' => 'y', 'œ' => 'oe', 'æ' => 'ae', '’' => ' ', "'" => ' ',
+    ]);
+    $s = preg_replace('/[^a-z0-9]+/', '-', $s) ?? '';
+    return trim($s, '-') ?: 'autre';
+}
+
+/** Config adaptative d'un rayon « autre » par son libellé (ou null si inconnu). */
+function beauty_autre_cfg(?string $rayon): ?array
+{
+    $r = beauty_autre('R')[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
+/** Type de conformité d'un rayon « autre » ('cosmetic' par défaut). */
+function beauty_autre_warn(?string $rayon): string
+{
+    $cfg = beauty_autre_cfg($rayon);
+    return (string) ($cfg['warn'] ?? 'cosmetic');
+}
+
 /** @return array<string,string> Couleur de perruque (nom) => hex. */
 function perruque_couleur_hex(): array
 {

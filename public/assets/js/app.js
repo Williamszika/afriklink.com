@@ -2668,13 +2668,38 @@ document.addEventListener('click', function (ev) {
     var soinsAtoutsChips = document.querySelector('[data-soins-atouts-chips]');
     function soinsKind() { return (coll && coll.value === 'Soins visage') ? 'visage' : 'corps'; }
     function soinsCfg() { return SOINS[soinsKind()] || {}; }
+    // « Autre / nouveau rayon » : formulaire générique adaptatif (specs libres, axe libre).
+    var AUTRE = parse('data-autre');
+    var collOther = document.querySelector('[data-collection-other]');
+    var autreSpecsBox = document.querySelector('[data-autre-specs]');
+    var autreSpecTpl = document.getElementById('autre-spec-template');
+    var autreRowsBox = document.querySelector('[data-autre-rows]');
+    var autreVarTpl = document.getElementById('autre-variant-template');
+    var SPECIALIZED = ['Maquillage', 'Parfums', 'Perruque', 'Ongles', 'Soins corps', 'Soins visage'];
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreRayon() {
+        if (coll && coll.value === '__other__') { return collOther ? String(collOther.value || '').trim() : ''; }
+        return coll ? coll.value : '';
+    }
+    function autreCfg() { return (AUTRE.R || {})[autreSlug(autreRayon())] || null; }
 
     function isOngles() { return !!(coll && coll.value === 'Ongles'); }
     function isParfum() { return !!(coll && coll.value === 'Parfums'); }
     function isPerruque() { return !!(coll && coll.value === 'Perruque'); }
     function isSoins() { return !!(coll && (coll.value === 'Soins corps' || coll.value === 'Soins visage')); }
+    function isAutre() {
+        if (!coll) { return false; }
+        if (coll.value === '__other__') { return true; }
+        return coll.value !== '' && SPECIALIZED.indexOf(coll.value) === -1;
+    }
     function activeSection() {
-        return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : (isPerruque() ? 'perruque' : (isSoins() ? 'soins' : 'maquillage')));
+        if (isOngles()) { return 'ongles'; }
+        if (isParfum()) { return 'parfum'; }
+        if (isPerruque()) { return 'perruque'; }
+        if (isSoins()) { return 'soins'; }
+        if (coll && coll.value === 'Maquillage') { return 'maquillage'; }
+        if (isAutre()) { return 'autre'; }
+        return 'maquillage';
     }
 
     // Perruque : champs adaptatifs (qualité/origine si cheveux humains ; couleur de lace si lace wig).
@@ -2905,6 +2930,89 @@ document.addEventListener('click', function (ev) {
         update();
     }
 
+    /* ---------- Autre / nouveau rayon : générique adaptatif ---------- */
+    function setChecksHtmlList(box, list, name, checkedFn) {
+        if (!box) { return; }
+        box.innerHTML = '';
+        (list || []).forEach(function (v) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = name; inp.value = v;
+            if (checkedFn && checkedFn(v)) { inp.checked = true; }
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(inp); lab.appendChild(sp); box.appendChild(lab);
+        });
+    }
+    function autreApplyColorCol() {
+        var tog = document.querySelector('[data-autre-color-toggle]');
+        if (autreRowsBox) { autreRowsBox.classList.toggle('has-color', !!(tog && tog.checked)); }
+    }
+    function autreAxisLabel() {
+        var ax = document.querySelector('[data-autre-axis]');
+        var lab = document.querySelector('[data-autre-axis-label]');
+        if (lab) { lab.textContent = (ax && ax.value.trim()) ? ax.value.trim() : (cfgEl.getAttribute('data-opt') || 'Option'); }
+    }
+    function autreBuildSpecChips() {
+        var box = document.querySelector('[data-autre-spec-chips]'); if (!box) { return; }
+        var cfg = autreCfg();
+        var list = cfg ? cfg.specs : (AUTRE.generic_specs || []);
+        box.innerHTML = '';
+        (list || []).forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-autre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            box.appendChild(b);
+        });
+    }
+    function autreRefreshWarn() {
+        var cfg = autreCfg();
+        var type = cfg ? (cfg.warn || 'cosmetic') : 'cosmetic';
+        var box = document.querySelector('[data-autre-warn]');
+        var txt = document.querySelector('[data-autre-warn-text]');
+        if (txt) { txt.textContent = (AUTRE.warn_texts || {})[type] || ''; }
+        if (box) { box.hidden = (type === 'none'); }
+    }
+    function adaptAutre() {
+        var cfg = autreCfg();
+        var hint = document.querySelector('[data-autre-rayon-hint]');
+        if (hint) {
+            var r = autreRayon();
+            hint.textContent = cfg ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', r)) : (cfgEl.getAttribute('data-autre-generic') || '');
+        }
+        if (cfg) {
+            var ax = document.querySelector('[data-autre-axis]'); if (ax && !ax.value.trim()) { ax.value = cfg.axis || ''; }
+            var u = document.getElementById('autre-unit'); if (u && cfg.unit) { u.value = cfg.unit; }
+            var tag = document.querySelector('[data-autre-unit-tag]'); if (tag && cfg.unit) { tag.textContent = cfg.unit; }
+            var tog = document.querySelector('[data-autre-color-toggle]'); if (tog) { tog.checked = !!cfg.color; }
+        }
+        autreBuildSpecChips(); autreRefreshWarn(); autreApplyColorCol(); autreAxisLabel(); update();
+    }
+    function addAutreSpec(label) {
+        if (!autreSpecTpl || !autreSpecTpl.content || !autreSpecsBox) { return null; }
+        autreSpecsBox.appendChild(autreSpecTpl.content.cloneNode(true));
+        var row = autreSpecsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+        return row;
+    }
+    function addAutreVar() {
+        if (!autreVarTpl || !autreVarTpl.content || !autreRowsBox) { return null; }
+        autreRowsBox.appendChild(autreVarTpl.content.cloneNode(true));
+        return autreRowsBox.lastElementChild;
+    }
+    function pushAutreAtout() {
+        var inp = document.querySelector('[data-autre-atout-input]');
+        var box = document.querySelector('[data-autre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = ''; update();
+    }
+
     /* ---------- Aperçu fiche ---------- */
     var root = document.querySelector('[data-pv-root]');
     var curInt = root ? root.getAttribute('data-cur-int') === '1' : false;
@@ -3041,7 +3149,16 @@ document.addEventListener('click', function (ev) {
 
     /* ---------- Événements ---------- */
     if (typeSel) { typeSel.addEventListener('change', onType); }
-    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isSoins()) { rebuildSoins(); } if (!meta()) { buildChips(); } update(); }); }
+    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isSoins()) { rebuildSoins(); } if (isAutre()) { adaptAutre(); } if (!meta()) { buildChips(); } update(); }); }
+    if (collOther) { collOther.addEventListener('input', function () { if (isAutre()) { adaptAutre(); } }); }
+    var autreAxisInp = document.querySelector('[data-autre-axis]');
+    if (autreAxisInp) { autreAxisInp.addEventListener('input', function () { autreAxisLabel(); update(); }); }
+    var autreColorTog = document.querySelector('[data-autre-color-toggle]');
+    if (autreColorTog) { autreColorTog.addEventListener('change', function () { autreApplyColorCol(); update(); }); }
+    var autreUnitSel = document.getElementById('autre-unit');
+    if (autreUnitSel) { autreUnitSel.addEventListener('change', function () { var t = document.querySelector('[data-autre-unit-tag]'); if (t) { t.textContent = autreUnitSel.value; } update(); }); }
+    var autreAtoutInp = document.querySelector('[data-autre-atout-input]');
+    if (autreAtoutInp) { autreAtoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAutreAtout(); } }); }
     if (chips) {
         chips.addEventListener('click', function (ev) {
             var c = ev.target && ev.target.closest ? ev.target.closest('[data-bchip]') : null;
@@ -3055,7 +3172,22 @@ document.addEventListener('click', function (ev) {
         if (ev.target.closest('[data-par-add]')) { var rp = addParRow(''); if (rp) { var fp = rp.querySelector('input'); if (fp) { fp.focus(); } } return; }
         if (ev.target.closest('[data-perr-add]')) { var rpe = addPerrRow(''); if (rpe) { var fpe = rpe.querySelector('input'); if (fpe) { fpe.focus(); } } return; }
         if (ev.target.closest('[data-soins-add]')) { var rs = addSoinsRow(''); if (rs) { var fs = rs.querySelector('input'); if (fs) { fs.focus(); } } return; }
-        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del], [data-perr-del], [data-soins-del]');
+        if (ev.target.closest('[data-autre-add]')) { var ra = addAutreVar(); if (ra) { var fa = ra.querySelector('input'); if (fa) { fa.focus(); } } return; }
+        if (ev.target.closest('[data-autre-spec-add]')) { addAutreSpec(''); return; }
+        if (ev.target.closest('[data-autre-atout-add]')) { pushAutreAtout(); return; }
+        var aspec = ev.target.closest('[data-autre-spec]');
+        if (aspec) { ev.preventDefault(); addAutreSpec(aspec.getAttribute('data-val')); return; }
+        var aray = ev.target.closest('[data-autre-rayon]');
+        if (aray) {
+            ev.preventDefault();
+            var rn = aray.getAttribute('data-autre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-autre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); update(); } return; }
+        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del], [data-perr-del], [data-soins-del], [data-autre-del]');
         if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); update(); } }
     });
     form.addEventListener('input', update);

@@ -2016,6 +2016,20 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .perr-row input[type=color]{padding:3px;height:42px;width:100%;cursor:pointer;border:1px solid var(--afk-ligne,#e4d8bb);border-radius:9px;background:#fff}
 .perr-row .input-suffix input{padding-right:30px}
 @media(max-width:680px){.perr-head,.perr-row{grid-template-columns:1fr 1fr}}
+/* Autre / nouveau rayon : caractéristiques libres + déclinaisons libres */
+.chips-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.spec-rows{display:grid;gap:8px;margin:10px 0}
+.spec-head,.spec-row{display:grid;grid-template-columns:1fr 1.3fr 34px;gap:8px;align-items:center}
+.spec-head{font:600 11px/1 var(--afk-mono,monospace);letter-spacing:.04em;text-transform:uppercase;color:var(--muted,#857a66);padding:0 2px 6px}
+.spec-row input{margin:0}
+.autre-head,.autre-row{grid-template-columns:1.4fr .9fr 1fr 34px}
+.autre-rows.has-color .autre-head,.autre-rows.has-color .autre-row{grid-template-columns:1.4fr 46px .9fr 1fr 34px}
+.autre-col-color{display:none}
+.autre-rows.has-color .autre-col-color{display:block}
+.autre-row input[type=color]{padding:3px;height:42px;width:100%;cursor:pointer;border:1px solid var(--afk-ligne,#e4d8bb);border-radius:9px;background:#fff}
+.autre-row input,.autre-row select{margin:0}
+.autre-atout-add{display:flex;gap:8px;margin-top:10px}
+@media(max-width:680px){.spec-head{display:none}.spec-row,.autre-head,.autre-row,.autre-rows.has-color .autre-row{grid-template-columns:1fr 1fr}}
 
 .auth-card--beauty{max-width:1040px}
 .pf-plain{display:contents}

@@ -111,6 +111,7 @@ foreach ($realVariants as $rv) {
                     $isOng = $col0 === 'Ongles';
                     $isPar = $col0 === 'Parfums';
                     $isPer = $col0 === 'Perruque';
+                    $isAutreP = !in_array($col0, ['Ongles', 'Parfums', 'Perruque', 'Soins corps', 'Soins visage', 'Maquillage', ''], true);
                     $bAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
@@ -142,6 +143,17 @@ foreach ($realVariants as $rv) {
                         foreach ((array) ($bAttr['designs'] ?? []) as $d) { $apTags[] = (string) $d; }
                         $hexMap = ongles_couleur_hex();
                         foreach ((array) ($bAttr['couleurs'] ?? []) as $cn) { $pOngColors[] = ['n' => (string) $cn, 'c' => $hexMap[(string) $cn] ?? '#ccc']; }
+                    } elseif ($isAutreP) {
+                        // Rayon libre : axe de déclinaison + caractéristiques (libellé→valeur).
+                        if (!empty($bAttr['variant_axis'])) { $pSizeLabel = (string) $bAttr['variant_axis']; }
+                        if (((float) ($product['volume'] ?? 0)) > 0) {
+                            $apTags[] = rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml');
+                        }
+                        foreach ((array) ($bAttr['specs'] ?? []) as $sl => $sv) {
+                            $sv = trim((string) $sv);
+                            if ($sv !== '') { $apTags[] = $sv; }
+                        }
+                        if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                     } else {
                         if (!empty($product['line'])) { $apTags[] = (string) $product['line']; }
                         if (((float) ($product['volume'] ?? 0)) > 0) {

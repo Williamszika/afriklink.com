@@ -166,7 +166,10 @@ $fmtP = static function ($cents) use ($cur): string {
         $isPerruque = ($curCol === 'Perruque');
         $isSoins = in_array($curCol, ['Soins corps', 'Soins visage'], true);
         $soinsKind = beauty_soins_kind($curCol); // 'corps' | 'visage'
-        $beautySec = $isOngles ? 'ongles' : ($isParfum ? 'parfum' : ($isPerruque ? 'perruque' : ($isSoins ? 'soins' : 'maquillage')));
+        // Rayon beauté spécialisé → sa section ; vide → maquillage ; sinon (libre/custom) → autre.
+        $beautySpecialized = ['Maquillage' => 'maquillage', 'Ongles' => 'ongles', 'Parfums' => 'parfum', 'Perruque' => 'perruque', 'Soins corps' => 'soins', 'Soins visage' => 'soins'];
+        $beautySec = $beautySpecialized[$curCol] ?? ($curCol === '' ? 'maquillage' : 'autre');
+        $isAutre = ($beautySec === 'autre');
         $ongAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
         $ongScalar = static fn (string $k): string => (string) ($rawOld['ong_' . $k] ?? ($ongAttrs[$k] ?? ''));
         $ongList = static function (string $k) use ($rawOld, $ongAttrs): array {
@@ -201,6 +204,31 @@ $fmtP = static function ($cents) use ($cur): string {
         $soinsWarnValue = (string) config('beauty.soins.' . $soinsKind . '.warn_value', '');
         $soinsWarn = $soinsTypeMeta !== null && (!empty($soinsTypeMeta['warn'])
             || ($soinsWarnField !== '' && (string) ($ongAttrs[$soinsWarnField] ?? '') === $soinsWarnValue));
+        // Autre / nouveau rayon : tout libre (specs label→valeur, axe libre, atouts perso).
+        $autreCfg  = beauty_autre_cfg($curCol);
+        $autreWarn = beauty_autre_warn($curCol);
+        $autreAxis = (string) ($rawOld['variant_axis'] ?? ($ongAttrs['variant_axis'] ?? ($autreCfg['axis'] ?? '')));
+        $autreSpecsSaved = is_array($ongAttrs['specs'] ?? null) ? $ongAttrs['specs'] : [];
+        // Specs en lignes (libellé→valeur). Sur re-render : champs postés ; sinon : sauvegardés.
+        if (isset($rawOld['spec_label']) && is_array($rawOld['spec_label'])) {
+            $autreSpecs = [];
+            foreach ($rawOld['spec_label'] as $i => $lb) {
+                $autreSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOld['spec_value'][$i] ?? '')];
+            }
+        } else {
+            $autreSpecs = [];
+            foreach ($autreSpecsSaved as $lb => $val) { $autreSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+        }
+        $autreAtouts = isset($rawOld['atouts']) && is_array($rawOld['atouts'])
+            ? array_map('strval', $rawOld['atouts'])
+            : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+        // Pastille couleur sur les options ? (déclinaisons avec hex enregistré, ou config rayon)
+        $autreHasColor = (bool) ($autreCfg['color'] ?? false);
+        foreach ($realVariants as $vv) {
+            $aa = is_array($vv['attributes'] ?? null) ? $vv['attributes'] : (json_decode((string) ($vv['attributes'] ?? ''), true) ?: []);
+            if (!empty($aa['hex'])) { $autreHasColor = true; break; }
+        }
+        if (isset($rawOld['var_has_color'])) { $autreHasColor = (string) $rawOld['var_has_color'] === '1'; }
         $secAttr = static fn (string $sec): string => ' data-beauty-section="' . $sec . '"' . ($sec === $beautySec ? '' : ' hidden');
         ?>
         <div data-beauty
@@ -211,6 +239,8 @@ $fmtP = static function ($cents) use ($cur): string {
              data-nuances="<?= e((string) json_encode(beauty_nuances(), JSON_UNESCAPED_UNICODE)) ?>"
              data-ongles-hex="<?= e((string) json_encode(ongles_couleur_hex(), JSON_UNESCAPED_UNICODE)) ?>"
              data-soins="<?= e((string) json_encode(['corps' => beauty_soins('corps'), 'visage' => beauty_soins('visage'), 'pao' => beauty_soins_pao()], JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(beauty_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-autre-generic="<?= e(t('autre.generic')) ?>" data-opt="<?= e(t('variant.option')) ?>"
              data-hint-specs="<?= e(t('beauty.sec.specs_hint')) ?>" data-hint-pick="<?= e(t('beauty.sec.specs_pick')) ?>" hidden></div>
         <label for="p-brand"><?= e(t('beauty.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
@@ -709,6 +739,102 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
         </div><!-- /soins -->
+
+        <!-- ================= AUTRE / NOUVEAU RAYON ================= -->
+        <div<?= $secAttr('autre') ?> data-autre-root>
+        <p class="hint" data-autre-rayon-hint><?= $autreCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('autre.generic')) ?></p>
+        <div class="grid-2">
+            <div>
+                <label for="autre-ptype"><?= e(t('beauty.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="autre-ptype" name="product_type" maxlength="60" value="<?= e($bcur('product_type')) ?>" placeholder="<?= e(t('autre.type_ph')) ?>" data-pv="type">
+            </div>
+            <div></div>
+        </div>
+        <label><?= e(t('autre.rayon_suggest')) ?></label>
+        <div class="chips-row" data-autre-rayon-chips>
+            <?php foreach (beauty_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-autre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+            <div class="axis-suggest" data-autre-spec-box>
+                <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                <div class="axis-suggest-chips" data-autre-spec-chips>
+                    <?php foreach (($autreCfg['specs'] ?? beauty_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-autre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                </div>
+            </div>
+            <div class="spec-rows" data-autre-specs>
+                <div class="spec-head">
+                    <span><?= e(t('autre.spec_label')) ?></span>
+                    <span><?= e(t('autre.spec_value')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($autreSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-autre-spec-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-autre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+            <template id="autre-spec-template">
+                <div class="spec-row">
+                    <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                    <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                    <button type="button" class="variant-del" data-autre-spec-del aria-label="✕">✕</button>
+                </div>
+            </template>
+
+            <div class="grid-3" style="margin-top:14px">
+                <div>
+                    <label for="autre-volume"><?= e(t('beauty.f.volume')) ?></label>
+                    <div class="input-suffix">
+                        <input type="text" id="autre-volume" name="volume" inputmode="decimal" value="<?= e($volCur) ?>" placeholder="200" data-pv="volume">
+                        <span class="input-suffix-tag" data-autre-unit-tag><?= e($bcur('volume_unit') ?: ($autreCfg['unit'] ?? 'ml')) ?></span>
+                    </div>
+                </div>
+                <div>
+                    <label for="autre-unit"><?= e(t('beauty.f.unit')) ?></label>
+                    <select id="autre-unit" name="volume_unit" data-pv="unit" data-autre-unit>
+                        <?php $uCur = $bcur('volume_unit') ?: ($autreCfg['unit'] ?? 'ml'); foreach (['ml' => 'ml', 'g' => 'g', 'pcs' => 'pièce(s)'] as $uv => $ul): ?><option value="<?= e($uv) ?>" <?= $uCur === $uv ? 'selected' : '' ?>><?= e($ul) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="autre-pao"><?= e(t('beauty.f.pao')) ?></label>
+                    <select id="autre-pao" name="pao">
+                        <option value="">—</option>
+                        <?php foreach (['6M', '12M', '18M', '24M', '36M'] as $pp): ?><option value="<?= e($pp) ?>" <?= $bcur('pao') === $pp ? 'selected' : '' ?>><?= e($pp) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="autre-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="autre-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e($bcur('ean')) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="autre-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="autre-sku" name="sku" class="mono" maxlength="40" value="<?= e($bcur('sku')) ?>" placeholder="REF-001">
+                </div>
+            </div>
+            <div class="warn-box" data-autre-warn<?= ($autreWarn !== 'none') ? '' : ' hidden' ?>>⚠️ <span data-autre-warn-text><?= e((string) (beauty_autre('warn_texts')[$autreWarn] ?? '')) ?></span></div>
+            <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks" data-autre-atouts>
+                <?php
+                $autreAtoutSugg = beauty_autre('atout_suggest');
+                $autreAllAtouts = array_values(array_unique(array_merge($autreAtoutSugg, $autreAtouts)));
+                foreach ($autreAllAtouts as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $autreAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <div class="autre-atout-add">
+                <input type="text" id="autre-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-autre-atout-input>
+                <button type="button" class="btn btn-ghost btn-sm" data-autre-atout-add><?= e(t('autre.atout_add')) ?></button>
+            </div>
+        </details>
+        </div><!-- /autre -->
         <?php endif; ?>
 
         <div class="grid-2">
@@ -998,6 +1124,59 @@ $fmtP = static function ($cents) use ($cur): string {
             </template>
         </details>
         </div><!-- /soins decl -->
+
+        <div<?= $secAttr('autre') ?>>
+        <?php
+        $aRows = [];
+        foreach ($realVariants as $v) {
+            $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+            $aRows[] = ['name' => (string) ($attr['size'] ?? ($v['label'] ?? '')), 'hex' => (string) ($attr['hex'] ?? '#C9A06A'), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
+        }
+        ?>
+        <details class="variants-box" data-autre-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('variant.section_generic')) ?></summary>
+            <p class="hint"><?= e(t('autre.decl_hint')) ?></p>
+            <input type="hidden" name="var_has_color" value="0">
+            <div class="grid-2">
+                <div>
+                    <label for="autre-axis"><?= e(t('autre.axis')) ?></label>
+                    <input type="text" id="autre-axis" name="variant_axis" maxlength="24" value="<?= e($autreAxis) ?>" placeholder="<?= e(t('autre.axis_ph')) ?>" list="autre-axis-list" data-autre-axis>
+                    <datalist id="autre-axis-list"><?php foreach (beauty_autre('axes') as $ax): ?><option value="<?= e($ax) ?>"></option><?php endforeach; ?></datalist>
+                </div>
+                <div>
+                    <label class="check-row" style="margin-top:24px"><input type="checkbox" name="var_has_color" value="1" data-autre-color-toggle <?= $autreHasColor ? 'checked' : '' ?>><span><?= e(t('autre.has_color')) ?></span></label>
+                </div>
+            </div>
+            <div class="bvariant-rows autre-rows<?= $autreHasColor ? ' has-color' : '' ?>" data-autre-rows>
+                <div class="bvariant-head autre-head">
+                    <span data-autre-axis-label><?= e($autreAxis !== '' ? $autreAxis : t('variant.option')) ?></span>
+                    <span class="autre-col-color"><?= e(t('perruque.f.color')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($aRows as $ar): ?>
+                    <div class="bvariant-row autre-row">
+                        <input type="text" name="var_size[]" value="<?= e($ar['name']) ?>" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                        <input type="color" name="var_hex[]" class="autre-col-color" value="<?= e($ar['hex'] !== '' ? $ar['hex'] : '#C9A06A') ?>" aria-label="<?= e(t('perruque.f.color')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $ar['stock'] !== null ? (int) $ar['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($ar['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-autre-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-autre-add>+ <?= e(t('autre.option_add')) ?></button>
+            <template id="autre-variant-template">
+                <div class="bvariant-row autre-row">
+                    <input type="text" name="var_size[]" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                    <input type="color" name="var_hex[]" class="autre-col-color" value="#C9A06A" aria-label="<?= e(t('perruque.f.color')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-autre-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /autre decl -->
         <?php else: ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>

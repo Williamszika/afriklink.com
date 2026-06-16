@@ -272,6 +272,35 @@ return [
             ],
         ],
     ],
+
+    // ----- « Autre / nouveau rayon » beauté : formulaire GÉNÉRIQUE ADAPTATIF. -----
+    // Caractéristiques LIBRES (libellé → valeur), axe de déclinaison libre (+ pastille
+    // couleur option.), atouts personnalisés. S'adapte à l'identifiant (slug) du rayon
+    // tapé (config 'R') : suggestions de specs, axe, unité, couleur, conformité.
+    'autre' => [
+        'rayon_suggest' => ['Soin des cheveux', 'Bain & douche', 'Cils & sourcils', 'Accessoires & outils', 'Pinceaux & éponges', 'Coffrets beauté', 'Hygiène & intime', 'Soins bébé', 'Compléments beauté', 'Bougies & parfum d’ambiance'],
+        'generic_specs' => ['Contenance', 'Type de peau', 'Type de cheveux', 'Senteur', 'Texture', 'Zone d’application', 'Format', 'Couleur', 'Actif principal'],
+        'atout_suggest' => ['Vegan', 'Cruelty-free', 'Bio', 'Naturel', 'Sans paraben', 'Halal', 'Fait main', 'Made in Africa', 'Hypoallergénique'],
+        'axes' => ['Teinte', 'Couleur', 'Contenance', 'Format', 'Senteur', 'Taille', 'Modèle', 'Type', 'Coffret'],
+        'warn_texts' => [
+            'cosmetic'   => 'Produits cosmétiques : renseigne la composition (INCI) plus bas. Les actifs réglementés (hydroquinone, corticoïdes, mercure, fortes teneurs en rétinol/acides) sont interdits ou restreints dans l’UE.',
+            'supplement' => 'Compléments alimentaires : règles spécifiques (allégations santé encadrées, ingrédients autorisés, étiquetage). Vérifie la conformité avant la vente dans l’UE.',
+            'safety'     => 'Bougies / parfums d’ambiance : étiquetage des allergènes de parfum et mentions de sécurité (CLP) requis pour la vente dans l’UE.',
+        ],
+        // Config par slug de rayon : specs suggérées, axe, unité, couleur, conformité.
+        'R' => [
+            'soin-des-cheveux'    => ['specs' => ['Type de cheveux', 'Texture', 'Bienfait', 'Senteur', 'Actif principal'], 'axis' => 'Contenance', 'unit' => 'ml', 'color' => false, 'warn' => 'cosmetic'],
+            'bain-douche'         => ['specs' => ['Type de peau', 'Senteur', 'Format', 'Actif principal'], 'axis' => 'Contenance', 'unit' => 'ml', 'color' => false, 'warn' => 'cosmetic'],
+            'cils-sourcils'       => ['specs' => ['Effet', 'Tenue', 'Format'], 'axis' => 'Couleur', 'unit' => 'ml', 'color' => true, 'warn' => 'cosmetic'],
+            'accessoires-outils'  => ['specs' => ['Matière', 'Usage', 'Dimensions'], 'axis' => 'Modèle', 'unit' => 'pcs', 'color' => false, 'warn' => 'none'],
+            'pinceaux-eponges'    => ['specs' => ['Type', 'Forme', 'Matière des poils', 'Usage'], 'axis' => 'Type', 'unit' => 'pcs', 'color' => false, 'warn' => 'none'],
+            'coffrets-beaute'     => ['specs' => ['Contenu', 'Nombre de pièces', 'Occasion'], 'axis' => 'Coffret', 'unit' => 'pcs', 'color' => false, 'warn' => 'cosmetic'],
+            'hygiene-intime'      => ['specs' => ['Type de peau', 'pH', 'Senteur', 'Format'], 'axis' => 'Contenance', 'unit' => 'ml', 'color' => false, 'warn' => 'cosmetic'],
+            'soins-bebe'          => ['specs' => ['Âge', 'Type de peau', 'Bienfait', 'Senteur'], 'axis' => 'Contenance', 'unit' => 'ml', 'color' => false, 'warn' => 'cosmetic'],
+            'complements-beaute'  => ['specs' => ['Bienfait', 'Forme (gélule/poudre)', 'Nombre', 'Durée de cure'], 'axis' => 'Format', 'unit' => 'pcs', 'color' => false, 'warn' => 'supplement'],
+            'bougies-parfum-d-ambiance' => ['specs' => ['Senteur', 'Cire', 'Durée de combustion', 'Format'], 'axis' => 'Senteur', 'unit' => 'g', 'color' => false, 'warn' => 'safety'],
+        ],
+    ],
 ];
 
 
