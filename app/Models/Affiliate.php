@@ -264,13 +264,12 @@ final class Affiliate
     public static function settleBoutiqueOrder(int $orderId, string $orderPublicId, int $amountCents, string $currency): int
     {
         self::ensureTables();
-        $normalSeller = $amountCents - platform_commission_cents($amountCents);
         try {
             $stmt = db()->prepare('SELECT id, affiliate_id, paid_out_at FROM affiliate_conversions WHERE order_public_id = :o LIMIT 1');
             $stmt->execute(['o' => $orderPublicId]);
             $conv = $stmt->fetch();
             if ($conv === false) {
-                return $normalSeller; // vente directe (sans apporteur)
+                return $amountCents; // vente sans apporteur : le vendeur garde 100 %
             }
             $items = \App\Models\Order::items($orderId);
             $pids = [];
@@ -289,16 +288,12 @@ final class Affiliate
                 $subtotal += $lt;
                 $aff = $map[(int) ($it['product_id'] ?? 0)] ?? null;
                 if ($aff !== null && $aff['enabled'] && $aff['bps'] > 0) {
-                    $deduction += affiliate_line_deduction_cents($lt, (int) $aff['bps']);   // R %
+                    $deduction += affiliate_line_deduction_cents($lt, (int) $aff['bps']);   // R % (affilié)
                     $affiliate += affiliate_line_commission_cents($lt, (int) $aff['bps']);  // R − part plateforme
-                } else {
-                    $deduction += platform_commission_cents($lt);                            // commission normale
                 }
+                // Lignes NON affiliées : aucune commission, le vendeur garde 100 %.
             }
-            $rest = $amountCents - $subtotal;
-            if ($rest > 0) {
-                $deduction += platform_commission_cents($rest); // livraison / divers à la commission normale
-            }
+            // Livraison / divers : aucune commission non plus.
             $deduction = min($amountCents, max(0, $deduction));
             // Crédit de l'apporteur, une seule fois (idempotent).
             if ($affiliate > 0 && $conv['paid_out_at'] === null) {

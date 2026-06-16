@@ -54,7 +54,7 @@ final class PaymentSettlement
                 if ($orderId > 0 && $kind !== 'restaurant' && ($pub = Order::publicIdById($orderId)) !== null) {
                     $sellerCredit = \App\Models\Affiliate::settleBoutiqueOrder($orderId, $pub, $amount, $currency);
                 } else {
-                    $sellerCredit = $amount - platform_commission_cents($amount);
+                    $sellerCredit = $amount; // sans affiliation : le vendeur garde 100 %
                 }
                 \App\Models\Wallet::credit($sellerId, $sellerCredit, $currency, 'sale', $ref);
             }

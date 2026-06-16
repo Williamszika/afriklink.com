@@ -12,8 +12,9 @@ declare(strict_types=1);
  * les classes App\Services\Payment\*Provider quand les comptes existent.
  */
 return [
-    // Commission de la plateforme prélevée sur chaque transaction (%).
-    // SOURCE UNIQUE de la commission marketplace — calcul via platform_commission_cents().
+    // Commission marketplace (%) — NON appliquée par défaut : le vendeur garde 100 %
+    // sur les ventes SANS affiliation. AfrikaLink se rémunère uniquement via l'affiliation
+    // (part fixe ci-dessous). Conservée comme réglage si l'on souhaite réactiver un jour.
     'platform_commission_pct' => (float) env('PLATFORM_COMMISSION_PCT', 5.0),
 
     // Affiliation PAR PRODUIT : le vendeur fixe un taux R % (ce qu'il veut, dans les
