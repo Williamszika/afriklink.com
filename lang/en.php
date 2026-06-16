@@ -1623,6 +1623,9 @@ return [
     'perruque.f.add' => 'Add a variant',
     'perruque.sec.variants' => 'Variants (length × colour)',
     'perruque.sec.variants_hint' => 'Offer several lengths (and colours), each with its stock and price — price rises with length. Click a length to add it.',
+    // Body care department
+    'soins.f.actifs' => 'Key actives',
+    'soins.warn' => 'EU compliance: lightening products containing hydroquinone, corticosteroids or mercury derivatives are banned from sale in the EU. Only list compliant formulas (e.g. niacinamide, vitamin C, liquorice).',
     'product.f.name_ph' => 'E.g.: Wax dress size 38',
     'product.f.price' => 'Price (:cur)',
     'product.f.promo_section' => 'Promotion (discount)',

@@ -2656,11 +2656,22 @@ document.addEventListener('click', function (ev) {
     var PERR_HUMAN = perrBox ? (perrBox.getAttribute('data-human-type') || '') : '';
     var PERR_LACE = []; try { PERR_LACE = perrBox ? JSON.parse(perrBox.getAttribute('data-lace-types') || '[]') : []; } catch (e) { PERR_LACE = []; }
     var ONGHEX = {}; try { ONGHEX = JSON.parse(cfgEl.getAttribute('data-ongles-hex') || '{}'); } catch (e) { ONGHEX = {}; }
+    // Soins corps (adaptatif au type, comme le maquillage) + actifs + conformité.
+    var SOINS_TYPES = parse('data-soins-types'), SOINS_FIELDS = parse('data-soins-fields');
+    var soinsTypeSel = document.getElementById('soins-type');
+    var soinsUnitSel = document.getElementById('soins-unit');
+    var soinsAttrsBox = document.querySelector('[data-soins-attrs]');
+    var soinsRows = document.querySelector('[data-soins-rows]');
+    var soinsTpl  = document.getElementById('soins-variant-template');
+    var soinsChips = document.querySelector('[data-soins-chips]');
 
     function isOngles() { return !!(coll && coll.value === 'Ongles'); }
     function isParfum() { return !!(coll && coll.value === 'Parfums'); }
     function isPerruque() { return !!(coll && coll.value === 'Perruque'); }
-    function activeSection() { return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : (isPerruque() ? 'perruque' : 'maquillage')); }
+    function isSoins() { return !!(coll && coll.value === 'Soins corps'); }
+    function activeSection() {
+        return isOngles() ? 'ongles' : (isParfum() ? 'parfum' : (isPerruque() ? 'perruque' : (isSoins() ? 'soins' : 'maquillage')));
+    }
 
     // Perruque : champs adaptatifs (qualité/origine si cheveux humains ; couleur de lace si lace wig).
     function refreshPerrAdaptive() {
@@ -2784,6 +2795,54 @@ document.addEventListener('click', function (ev) {
         var sh = document.querySelector('[data-beauty-specs-hint]');
         if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
         var d = document.querySelector('[data-beauty-decl]'); if (d) { d.open = true; }
+        update();
+    }
+
+    /* ---------- Soins corps : caractéristiques adaptatives au type + actifs + conformité ---------- */
+    function soinsMeta() { return (soinsTypeSel && SOINS_TYPES[soinsTypeSel.value]) ? SOINS_TYPES[soinsTypeSel.value] : null; }
+    function buildSoinsAttrs() {
+        if (!soinsAttrsBox) { return; }
+        var prev = {};
+        soinsAttrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        soinsAttrsBox.innerHTML = '';
+        var m = soinsMeta();
+        if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = SOINS_FIELDS[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); soinsAttrsBox.appendChild(wrap);
+        });
+    }
+    function onSoinsType() {
+        var m = soinsMeta();
+        if (m && soinsUnitSel && m.unit) { soinsUnitSel.value = m.unit; }
+        buildSoinsAttrs();
+        var warn = document.querySelector('[data-soins-warn]'); if (warn) { warn.hidden = !(m && m.warn); }
+        var act = document.querySelector('[data-soins-actifs-box]'); if (act) { act.hidden = !(m && m.actifs); }
+        var sh = document.querySelector('[data-soins-hint]');
+        if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
+        var tag = document.querySelector('[data-soins-unit-tag]'); if (tag && soinsUnitSel) { tag.textContent = soinsUnitSel.value; }
+        update();
+    }
+    function addSoinsRow(val) {
+        if (!soinsTpl || !soinsTpl.content || !soinsRows) { return null; }
+        soinsRows.appendChild(soinsTpl.content.cloneNode(true));
+        var row = soinsRows.lastElementChild;
+        if (row && val) { var s = row.querySelector('input[name="var_size[]"]'); if (s) { s.value = val; } }
+        return row;
+    }
+    function fillSoinsSize(val) {
+        var empty = null;
+        soinsRows.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { if (!empty && !i.value.trim()) { empty = i; } });
+        if (empty) { empty.value = val; } else { addSoinsRow(val); }
         update();
     }
 
@@ -2911,6 +2970,14 @@ document.addEventListener('click', function (ev) {
     }
     if (perHairSel) { perHairSel.addEventListener('change', function () { refreshPerrAdaptive(); update(); }); }
     if (perTypeSel) { perTypeSel.addEventListener('change', function () { refreshPerrAdaptive(); update(); }); }
+    if (soinsTypeSel) { soinsTypeSel.addEventListener('change', onSoinsType); }
+    if (soinsUnitSel) { soinsUnitSel.addEventListener('change', function () { var tag = document.querySelector('[data-soins-unit-tag]'); if (tag) { tag.textContent = soinsUnitSel.value; } update(); }); }
+    if (soinsChips) {
+        soinsChips.addEventListener('click', function (ev) {
+            var c = ev.target && ev.target.closest ? ev.target.closest('[data-soins-chip]') : null;
+            if (c) { ev.preventDefault(); fillSoinsSize(c.getAttribute('data-val')); }
+        });
+    }
 
     /* ---------- Événements ---------- */
     if (typeSel) { typeSel.addEventListener('change', onType); }
@@ -2927,7 +2994,8 @@ document.addEventListener('click', function (ev) {
         if (ev.target.closest('[data-ong-add]')) { var ro = addOngRow(); if (ro) { var fo = ro.querySelector('select'); if (fo) { fo.focus(); } } return; }
         if (ev.target.closest('[data-par-add]')) { var rp = addParRow(''); if (rp) { var fp = rp.querySelector('input'); if (fp) { fp.focus(); } } return; }
         if (ev.target.closest('[data-perr-add]')) { var rpe = addPerrRow(''); if (rpe) { var fpe = rpe.querySelector('input'); if (fpe) { fpe.focus(); } } return; }
-        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del], [data-perr-del]');
+        if (ev.target.closest('[data-soins-add]')) { var rs = addSoinsRow(''); if (rs) { var fs = rs.querySelector('input'); if (fs) { fs.focus(); } } return; }
+        var del = ev.target.closest('[data-beauty-del], [data-ong-del], [data-par-del], [data-perr-del], [data-soins-del]');
         if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); update(); } }
     });
     form.addEventListener('input', update);

@@ -180,7 +180,54 @@ return [
         ],
         'atouts' => ['Pre-plucked', 'Baby hair', 'Nœuds décolorés', 'Glueless', 'Coloriable', 'Lissable / bouclable', '100% Remy', 'Coupe possible'],
     ],
+
+    // ----- Rayons « Soins visage / corps » : ADAPTATIFS au type de produit. -----
+    // Comme le maquillage : le type pilote les champs (D) ; + actifs (multi) + rappel
+    // conformité (warn). Déclinaison par contenance. Specs dans products.attributes.
+    'soins' => [
+        'fields' => [
+            'format'   => ['label' => 'Texture / format', 'opts' => ['Crème', 'Lait', 'Gel', 'Huile', 'Sérum', 'Baume / beurre', 'Lotion', 'Mousse', 'Stick', 'Pain / savon']],
+            'peau'     => ['label' => 'Type de peau',      'opts' => ['Tous types', 'Sèche', 'Normale', 'Grasse', 'Mixte', 'Sensible', 'À tendance acnéique', 'Mature']],
+            'bienfait' => ['label' => 'Bienfait principal', 'opts' => ['Hydratant', 'Nourrissant', 'Matifiant', 'Anti-âge', 'Anti-rides', 'Éclaircissant / unifiant', 'Anti-taches', 'Anti-acné', 'Apaisant', 'Éclat', 'Purifiant', 'Exfoliant', 'Raffermissant', 'Anti-vergetures', 'Déodorant', 'Protecteur solaire']],
+            'senteur'  => ['label' => 'Senteur',           'opts' => ['Sans parfum', 'Karité naturel', 'Vanille', 'Coco', 'Monoï', 'Beurre de cacao', 'Fleur', 'Agrumes', 'Thé vert']],
+            'conditionnement' => ['label' => 'Conditionnement', 'opts' => ['Flacon pompe', 'Tube', 'Pot', 'Flacon', 'Stick', 'Pain / savon', 'Recharge', 'Spray', 'Compte-gouttes']],
+            'zone'     => ['label' => 'Zone',              'opts' => ['Visage', 'Yeux', 'Lèvres', 'Visage & cou']],
+            'grain'    => ['label' => 'Type de grain',     'opts' => ['Fin', 'Moyen', 'Gros']],
+            'frequence' => ['label' => 'Fréquence d’usage', 'opts' => ['Quotidien', '2-3×/semaine', 'Hebdomadaire']],
+            'deo_format' => ['label' => 'Format',          'opts' => ['Roll-on', 'Spray', 'Stick', 'Crème']],
+            'deo_efficacite' => ['label' => 'Efficacité',  'opts' => ['24h', '48h', '72h']],
+            'deo_alcool' => ['label' => 'Alcool',          'opts' => ['Avec alcool', 'Sans alcool']],
+            'spf'      => ['label' => 'SPF / FPS',         'opts' => ['SPF 15', 'SPF 30', 'SPF 50', 'SPF 50+']],
+            'protection' => ['label' => 'Protection',      'opts' => ['UVA + UVB', 'Large spectre']],
+            'waterproof' => ['label' => 'Résistant à l’eau', 'opts' => ['Non', 'Oui']],
+        ],
+
+        'actifs' => ['Karité', 'Coco', 'Argan', 'Aloe vera', 'Vitamine C', 'Acide hyaluronique', 'Niacinamide', 'Rétinol', 'Acide salicylique', 'Glycérine', 'Miel', 'Carotte', 'Cacao', 'Olive', 'Avoine', 'Thé vert'],
+        'atouts' => ['Bio', 'Naturel', 'Vegan', 'Sans paraben', 'Sans sulfate', 'Fait main / artisanal', 'Hypoallergénique', 'Halal', 'Made in Africa', 'Non testé sur animaux'],
+        'tailles' => ['30 ml', '50 ml', '100 ml', '150 ml', '200 ml', '250 ml', '400 ml', '500 ml'],
+
+        // Rayon « Soins corps ».
+        'groups_corps' => ['hydratation' => 'Hydratation & nutrition', 'nettoyage' => 'Nettoyage', 'cible' => 'Soins ciblés'],
+        'types_corps' => [
+            'Crème / lait corporel'            => ['group' => 'hydratation', 'fields' => ['format', 'peau', 'bienfait', 'senteur', 'conditionnement'], 'actifs' => true,  'unit' => 'ml'],
+            'Beurre corporel'                  => ['group' => 'hydratation', 'fields' => ['peau', 'bienfait', 'senteur', 'conditionnement'], 'actifs' => true, 'unit' => 'g'],
+            'Huile corporelle'                 => ['group' => 'hydratation', 'fields' => ['bienfait', 'senteur', 'conditionnement'], 'actifs' => true, 'unit' => 'ml'],
+            'Beurre de karité brut'            => ['group' => 'hydratation', 'fields' => ['conditionnement'], 'actifs' => true, 'unit' => 'g'],
+            'Gel douche'                       => ['group' => 'nettoyage', 'fields' => ['peau', 'bienfait', 'senteur', 'conditionnement'], 'actifs' => false, 'unit' => 'ml'],
+            'Savon (pain)'                     => ['group' => 'nettoyage', 'fields' => ['peau', 'bienfait', 'senteur'], 'actifs' => true, 'unit' => 'g'],
+            'Savon noir africain'              => ['group' => 'nettoyage', 'fields' => ['peau', 'bienfait', 'senteur'], 'actifs' => true, 'unit' => 'g'],
+            'Gommage / exfoliant'              => ['group' => 'nettoyage', 'fields' => ['grain', 'peau', 'frequence', 'senteur'], 'actifs' => true, 'unit' => 'g'],
+            'Déodorant'                        => ['group' => 'cible', 'fields' => ['deo_format', 'deo_efficacite', 'deo_alcool', 'senteur'], 'actifs' => false, 'unit' => 'ml'],
+            'Crème mains'                      => ['group' => 'cible', 'fields' => ['bienfait', 'senteur', 'conditionnement'], 'actifs' => true, 'unit' => 'ml'],
+            'Crème pieds'                      => ['group' => 'cible', 'fields' => ['bienfait', 'senteur', 'conditionnement'], 'actifs' => true, 'unit' => 'ml'],
+            'Crème anti-vergetures'            => ['group' => 'cible', 'fields' => ['format', 'frequence', 'senteur'], 'actifs' => true, 'unit' => 'ml'],
+            'Crème éclaircissante / unifiante' => ['group' => 'cible', 'fields' => ['format', 'peau', 'senteur'], 'actifs' => true, 'warn' => true, 'unit' => 'ml'],
+            'Crème solaire corps'              => ['group' => 'cible', 'fields' => ['spf', 'protection', 'waterproof', 'format', 'peau'], 'actifs' => false, 'unit' => 'ml'],
+        ],
+        // Rayon « Soins visage » : fourni ultérieurement (codes dédiés du vendeur).
+    ],
 ];
+
 
 
 

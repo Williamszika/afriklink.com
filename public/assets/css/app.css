@@ -1988,6 +1988,10 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .chip-check--tone span{display:inline-flex;align-items:center;gap:7px}
 .chip-check .chip-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.2);flex:none}
 .toggle-rows{display:grid;gap:7px;margin:12px 0 4px}
+/* Soins : grille d'attributs adaptatifs + rappel conformité */
+.attrs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.attrs{grid-template-columns:1fr}}
+.warn-box{background:var(--danger-bg,#fbe6ec);border:1px solid #f0c4d0;border-radius:10px;padding:11px 14px;color:#7a1530;font-size:.82rem;line-height:1.45;margin-top:14px}
 /* Pyramide olfactive (parfum) */
 .pyr{display:grid;gap:10px;margin-top:6px}
 .pyr-lvl{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center}

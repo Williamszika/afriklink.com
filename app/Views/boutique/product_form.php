@@ -160,11 +160,12 @@ $fmtP = static function ($cents) use ($cur): string {
         $savedAttrs = isset($rawOld['attr']) && is_array($rawOld['attr'])
             ? $rawOld['attr']
             : (json_decode((string) ($product['attributes'] ?? ''), true) ?: []);
-        // Sous-formulaire beauté piloté par le rayon : Ongles / Parfums / Perruque / (sinon) Maquillage.
+        // Sous-formulaire beauté piloté par le rayon : Ongles / Parfums / Perruque / Soins / (sinon) Maquillage.
         $isOngles = ($curCol === 'Ongles');
         $isParfum = ($curCol === 'Parfums');
         $isPerruque = ($curCol === 'Perruque');
-        $beautySec = $isOngles ? 'ongles' : ($isParfum ? 'parfum' : ($isPerruque ? 'perruque' : 'maquillage'));
+        $isSoins = ($curCol === 'Soins corps'); // Soins visage : formulaire dédié à venir
+        $beautySec = $isOngles ? 'ongles' : ($isParfum ? 'parfum' : ($isPerruque ? 'perruque' : ($isSoins ? 'soins' : 'maquillage')));
         $ongAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
         $ongScalar = static fn (string $k): string => (string) ($rawOld['ong_' . $k] ?? ($ongAttrs[$k] ?? ''));
         $ongList = static function (string $k) use ($rawOld, $ongAttrs): array {
@@ -189,6 +190,11 @@ $fmtP = static function ($cents) use ($cur): string {
         $humanType = (string) config('beauty.perruque.human_type', 'Cheveux naturels (humains)');
         $perHuman = $perScalar('hair_type') === $humanType;
         $perLace  = in_array($curType, (array) beauty_perruque('lace_types'), true);
+        // Soins (visage / corps) : le type pilote les champs ; + actifs (multi) + conformité.
+        $soinsTypeMeta = $isSoins ? beauty_soins_type_meta($curCol, $curType) : null;
+        $soinsActifs = isset($rawOld['soins_actif']) && is_array($rawOld['soins_actif'])
+            ? array_map('strval', $rawOld['soins_actif'])
+            : array_map('strval', (array) ($ongAttrs['actifs'] ?? []));
         $secAttr = static fn (string $sec): string => ' data-beauty-section="' . $sec . '"' . ($sec === $beautySec ? '' : ' hidden');
         ?>
         <div data-beauty
@@ -198,6 +204,8 @@ $fmtP = static function ($cents) use ($cur): string {
              data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"
              data-nuances="<?= e((string) json_encode(beauty_nuances(), JSON_UNESCAPED_UNICODE)) ?>"
              data-ongles-hex="<?= e((string) json_encode(ongles_couleur_hex(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-soins-fields="<?= e((string) json_encode((array) beauty_soins('fields'), JSON_UNESCAPED_UNICODE)) ?>"
+             data-soins-types="<?= e((string) json_encode((array) beauty_soins('types_corps'), JSON_UNESCAPED_UNICODE)) ?>"
              data-hint-specs="<?= e(t('beauty.sec.specs_hint')) ?>" data-hint-pick="<?= e(t('beauty.sec.specs_pick')) ?>" hidden></div>
         <label for="p-brand"><?= e(t('beauty.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <input type="text" id="p-brand" name="brand" maxlength="60" value="<?= e($bcur('brand')) ?>" placeholder="<?= e(t('beauty.f.brand_ph')) ?>" data-pv="brand">
@@ -611,6 +619,91 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
         </div><!-- /perruque -->
+
+        <!-- ================= SOINS (visage / corps) ================= -->
+        <div<?= $secAttr('soins') ?> data-soins-root>
+        <div class="grid-2">
+            <div>
+                <label for="soins-type"><?= e(t('beauty.f.type')) ?> <span class="req">*</span></label>
+                <select id="soins-type" name="product_type" data-pv="type" data-soins-type>
+                    <option value=""><?= e(t('beauty.f.type_any')) ?></option>
+                    <?php foreach (beauty_soins_groups($curCol) as $gk => $glabel): ?>
+                        <optgroup label="<?= e($glabel) ?>">
+                            <?php foreach (beauty_soins_types($curCol) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                <option value="<?= e($tname) ?>" <?= $curType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div></div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>🌿 <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint" data-soins-hint><?= e($soinsTypeMeta ? t('beauty.sec.specs_hint') : t('beauty.sec.specs_pick')) ?></p>
+            <!-- Caractéristiques propres au type (générées selon le type). -->
+            <div class="attrs grid-2" data-soins-attrs>
+                <?php if ($soinsTypeMeta): foreach ((array) ($soinsTypeMeta['fields'] ?? []) as $fk): $fd = beauty_soins('fields')[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($ongAttrs[$fk] ?? ''); ?>
+                    <div>
+                        <label><?= e((string) $fd['label']) ?></label>
+                        <select name="attr[<?= e($fk) ?>]">
+                            <option value="">—</option>
+                            <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+            <div class="warn-box" data-soins-warn<?= ($soinsTypeMeta && !empty($soinsTypeMeta['warn'])) ? '' : ' hidden' ?>>⚠️ <?= e(t('soins.warn')) ?></div>
+            <div data-soins-actifs-box<?= ($soinsTypeMeta && !empty($soinsTypeMeta['actifs'])) ? '' : ' hidden' ?>>
+                <label style="margin-top:14px"><?= e(t('soins.f.actifs')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks">
+                    <?php foreach (beauty_soins('actifs') as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="soins_actif[]" value="<?= e($a) ?>" <?= in_array($a, $soinsActifs, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="grid-3" style="margin-top:14px">
+                <div>
+                    <label for="soins-volume"><?= e(t('beauty.f.volume')) ?></label>
+                    <div class="input-suffix">
+                        <input type="text" id="soins-volume" name="volume" inputmode="decimal" value="<?= e($volCur) ?>" placeholder="200" data-pv="volume">
+                        <span class="input-suffix-tag" data-soins-unit-tag><?= e($bcur('volume_unit') ?: 'ml') ?></span>
+                    </div>
+                </div>
+                <div>
+                    <label for="soins-unit"><?= e(t('beauty.f.unit')) ?></label>
+                    <select id="soins-unit" name="volume_unit" data-soins-unit data-pv="unit">
+                        <option value="ml" <?= ($bcur('volume_unit') ?: 'ml') === 'ml' ? 'selected' : '' ?>>ml</option>
+                        <option value="g" <?= $bcur('volume_unit') === 'g' ? 'selected' : '' ?>>g</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="soins-pao"><?= e(t('beauty.f.pao')) ?></label>
+                    <select id="soins-pao" name="pao">
+                        <option value="">—</option>
+                        <?php foreach (beauty_pao() as $pp): ?><option value="<?= e($pp) ?>" <?= $bcur('pao') === $pp ? 'selected' : '' ?>><?= e($pp) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="soins-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="soins-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e($bcur('ean')) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="soins-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="soins-sku" name="sku" class="mono" maxlength="40" value="<?= e($bcur('sku')) ?>" placeholder="SC-KARITE-200">
+                </div>
+            </div>
+            <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php foreach (beauty_soins('atouts') as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $selAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+        </div><!-- /soins -->
         <?php endif; ?>
 
         <div class="grid-2">
@@ -862,6 +955,44 @@ $fmtP = static function ($cents) use ($cur): string {
             <datalist id="perr-color-list"><?php foreach (beauty_perruque('couleurs') as $cr): ?><option value="<?= e((string) $cr[0]) ?>"></option><?php endforeach; ?></datalist>
         </details>
         </div><!-- /perruque decl -->
+
+        <div<?= $secAttr('soins') ?>>
+        <details class="variants-box" data-soins-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('parfum.sec.sizes')) ?></summary>
+            <p class="hint"><?= e(t('parfum.sec.sizes_hint')) ?></p>
+            <div class="axis-suggest" data-soins-chips-box>
+                <span class="axis-suggest-label"><strong><?= e(t('beauty.f.volume')) ?></strong> · <?= e(t('variant.suggest_hint')) ?></span>
+                <div class="axis-suggest-chips" data-soins-chips>
+                    <?php foreach (beauty_soins('tailles') as $tl): ?><button type="button" class="axis-chip" data-soins-chip data-val="<?= e($tl) ?>"><?= e($tl) ?></button><?php endforeach; ?>
+                </div>
+            </div>
+            <div class="bvariant-rows par-rows" data-soins-rows>
+                <div class="bvariant-head par-head">
+                    <span><?= e(t('beauty.f.volume')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($oRows as $orow): ?>
+                    <div class="bvariant-row par-row">
+                        <input type="text" name="var_size[]" value="<?= e($orow['forme']) ?>" maxlength="20" placeholder="200 ml" aria-label="<?= e(t('beauty.f.volume')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $orow['stock'] !== null ? (int) $orow['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($orow['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-soins-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-soins-add>+ <?= e(t('parfum.f.add')) ?></button>
+            <template id="soins-variant-template">
+                <div class="bvariant-row par-row">
+                    <input type="text" name="var_size[]" maxlength="20" placeholder="200 ml" aria-label="<?= e(t('beauty.f.volume')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-soins-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /soins decl -->
         <?php else: ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>

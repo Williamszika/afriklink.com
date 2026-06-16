@@ -148,6 +148,8 @@ foreach ($realVariants as $rv) {
                             $apTags[] = rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml');
                         }
                         foreach ($bAttr as $av) { if (is_scalar($av)) { $av = trim((string) $av); if ($av !== '') { $apTags[] = $av; } } }
+                        // Soins : actifs clés en tags.
+                        foreach ((array) ($bAttr['actifs'] ?? []) as $ac) { if (trim((string) $ac) !== '') { $apTags[] = (string) $ac; } }
                         if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                     }
                 } else {

@@ -1623,6 +1623,9 @@ return [
     'perruque.f.add' => 'Ajouter une déclinaison',
     'perruque.sec.variants' => 'Déclinaisons (longueur × couleur)',
     'perruque.sec.variants_hint' => 'Propose plusieurs longueurs (et couleurs), chacune avec son stock et son prix — le prix grimpe avec la longueur. Clique une longueur pour l’ajouter.',
+    // Rayon Soins corps
+    'soins.f.actifs' => 'Actifs clés',
+    'soins.warn' => 'Conformité UE : les produits éclaircissants contenant de l’hydroquinone, des corticoïdes ou des dérivés de mercure sont interdits à la vente dans l’UE. Ne référence que des formules conformes (ex. niacinamide, vitamine C, réglisse).',
     'product.f.name_ph' => 'Ex. : Robe wax taille 38',
     'product.f.price' => 'Prix (:cur)',
     'product.f.promo_section' => 'Promotion (réduction)',
