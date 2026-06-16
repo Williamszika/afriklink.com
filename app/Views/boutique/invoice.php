@@ -74,7 +74,15 @@ if ($items === []) {
         .inv-doc dt { color:var(--inv-or-soft); text-align:right; }
         .inv-doc dd { margin:0; font-family:var(--afk-mono,"Space Mono",monospace); font-weight:700; }
 
-        .inv-body { padding:26px 30px 30px; }
+        .inv-body { padding:26px 30px 30px; position:relative; }
+        /* Cauri « en fond » : motif répété très discret + grand filigrane d'angle */
+        .inv-body::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:.04;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='128' viewBox='0 0 96 128'%3E%3Cg fill='%23103D30'%3E%3Cpath d='M24 5C33 5 39.5 16 39.5 32 39.5 49 33 59 24 59 15 59 8.5 49 8.5 32 8.5 16 15 5 24 5Z'/%3E%3Cpath d='M72 69C81 69 87.5 80 87.5 96 87.5 113 81 123 72 123 63 123 56.5 113 56.5 96 56.5 80 63 69 72 69Z'/%3E%3C/g%3E%3Cg fill='%23FBF7EF'%3E%3Cpath d='M24 16C26.4 26 26.4 38 24 52 21.6 38 21.6 26 24 16Z'/%3E%3Cpath d='M72 80C74.4 90 74.4 102 72 116 69.6 102 69.6 90 72 80Z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size:96px 128px; }
+        .inv-watermark { position:absolute; z-index:0; right:-44px; bottom:-52px; width:360px; opacity:.07;
+            color:var(--inv-forest); pointer-events:none; transform:rotate(9deg); }
+        .inv-watermark svg { width:100%; height:auto; display:block; }
+        .inv-parties, .inv-table, .inv-summary, .inv-thanks { position:relative; z-index:1; }
 
         /* Parties : Vendeur / Client */
         .inv-parties { display:flex; gap:16px; margin-bottom:22px; }
@@ -185,6 +193,18 @@ if ($items === []) {
         </header>
 
         <div class="inv-body">
+            <div class="inv-watermark" aria-hidden="true">
+                <svg viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 5C33 5 39.5 16 39.5 32 39.5 49 33 59 24 59 15 59 8.5 49 8.5 32 8.5 16 15 5 24 5Z" fill="currentColor"/>
+                    <path d="M24 16C26.4 26 26.4 38 24 52 21.6 38 21.6 26 24 16Z" fill="#FBF7EF"/>
+                    <g stroke="#FBF7EF" stroke-width="1.2" stroke-linecap="round" opacity=".85">
+                        <line x1="22" y1="24" x2="17.5" y2="23.4"/><line x1="22" y1="30" x2="17" y2="29.6"/>
+                        <line x1="22" y1="36" x2="17" y2="36.4"/><line x1="22" y1="42" x2="17.5" y2="42.6"/>
+                        <line x1="26" y1="24" x2="30.5" y2="23.4"/><line x1="26" y1="30" x2="31" y2="29.6"/>
+                        <line x1="26" y1="36" x2="31" y2="36.4"/><line x1="26" y1="42" x2="30.5" y2="42.6"/>
+                    </g>
+                </svg>
+            </div>
             <div class="inv-parties">
                 <div class="inv-party">
                     <h3><?= e(t('invoice.from')) ?></h3>
