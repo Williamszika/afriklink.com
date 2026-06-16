@@ -56,7 +56,7 @@ final class BoutiqueController
         if (Boutique::ownedBy($bid, (int) $user['id'])) {
             $_SESSION['boutique_id'] = $bid;
         }
-        redirect('/vendeur');
+        redirect('/dashboard');
     }
 
     public function submit(Request $request): void

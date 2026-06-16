@@ -97,6 +97,7 @@ return [
 
     ['POST', '/logout',            [AuthController::class, 'logout'],         ['auth', 'csrf']],
     ['GET',  '/dashboard',         [DashboardController::class, 'index'],     ['auth']],
+    ['GET',  '/vendeur',           [DashboardController::class, 'index'],     ['auth']],
     ['GET',  '/mes-achats',        [DashboardController::class, 'purchases'], ['auth']],
     // Affiliation — hub universel (tout membre) : lien perso, gains, annuaire des boutiques participantes.
     ['GET',  '/affiliation',           [AffiliateController::class, 'hub'],          ['auth']],
