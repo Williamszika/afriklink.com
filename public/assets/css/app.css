@@ -896,6 +896,14 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 
 /* Carte vitrine « réelle » (vs bientôt) */
 .action-card--live { border-color: var(--brand); }
+/* Vitrines : liste des boutiques (multi-boutique) */
+.vitrines-section{font-size:1.05rem;font-weight:800;margin:22px 0 10px;color:var(--ink)}
+.vitrines-section:first-of-type{margin-top:4px}
+.shop-mini{gap:6px}
+.shop-mini-cta{margin-top:10px;align-self:flex-start}
+.shop-mini--new{border-style:dashed;justify-content:center;text-align:center}
+.shop-mini--new .action-head{justify-content:center}
+.shop-mini--new .action-head strong{color:var(--brand)}
 .chip-live { font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--brand); color: #fff; }
 
 /* Aperçu + page boutique */

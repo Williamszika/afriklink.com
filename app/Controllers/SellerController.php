@@ -159,6 +159,7 @@ final class SellerController
         view('vendeur/vitrines', [
             'active'     => 'vitrines',
             'boutique'   => \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0)),
+            'boutiques'  => \App\Models\Boutique::allForUser((int) ($user['id'] ?? 0)),
             'restaurant' => \App\Models\Restaurant::findByUserId((int) ($user['id'] ?? 0)),
         ] + self::commonData($user));
     }

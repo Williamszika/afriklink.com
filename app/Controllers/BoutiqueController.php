@@ -56,7 +56,9 @@ final class BoutiqueController
         if (Boutique::ownedBy($bid, (int) $user['id'])) {
             $_SESSION['boutique_id'] = $bid;
         }
-        redirect('/dashboard');
+        // Destination facultative (ex. « Gérer » → /boutique/gerer) ; chemins internes uniquement.
+        $to = (string) input_string('to', '/dashboard');
+        redirect(str_starts_with($to, '/') && !str_starts_with($to, '//') ? $to : '/dashboard');
     }
 
     public function submit(Request $request): void
