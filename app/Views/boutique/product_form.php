@@ -86,13 +86,25 @@ $fmtP = static function ($cents) use ($cur): string {
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e(t('variant.section')) ?></summary>
             <p class="hint"><?= e(t('variant.hint')) ?></p>
-            <div class="variant-rows" id="variant-rows" data-variant-rows>
-                <?php foreach ($realVariants as $v): $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []); ?>
+            <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows>
+                <div class="variant-head">
+                    <span><?= e(t('variant.size')) ?></span>
+                    <span><?= e(t('variant.color')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($realVariants as $v):
+                    $attr  = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+                    $vSize = (string) ($attr['size'] ?? '');
+                    $vColor = (string) ($attr['color'] ?? '');
+                    if ($vSize === '' && $vColor === '' && trim((string) ($v['label'] ?? '')) !== '') { $vSize = (string) $v['label']; }
+                ?>
                     <div class="variant-row">
-                        <input type="text" name="var_label[]" value="<?= e((string) ($v['label'] ?: ($attr['label'] ?? ''))) ?>" maxlength="120" placeholder="<?= e(t('variant.label_ph')) ?>" aria-label="<?= e(t('variant.label_ph')) ?>">
-                        <input type="text" name="var_sku[]" value="<?= e((string) ($v['sku'] ?? '')) ?>" maxlength="64" placeholder="<?= e(t('variant.sku_ph')) ?>" aria-label="<?= e(t('variant.sku_ph')) ?>">
-                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($v['price_cents'] ?? null)) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_ph')) ?>">
-                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $v['stock'] !== null ? (int) $v['stock'] : '' ?>" placeholder="<?= e(t('variant.stock_ph')) ?>" aria-label="<?= e(t('variant.stock_ph')) ?>">
+                        <input type="text" list="size-suggest" name="var_size[]" value="<?= e($vSize) ?>" maxlength="60" placeholder="<?= e(t('variant.size_ph')) ?>" aria-label="<?= e(t('variant.size')) ?>">
+                        <input type="text" list="color-suggest" name="var_color[]" value="<?= e($vColor) ?>" maxlength="60" placeholder="<?= e(t('variant.color_ph')) ?>" aria-label="<?= e(t('variant.color')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $v['stock'] !== null ? (int) $v['stock'] : '' ?>" placeholder="<?= e(t('variant.stock_ph')) ?>" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($v['price_cents'] ?? null)) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
                         <button type="button" class="variant-del" data-variant-del aria-label="✕">✕</button>
                     </div>
                 <?php endforeach; ?>
@@ -100,13 +112,15 @@ $fmtP = static function ($cents) use ($cur): string {
             <button type="button" class="btn btn-ghost btn-sm" data-variant-add>+ <?= e(t('variant.add')) ?></button>
             <template id="variant-template">
                 <div class="variant-row">
-                    <input type="text" name="var_label[]" maxlength="120" placeholder="<?= e(t('variant.label_ph')) ?>" aria-label="<?= e(t('variant.label_ph')) ?>">
-                    <input type="text" name="var_sku[]" maxlength="64" placeholder="<?= e(t('variant.sku_ph')) ?>" aria-label="<?= e(t('variant.sku_ph')) ?>">
-                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_ph')) ?>">
-                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="<?= e(t('variant.stock_ph')) ?>" aria-label="<?= e(t('variant.stock_ph')) ?>">
+                    <input type="text" list="size-suggest" name="var_size[]" maxlength="60" placeholder="<?= e(t('variant.size_ph')) ?>" aria-label="<?= e(t('variant.size')) ?>">
+                    <input type="text" list="color-suggest" name="var_color[]" maxlength="60" placeholder="<?= e(t('variant.color_ph')) ?>" aria-label="<?= e(t('variant.color')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="<?= e(t('variant.stock_ph')) ?>" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
                     <button type="button" class="variant-del" data-variant-del aria-label="✕">✕</button>
                 </div>
             </template>
+            <datalist id="size-suggest"><?php foreach (['XS','S','M','L','XL','XXL','3XL','36','37','38','39','40','41','42','43','44','45'] as $s): ?><option value="<?= e($s) ?>"></option><?php endforeach; ?></datalist>
+            <datalist id="color-suggest"><?php foreach (['Noir','Blanc','Gris','Rouge','Bleu','Vert','Jaune','Orange','Rose','Violet','Marron','Beige'] as $c): ?><option value="<?= e($c) ?>"></option><?php endforeach; ?></datalist>
         </details>
 
         <label for="p-desc"><?= e(t('product.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

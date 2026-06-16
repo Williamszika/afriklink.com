@@ -293,25 +293,34 @@ final class ProductController
     private function syncVariants(int $productId, array $boutique, ?int $fieldStock, int $priceCents): ?int
     {
         $cur    = (string) $boutique['currency'];
-        $labels = (array) ($_POST['var_label'] ?? []);
-        $skus   = (array) ($_POST['var_sku'] ?? []);
+        $sizes  = (array) ($_POST['var_size'] ?? []);
+        $colors = (array) ($_POST['var_color'] ?? []);
         $prices = (array) ($_POST['var_price'] ?? []);
         $stocks = (array) ($_POST['var_stock'] ?? []);
         $rows = [];
-        foreach ($labels as $i => $label) {
-            $label    = trim((string) $label);
-            $sku      = trim((string) ($skus[$i] ?? ''));
+        $seen = [];
+        foreach ($sizes as $i => $sz) {
+            $size  = mb_substr(trim((string) $sz), 0, 60);
+            $color = mb_substr(trim((string) ($colors[$i] ?? '')), 0, 60);
             $stockRaw = trim((string) ($stocks[$i] ?? ''));
             $priceRaw = trim((string) ($prices[$i] ?? ''));
-            if ($label === '' && $sku === '' && $stockRaw === '' && $priceRaw === '') {
-                continue;
+            if ($size === '' && $color === '') {
+                continue; // ligne vide
             }
+            $key = mb_strtolower($size . '|' . $color);
+            if (isset($seen[$key])) {
+                continue; // combinaison taille+couleur en double
+            }
+            $seen[$key] = true;
+            $attrs = [];
+            if ($size !== '')  { $attrs['size']  = $size; }
+            if ($color !== '') { $attrs['color'] = $color; }
             $price = $priceRaw !== '' ? parse_price_to_cents($priceRaw, $cur) : null;
             $rows[] = [
-                'label' => $label !== '' ? mb_substr($label, 0, 120) : null,
-                'sku'   => $sku !== '' ? mb_substr($sku, 0, 64) : null,
-                'stock' => ($stockRaw !== '' && ctype_digit($stockRaw)) ? (int) $stockRaw : null,
-                'price' => ($price !== null && $price >= 0) ? $price : null,
+                'attributes' => $attrs,
+                'label'      => mb_substr(implode(' · ', array_values($attrs)), 0, 120),
+                'stock'      => ($stockRaw !== '' && ctype_digit($stockRaw)) ? (int) $stockRaw : null,
+                'price'      => ($price !== null && $price >= 0) ? $price : null,
             ];
         }
         ProductVariant::deleteForProduct($productId);
@@ -323,9 +332,9 @@ final class ProductController
         $unlimited = false;
         foreach ($rows as $pos => $r) {
             ProductVariant::create($productId, (int) $boutique['id'], [
-                'sku'         => $r['sku'],
-                'attributes'  => $r['label'] !== null ? ['label' => $r['label']] : [],
-                'label'       => $r['label'],
+                'sku'         => ProductVariant::generateSku(),
+                'attributes'  => $r['attributes'],
+                'label'       => $r['label'] !== '' ? $r['label'] : null,
                 'price_cents' => $r['price'],
                 'stock'       => $r['stock'],
                 'position'    => $pos,

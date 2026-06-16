@@ -2498,13 +2498,72 @@ document.addEventListener('click', function (ev) {
     }
 });
 
-/* ---- Sélecteur de déclinaison (fiche produit) : « Acheter » cible la variante ---- */
-document.addEventListener('change', function (ev) {
-    var radio = ev.target;
-    if (!radio || radio.name !== 'pick_variant' || !radio.checked) { return; }
+/* ---- Sélecteur de déclinaison taille/couleur (fiche produit) ---- */
+(function () {
+    var pick = document.querySelector('[data-variant-pick]');
+    if (!pick) { return; }
+    var variants;
+    try { variants = JSON.parse(pick.getAttribute('data-variants') || '[]'); } catch (e) { variants = []; }
+    if (!variants.length) { return; }
     var buy = document.querySelector('[data-buy-now]');
-    if (buy) { buy.setAttribute('data-buy-now', radio.value); }
-});
+    var unavail = pick.querySelector('[data-variant-unavailable]');
+    var priceEl = document.querySelector('.listing-price');
+    var root = document.querySelector('[data-cart-root]');
+    var curInt = root && root.getAttribute('data-cur-int') === '1';
+    var sym = (root && root.getAttribute('data-cur-sym')) || '';
+    var hasSize = !!pick.querySelector('input[name="pick_size"]');
+    var hasColor = !!pick.querySelector('input[name="pick_color"]');
+    var priceVaries = variants.some(function (v) { return v.price !== variants[0].price; });
+
+    function fmt(c) { return (curInt ? String(Math.round(c / 100)) : (c / 100).toFixed(2).replace('.', ',')) + ' ' + sym; }
+    function sel(name) { var r = pick.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ''; }
+    function inStock(v) { return !!v && (v.stock === null || v.stock > 0); }
+    function match(size, color) {
+        for (var i = 0; i < variants.length; i++) {
+            var v = variants[i];
+            if ((!hasSize || v.size === size) && (!hasColor || v.color === color)) { return v; }
+        }
+        return null;
+    }
+    function check(name, val) { pick.querySelectorAll('input[name="' + name + '"]').forEach(function (r) { if (r.value === val) { r.checked = true; } }); }
+    function refreshAvailability() {
+        var size = sel('pick_size'), color = sel('pick_color');
+        pick.querySelectorAll('input[name="pick_size"]').forEach(function (r) {
+            var ok = variants.some(function (v) { return v.size === r.value && (!hasColor || !color || v.color === color) && inStock(v); });
+            r.disabled = !ok; if (r.closest('.variant-chip')) { r.closest('.variant-chip').classList.toggle('is-out', !ok); }
+        });
+        pick.querySelectorAll('input[name="pick_color"]').forEach(function (r) {
+            var ok = variants.some(function (v) { return v.color === r.value && (!hasSize || !size || v.size === size) && inStock(v); });
+            r.disabled = !ok; if (r.closest('.variant-chip')) { r.closest('.variant-chip').classList.toggle('is-out', !ok); }
+        });
+    }
+    function update() {
+        var size = sel('pick_size'), color = sel('pick_color');
+        pick.querySelectorAll('[data-axis-val]').forEach(function (s) {
+            var v = s.getAttribute('data-axis-val') === 'size' ? size : color;
+            s.textContent = v ? '· ' + v : '';
+        });
+        var ready = (!hasSize || size) && (!hasColor || color);
+        var v = ready ? match(size, color) : null;
+        var ok = inStock(v);
+        if (buy) {
+            if (v && ok) { buy.setAttribute('data-buy-now', v.id); buy.disabled = false; }
+            else { buy.disabled = ready; }
+        }
+        if (unavail) { unavail.hidden = !(ready && !ok); }
+        if (priceEl && priceVaries && v) {
+            priceEl.innerHTML = (v.base > v.price ? '<del class="price-was">' + fmt(v.base) + '</del> ' : '') + '<span class="' + (v.base > v.price ? 'price-now' : '') + '">' + fmt(v.price) + '</span>';
+        }
+        refreshAvailability();
+    }
+    pick.addEventListener('change', function (ev) {
+        if (ev.target && (ev.target.name === 'pick_size' || ev.target.name === 'pick_color')) { update(); }
+    });
+    var first = null;
+    for (var i = 0; i < variants.length; i++) { if (inStock(variants[i])) { first = variants[i]; break; } }
+    if (first) { if (hasSize && first.size) { check('pick_size', first.size); } if (hasColor && first.color) { check('pick_color', first.color); } }
+    update();
+})();
 
 /* ---- Anti double-soumission sur les formulaires sensibles ([data-submit-once]) :
    vente en caisse, ouverture/clôture de session, commande. Évite la double-vente /

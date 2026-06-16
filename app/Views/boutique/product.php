@@ -32,6 +32,27 @@ foreach ($realVariants as $rv) {
         break;
     }
 }
+// Déclinaisons structurées : tailles + couleurs distinctes (2 sélecteurs) + carte pour le JS.
+$vSizes = [];
+$vColors = [];
+$vMap = [];
+foreach ($realVariants as $rv) {
+    $a  = is_array($rv['attributes'] ?? null) ? $rv['attributes'] : (json_decode((string) ($rv['attributes'] ?? ''), true) ?: []);
+    $sz = (string) ($a['size'] ?? '');
+    $co = (string) ($a['color'] ?? '');
+    if ($sz === '' && $co === '' && trim((string) ($rv['label'] ?? '')) !== '') { $sz = (string) $rv['label']; }
+    if ($sz !== '' && !in_array($sz, $vSizes, true)) { $vSizes[] = $sz; }
+    if ($co !== '' && !in_array($co, $vColors, true)) { $vColors[] = $co; }
+    $vBase = $rv['price_cents'] !== null ? (int) $rv['price_cents'] : (int) $product['price_cents'];
+    $vMap[] = [
+        'id'    => (string) $rv['public_id'],
+        'size'  => $sz,
+        'color' => $co,
+        'stock' => $rv['stock'] === null ? null : (int) $rv['stock'],
+        'price' => product_effective_unit_cents($product, $vBase),
+        'base'  => $vBase,
+    ];
+}
 ?>
 <section class="listing-page">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
@@ -90,21 +111,28 @@ foreach ($realVariants as $rv) {
                     </div>
                 <?php endif; ?>
                 <?php if ($realVariants !== []): ?>
-                    <div class="variant-pick" data-variant-pick>
-                        <p class="variant-pick-label"><?= e(t('variant.choose')) ?></p>
-                        <div class="variant-chips">
-                            <?php foreach ($realVariants as $v):
-                                $vOut = $v['stock'] !== null && (int) $v['stock'] <= 0;
-                                $vBase = $v['price_cents'] !== null ? (int) $v['price_cents'] : (int) $product['price_cents'];
-                                $vPrice = product_effective_unit_cents($product, $vBase);
-                            ?>
-                                <label class="variant-chip<?= $vOut ? ' is-out' : '' ?>">
-                                    <input type="radio" name="pick_variant" value="<?= e((string) $v['public_id']) ?>"
-                                           data-price="<?= $vPrice ?>" <?= (string) $v['public_id'] === $buyId ? 'checked' : '' ?> <?= $vOut ? 'disabled' : '' ?>>
-                                    <span><?= e((string) ($v['label'] ?: '—')) ?><?php if ($vOut): ?> · <?= e(t('product.out_of_stock')) ?><?php endif; ?></span>
-                                </label>
-                            <?php endforeach; ?>
-                        </div>
+                    <div class="variant-pick" data-variant-pick data-variants="<?= e((string) json_encode($vMap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>">
+                        <?php if ($vSizes !== []): ?>
+                            <div class="variant-axis">
+                                <p class="variant-pick-label"><?= e(t('variant.size')) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
+                                <div class="variant-chips">
+                                    <?php foreach ($vSizes as $sz): ?>
+                                        <label class="variant-chip"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?= e($sz) ?></span></label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($vColors !== []): ?>
+                            <div class="variant-axis">
+                                <p class="variant-pick-label"><?= e(t('variant.color')) ?> <span class="variant-pick-val" data-axis-val="color"></span></p>
+                                <div class="variant-chips">
+                                    <?php foreach ($vColors as $co): ?>
+                                        <label class="variant-chip"><input type="radio" name="pick_color" value="<?= e($co) ?>"><span><?= e($co) ?></span></label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <p class="variant-unavailable" data-variant-unavailable hidden><?= e(t('variant.unavailable')) ?></p>
                     </div>
                 <?php endif; ?>
                 <?php if ($canOrder): ?>
