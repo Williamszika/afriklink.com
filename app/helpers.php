@@ -656,6 +656,83 @@ function product_effective_unit_cents(array $product, int $basePriceCents): int
     return max(0, min($basePriceCents, $eff));
 }
 
+/* ---------- Prêt-à-porter : genres, catégories, systèmes de tailles ---------- */
+
+/** @return list<string> Publics visés (homme, femme, unisexe, enfant). */
+function apparel_audiences(): array
+{
+    return (array) config('apparel.audiences', []);
+}
+
+/** @return array<string,array> Catégories brutes : key => [groupe, système, unité, genres]. */
+function apparel_categories(): array
+{
+    return (array) config('apparel.categories', []);
+}
+
+/** Détails d'une catégorie : ['group','size_system','unit','audiences'] ou null. */
+function apparel_category(?string $key): ?array
+{
+    if ($key === null || $key === '') {
+        return null;
+    }
+    $c = apparel_categories()[$key] ?? null;
+    if (!is_array($c)) {
+        return null;
+    }
+    return [
+        'group'       => (string) ($c[0] ?? ''),
+        'size_system' => (string) ($c[1] ?? 'alpha'),
+        'unit'        => (string) ($c[2] ?? 'piece'),
+        'audiences'   => (array) ($c[3] ?? []),
+    ];
+}
+
+/** Unité de vente d'une catégorie : 'piece' (défaut) ou 'meter' (tissus). */
+function apparel_category_unit(?string $key): string
+{
+    return apparel_category($key)['unit'] ?? 'piece';
+}
+
+/** @return list<string> Suggestions de tailles pour un système donné. */
+function apparel_size_suggestions(string $system): array
+{
+    if ($system === 'bra') {
+        $out = [];
+        foreach (['80', '85', '90', '95', '100', '105', '110'] as $band) {
+            foreach (['A', 'B', 'C', 'D', 'E', 'F'] as $cup) {
+                $out[] = $band . $cup;
+            }
+        }
+        return $out;
+    }
+    return (array) (config('apparel.size_systems')[$system] ?? []);
+}
+
+/** @return array<string,list<string>> Carte système => suggestions (pour le JS du formulaire). */
+function apparel_size_map(): array
+{
+    $out = [];
+    foreach (array_keys((array) config('apparel.size_systems', [])) as $sys) {
+        $out[$sys] = apparel_size_suggestions((string) $sys);
+    }
+    return $out;
+}
+
+/** Valide un genre soumis ('' = non précisé). */
+function apparel_audience_clean(?string $v): string
+{
+    $v = (string) $v;
+    return in_array($v, apparel_audiences(), true) ? $v : '';
+}
+
+/** Valide une catégorie soumise ('' = non précisée). */
+function apparel_category_clean(?string $v): string
+{
+    $v = (string) $v;
+    return isset(apparel_categories()[$v]) ? $v : '';
+}
+
 /**
  * Commission de la plateforme (en centimes) sur un sous-total donné.
  * SOURCE UNIQUE : config('payment.platform_commission_pct') (env PLATFORM_COMMISSION_PCT,

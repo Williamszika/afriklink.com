@@ -51,6 +51,35 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <div class="grid-2">
             <div>
+                <label for="p-audience"><?= e(t('product.f.audience')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <select id="p-audience" name="audience">
+                    <option value=""><?= e(t('product.f.audience_any')) ?></option>
+                    <?php foreach (apparel_audiences() as $aud): ?>
+                        <option value="<?= e($aud) ?>" <?= ($isEdit && (string) ($product['audience'] ?? '') === $aud) ? 'selected' : '' ?>><?= e(t('apparel.aud.' . $aud)) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="p-garment"><?= e(t('product.f.garment')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <select id="p-garment" name="garment_category" data-garment-select>
+                    <option value=""><?= e(t('product.f.garment_any')) ?></option>
+                    <?php
+                    $byGroup = [];
+                    foreach (apparel_categories() as $gkey => $gc) { $byGroup[(string) $gc[0]][$gkey] = $gc; }
+                    foreach ($byGroup as $grp => $cats): ?>
+                        <optgroup label="<?= e(t('apparel.grp.' . $grp)) ?>">
+                            <?php foreach ($cats as $gkey => $gc): ?>
+                                <option value="<?= e((string) $gkey) ?>" data-size-system="<?= e((string) $gc[1]) ?>" data-unit="<?= e((string) $gc[2]) ?>" <?= ($isEdit && (string) ($product['garment_category'] ?? '') === (string) $gkey) ? 'selected' : '' ?>><?= e(t('apparel.cat.' . $gkey)) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endforeach; ?>
+                </select>
+                <p class="hint"><?= e(t('product.f.garment_hint')) ?></p>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
                 <label for="p-price"><?= e(t('product.f.price', ['cur' => $cur])) ?></label>
                 <input type="text" id="p-price" name="price" value="<?= old('price') ?: e($priceVal) ?>" inputmode="decimal" required placeholder="0">
                 <?php if (has_error('price')): ?><p class="field-error"><?= e(error('price')) ?></p><?php endif; ?>
@@ -86,7 +115,7 @@ $fmtP = static function ($cents) use ($cur): string {
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e(t('variant.section')) ?></summary>
             <p class="hint"><?= e(t('variant.hint')) ?></p>
-            <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows>
+            <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="variant-head">
                     <span><?= e(t('variant.size')) ?></span>
                     <span><?= e(t('variant.color')) ?></span>

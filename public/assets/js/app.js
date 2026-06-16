@@ -2498,6 +2498,25 @@ document.addEventListener('click', function (ev) {
     }
 });
 
+/* ---- Tailles suggérées selon la catégorie de vêtement (formulaire produit) ---- */
+(function () {
+    var sel = document.querySelector('[data-garment-select]');
+    var rows = document.querySelector('[data-variant-rows]');
+    var dl = document.getElementById('size-suggest');
+    if (!sel || !rows || !dl) { return; }
+    var map;
+    try { map = JSON.parse(rows.getAttribute('data-size-map') || '{}'); } catch (e) { map = {}; }
+    function refresh() {
+        var opt = sel.options[sel.selectedIndex];
+        var sys = opt ? opt.getAttribute('data-size-system') : '';
+        var list = (sys && map[sys]) ? map[sys] : (map.alpha || []);
+        dl.innerHTML = '';
+        list.forEach(function (s) { var o = document.createElement('option'); o.value = s; dl.appendChild(o); });
+    }
+    sel.addEventListener('change', refresh);
+    refresh();
+})();
+
 /* ---- Sélecteur de déclinaison taille/couleur (fiche produit) ---- */
 (function () {
     var pick = document.querySelector('[data-variant-pick]');

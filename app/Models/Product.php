@@ -80,14 +80,16 @@ final class Product
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, promo_price_cents, promo_until, stock, video_public_id, video_duration, status, position)
-                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :promo, :promo_until, :stock, :vid, :vdur, :status, :pos)'
+                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, promo_price_cents, promo_until, stock, audience, garment_category, sale_unit, video_public_id, video_duration, status, position)
+                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :promo, :promo_until, :stock, :aud, :gcat, :unit, :vid, :vdur, :status, :pos)'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $boutiqueId, 'uid' => $userId,
                 'name' => $data['name'], 'desc' => $data['description'],
                 'price' => $data['price_cents'], 'promo' => $data['promo_price_cents'] ?? null,
                 'promo_until' => $data['promo_until'] ?? null, 'stock' => $data['stock'],
+                'aud' => $data['audience'] ?? null, 'gcat' => $data['garment_category'] ?? null,
+                'unit' => $data['sale_unit'] ?? 'piece',
                 'vid' => $data['video_public_id'] ?? null, 'vdur' => $data['video_duration'] ?? null,
                 'status' => $data['status'], 'pos' => time() % 100000000,
             ]);
@@ -111,11 +113,14 @@ final class Product
         $stmt = db()->prepare(
             'UPDATE products SET name = :name, description = :desc, price_cents = :price,
                 promo_price_cents = :promo, promo_until = :promo_until,
+                audience = :aud, garment_category = :gcat, sale_unit = :unit,
                 stock = :stock, video_public_id = :vid, video_duration = :vdur, status = :status WHERE id = :id'
         );
         $stmt->execute([
             'name' => $data['name'], 'desc' => $data['description'], 'price' => $data['price_cents'],
             'promo' => $data['promo_price_cents'] ?? null, 'promo_until' => $data['promo_until'] ?? null,
+            'aud' => $data['audience'] ?? null, 'gcat' => $data['garment_category'] ?? null,
+            'unit' => $data['sale_unit'] ?? 'piece',
             'stock' => $data['stock'], 'vid' => $data['video_public_id'] ?? null,
             'vdur' => $data['video_duration'] ?? null, 'status' => $data['status'], 'id' => $id,
         ]);
@@ -190,6 +195,20 @@ final class Product
         } catch (\Throwable) {
             try {
                 db()->exec('ALTER TABLE products ADD COLUMN promo_price_cents BIGINT UNSIGNED NULL, ADD COLUMN promo_until DATETIME NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        // Prêt-à-porter : genre (homme/femme/unisexe/enfant), catégorie de vêtement,
+        // et unité de vente ('piece' ou 'meter' pour les tissus/pagnes au mètre).
+        try {
+            db()->query('SELECT garment_category FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec("ALTER TABLE products
+                    ADD COLUMN audience VARCHAR(12) NULL,
+                    ADD COLUMN garment_category VARCHAR(40) NULL,
+                    ADD COLUMN sale_unit VARCHAR(8) NOT NULL DEFAULT 'piece'");
             } catch (\Throwable) {
                 // déjà migré
             }

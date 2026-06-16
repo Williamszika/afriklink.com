@@ -223,6 +223,11 @@ final class ProductController
             $errors['description'] = t('validation.too_long', ['max' => $descMax]);
         }
 
+        // Prêt-à-porter : genre + catégorie ; l'unité de vente découle de la catégorie.
+        $audience = apparel_audience_clean(input_string('audience', ''));
+        $garment  = apparel_category_clean(input_string('garment_category', ''));
+        $saleUnit = apparel_category_unit($garment);
+
         $status = whitelist((string) input_string('status', 'active'), ['active', 'hidden'], 'active');
 
         // Vidéo (optionnelle, 2 min max) — vérité serveur sur la durée.
@@ -278,6 +283,9 @@ final class ProductController
         return [[
             'name' => $name, 'description' => $description, 'price_cents' => $priceCents,
             'promo_price_cents' => $promoCents, 'promo_until' => $promoUntil,
+            'audience' => $audience !== '' ? $audience : null,
+            'garment_category' => $garment !== '' ? $garment : null,
+            'sale_unit' => $saleUnit,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
             'collection' => mb_substr(trim((string) input_string('collection', '')), 0, 60),

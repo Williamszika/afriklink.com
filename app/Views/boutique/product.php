@@ -85,6 +85,12 @@ foreach ($realVariants as $rv) {
         <div class="listing-side">
             <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
+                <?php
+                $apTags = [];
+                if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
+                if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
+                ?>
+                <?php if ($apTags !== []): ?><p class="listing-apparel"><?= icon('tag', ['size' => 14]) ?> <?= e(implode(' · ', $apTags)) ?></p><?php endif; ?>
                 <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line"><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.badge')) ?></p><?php endif; ?>
                 <?php if (($rating['count'] ?? 0) > 0): ?>
                     <p class="listing-rating"><a href="#avis"><?= render_partial('partials/stars', ['avg' => $rating['avg'], 'count' => $rating['count']]) ?></a></p>
