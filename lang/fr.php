@@ -1486,6 +1486,8 @@ return [
     'product.f.collection' => 'Rayon / Catégorie',
     'product.f.collection_ph' => 'ex. Bijoux, Vêtements, Maison…',
     'product.f.collection_hint' => 'Regroupez vos articles en rayons pour aider vos clients à s’y retrouver.',
+    'product.f.collection_none' => '— Aucun —',
+    'product.f.collection_other' => 'Autre / nouveau rayon…',
     'product.f.name_ph' => 'Ex. : Robe wax taille 38',
     'product.f.price' => 'Prix (:cur)',
     'product.f.promo_section' => 'Promotion (réduction)',

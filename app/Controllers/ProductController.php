@@ -228,6 +228,12 @@ final class ProductController
         $garment  = apparel_category_clean(input_string('garment_category', ''));
         $saleUnit = apparel_category_unit($garment);
 
+        // Rayon / catégorie (menu déroulant) : valeur choisie, ou saisie libre si « Autre ».
+        $collSel    = (string) input_string('collection_select', '');
+        $collection = $collSel === '__other__'
+            ? mb_substr(trim((string) input_string('collection_other', '')), 0, 60)
+            : mb_substr(trim($collSel), 0, 60);
+
         $status = whitelist((string) input_string('status', 'active'), ['active', 'hidden'], 'active');
 
         // Vidéo (optionnelle, 2 min max) — vérité serveur sur la durée.
@@ -288,7 +294,7 @@ final class ProductController
             'sale_unit' => $saleUnit,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
-            'collection' => mb_substr(trim((string) input_string('collection', '')), 0, 60),
+            'collection' => $collection,
         ], $errors, $errors === [] ? $photos : null];
     }
 

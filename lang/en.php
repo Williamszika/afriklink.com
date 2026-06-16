@@ -1486,6 +1486,8 @@ return [
     'product.f.collection' => 'Category / Collection',
     'product.f.collection_ph' => 'e.g. Jewelry, Clothing, Home…',
     'product.f.collection_hint' => 'Group your items into categories to help customers browse.',
+    'product.f.collection_none' => '— None —',
+    'product.f.collection_other' => 'Other / new category…',
     'product.f.name_ph' => 'E.g.: Wax dress size 38',
     'product.f.price' => 'Price (:cur)',
     'product.f.promo_section' => 'Promotion (discount)',

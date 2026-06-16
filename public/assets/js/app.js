@@ -2528,6 +2528,42 @@ document.addEventListener('click', function (ev) {
     refresh();
 })();
 
+/* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */
+(function () {
+    var sel = document.querySelector('[data-collection-select]');
+    var other = document.querySelector('[data-collection-other]');
+    if (!sel || !other) { return; }
+    sel.addEventListener('change', function () {
+        var on = sel.value === '__other__';
+        other.hidden = !on;
+        if (on) { other.focus(); }
+    });
+})();
+
+/* ---- Genre ⇄ Catégorie de vêtement : ne proposer que les catégories du genre choisi ---- */
+(function () {
+    var aud = document.getElementById('p-audience');
+    var gar = document.querySelector('[data-garment-select]');
+    if (!aud || !gar) { return; }
+    function filter() {
+        var a = aud.value, cur = gar.value, valid = true;
+        Array.prototype.forEach.call(gar.querySelectorAll('option'), function (o) {
+            if (!o.value) { return; }
+            var auds = (o.getAttribute('data-audiences') || '').split(',');
+            var ok = !a || auds.indexOf(a) !== -1;
+            o.hidden = !ok; o.disabled = !ok;
+            if (!ok && o.value === cur) { valid = false; }
+        });
+        Array.prototype.forEach.call(gar.querySelectorAll('optgroup'), function (g) {
+            var any = Array.prototype.some.call(g.querySelectorAll('option'), function (o) { return !o.hidden; });
+            g.hidden = !any;
+        });
+        if (!valid) { gar.value = ''; gar.dispatchEvent(new Event('change')); }
+    }
+    aud.addEventListener('change', filter);
+    filter();
+})();
+
 /* ---- Vente au mètre : aperçu du total (longueur × prix au mètre) ---- */
 (function () {
     var box = document.querySelector('[data-meter-buy]');

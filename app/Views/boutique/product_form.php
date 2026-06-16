@@ -38,15 +38,25 @@ $fmtP = static function ($cents) use ($cur): string {
                required maxlength="<?= (int) config('shop.product_name_max', 150) ?>" placeholder="<?= e(t('product.f.name_ph')) ?>">
         <?php if (has_error('name')): ?><p class="field-error"><?= e(error('name')) ?></p><?php endif; ?>
 
-        <?php $cols = $collections ?? []; ?>
+        <?php
+        $cols   = $collections ?? [];
+        $curCol = (string) (old('collection') ?: (string) ($product['collection'] ?? ''));
+        $catOpts = [];
+        foreach ($cols as $c) { if (trim((string) $c) !== '') { $catOpts[(string) $c] = (string) $c; } }
+        foreach ((array) config('listings.categories', []) as $gc) { $lbl = t('listing.cat.' . $gc); $catOpts[$lbl] = $lbl; }
+        ksort($catOpts, SORT_NATURAL | SORT_FLAG_CASE);
+        $isOther = $curCol !== '' && !isset($catOpts[$curCol]);
+        ?>
         <label for="p-collection"><?= e(t('product.f.collection')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-        <input type="text" id="p-collection" name="collection" maxlength="60" list="collection-list"
-               value="<?= old('collection') ?: e((string) ($product['collection'] ?? '')) ?>" placeholder="<?= e(t('product.f.collection_ph')) ?>">
-        <?php if ($cols !== []): ?>
-            <datalist id="collection-list">
-                <?php foreach ($cols as $c): ?><option value="<?= e((string) $c) ?>"></option><?php endforeach; ?>
-            </datalist>
-        <?php endif; ?>
+        <select id="p-collection" name="collection_select" data-collection-select>
+            <option value=""><?= e(t('product.f.collection_none')) ?></option>
+            <?php foreach ($catOpts as $val => $lbl): ?>
+                <option value="<?= e((string) $val) ?>" <?= $curCol === (string) $val ? 'selected' : '' ?>><?= e((string) $lbl) ?></option>
+            <?php endforeach; ?>
+            <option value="__other__" <?= $isOther ? 'selected' : '' ?>><?= e(t('product.f.collection_other')) ?></option>
+        </select>
+        <input type="text" id="p-collection-other" name="collection_other" maxlength="60" data-collection-other
+               value="<?= $isOther ? e($curCol) : '' ?>" placeholder="<?= e(t('product.f.collection_ph')) ?>"<?= $isOther ? '' : ' hidden' ?>>
         <p class="hint"><?= e(t('product.f.collection_hint')) ?></p>
 
         <div class="grid-2">
@@ -69,7 +79,7 @@ $fmtP = static function ($cents) use ($cur): string {
                     foreach ($byGroup as $grp => $cats): ?>
                         <optgroup label="<?= e(t('apparel.grp.' . $grp)) ?>">
                             <?php foreach ($cats as $gkey => $gc): ?>
-                                <option value="<?= e((string) $gkey) ?>" data-size-system="<?= e((string) $gc[1]) ?>" data-unit="<?= e((string) $gc[2]) ?>" <?= ($isEdit && (string) ($product['garment_category'] ?? '') === (string) $gkey) ? 'selected' : '' ?>><?= e(t('apparel.cat.' . $gkey)) ?></option>
+                                <option value="<?= e((string) $gkey) ?>" data-size-system="<?= e((string) $gc[1]) ?>" data-unit="<?= e((string) $gc[2]) ?>" data-audiences="<?= e(implode(',', (array) ($gc[3] ?? []))) ?>" <?= ($isEdit && (string) ($product['garment_category'] ?? '') === (string) $gkey) ? 'selected' : '' ?>><?= e(t('apparel.cat.' . $gkey)) ?></option>
                             <?php endforeach; ?>
                         </optgroup>
                     <?php endforeach; ?>
