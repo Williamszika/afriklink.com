@@ -153,52 +153,64 @@ final class OrderNotifier
         int $totalCents,
         string $currency,
         ?string $term,
+        int $dueCents,
         string $url,
     ): void {
         $total = format_price($totalCents, $currency);
 
-        // ---- Détail des articles (tableau HTML) ----
+        // ---- Détail des articles (tableau de l'e-mail de marque) ----
         $rows = '';
         foreach ($lines as $l) {
-            $rows .= '<tr>'
-                . '<td style="padding:4px 10px 4px 0">' . (int) $l['qty'] . '× ' . e((string) $l['title']) . '</td>'
-                . '<td style="padding:4px 0;text-align:right;white-space:nowrap">'
+            $rows .= '<tr><td style="padding:7px 0;border-bottom:1px solid #eee">' . (int) $l['qty'] . '× ' . e((string) $l['title'])
+                . '</td><td align="right" style="padding:7px 0;border-bottom:1px solid #eee;white-space:nowrap">'
                 . e(format_price((int) $l['line_total_cents'], $currency)) . '</td></tr>';
         }
         $sub = static function (string $label, int $cents) use ($currency): string {
-            return '<tr><td style="padding:2px 10px 2px 0;color:#555">' . e($label) . '</td>'
-                . '<td style="padding:2px 0;text-align:right;color:#555">' . e(format_price($cents, $currency)) . '</td></tr>';
+            return '<tr><td style="padding:3px 0;color:#5B6B62">' . e($label) . '</td>'
+                . '<td align="right" style="padding:3px 0;color:#5B6B62">' . e(format_price($cents, $currency)) . '</td></tr>';
         };
         $breakdown = $sub(t('caisse.subtotal'), $subtotalCents);
         if ($shippingCents > 0) {
             $breakdown .= $sub(t('caisse.shipping'), $shippingCents);
         }
         if ($discountCents > 0) {
-            $breakdown .= '<tr><td style="padding:2px 10px 2px 0;color:#0b7a4b">' . e(t('order.receipt.discount'))
-                . '</td><td style="padding:2px 0;text-align:right;color:#0b7a4b">−' . e(format_price($discountCents, $currency)) . '</td></tr>';
+            $breakdown .= '<tr><td style="padding:3px 0;color:#1E8F6E">' . e(t('order.receipt.discount'))
+                . '</td><td align="right" style="padding:3px 0;color:#1E8F6E">−' . e(format_price($discountCents, $currency)) . '</td></tr>';
         }
+        $table = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:2px 0 14px;font-size:.95rem">'
+            . $rows . $breakdown
+            . '<tr><td style="padding:8px 0 0;border-top:2px solid #E5A02E;font-weight:800;color:#103D30">' . e(t('rorder.total'))
+            . '</td><td align="right" style="padding:8px 0 0;border-top:2px solid #E5A02E;font-weight:800;color:#103D30">' . e($total) . '</td></tr></table>';
 
-        $termLine = $term ? '<p>' . e(t('shop.f.payment_terms')) . ' : <strong>' . e(t('shop.payterm.' . $term)) . '</strong></p>' : '';
+        // ---- Montant à payer selon le terme choisi (le reçu suivra le paiement) ----
+        if ($term === 'deposit') {
+            $main = t('notify.client.due_deposit', ['advance' => format_price($dueCents, $currency), 'rest' => format_price(max(0, $totalCents - $dueCents), $currency)]);
+        } elseif ($term === 'before_delivery') {
+            $main = t('notify.client.due_before', ['amount' => $total]);
+        } else {
+            $main = t('notify.client.due_delivery', ['amount' => $total]);
+        }
+        $panel = '<div class="afk-panel">💵 <strong>' . e($main) . '</strong><br>'
+            . '<span style="color:#5B6B62;font-size:.9rem">' . e(t('notify.client.receipt_after')) . '</span></div>';
 
-        $html = '<p>' . e(t('notify.client.receipt_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-            . '<table style="border-collapse:collapse;margin:6px 0 4px;min-width:260px">' . $rows
-            . '<tr><td colspan="2" style="border-top:1px solid #e5e7eb;padding-top:6px"></td></tr>'
-            . $breakdown
-            . '<tr><td style="padding:6px 10px 0 0;border-top:1px solid #e5e7eb"><strong>' . e(t('rorder.total')) . '</strong></td>'
-            . '<td style="padding:6px 0 0;text-align:right;border-top:1px solid #e5e7eb"><strong>' . e($total) . '</strong></td></tr>'
-            . '</table>'
-            . $termLine
-            . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
-            . e(t('notify.client.track_order_cta')) . '</a></p>'
-            . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+        $html = render_partial('emails/base', [
+            'subject'   => t('notify.client.confirm_subject', ['ref' => $ref]),
+            'preheader' => t('notify.client.receipt_intro', ['shop' => $shopName, 'ref' => $ref]),
+            'heading'   => e(t('notify.client.placed_heading')),
+            'intro'     => e(t('notify.client.receipt_intro', ['shop' => $shopName, 'ref' => $ref])),
+            'body'      => $table . $panel,
+            'cta_url'   => $url,
+            'cta_label' => t('notify.client.track_order_cta'),
+            'accent'    => 'forest',
+        ]);
 
         $text = t('notify.client.receipt_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n";
         foreach ($lines as $l) {
             $text .= (int) $l['qty'] . '× ' . $l['title'] . ' — ' . format_price((int) $l['line_total_cents'], $currency) . "\n";
         }
-        $text .= t('rorder.total') . ' : ' . $total . "\n" . $url;
+        $text .= t('rorder.total') . ' : ' . $total . "\n" . strip_tags($main) . "\n" . $url;
         $sms = t('notify.client.placed_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
-        self::client($email, $phone, t('notify.client.receipt_subject', ['ref' => $ref]), $html, $text, $sms);
+        self::client($email, $phone, t('notify.client.confirm_subject', ['ref' => $ref]), $html, $text, $sms);
     }
 
     /**
@@ -219,18 +231,30 @@ final class OrderNotifier
             $payLine = $isDeposit
                 ? t('notify.client.pay_deposit_line', ['amount' => $amount, 'rest' => format_price(\App\Models\Order::restDue($order), $cur)])
                 : t('notify.client.pay_line', ['amount' => $amount]);
-            $html = '<p>' . e(t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-                . '<p>' . e($payLine) . '</p>'
-                . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
-                . e(t('pay.pay_now')) . '</a></p>'
-                . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+            $html = render_partial('emails/base', [
+                'subject'   => t('notify.client.pay_subject', ['ref' => $ref]),
+                'preheader' => t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref]),
+                'heading'   => e(t('notify.client.confirmed_heading')),
+                'intro'     => e(t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref])),
+                'body'      => '<div class="afk-panel">💳 <strong>' . e($payLine) . '</strong></div>',
+                'cta_url'   => $url,
+                'cta_label' => t('pay.pay_now'),
+                'accent'    => 'gold',
+            ]);
             $text = t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n" . $payLine . "\n" . $url;
             $sms = t('notify.client.pay_sms', ['ref' => $ref, 'amount' => $amount]) . ' ' . $url;
             self::client($email, $phone, t('notify.client.pay_subject', ['ref' => $ref]), $html, $text, $sms);
         } else {
-            $html = '<p>' . e(t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-                . '<p>' . e(t('notify.client.cod_line')) . '</p>'
-                . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+            $html = render_partial('emails/base', [
+                'subject'   => t('notify.client.confirmed_subject', ['ref' => $ref]),
+                'preheader' => t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref]),
+                'heading'   => e(t('notify.client.confirmed_heading')),
+                'intro'     => e(t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref])),
+                'body'      => '<div class="afk-panel">💵 ' . e(t('notify.client.cod_line')) . '</div>',
+                'cta_url'   => $url,
+                'cta_label' => t('notify.client.track_order_cta'),
+                'accent'    => 'forest',
+            ]);
             $text = t('notify.client.confirmed_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n" . t('notify.client.cod_line') . "\n" . $url;
             $sms = t('notify.client.cod_sms', ['ref' => $ref, 'shop' => $shopName]) . ' ' . $url;
             self::client($email, $phone, t('notify.client.confirmed_subject', ['ref' => $ref]), $html, $text, $sms);

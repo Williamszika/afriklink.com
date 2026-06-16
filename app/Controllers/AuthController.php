@@ -266,6 +266,24 @@ final class AuthController
         }
 
         AuditLog::record($userId, 'auth.email_verified', 'user', $userId, [], $request->ipBinary());
+        // E-mail de bienvenue (compte activé) — best-effort.
+        $u = User::findById($userId);
+        if ($u !== null && !empty($u['email'])) {
+            $name    = trim((string) ($u['full_name'] ?? '')) ?: trim((string) ($u['nickname'] ?? ''));
+            $heading = $name !== '' ? t('mail.welcome.heading', ['name' => $name]) : t('mail.welcome.subject');
+            try {
+                MailService::send((string) $u['email'], t('mail.welcome.subject'), render_partial('emails/base', [
+                    'subject'   => t('mail.welcome.subject'),
+                    'preheader' => t('mail.welcome.intro'),
+                    'heading'   => e($heading),
+                    'intro'     => e(t('mail.welcome.intro')),
+                    'cta_url'   => url('/explorer'),
+                    'cta_label' => t('mail.welcome.cta'),
+                    'accent'    => 'gold',
+                ]));
+            } catch (\Throwable) {
+            }
+        }
         flash('success', t('flash.verify_ok'));
         redirect(auth_check() ? '/dashboard' : '/login');
     }
@@ -306,8 +324,15 @@ final class AuthController
 
     private function emailHtml(string $intro, string $link, string $cta): string
     {
-        return '<p>' . e($intro) . '</p>'
-            . '<p><a href="' . e($link) . '">' . e($cta) . '</a></p>'
-            . '<p style="color:#666;font-size:13px">' . e($link) . '</p>';
+        return render_partial('emails/base', [
+            'subject'   => t('mail.verify.subject'),
+            'preheader' => $intro,
+            'heading'   => t('mail.verify.heading'),
+            'intro'     => e($intro),
+            'cta_url'   => $link,
+            'cta_label' => $cta,
+            'accent'    => 'forest',
+            'outro'     => e(t('mail.verify.outro')),
+        ]);
     }
 }

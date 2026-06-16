@@ -1094,11 +1094,13 @@ final class BoutiqueController
         try {
             // Reçu détaillé au client : lignes + sous-total / livraison / remise /
             // total réel de la commande (sous-total + livraison − remise).
+            $grandTotal = max(0, $subtotal + $shipping - $discount);
             OrderNotifier::clientOrderPlaced(
                 $email, $phone, (string) $boutique['name'], $ref,
                 $notifyLines, $subtotal, $shipping, $discount,
-                max(0, $subtotal + $shipping - $discount),
+                $grandTotal,
                 $cur, $paymentTerm,
+                Order::amountDue(['total_cents' => $grandTotal, 'payment_term' => $paymentTerm]),
                 url('/boutique/commande/' . $publicId),
             );
         } catch (\Throwable) {
@@ -1159,6 +1161,13 @@ final class BoutiqueController
             abort(404);
         }
         $boutique = $this->boutiqueOf((int) $order['boutique_id']);
+        // Le reçu n'est délivré au CLIENT qu'une fois la commande payée ; le vendeur
+        // (propriétaire) peut toujours le consulter pour ses dossiers.
+        $isOwner = auth_check() && $boutique !== null && (int) ($boutique['user_id'] ?? 0) === current_user_id();
+        if (!$isOwner && (string) ($order['payment_status'] ?? '') !== 'paid') {
+            flash('info', t('invoice.not_paid_yet'));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
         $seller   = $boutique !== null ? (User::findById((int) $boutique['user_id']) ?? []) : [];
         $items    = Order::items((int) $order['id']);
         $subtotal = 0;

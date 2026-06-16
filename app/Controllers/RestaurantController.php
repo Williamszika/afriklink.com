@@ -302,7 +302,10 @@ final class RestaurantController
         try {
             OrderNotifier::clientOrderPlaced(
                 $email, $phone, (string) $resto['name'], strtoupper(substr($publicId, 0, 6)),
-                $total, $cur, $paymentTerm, url('/restaurant/commande/' . $publicId),
+                $notifyLines, $total, 0, 0, $total,
+                $cur, $paymentTerm,
+                \App\Models\Order::amountDue(['total_cents' => $total, 'payment_term' => $paymentTerm]),
+                url('/restaurant/commande/' . $publicId),
             );
         } catch (\Throwable) {
         }
