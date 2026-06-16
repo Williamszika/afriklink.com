@@ -38,18 +38,22 @@ $pending     = (int) ($dash['pending'] ?? 0);
 
         <?php if ($stage === 'C'): ?>
             <?php /* ---- Vendeur actif : KPIs réels en haut ---- */ ?>
-            <div class="stat-grid cols-4">
+            <div class="kpi-grid">
                 <?php
                 $kpis = [
-                    ['icon' => 'package', 'label' => t('seller.kpi.orders_all'), 'value' => (string) (int) ($dash['order_n'] ?? 0), 'href' => url('/vendeur/commandes')],
-                    ['icon' => 'receipt', 'label' => t('seller.stat.orders'),    'value' => (string) $pending, 'href' => url('/vendeur/commandes?filtre=a_traiter'), 'urgent' => $pending > 0],
-                    ['icon' => 'eye', 'label' => t('seller.stat.views'),     'value' => (string) (int) ($dash['views'] ?? 0), 'href' => url('/boutique/stats')],
-                    ['icon' => 'tag', 'label' => t('seller.kpi.products'),   'value' => (string) (int) ($dash['product_n'] ?? 0), 'href' => url('/boutique/gerer')],
+                    ['icon' => 'package', 'tone' => 'forest', 'label' => t('seller.kpi.orders_all'), 'value' => (string) (int) ($dash['order_n'] ?? 0), 'href' => url('/vendeur/commandes')],
+                    ['icon' => 'receipt', 'tone' => 'gold',   'label' => t('seller.stat.orders'),    'value' => (string) $pending, 'href' => url('/vendeur/commandes?filtre=a_traiter'), 'urgent' => $pending > 0],
+                    ['icon' => 'eye',     'tone' => 'teal',   'label' => t('seller.stat.views'),     'value' => (string) (int) ($dash['views'] ?? 0), 'href' => url('/boutique/stats')],
+                    ['icon' => 'tag',     'tone' => 'rose',   'label' => t('seller.kpi.products'),   'value' => (string) (int) ($dash['product_n'] ?? 0), 'href' => url('/boutique/gerer')],
                 ];
                 foreach ($kpis as $s): ?>
-                    <a class="stat-card stat-card--link<?= !empty($s['urgent']) ? ' stat-card--urgent' : '' ?>" href="<?= e($s['href']) ?>">
-                        <div class="num"><?= icon($s['icon']) ?> <?= e($s['value']) ?></div>
-                        <div class="lbl"><?= e($s['label']) ?></div>
+                    <a class="kpi3d kpi3d--<?= e($s['tone']) ?><?= !empty($s['urgent']) ? ' is-urgent' : '' ?>" href="<?= e($s['href']) ?>">
+                        <span class="kpi3d-ico" aria-hidden="true"><?= icon($s['icon'], ['size' => 26]) ?></span>
+                        <span class="kpi3d-body">
+                            <span class="kpi3d-num"><?= e($s['value']) ?></span>
+                            <span class="kpi3d-lbl"><?= e($s['label']) ?></span>
+                        </span>
+                        <?php if (!empty($s['urgent'])): ?><span class="kpi3d-dot" aria-hidden="true"></span><?php endif; ?>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -91,7 +95,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
                         <?php endif; ?>
                     </div>
                     <p class="gains-chart-title"><?= e(t('wallet.gains_14d')) ?></p>
-                    <?= render_partial('partials/bar_chart', ['bars' => $revBars, 'cur' => $gc, 'height' => 120]) ?>
+                    <?= render_partial('partials/area_chart', ['bars' => $revBars, 'cur' => $gc, 'height' => 130, 'uid' => 'rev']) ?>
                 </div>
 
                 <div class="panel cockpit-top">
@@ -99,11 +103,15 @@ $pending     = (int) ($dash['pending'] ?? 0);
                     <?php if ($topProducts === []): ?>
                         <p class="muted"><?= e(t('seller.cockpit.top_empty')) ?></p>
                     <?php else: ?>
-                        <ol class="cockpit-top-list">
-                            <?php foreach ($topProducts as $tp): ?>
-                                <li>
-                                    <span class="cockpit-top-name"><?= e((string) $tp['name']) ?></span>
-                                    <span class="muted"><?= (int) $tp['units'] ?>× · <?= e(format_price((int) $tp['cents'], $gc)) ?></span>
+                        <?php $tpMax = 1; foreach ($topProducts as $tp) { $tpMax = max($tpMax, (int) $tp['cents']); } ?>
+                        <ol class="top-bars">
+                            <?php foreach ($topProducts as $i => $tp): $pct = max(6, (int) round((int) $tp['cents'] / $tpMax * 100)); ?>
+                                <li class="top-bar">
+                                    <span class="top-bar-rank"><?= $i + 1 ?></span>
+                                    <span class="top-bar-main">
+                                        <span class="top-bar-info"><span class="top-bar-name"><?= e((string) $tp['name']) ?></span><span class="top-bar-val"><?= (int) $tp['units'] ?>× · <?= e(format_price((int) $tp['cents'], $gc)) ?></span></span>
+                                        <span class="top-bar-track"><span class="top-bar-fill" style="width:<?= $pct ?>%"></span></span>
+                                    </span>
                                 </li>
                             <?php endforeach; ?>
                         </ol>
