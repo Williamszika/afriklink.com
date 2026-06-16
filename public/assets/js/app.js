@@ -2520,6 +2520,9 @@ document.addEventListener('click', function (ev) {
     var gar  = document.querySelector('[data-garment-select]');
     var dl   = document.getElementById('size-suggest');
     var head = rows.querySelector('[data-axis-label]');
+    var sBox   = document.querySelector('[data-axis-suggest]');
+    var sChips = document.querySelector('[data-axis-suggest-chips]');
+    var sLabel = document.querySelector('[data-axis-suggest-label]');
     var axes = {}, sizeMap = {};
     try { axes = JSON.parse(rows.getAttribute('data-axes') || '{}'); } catch (e) { axes = {}; }
     try { sizeMap = JSON.parse(rows.getAttribute('data-size-map') || '{}'); } catch (e) { sizeMap = {}; }
@@ -2548,6 +2551,19 @@ document.addEventListener('click', function (ev) {
         dl.innerHTML = '';
         (list || []).forEach(function (s) { var o = document.createElement('option'); o.value = s; dl.appendChild(o); });
     }
+    // Pastilles cliquables : rendent les suggestions VISIBLES (et pas seulement dans la
+    // liste déroulante du champ). Un clic remplit une déclinaison.
+    function setChips(list, label) {
+        if (!sBox || !sChips) { return; }
+        if (sLabel) { sLabel.textContent = label; }
+        sChips.innerHTML = '';
+        (list || []).forEach(function (s) {
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'axis-chip'; b.setAttribute('data-axis-chip', '');
+            b.textContent = s; sChips.appendChild(b);
+        });
+        sBox.hidden = !(list && list.length);
+    }
     function refresh() {
         var axis = rayonAxis();
         var label = axis ? axis.label : baseLabel;
@@ -2562,8 +2578,38 @@ document.addEventListener('click', function (ev) {
         }
         setSizeAttrs(label, ph);
         setSuggest(opts);
+        setChips(opts, label);
     }
-    if (coll) { coll.addEventListener('change', refresh); }
+    // Clic sur une pastille : remplit la 1ʳᵉ déclinaison à taille vide, sinon en crée une.
+    function fillSize(val) {
+        var inputs = rows.querySelectorAll('input[name="var_size[]"]');
+        var target = null;
+        for (var i = 0; i < inputs.length; i++) { if (!inputs[i].value.trim()) { target = inputs[i]; break; } }
+        if (!target) {
+            var tpl = document.getElementById('variant-template');
+            if (tpl && tpl.content) {
+                rows.appendChild(tpl.content.cloneNode(true));
+                rows.dispatchEvent(new CustomEvent('al:variant-added'));
+                var last = rows.lastElementChild;
+                target = last ? last.querySelector('input[name="var_size[]"]') : null;
+            }
+        }
+        if (target) { target.value = val; target.dispatchEvent(new Event('input', { bubbles: true })); target.focus(); }
+    }
+    if (sChips) {
+        sChips.addEventListener('click', function (ev) {
+            var chip = ev.target && ev.target.closest ? ev.target.closest('[data-axis-chip]') : null;
+            if (chip) { ev.preventDefault(); fillSize(chip.textContent); }
+        });
+    }
+    if (coll) {
+        coll.addEventListener('change', function () {
+            refresh();
+            // Révèle la section Déclinaisons pour que le vendeur voie tout de suite les suggestions.
+            var d = rows.closest('details');
+            if (d && sBox && !sBox.hidden) { d.open = true; }
+        });
+    }
     if (gar)  { gar.addEventListener('change', refresh); }
     rows.addEventListener('al:variant-added', refresh);
     refresh();

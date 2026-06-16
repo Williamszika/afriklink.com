@@ -180,6 +180,12 @@ $fmtP = static function ($cents) use ($cur): string {
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>
             <p class="hint"><?= e($varHint) ?></p>
+            <div class="axis-suggest" data-axis-suggest<?= $sizeOpts === [] ? ' hidden' : '' ?>>
+                <span class="axis-suggest-label"><strong data-axis-suggest-label><?= e($sizeLabel) ?></strong> · <?= e(t('variant.suggest_hint')) ?></span>
+                <div class="axis-suggest-chips" data-axis-suggest-chips>
+                    <?php foreach ($sizeOpts as $o): ?><button type="button" class="axis-chip" data-axis-chip><?= e((string) $o) ?></button><?php endforeach; ?>
+                </div>
+            </div>
             <div class="variant-rows variant-rows--sc" id="variant-rows" data-variant-rows
                  data-size-map="<?= e((string) json_encode(apparel_size_map(), JSON_UNESCAPED_UNICODE)) ?>"
                  data-axes="<?= e((string) json_encode(rayon_axes(), JSON_UNESCAPED_UNICODE)) ?>"

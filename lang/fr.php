@@ -1553,6 +1553,7 @@ return [
     'variant.section' => 'Tailles & couleurs (déclinaisons)',
     'variant.hint' => 'Facultatif. Ajoutez une ligne par combinaison (taille et/ou couleur) avec son stock. Le stock total est recalculé pour le panier, et le client choisit sa taille et sa couleur avant d’acheter.',
     'variant.add' => 'Ajouter une déclinaison',
+    'variant.suggest_hint' => 'cliquez une suggestion pour l’ajouter',
     'variant.size' => 'Taille',
     'variant.color' => 'Couleur',
     'variant.size_ph' => 'ex. M',

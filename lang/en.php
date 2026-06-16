@@ -1553,6 +1553,7 @@ return [
     'variant.section' => 'Sizes & colours (variants)',
     'variant.hint' => 'Optional. Add one row per combination (size and/or colour) with its stock. Total stock is recomputed for the cart, and the customer picks their size and colour before buying.',
     'variant.add' => 'Add a variant',
+    'variant.suggest_hint' => 'tap a suggestion to add it',
     'variant.size' => 'Size',
     'variant.color' => 'Colour',
     'variant.size_ph' => 'e.g. M',

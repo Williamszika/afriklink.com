@@ -1962,6 +1962,14 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .variant-del:hover{background:var(--danger-bg);border-color:var(--danger)}
 @media(max-width:640px){.variant-row{grid-template-columns:1fr 1fr}.variant-del{grid-column:span 2;width:auto}}
 
+/* — Pastilles de suggestions visibles (Teinte, Longueur, Contenance, Taille…) — */
+.axis-suggest{margin:6px 0 4px}
+.axis-suggest-label{display:block;font-size:.78rem;color:var(--afk-encre-2,#5b6b65);margin-bottom:6px}
+.axis-suggest-label strong{color:var(--brand)}
+.axis-suggest-chips{display:flex;flex-wrap:wrap;gap:6px}
+.axis-chip{font:600 .82rem/1 inherit;background:var(--brand-50);color:var(--brand);border:1px solid var(--brand-100);padding:6px 11px;border-radius:999px;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+.axis-chip:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+
 /* — Sélecteur de déclinaison (fiche produit) — */
 .variant-pick{margin:8px 0 12px}
 .variant-pick-label{font-weight:600;font-size:.9rem;margin:0 0 8px}
