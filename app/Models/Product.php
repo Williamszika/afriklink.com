@@ -80,8 +80,8 @@ final class Product
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, promo_price_cents, promo_until, stock, audience, garment_category, sale_unit, video_public_id, video_duration, status, position)
-                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :promo, :promo_until, :stock, :aud, :gcat, :unit, :vid, :vdur, :status, :pos)'
+                'INSERT INTO products (public_id, boutique_id, user_id, name, description, price_cents, promo_price_cents, promo_until, stock, audience, garment_category, sale_unit, brand, model, item_condition, video_public_id, video_duration, status, position)
+                 VALUES (:pid, :bid, :uid, :name, :desc, :price, :promo, :promo_until, :stock, :aud, :gcat, :unit, :brand, :model, :cond, :vid, :vdur, :status, :pos)'
             );
             $stmt->execute([
                 'pid' => $publicId, 'bid' => $boutiqueId, 'uid' => $userId,
@@ -90,6 +90,7 @@ final class Product
                 'promo_until' => $data['promo_until'] ?? null, 'stock' => $data['stock'],
                 'aud' => $data['audience'] ?? null, 'gcat' => $data['garment_category'] ?? null,
                 'unit' => $data['sale_unit'] ?? 'piece',
+                'brand' => $data['brand'] ?? null, 'model' => $data['model'] ?? null, 'cond' => $data['item_condition'] ?? null,
                 'vid' => $data['video_public_id'] ?? null, 'vdur' => $data['video_duration'] ?? null,
                 'status' => $data['status'], 'pos' => time() % 100000000,
             ]);
@@ -114,6 +115,7 @@ final class Product
             'UPDATE products SET name = :name, description = :desc, price_cents = :price,
                 promo_price_cents = :promo, promo_until = :promo_until,
                 audience = :aud, garment_category = :gcat, sale_unit = :unit,
+                brand = :brand, model = :model, item_condition = :cond,
                 stock = :stock, video_public_id = :vid, video_duration = :vdur, status = :status WHERE id = :id'
         );
         $stmt->execute([
@@ -121,6 +123,7 @@ final class Product
             'promo' => $data['promo_price_cents'] ?? null, 'promo_until' => $data['promo_until'] ?? null,
             'aud' => $data['audience'] ?? null, 'gcat' => $data['garment_category'] ?? null,
             'unit' => $data['sale_unit'] ?? 'piece',
+            'brand' => $data['brand'] ?? null, 'model' => $data['model'] ?? null, 'cond' => $data['item_condition'] ?? null,
             'stock' => $data['stock'], 'vid' => $data['video_public_id'] ?? null,
             'vdur' => $data['video_duration'] ?? null, 'status' => $data['status'], 'id' => $id,
         ]);
@@ -209,6 +212,19 @@ final class Product
                     ADD COLUMN audience VARCHAR(12) NULL,
                     ADD COLUMN garment_category VARCHAR(40) NULL,
                     ADD COLUMN sale_unit VARCHAR(8) NOT NULL DEFAULT 'piece'");
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        // Téléphones / électronique : marque, modèle, état (neuf/occasion/reconditionné).
+        try {
+            db()->query('SELECT brand FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products
+                    ADD COLUMN brand VARCHAR(60) NULL,
+                    ADD COLUMN model VARCHAR(80) NULL,
+                    ADD COLUMN item_condition VARCHAR(20) NULL');
             } catch (\Throwable) {
                 // déjà migré
             }

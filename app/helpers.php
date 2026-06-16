@@ -733,6 +733,48 @@ function apparel_category_clean(?string $v): string
     return isset(apparel_categories()[$v]) ? $v : '';
 }
 
+/* ---------- Téléphones / électronique ---------- */
+
+/** @return list<string> */
+function phone_brands(): array
+{
+    return (array) config('phone.brands', []);
+}
+
+/** @return list<string> Capacités de stockage (la « taille » des déclinaisons téléphone). */
+function phone_storage(): array
+{
+    return (array) config('phone.storage', []);
+}
+
+/** @return list<string> */
+function phone_ram(): array
+{
+    return (array) config('phone.ram', []);
+}
+
+/** @return list<string> Clés d'état (neuf, comme_neuf, occasion, reconditionne). */
+function phone_conditions(): array
+{
+    return (array) config('phone.conditions', []);
+}
+
+/** Valide un état soumis ('' = non précisé). */
+function phone_condition_clean(?string $v): string
+{
+    $v = (string) $v;
+    return in_array($v, phone_conditions(), true) ? $v : '';
+}
+
+/**
+ * Vertical du formulaire produit selon la catégorie de la boutique :
+ * 'phone' (électronique → marque/modèle/état + stockage×couleur) sinon 'apparel'.
+ */
+function product_vertical(?string $boutiqueCategory): string
+{
+    return in_array((string) $boutiqueCategory, (array) config('phone.shop_categories', []), true) ? 'phone' : 'apparel';
+}
+
 /**
  * Nom d'une ligne de commande SANS sa déclinaison (taille/couleur/longueur), qui
  * est conservée à part dans variant_label. Le titre vaut « Nom — déclinaison » ;

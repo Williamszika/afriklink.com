@@ -87,9 +87,16 @@ foreach ($realVariants as $rv) {
             <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-sale-unit="<?= $isMeter ? 'meter' : 'piece' ?>">
                 <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
                 <?php
+                $pVertical = product_vertical((string) ($boutique['category'] ?? ''));
                 $apTags = [];
-                if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
-                if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
+                if ($pVertical === 'phone') {
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['model'])) { $apTags[] = (string) $product['model']; }
+                    if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }
+                } else {
+                    if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
+                    if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
+                }
                 ?>
                 <?php if ($apTags !== []): ?><p class="listing-apparel"><?= icon('tag', ['size' => 14]) ?> <?= e(implode(' · ', $apTags)) ?></p><?php endif; ?>
                 <?php if (\App\Models\Product::isPromoted($product)): ?><p class="promo-line"><?= icon('sparkle', ['size' => 16]) ?> <?= e(t('ads.badge')) ?></p><?php endif; ?>
@@ -121,7 +128,7 @@ foreach ($realVariants as $rv) {
                     <div class="variant-pick" data-variant-pick data-variants="<?= e((string) json_encode($vMap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>">
                         <?php if ($vSizes !== []): ?>
                             <div class="variant-axis">
-                                <p class="variant-pick-label"><?= e(t('variant.size')) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
+                                <p class="variant-pick-label"><?= e($pVertical === 'phone' ? t('phone.f.storage') : t('variant.size')) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
                                 <div class="variant-chips">
                                     <?php foreach ($vSizes as $sz): ?>
                                         <label class="variant-chip"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?= e($sz) ?></span></label>

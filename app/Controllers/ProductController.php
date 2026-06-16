@@ -228,6 +228,11 @@ final class ProductController
         $garment  = apparel_category_clean(input_string('garment_category', ''));
         $saleUnit = apparel_category_unit($garment);
 
+        // Téléphones / électronique : marque + modèle + état.
+        $brand = mb_substr(trim((string) input_string('brand', '')), 0, 60);
+        $model = mb_substr(trim((string) input_string('model', '')), 0, 80);
+        $itemCondition = phone_condition_clean(input_string('item_condition', ''));
+
         // Rayon / catégorie (menu déroulant) : valeur choisie, ou saisie libre si « Autre ».
         $collSel    = (string) input_string('collection_select', '');
         $collection = $collSel === '__other__'
@@ -292,6 +297,9 @@ final class ProductController
             'audience' => $audience !== '' ? $audience : null,
             'garment_category' => $garment !== '' ? $garment : null,
             'sale_unit' => $saleUnit,
+            'brand' => $brand !== '' ? $brand : null,
+            'model' => $model !== '' ? $model : null,
+            'item_condition' => $itemCondition !== '' ? $itemCondition : null,
             'stock' => $stock, 'status' => $status,
             'video_public_id' => $videoId, 'video_duration' => $videoDur,
             'collection' => $collection,
