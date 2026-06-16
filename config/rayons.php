@@ -29,7 +29,7 @@ return [
         'beaute' => [
             'Soins visage' => 'volume',
             'Soins corps'  => 'volume',
-            'Maquillage'   => 'teinte',
+            'Maquillage'   => 'teinte_mua',
             'Parfums'      => 'volume',
             'Perruque'     => 'pouce',
             'Ongles'       => 'teinte',
@@ -88,6 +88,9 @@ return [
         'volume'   => ['label' => 'Contenance', 'opts' => ['30 ml', '50 ml', '100 ml', '200 ml', '500 ml', '1 L']],
         'poids'    => ['label' => 'Poids',      'opts' => ['100 g', '250 g', '500 g', '1 kg', '2 kg', '5 kg']],
         'teinte'   => ['label' => 'Teinte',     'opts' => []],
+        // Maquillage : palette francophone, ordonnée du plus clair au plus foncé (carnations
+        // bien couvertes pour la clientèle africaine), suivie de quelques teintes couleur (lèvres).
+        'teinte_mua' => ['label' => 'Teinte', 'opts' => ['Ivoire', 'Beige clair', 'Sable', 'Doré', 'Miel', 'Caramel', 'Noisette', 'Cannelle', 'Cacao', 'Chocolat', 'Moka', 'Ébène', 'Nude', 'Rosé', 'Corail', 'Rouge', 'Prune']],
         'pouce'    => ['label' => 'Longueur',   'opts' => ['8" (20 cm)', '10" (25 cm)', '12" (30 cm)', '14" (35 cm)', '16" (40 cm)', '18" (45 cm)', '20" (50 cm)', '22" (55 cm)', '24" (60 cm)', '26" (65 cm)', '28" (70 cm)', '30" (75 cm)']],
         'age'      => ['label' => 'Âge',        'opts' => ['0-3 mois', '3-6 mois', '6-12 mois', '1 an', '2 ans', '3 ans', '4 ans']],
         'dim'      => ['label' => 'Dimension',  'opts' => ['90×190', '140×190', '160×200', '180×200']],
