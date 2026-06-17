@@ -367,7 +367,9 @@ $fmtP = static function ($cents) use ($cur): string {
         ?>
         <div data-appa
              data-rayons="<?= e((string) json_encode((array) config('apparel.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
-             data-opt="<?= e(t('variant.option')) ?>"
+             data-genres="<?= e((string) json_encode(apparel_genres(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-opt="<?= e(t('variant.option')) ?>" data-any="<?= e(t('appa.f.genre_any')) ?>"
+             data-sizes-hint="<?= e(t('appa.sizes_hint')) ?>" data-sizes-pick="<?= e(t('appa.sizes_pick')) ?>" data-sizes-genre="<?= e(t('appa.sizes_genre', ['genre' => '%G%'])) ?>"
              data-hint-specs="<?= e(t('appa.specs_hint')) ?>" data-hint-pick="<?= e(t('appa.specs_pick')) ?>" hidden></div>
 
         <!-- ===== Mode : fiche basique (rayons non adaptatifs) ===== -->
@@ -429,9 +431,9 @@ $fmtP = static function ($cents) use ($cur): string {
         <div class="grid-2">
             <div>
                 <label for="appa-genre"><?= e(t('appa.f.genre')) ?> <span class="req">*</span></label>
-                <select id="appa-genre" name="genre">
+                <select id="appa-genre" name="genre" data-appa-genre>
                     <option value=""><?= e(t('appa.f.genre_any')) ?></option>
-                    <?php foreach (apparel_genres() as $g): ?><option value="<?= e($g) ?>" <?= $aAttr('genre') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                    <?php foreach (apparel_rayon_genres($appaRayonSSR) as $g): ?><option value="<?= e($g) ?>" <?= $aAttr('genre') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div>
@@ -466,7 +468,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
                 <div>
                     <label for="appa-sku"><?= e(t('beauty.f.sku')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                    <input type="text" id="appa-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="CHAU-001">
+                    <input type="text" id="appa-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="REF-001">
                 </div>
             </div>
             <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -1628,11 +1630,11 @@ $fmtP = static function ($cents) use ($cur): string {
         <div<?= $aSec('adaptive') ?>>
         <details class="variants-box" data-appa-decl <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>📏 <?= e(t('appa.sizes')) ?></summary>
-            <p class="hint"><?= e(t('appa.sizes_hint')) ?></p>
+            <p class="hint" data-appa-sizes-hint><?= e(t('appa.sizes_hint')) ?></p>
             <input type="hidden" name="var_has_color" value="0">
             <div class="chips-row" data-appa-quickfill>
-                <?php foreach (apparel_quickfill($appaRayonSSR) as $qf): ?>
-                    <button type="button" class="axis-chip" data-appa-fill data-from="<?= (int) $qf['from'] ?>" data-to="<?= (int) $qf['to'] ?>">+ <?= e((string) $qf['label']) ?></button>
+                <?php foreach (apparel_quickfill_for($appaRayonSSR, $aAttr('genre')) as $qf): ?>
+                    <button type="button" class="axis-chip" data-appa-fill data-fill="<?= e((string) json_encode($qf, JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) $qf['label']) ?></button>
                 <?php endforeach; ?>
                 <button type="button" class="axis-chip" data-appa-clear><?= e(t('appa.clear')) ?></button>
             </div>

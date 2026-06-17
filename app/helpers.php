@@ -742,12 +742,30 @@ function apparel_types(?string $rayon): array { return apparel_rayon($rayon, 'ty
 function apparel_groups(?string $rayon): array { return apparel_rayon($rayon, 'groups'); }
 /** @return list<string> */
 function apparel_rayon_atouts(?string $rayon): array { return apparel_rayon($rayon, 'atouts'); }
-/** @return list<array{label:string,from:int,to:int}> */
+/** Remplissage rapide brut du rayon (liste statique, ou map genre => boutons). */
 function apparel_quickfill(?string $rayon): array { return apparel_rayon($rayon, 'quickfill'); }
+/**
+ * Boutons de remplissage rapide pour un genre donné : liste plate (statique, indépendante du
+ * genre) renvoyée telle quelle ; map par genre => seuls les boutons du genre (vide si aucun).
+ * @return list<array<string,mixed>>
+ */
+function apparel_quickfill_for(?string $rayon, ?string $genre): array
+{
+    $qf = apparel_quickfill($rayon);
+    if ($qf === []) { return []; }
+    if (array_is_list($qf)) { return $qf; } // statique
+    return array_values((array) ($qf[(string) $genre] ?? [])); // dépendant du genre
+}
 /** @return list<string> */
 function apparel_conditions(): array { return (array) config('apparel.conditions', []); }
-/** @return list<string> */
+/** Genres globaux (tous publics). @return list<string> */
 function apparel_genres(): array { return (array) config('apparel.genres', []); }
+/** Genres proposés par un rayon (override 'genres' du rayon, sinon les genres globaux). @return list<string> */
+function apparel_rayon_genres(?string $rayon): array
+{
+    $g = apparel_rayon($rayon, 'genres');
+    return $g !== [] ? array_values($g) : apparel_genres();
+}
 /** @return list<string> */
 function apparel_couleurs(): array { return (array) config('apparel.couleurs', []); }
 /** @return list<string> */

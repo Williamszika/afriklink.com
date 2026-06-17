@@ -60,7 +60,7 @@ return [
     // ─────────────────────────────────────────────────────────────────────────────
     'conditions' => ['Neuf avec étiquette', 'Neuf', 'Très bon état', 'Bon état', 'Satisfaisant'],
     'genres'     => ['Femme', 'Homme', 'Mixte / unisexe', 'Enfant', 'Fille', 'Garçon', 'Bébé'],
-    'couleurs'   => ['Noir', 'Blanc', 'Gris', 'Beige', 'Marron', 'Rouge', 'Bleu', 'Vert', 'Jaune', 'Rose', 'Violet', 'Orange', 'Multicolore', 'Doré', 'Argenté', 'Autre'],
+    'couleurs'   => ['Noir', 'Blanc', 'Gris', 'Beige', 'Marron', 'Bleu', 'Bleu jean', 'Rouge', 'Vert', 'Kaki', 'Jaune', 'Rose', 'Violet', 'Orange', 'Multicolore', 'Doré', 'Argenté', 'Autre'],
     'axes'       => ['Pointure', 'Taille', 'Couleur'],
 
     'rayons' => [
@@ -107,6 +107,72 @@ return [
                 'Chaussures de sécurité'      => ['group' => 'hiver', 'fields' => ['norme_secu', 'embout', 'antiderapant', 'impermeable', 'matiere_dessus']],
                 'Chaussures enfant / bébé'    => ['group' => 'hiver', 'fields' => ['fermeture', 'premiers_pas', 'matiere_dessus', 'saison']],
                 'Autre chaussure'             => ['group' => '', 'fields' => ['matiere_dessus', 'usage', 'saison']],
+            ],
+        ],
+
+        // =================== Pantalons & jeans ===================
+        'Pantalons & jeans' => [
+            'garment'   => 'pants',
+            'axis'      => 'Taille',
+            'genres'    => ['Femme', 'Homme', 'Mixte / unisexe', 'Fille', 'Garçon', 'Bébé'],
+            // Remplissage rapide DÉPENDANT du genre (map genre => boutons). Types de bouton :
+            // 'range' (de..à, pas), 'jeans' (préfixe W, pas 2 par défaut), 'list' (valeurs explicites).
+            'quickfill' => [
+                'Femme' => [
+                    ['label' => 'FR 34–46', 'kind' => 'range', 'from' => 34, 'to' => 46, 'step' => 2],
+                    ['label' => 'XS → XXL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL']],
+                    ['label' => 'Jeans W26–W34', 'kind' => 'jeans', 'from' => 26, 'to' => 34],
+                ],
+                'Homme' => [
+                    ['label' => 'FR 38–52', 'kind' => 'range', 'from' => 38, 'to' => 52, 'step' => 2],
+                    ['label' => 'XS → 3XL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']],
+                    ['label' => 'Jeans W28–W40', 'kind' => 'jeans', 'from' => 28, 'to' => 40],
+                ],
+                'Mixte / unisexe' => [
+                    ['label' => 'XS → 3XL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']],
+                    ['label' => 'FR 34–50', 'kind' => 'range', 'from' => 34, 'to' => 50, 'step' => 2],
+                    ['label' => 'Jeans W26–W40', 'kind' => 'jeans', 'from' => 26, 'to' => 40],
+                ],
+                'Fille' => [
+                    ['label' => 'Enfant 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']],
+                ],
+                'Garçon' => [
+                    ['label' => 'Enfant 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']],
+                ],
+                'Bébé' => [
+                    ['label' => 'Bébé 0–24 mois', 'kind' => 'list', 'list' => ['1 mois', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']],
+                    ['label' => 'Petit 2–5 ans', 'kind' => 'list', 'list' => ['2 ans', '3 ans', '4 ans', '5 ans']],
+                ],
+            ],
+            'atouts' => ['Coton bio', 'Stretch confort', 'Taille haute', 'Grande taille', 'Fait main', 'Éco-responsable', 'Neuf avec étiquette', 'Édition limitée'],
+            'groups' => [],
+            'fields' => [
+                'coupe'             => ['label' => 'Coupe', 'opts' => ['Slim', 'Skinny', 'Regular / droit', 'Bootcut', 'Large / baggy', 'Mom', 'Boyfriend', 'Carotte', 'Évasé / flare'], 'exclude' => ['Homme' => ['Mom', 'Boyfriend', 'Évasé / flare'], 'Garçon' => ['Mom', 'Boyfriend', 'Évasé / flare']]],
+                'taille_haut'       => ['label' => 'Hauteur de taille', 'opts' => ['Taille haute', 'Taille mi-haute', 'Taille basse']],
+                'matiere'           => ['label' => 'Matière principale', 'opts' => ['Coton', 'Denim (jean)', 'Lin', 'Laine', 'Polyester', 'Velours', 'Molleton', 'Mélange élasthanne (stretch)', 'Cuir / simili', 'Autre']],
+                'lavage'            => ['label' => 'Lavage / délavage', 'opts' => ['Brut (raw)', 'Bleu clair', 'Bleu foncé', 'Délavé', 'Noir', 'Gris', 'Blanc']],
+                'stretch'           => ['label' => 'Élasthanne (stretch)', 'opts' => ['Oui', 'Non']],
+                'longueur_pantalon' => ['label' => 'Longueur', 'opts' => ['Standard', 'Court / 7-8e', 'Long', 'Cheville']],
+                'fermeture'         => ['label' => 'Fermeture', 'opts' => ['Zip + bouton', 'Boutons', 'Élastique', 'Cordon', 'Élastique + cordon']],
+                'poches'            => ['label' => 'Poches', 'opts' => ['Classiques', 'Multipoches / cargo', 'Sans poche']],
+                'pinces'            => ['label' => 'Pinces / plis', 'opts' => ['Avec pinces', 'Sans pinces']],
+                'cheville'          => ['label' => 'Bas resserré', 'opts' => ['Oui (élastique)', 'Non']],
+                'short_longueur'    => ['label' => 'Longueur du short', 'opts' => ['Court', 'Mi-cuisse', 'Au genou', 'Bermuda']],
+                'norme_travail'     => ['label' => 'Renforts / spécificité', 'opts' => ['Genoux renforcés', 'Poches porte-outils', 'Haute visibilité', 'Aucun']],
+                'saison'            => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Été', 'Hiver', 'Mi-saison']],
+                'age_enfant'        => ['label' => 'Tranche d’âge', 'opts' => ['0-2 ans', '3-5 ans', '6-9 ans', '10-14 ans']],
+            ],
+            'types' => [
+                'Jean'                          => ['group' => '', 'fields' => ['coupe', 'lavage', 'taille_haut', 'stretch', 'longueur_pantalon', 'matiere']],
+                'Pantalon chino'                => ['group' => '', 'fields' => ['coupe', 'matiere', 'taille_haut', 'pinces', 'longueur_pantalon']],
+                'Pantalon de costume / habillé' => ['group' => '', 'fields' => ['coupe', 'matiere', 'pinces', 'taille_haut', 'longueur_pantalon']],
+                'Pantalon cargo'                => ['group' => '', 'fields' => ['coupe', 'matiere', 'poches', 'longueur_pantalon']],
+                'Jogging / survêtement'         => ['group' => '', 'fields' => ['matiere', 'fermeture', 'cheville', 'poches']],
+                'Legging'                       => ['group' => '', 'fields' => ['matiere', 'taille_haut', 'longueur_pantalon']],
+                'Short / bermuda'               => ['group' => '', 'fields' => ['short_longueur', 'matiere', 'fermeture', 'poches']],
+                'Pantalon de travail'           => ['group' => '', 'fields' => ['matiere', 'poches', 'norme_travail', 'coupe']],
+                'Pantalon enfant'               => ['group' => '', 'fields' => ['matiere', 'fermeture', 'age_enfant', 'saison']],
+                'Autre pantalon'                => ['group' => '', 'fields' => ['matiere', 'coupe', 'saison']],
             ],
         ],
     ],

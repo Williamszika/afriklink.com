@@ -3413,8 +3413,11 @@ document.addEventListener('click', function (ev) {
     if (!cfgEl || !form) { return; }
     function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
     var RAYONS = parse('data-rayons'); // { 'Chaussures':{groups,fields,types,atouts,quickfill,axis} }
+    var GENRES = parse('data-genres'); // genres globaux (repli si le rayon n'en impose pas)
+    if (!Array.isArray(GENRES)) { GENRES = []; }
     var coll = document.querySelector('[data-collection-select]');
     var typeSel = document.getElementById('appa-type');
+    var genreSel = document.getElementById('appa-genre');
     var attrsBox = document.querySelector('[data-appa-attrs]');
     var atoutsBox = document.querySelector('[data-appa-atouts-chips]');
     var rowsBox = document.querySelector('[data-appa-rows]');
@@ -3425,6 +3428,7 @@ document.addEventListener('click', function (ev) {
     function isAppaRayon() { return !!(coll && RAYONS[coll.value]); }
     function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
     function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+    function genre() { return genreSel ? genreSel.value : ''; }
 
     function toggleSections() {
         var active = isAppaRayon() ? 'adaptive' : 'basic';
@@ -3441,13 +3445,16 @@ document.addEventListener('click', function (ev) {
         attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
         attrsBox.innerHTML = '';
         var m = meta(); if (!m) { return; }
+        var g = genre();
         (m.fields || []).forEach(function (key) {
             var def = fields[key]; if (!def) { return; }
+            var drop = (def.exclude && def.exclude[g]) ? def.exclude[g] : [];
             var wrap = document.createElement('div');
             var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
             var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
             var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
             (def.opts || []).forEach(function (o) {
+                if (drop.indexOf(o) !== -1) { return; } // option exclue pour ce genre
                 var op = document.createElement('option'); op.value = o; op.textContent = o;
                 if (prev[key] === o) { op.selected = true; }
                 sel.appendChild(op);
@@ -3490,8 +3497,47 @@ document.addEventListener('click', function (ev) {
                 lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
             });
         }
+        if (genreSel) {
+            var curG = genreSel.value;
+            var list = (cfg().genres && cfg().genres.length) ? cfg().genres : GENRES;
+            genreSel.innerHTML = '';
+            var g0 = document.createElement('option'); g0.value = ''; g0.textContent = cfgEl.getAttribute('data-any') || '—'; genreSel.appendChild(g0);
+            list.forEach(function (gn) {
+                var op = document.createElement('option'); op.value = gn; op.textContent = gn;
+                if (gn === curG) { op.selected = true; }
+                genreSel.appendChild(op);
+            });
+            if (genreSel.value !== curG) { genreSel.value = ''; }
+        }
         if (axisInp && !axisInp.value.trim() && cfg().axis) { axisInp.value = cfg().axis; axisLabel(); }
-        onType();
+        buildQuickfill(); sizesHint(); onType();
+    }
+    // Boutons de remplissage rapide : liste statique, ou dépendants du genre (map genre => boutons).
+    function quickfillSet() {
+        var qf = cfg().quickfill;
+        if (!qf) { return []; }
+        if (Array.isArray(qf)) { return qf; }
+        return qf[genre()] || [];
+    }
+    function buildQuickfill() {
+        var box = document.querySelector('[data-appa-quickfill]'); if (!box) { return; }
+        box.querySelectorAll('[data-appa-fill]').forEach(function (b) { b.remove(); });
+        var clear = box.querySelector('[data-appa-clear]');
+        quickfillSet().forEach(function (btn) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-appa-fill', ''); b.setAttribute('data-fill', JSON.stringify(btn));
+            b.textContent = '+ ' + (btn.label || '');
+            box.insertBefore(b, clear);
+        });
+    }
+    function sizesHint() {
+        var h = document.querySelector('[data-appa-sizes-hint]'); if (!h) { return; }
+        var qf = cfg().quickfill;
+        var byGenre = qf && !Array.isArray(qf);
+        var g = genre();
+        if (byGenre && !g) { h.textContent = cfgEl.getAttribute('data-sizes-pick') || h.textContent; }
+        else if (byGenre && g) { h.textContent = (cfgEl.getAttribute('data-sizes-genre') || '%G%').replace('%G%', g); }
+        else { h.textContent = cfgEl.getAttribute('data-sizes-hint') || h.textContent; }
     }
     function applyColorCol() { if (rowsBox) { rowsBox.classList.toggle('has-color', !!(colorTog && colorTog.checked)); } }
     function axisLabel() {
@@ -3509,26 +3555,40 @@ document.addEventListener('click', function (ev) {
         rowsBox.appendChild(varTpl.content.cloneNode(true));
         return rowsBox.lastElementChild;
     }
-    // Remplissage rapide d'une plage de pointures (sans doublon).
-    function fillSizes(from, to) {
-        if (!rowsBox) { return; }
+    // Ajoute une liste de tailles (sans doublon) à l'éditeur de déclinaisons.
+    function pushSizes(list) {
+        if (!rowsBox || !list || !list.length) { return; }
         var have = {};
         rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value).trim()] = true; });
-        for (var n = from; n <= to; n++) {
-            if (have[String(n)]) { continue; }
-            var row = addRow(); if (!row) { break; }
-            var sz = row.querySelector('input[name="var_size[]"]'); if (sz) { sz.value = String(n); }
+        list.forEach(function (val) {
+            if (have[String(val)]) { return; }
+            have[String(val)] = true;
+            var row = addRow(); if (!row) { return; }
+            var sz = row.querySelector('input[name="var_size[]"]'); if (sz) { sz.value = String(val); }
+        });
+    }
+    // Génère les valeurs d'un bouton de remplissage : 'range' (de..à pas), 'jeans' (W..), 'list'.
+    function fillFromBtn(btn) {
+        if (!btn) { return; }
+        var list = [], kind = btn.kind || 'range';
+        if (kind === 'list') { list = btn.list || []; }
+        else {
+            var step = parseInt(btn.step, 10) || (kind === 'jeans' ? 2 : 1);
+            var prefix = kind === 'jeans' ? 'W' : '';
+            for (var n = parseInt(btn.from, 10); n <= parseInt(btn.to, 10); n += step) { list.push(prefix + n); }
         }
+        pushSizes(list);
     }
 
     if (typeSel) { typeSel.addEventListener('change', onType); }
+    if (genreSel) { genreSel.addEventListener('change', function () { buildAttrs(); buildQuickfill(); sizesHint(); }); }
     if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isAppaRayon()) { rebuildAppa(); } }); }
     if (axisInp) { axisInp.addEventListener('input', axisLabel); }
     if (colorTog) { colorTog.addEventListener('change', applyColorCol); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-appa-fill]');
-        if (fill) { fillSizes(parseInt(fill.getAttribute('data-from'), 10), parseInt(fill.getAttribute('data-to'), 10)); return; }
+        if (fill) { try { fillFromBtn(JSON.parse(fill.getAttribute('data-fill') || 'null')); } catch (e) {} return; }
         if (ev.target.closest('[data-appa-clear]')) { if (rowsBox) { rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) { r.remove(); }); } return; }
         if (ev.target.closest('[data-appa-add]')) { var r = addRow(); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
         var del = ev.target.closest('[data-appa-del]');
@@ -3536,6 +3596,7 @@ document.addEventListener('click', function (ev) {
     });
 
     toggleSections();
+    if (isAppaRayon()) { sizesHint(); }
 })();
 
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */
