@@ -49,4 +49,65 @@ return [
         'uniform'    => ['uniformes',      'alpha',     'piece', ['homme', 'femme', 'unisexe', 'enfant']],
         'accessory'  => ['accessoires',    'none',      'piece', ['homme', 'femme', 'unisexe', 'enfant']],
     ],
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Rayons ADAPTATIFS au type (comme l'électronique) : le rayon choisit la sous-config
+    // ('rayons' => libellé => {groups, fields, types, atouts, genres, axis, quickfill}).
+    // Le TYPE (clé de 'types') pilote les champs (clés de 'fields'). Communs mode :
+    // genre (requis), couleur, état. Specs dans products.attributes (JSON) ; déclinaison
+    // par pointure/taille (axe libre + remplissage rapide). 'garment' rattache le rayon à
+    // une catégorie de tailles existante (affichage client + filtres).
+    // ─────────────────────────────────────────────────────────────────────────────
+    'conditions' => ['Neuf avec étiquette', 'Neuf', 'Très bon état', 'Bon état', 'Satisfaisant'],
+    'genres'     => ['Femme', 'Homme', 'Mixte / unisexe', 'Enfant', 'Fille', 'Garçon', 'Bébé'],
+    'couleurs'   => ['Noir', 'Blanc', 'Gris', 'Beige', 'Marron', 'Rouge', 'Bleu', 'Vert', 'Jaune', 'Rose', 'Violet', 'Orange', 'Multicolore', 'Doré', 'Argenté', 'Autre'],
+    'axes'       => ['Pointure', 'Taille', 'Couleur'],
+
+    'rayons' => [
+        // =================== Chaussures ===================
+        'Chaussures' => [
+            'garment'   => 'shoes', // catégorie tailles/affichage (shoes_kids si public enfant)
+            'axis'      => 'Pointure',
+            'quickfill' => [
+                ['label' => 'Femme 35–42', 'from' => 35, 'to' => 42],
+                ['label' => 'Homme 40–46', 'from' => 40, 'to' => 46],
+                ['label' => 'Enfant 28–35', 'from' => 28, 'to' => 35],
+                ['label' => 'Bébé 17–27', 'from' => 17, 'to' => 27],
+            ],
+            'atouts' => ['Cuir véritable', 'Fait main', 'Confort / orthopédique', 'Imperméable', 'Antidérapant', 'Éco-responsable', 'Édition limitée', 'Neuf avec étiquette'],
+            'groups' => ['sport' => 'Sport & ville', 'ete' => 'Été & habillé', 'hiver' => 'Hiver & spécial'],
+            'fields' => [
+                'montant'         => ['label' => 'Tige', 'opts' => ['Basse', 'Montante', 'Mi-montante']],
+                'matiere_dessus'  => ['label' => 'Matière (dessus)', 'opts' => ['Cuir', 'Cuir synthétique', 'Daim', 'Toile', 'Textile / mesh', 'Caoutchouc', 'Plastique', 'Autre']],
+                'matiere_semelle' => ['label' => 'Semelle', 'opts' => ['Caoutchouc', 'Gomme', 'EVA', 'Cuir', 'Crêpe', 'Autre']],
+                'fermeture'       => ['label' => 'Fermeture', 'opts' => ['Lacets', 'Scratch (velcro)', 'Zip', 'À enfiler', 'Boucle', 'Élastique']],
+                'talon'           => ['label' => 'Hauteur de talon', 'opts' => ['Plat', 'Petit (< 3 cm)', 'Moyen (3-7 cm)', 'Haut (> 7 cm)', 'Compensé', 'Plateforme']],
+                'bout'            => ['label' => 'Forme du bout', 'opts' => ['Rond', 'Pointu', 'Carré', 'Ouvert']],
+                'tige_hauteur'    => ['label' => 'Hauteur de tige', 'opts' => ['Cheville (bottine)', 'Mi-mollet', 'Genou', 'Cuissarde']],
+                'doublure'        => ['label' => 'Doublure', 'opts' => ['Non doublé', 'Textile', 'Fourrée (chaud)']],
+                'impermeable'     => ['label' => 'Imperméable', 'opts' => ['Oui', 'Résistant à l’eau', 'Non']],
+                'saison'          => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Été', 'Hiver', 'Mi-saison']],
+                'usage'           => ['label' => 'Usage / style', 'opts' => ['Ville / casual', 'Sport', 'Soirée / habillé', 'Plage', 'Travail', 'Maison']],
+                'sport_type'      => ['label' => 'Sport', 'opts' => ['Running', 'Football', 'Basketball', 'Tennis', 'Fitness', 'Randonnée', 'Multisport']],
+                'terrain'         => ['label' => 'Terrain', 'opts' => ['Route', 'Terrain / trail', 'Salle', 'Gazon / stabilisé']],
+                'norme_secu'      => ['label' => 'Norme de sécurité', 'opts' => ['SB', 'S1', 'S1P', 'S2', 'S3', 'Autre']],
+                'embout'          => ['label' => 'Embout de protection', 'opts' => ['Acier', 'Composite', 'Aluminium', 'Sans']],
+                'antiderapant'    => ['label' => 'Semelle antidérapante', 'opts' => ['Oui', 'Non']],
+                'premiers_pas'    => ['label' => 'Étape (bébé/enfant)', 'opts' => ['Pré-marche', 'Premiers pas', 'Marche confirmée']],
+            ],
+            'types' => [
+                'Baskets / sneakers'          => ['group' => 'sport', 'fields' => ['montant', 'matiere_dessus', 'matiere_semelle', 'fermeture', 'usage', 'saison']],
+                'Chaussures de sport'         => ['group' => 'sport', 'fields' => ['sport_type', 'terrain', 'matiere_dessus', 'matiere_semelle', 'fermeture', 'saison']],
+                'Mocassins / derbies / ville' => ['group' => 'sport', 'fields' => ['matiere_dessus', 'matiere_semelle', 'fermeture', 'bout', 'usage']],
+                'Sandales / nu-pieds'         => ['group' => 'ete', 'fields' => ['matiere_dessus', 'fermeture', 'talon', 'usage', 'saison']],
+                'Escarpins / talons'          => ['group' => 'ete', 'fields' => ['talon', 'bout', 'matiere_dessus', 'usage', 'saison']],
+                'Ballerines'                  => ['group' => 'ete', 'fields' => ['matiere_dessus', 'bout', 'usage', 'saison']],
+                'Tongs / claquettes'          => ['group' => 'ete', 'fields' => ['matiere_dessus', 'usage', 'saison']],
+                'Bottes / bottines'           => ['group' => 'hiver', 'fields' => ['tige_hauteur', 'talon', 'fermeture', 'matiere_dessus', 'doublure', 'impermeable', 'saison']],
+                'Chaussures de sécurité'      => ['group' => 'hiver', 'fields' => ['norme_secu', 'embout', 'antiderapant', 'impermeable', 'matiere_dessus']],
+                'Chaussures enfant / bébé'    => ['group' => 'hiver', 'fields' => ['fermeture', 'premiers_pas', 'matiere_dessus', 'saison']],
+                'Autre chaussure'             => ['group' => '', 'fields' => ['matiere_dessus', 'usage', 'saison']],
+            ],
+        ],
+    ],
 ];

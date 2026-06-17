@@ -190,6 +190,19 @@ foreach ($realVariants as $rv) {
                         foreach ((array) ($bAttr['actifs'] ?? []) as $ac) { if (trim((string) $ac) !== '') { $apTags[] = (string) $ac; } }
                         if (!empty($product['pao'])) { $apTags[] = 'PAO ' . (string) $product['pao']; }
                     }
+                } elseif (apparel_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Mode adaptatif (Chaussures…) : genre / type / couleur / specs / état dans attributes.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['genre'])) { $apTags[] = (string) $aAttr['genre']; }
+                    if (!empty($aAttr['couleur'])) { $apTags[] = (string) $aAttr['couleur']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && !in_array($aAttr['condition'], ['Neuf', 'Neuf avec étiquette'], true)) { $apTags[] = (string) $aAttr['condition']; }
                 } else {
                     if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
                     if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }

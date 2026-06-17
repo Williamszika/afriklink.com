@@ -24,6 +24,11 @@ $isElecForm = $isPhone && elec_is_rayon($curCol);
 $isElecAutre = $isPhone && !$isElecForm;
 $elecSection = $isElecForm ? 'elec' : 'autre';
 
+// Mode : certains rayons (Chaussures…) basculent vers un formulaire adaptatif au type
+// (genre + couleur + caractéristiques du type + pointures) ; les autres gardent la fiche basique.
+$isApparelRayon = $isApparel && apparel_is_rayon($curCol);
+$appaSection = $isApparelRayon ? 'adaptive' : 'basic';
+
 // Repli « vertical » de l'axe taille (utilisé tant qu'aucun rayon n'impose d'axe).
 if ($isPhone) {
     $baseLabel = t('phone.f.storage'); $basePh = t('phone.f.storage_ph'); $baseOpts = phone_storage();
@@ -342,6 +347,31 @@ $fmtP = static function ($cents) use ($cur): string {
         </details>
         </div><!-- /elec autre -->
         <?php elseif ($isApparel): ?>
+        <?php
+        $rawOldA   = $_SESSION['_old'] ?? [];
+        $appaAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+        $appaRayonSSR = apparel_is_rayon($curCol) ? $curCol : (apparel_rayons()[0] ?? 'Chaussures');
+        $appaType  = (string) ($rawOldA['product_type'] ?? ($product['product_type'] ?? ''));
+        $appaMeta  = apparel_type_meta($appaRayonSSR, $appaType);
+        $aAttr     = static fn (string $k): string => (string) ($rawOldA[$k] ?? ($appaAttrs[$k] ?? ''));
+        $appaCondition = $aAttr('condition') ?: (apparel_conditions()[0] ?? 'Neuf avec étiquette');
+        $appaAtouts = isset($rawOldA['atouts']) && is_array($rawOldA['atouts'])
+            ? array_map('strval', $rawOldA['atouts'])
+            : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+        $appaAxisDefault = (string) (((array) config('apparel.rayons', []))[$appaRayonSSR]['axis'] ?? 'Pointure');
+        $appaAxis = (string) ($rawOldA['variant_axis'] ?? ($appaAttrs['variant_axis'] ?? $appaAxisDefault));
+        $appaHasColor = false;
+        foreach ($realVariants as $vv) { $aa = is_array($vv['attributes'] ?? null) ? $vv['attributes'] : (json_decode((string) ($vv['attributes'] ?? ''), true) ?: []); if (!empty($aa['hex'])) { $appaHasColor = true; break; } }
+        if (isset($rawOldA['var_has_color'])) { $appaHasColor = (string) $rawOldA['var_has_color'] === '1'; }
+        $aSec = static fn (string $s): string => ' data-appa-section="' . $s . '"' . ($s === $appaSection ? '' : ' hidden');
+        ?>
+        <div data-appa
+             data-rayons="<?= e((string) json_encode((array) config('apparel.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-opt="<?= e(t('variant.option')) ?>"
+             data-hint-specs="<?= e(t('appa.specs_hint')) ?>" data-hint-pick="<?= e(t('appa.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Mode : fiche basique (rayons non adaptatifs) ===== -->
+        <div<?= $aSec('basic') ?>>
         <div class="grid-2">
             <div>
                 <label for="p-audience"><?= e(t('product.f.audience')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -370,6 +400,83 @@ $fmtP = static function ($cents) use ($cur): string {
                 <p class="hint"><?= e(t('product.f.garment_hint')) ?></p>
             </div>
         </div>
+        </div><!-- /mode basique -->
+
+        <!-- ===== Mode adaptatif (Chaussures…) : genre + couleur + type-driven ===== -->
+        <div<?= $aSec('adaptive') ?> data-appa-root>
+        <div class="grid-2">
+            <div>
+                <label for="appa-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="appa-brand" name="brand" maxlength="60" value="<?= e((string) ($rawOldA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('appa.brand_ph')) ?>">
+            </div>
+            <div>
+                <label for="appa-type"><?= e(t('appa.f.type')) ?> <span class="req">*</span></label>
+                <select id="appa-type" name="product_type" data-appa-type data-any="<?= e(t('beauty.f.type_any')) ?>">
+                    <option value=""><?= e(t('beauty.f.type_any')) ?></option>
+                    <?php foreach (apparel_groups($appaRayonSSR) as $gk => $glabel): ?>
+                        <optgroup label="<?= e($glabel) ?>">
+                            <?php foreach (apparel_types($appaRayonSSR) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                <option value="<?= e($tname) ?>" <?= $appaType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endforeach; ?>
+                    <?php foreach (apparel_types($appaRayonSSR) as $tname => $tm): if (($tm['group'] ?? '') !== '') { continue; } ?>
+                        <option value="<?= e($tname) ?>" <?= $appaType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="grid-2">
+            <div>
+                <label for="appa-genre"><?= e(t('appa.f.genre')) ?> <span class="req">*</span></label>
+                <select id="appa-genre" name="genre">
+                    <option value=""><?= e(t('appa.f.genre_any')) ?></option>
+                    <?php foreach (apparel_genres() as $g): ?><option value="<?= e($g) ?>" <?= $aAttr('genre') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="appa-couleur"><?= e(t('appa.f.color')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <select id="appa-couleur" name="couleur">
+                    <option value="">—</option>
+                    <?php foreach (apparel_couleurs() as $c): ?><option value="<?= e($c) ?>" <?= $aAttr('couleur') === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>⚙️ <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint" data-appa-hint><?= e($appaMeta ? t('appa.specs_hint') : t('appa.specs_pick')) ?></p>
+            <div class="attrs grid-2" data-appa-attrs>
+                <?php if ($appaMeta): foreach ((array) ($appaMeta['fields'] ?? []) as $fk): $fd = apparel_fields($appaRayonSSR)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($appaAttrs[$fk] ?? ''); ?>
+                    <div>
+                        <label><?= e((string) $fd['label']) ?></label>
+                        <select name="attr[<?= e($fk) ?>]">
+                            <option value="">—</option>
+                            <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="appa-condition"><?= e(t('appa.f.condition')) ?></label>
+                    <select id="appa-condition" name="appa_condition">
+                        <?php foreach (apparel_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $appaCondition === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="appa-sku"><?= e(t('beauty.f.sku')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="appa-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="CHAU-001">
+                </div>
+            </div>
+            <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks" data-appa-atouts-chips>
+                <?php foreach (apparel_rayon_atouts($appaRayonSSR) as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $appaAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+        </div><!-- /mode adaptatif -->
         <?php elseif ($isBeauty): ?>
         <?php
         $rawOld = $_SESSION['_old'] ?? [];
@@ -1459,7 +1566,7 @@ $fmtP = static function ($cents) use ($cur): string {
         </details>
         </div><!-- /accessoires decl -->
         <?php endif; ?>
-        <div<?= $isPhone ? $eSec('phone') : '' ?>>
+        <div<?= $isPhone ? $eSec('phone') : ($isApparel ? $aSec('basic') : '') ?>>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>
             <p class="hint"><?= e($varHint) ?></p>
@@ -1510,6 +1617,66 @@ $fmtP = static function ($cents) use ($cur): string {
             <datalist id="color-suggest"><?php foreach (['Noir','Blanc','Gris','Rouge','Bleu','Vert','Jaune','Orange','Rose','Violet','Marron','Beige'] as $c): ?><option value="<?= e($c) ?>"></option><?php endforeach; ?></datalist>
         </details>
         </div><!-- /phone decl (ou générique) -->
+        <?php if ($isApparel): ?>
+        <?php
+        $appaRows = [];
+        foreach ($realVariants as $v) {
+            $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+            $appaRows[] = ['name' => (string) ($attr['size'] ?? ($v['label'] ?? '')), 'hex' => (string) ($attr['hex'] ?? '#222222'), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
+        }
+        ?>
+        <div<?= $aSec('adaptive') ?>>
+        <details class="variants-box" data-appa-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>📏 <?= e(t('appa.sizes')) ?></summary>
+            <p class="hint"><?= e(t('appa.sizes_hint')) ?></p>
+            <input type="hidden" name="var_has_color" value="0">
+            <div class="chips-row" data-appa-quickfill>
+                <?php foreach (apparel_quickfill($appaRayonSSR) as $qf): ?>
+                    <button type="button" class="axis-chip" data-appa-fill data-from="<?= (int) $qf['from'] ?>" data-to="<?= (int) $qf['to'] ?>">+ <?= e((string) $qf['label']) ?></button>
+                <?php endforeach; ?>
+                <button type="button" class="axis-chip" data-appa-clear><?= e(t('appa.clear')) ?></button>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="appa-axis"><?= e(t('autre.axis')) ?></label>
+                    <input type="text" id="appa-axis" name="variant_axis" maxlength="24" value="<?= e($appaAxis) ?>" placeholder="<?= e(t('appa.axis_ph')) ?>" list="appa-axis-list" data-appa-axis>
+                    <datalist id="appa-axis-list"><?php foreach (apparel_axes() as $ax): ?><option value="<?= e($ax) ?>"></option><?php endforeach; ?></datalist>
+                </div>
+                <div>
+                    <label class="check-row" style="margin-top:24px"><input type="checkbox" name="var_has_color" value="1" data-appa-color-toggle <?= $appaHasColor ? 'checked' : '' ?>><span><?= e(t('autre.has_color')) ?></span></label>
+                </div>
+            </div>
+            <div class="bvariant-rows autre-rows<?= $appaHasColor ? ' has-color' : '' ?>" data-appa-rows>
+                <div class="bvariant-head autre-head">
+                    <span data-appa-axis-label><?= e($appaAxis !== '' ? $appaAxis : t('variant.option')) ?></span>
+                    <span class="autre-col-color"><?= e(t('perruque.f.color')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($appaRows as $ar): ?>
+                    <div class="bvariant-row autre-row">
+                        <input type="text" name="var_size[]" value="<?= e($ar['name']) ?>" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                        <input type="color" name="var_hex[]" class="autre-col-color" value="<?= e($ar['hex'] !== '' ? $ar['hex'] : '#222222') ?>" aria-label="<?= e(t('perruque.f.color')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $ar['stock'] !== null ? (int) $ar['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($ar['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-appa-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-appa-add>+ <?= e(t('appa.size_add')) ?></button>
+            <template id="appa-variant-template">
+                <div class="bvariant-row autre-row">
+                    <input type="text" name="var_size[]" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                    <input type="color" name="var_hex[]" class="autre-col-color" value="#222222" aria-label="<?= e(t('perruque.f.color')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-appa-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /mode adaptatif decl -->
+        <?php endif; ?>
         <?php endif; ?>
 
         <label for="p-desc"><?= e(t('product.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

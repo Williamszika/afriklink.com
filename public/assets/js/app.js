@@ -3406,6 +3406,138 @@ document.addEventListener('click', function (ev) {
     if (!isElecForm()) { adaptAutre(); }
 })();
 
+/* ---- Mode : rayon adaptatif au type (Chaussures…) + pointures avec remplissage rapide ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-appa]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var RAYONS = parse('data-rayons'); // { 'Chaussures':{groups,fields,types,atouts,quickfill,axis} }
+    var coll = document.querySelector('[data-collection-select]');
+    var typeSel = document.getElementById('appa-type');
+    var attrsBox = document.querySelector('[data-appa-attrs]');
+    var atoutsBox = document.querySelector('[data-appa-atouts-chips]');
+    var rowsBox = document.querySelector('[data-appa-rows]');
+    var varTpl = document.getElementById('appa-variant-template');
+    var axisInp = document.querySelector('[data-appa-axis]');
+    var colorTog = document.querySelector('[data-appa-color-toggle]');
+
+    function isAppaRayon() { return !!(coll && RAYONS[coll.value]); }
+    function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
+    function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+
+    function toggleSections() {
+        var active = isAppaRayon() ? 'adaptive' : 'basic';
+        document.querySelectorAll('[data-appa-section]').forEach(function (sec) {
+            var on = sec.getAttribute('data-appa-section') === active;
+            sec.hidden = !on;
+            sec.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        });
+    }
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var fields = cfg().fields || {};
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        attrsBox.innerHTML = '';
+        var m = meta(); if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = fields[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
+    }
+    // Reconstruit le sélecteur de type + atouts quand le rayon mode change (groupes + types à plat).
+    function rebuildAppa() {
+        var c = cfg();
+        if (typeSel && c.types) {
+            var cur = typeSel.value;
+            typeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = typeSel.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
+            var groups = c.groups || {};
+            Object.keys(groups).forEach(function (gk) {
+                var og = document.createElement('optgroup'); og.label = groups[gk];
+                Object.keys(c.types).forEach(function (tn) {
+                    if ((c.types[tn].group || '') !== gk) { return; }
+                    var op = document.createElement('option'); op.value = tn; op.textContent = tn;
+                    if (tn === cur) { op.selected = true; }
+                    og.appendChild(op);
+                });
+                typeSel.appendChild(og);
+            });
+            Object.keys(c.types).forEach(function (tn) {
+                if ((c.types[tn].group || '') !== '') { return; }
+                var op = document.createElement('option'); op.value = tn; op.textContent = tn;
+                if (tn === cur) { op.selected = true; }
+                typeSel.appendChild(op);
+            });
+            if (typeSel.value !== cur) { typeSel.value = ''; }
+        }
+        if (atoutsBox) {
+            atoutsBox.innerHTML = '';
+            (c.atouts || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'atouts[]'; inp.value = v;
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
+            });
+        }
+        if (axisInp && !axisInp.value.trim() && cfg().axis) { axisInp.value = cfg().axis; axisLabel(); }
+        onType();
+    }
+    function applyColorCol() { if (rowsBox) { rowsBox.classList.toggle('has-color', !!(colorTog && colorTog.checked)); } }
+    function axisLabel() {
+        var lab = document.querySelector('[data-appa-axis-label]');
+        if (lab) { lab.textContent = (axisInp && axisInp.value.trim()) ? axisInp.value.trim() : (cfgEl.getAttribute('data-opt') || 'Option'); }
+    }
+    function onType() {
+        var m = meta();
+        buildAttrs(); applyColorCol(); axisLabel();
+        var sh = document.querySelector('[data-appa-hint]');
+        if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
+    }
+    function addRow() {
+        if (!varTpl || !varTpl.content || !rowsBox) { return null; }
+        rowsBox.appendChild(varTpl.content.cloneNode(true));
+        return rowsBox.lastElementChild;
+    }
+    // Remplissage rapide d'une plage de pointures (sans doublon).
+    function fillSizes(from, to) {
+        if (!rowsBox) { return; }
+        var have = {};
+        rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value).trim()] = true; });
+        for (var n = from; n <= to; n++) {
+            if (have[String(n)]) { continue; }
+            var row = addRow(); if (!row) { break; }
+            var sz = row.querySelector('input[name="var_size[]"]'); if (sz) { sz.value = String(n); }
+        }
+    }
+
+    if (typeSel) { typeSel.addEventListener('change', onType); }
+    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isAppaRayon()) { rebuildAppa(); } }); }
+    if (axisInp) { axisInp.addEventListener('input', axisLabel); }
+    if (colorTog) { colorTog.addEventListener('change', applyColorCol); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-appa-fill]');
+        if (fill) { fillSizes(parseInt(fill.getAttribute('data-from'), 10), parseInt(fill.getAttribute('data-to'), 10)); return; }
+        if (ev.target.closest('[data-appa-clear]')) { if (rowsBox) { rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) { r.remove(); }); } return; }
+        if (ev.target.closest('[data-appa-add]')) { var r = addRow(); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
+        var del = ev.target.closest('[data-appa-del]');
+        if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); } }
+    });
+
+    toggleSections();
+})();
+
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */
 (function () {
     var sel = document.querySelector('[data-collection-select]');

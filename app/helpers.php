@@ -719,6 +719,65 @@ function apparel_size_map(): array
     return $out;
 }
 
+/* ---------- Mode : rayons adaptatifs au type (Chaussures, …) — moteur type-driven ---------- */
+/** @return list<string> Libellés des rayons mode adaptatifs (clés de apparel.rayons). */
+function apparel_rayons(): array { return array_keys((array) config('apparel.rayons', [])); }
+/** Le rayon mode est-il piloté par le moteur adaptatif au type ? */
+function apparel_is_rayon(?string $rayon): bool { return isset(((array) config('apparel.rayons', []))[(string) $rayon]); }
+/**
+ * Sous-config d'un rayon mode (ou la valeur d'une clé : groups, fields, types, atouts, quickfill…).
+ * @return array<string,mixed>
+ */
+function apparel_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) (((array) config('apparel.rayons', []))[(string) $rayon] ?? []);
+    if ($key === null) { return $cfg; }
+    return is_array($cfg[$key] ?? null) ? $cfg[$key] : [];
+}
+/** @return array<string,array{label:string,opts:list<string>}> */
+function apparel_fields(?string $rayon): array { return apparel_rayon($rayon, 'fields'); }
+/** @return array<string,array{group?:string,fields:list<string>}> */
+function apparel_types(?string $rayon): array { return apparel_rayon($rayon, 'types'); }
+/** @return array<string,string> */
+function apparel_groups(?string $rayon): array { return apparel_rayon($rayon, 'groups'); }
+/** @return list<string> */
+function apparel_rayon_atouts(?string $rayon): array { return apparel_rayon($rayon, 'atouts'); }
+/** @return list<array{label:string,from:int,to:int}> */
+function apparel_quickfill(?string $rayon): array { return apparel_rayon($rayon, 'quickfill'); }
+/** @return list<string> */
+function apparel_conditions(): array { return (array) config('apparel.conditions', []); }
+/** @return list<string> */
+function apparel_genres(): array { return (array) config('apparel.genres', []); }
+/** @return list<string> */
+function apparel_couleurs(): array { return (array) config('apparel.couleurs', []); }
+/** @return list<string> */
+function apparel_axes(): array { return (array) config('apparel.axes', []); }
+/** Métadonnées d'un type de produit mode (champs, groupe) — ou null si inconnu. */
+function apparel_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = apparel_types($rayon);
+    return isset($t[(string) $type]) && is_array($t[(string) $type]) ? $t[(string) $type] : null;
+}
+/**
+ * Nettoie les caractéristiques d'un produit mode selon le type : ne garde que les champs
+ * autorisés et les valeurs présentes dans les options (whitelist par type).
+ * @param array<string,mixed> $attrs
+ * @return array<string,string>
+ */
+function apparel_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = apparel_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $fields = apparel_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $fk) {
+        $val = trim((string) ($attrs[$fk] ?? ''));
+        if ($val === '' || !isset($fields[$fk])) { continue; }
+        if (in_array($val, (array) ($fields[$fk]['opts'] ?? []), true)) { $out[$fk] = $val; }
+    }
+    return $out;
+}
+
 /** Valide un genre soumis ('' = non précisé). */
 function apparel_audience_clean(?string $v): string
 {

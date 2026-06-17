@@ -423,6 +423,27 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $aAttr['variant_axis'] = $axis; }
             $attributes = $aAttr !== [] ? (string) json_encode($aAttr, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (product_vertical((string) ($boutique['category'] ?? '')) === 'apparel' && apparel_is_rayon($collection)) {
+            // Mode adaptatif (Chaussures…) : type-driven + genre/couleur/état + pointures (axe libre).
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(apparel_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), apparel_rayon_atouts($collection)));
+            $aa = apparel_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $genre = beauty_clean(input_string('genre', ''), apparel_genres());
+            if ($genre !== '') { $aa['genre'] = $genre; }
+            $couleur = beauty_clean(input_string('couleur', ''), apparel_couleurs());
+            if ($couleur !== '') { $aa['couleur'] = $couleur; }
+            $cond = beauty_clean(input_string('appa_condition', ''), apparel_conditions());
+            if ($cond !== '') { $aa['condition'] = $cond; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $aa['variant_axis'] = $axis; }
+            $attributes = $aa !== [] ? (string) json_encode($aa, JSON_UNESCAPED_UNICODE) : null;
+            // Rattache aux colonnes mode (filtres/affichage) : genre → audience, rayon → garment (kids si enfant).
+            $audMap = ['Femme' => 'femme', 'Homme' => 'homme', 'Mixte / unisexe' => 'unisexe', 'Enfant' => 'enfant', 'Fille' => 'enfant', 'Garçon' => 'enfant', 'Bébé' => 'enfant'];
+            if (isset($audMap[$genre])) { $audience = $audMap[$genre]; }
+            $garmentBase = (string) (((array) config('apparel.rayons', []))[$collection]['garment'] ?? '');
+            if ($garmentBase === 'shoes' && in_array($genre, ['Enfant', 'Fille', 'Garçon', 'Bébé'], true)) { $garmentBase = 'shoes_kids'; }
+            if ($garmentBase !== '') { $garment = $garmentBase; $saleUnit = apparel_category_unit($garment); }
         } else {
             // Maquillage (v2 adaptatif au type) : caractéristiques propres au type en JSON.
             $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());
