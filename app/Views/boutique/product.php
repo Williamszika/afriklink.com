@@ -102,7 +102,20 @@ foreach ($realVariants as $rv) {
                 $apTags = [];
                 $pColorLabel = t('variant.color');
                 $pOngColors = [];
-                if ($pVertical === 'phone') {
+                if ($pVertical === 'phone' && (string) ($product['collection'] ?? '') === 'Accessoires') {
+                    // Accessoires : type-driven (specs dans attributes) + axe de déclinaison libre.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['compatibilite'])) { $apTags[] = (string) $aAttr['compatibilite']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['compatibilite', 'condition', 'garantie', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['garantie'])) { $apTags[] = t('elec.f.warranty') . ' ' . (string) $aAttr['garantie']; }
+                } elseif ($pVertical === 'phone') {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['model'])) { $apTags[] = (string) $product['model']; }
                     if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }

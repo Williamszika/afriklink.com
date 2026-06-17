@@ -249,7 +249,22 @@ final class ProductController
         $expiryDate  = ($expiryRaw !== '' && strtotime($expiryRaw) !== false) ? date('Y-m-d', (int) strtotime($expiryRaw)) : null;
         $ingredients = mb_substr(trim((string) input_string('ingredients', '')), 0, 2000);
 
-        if ($collection === 'Ongles') {
+        if ($collection === 'Accessoires' && product_vertical((string) ($boutique['category'] ?? '')) === 'phone') {
+            // Électronique · Accessoires : type-driven + specs + compat/état/garantie + axe libre.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(elec_types()));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), elec_atouts()));
+            $ea = elec_attr_clean($productType, (array) ($_POST['attr'] ?? []));
+            $compat = mb_substr(trim((string) input_string('compatibilite', '')), 0, 120);
+            if ($compat !== '') { $ea['compatibilite'] = $compat; }
+            $cond = beauty_clean(input_string('acc_condition', ''), elec_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $gar = beauty_clean(input_string('acc_garantie', ''), elec_garanties());
+            if ($gar !== '') { $ea['garantie'] = $gar; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));
             $atouts      = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), beauty_ongles('atouts')));

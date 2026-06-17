@@ -766,6 +766,55 @@ function phone_condition_clean(?string $v): string
     return in_array($v, phone_conditions(), true) ? $v : '';
 }
 
+/* ---------- Électronique : rayon « Accessoires » (adaptatif au type) ---------- */
+
+/** Sous-config électronique par clé. */
+function elec(?string $key = null): array
+{
+    $cfg = (array) config('electronics', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function elec_fields(): array { return (array) config('electronics.fields', []); }
+/** @return array<string,array> Types d'accessoire. */
+function elec_types(): array { return (array) config('electronics.types', []); }
+/** @return array<string,string> Groupes d'accessoires (optgroups). */
+function elec_groups(): array { return (array) config('electronics.groups', []); }
+/** @return list<string> */
+function elec_conditions(): array { return (array) config('electronics.conditions', []); }
+/** @return list<string> */
+function elec_garanties(): array { return (array) config('electronics.garanties', []); }
+/** @return list<string> */
+function elec_atouts(): array { return (array) config('electronics.atouts', []); }
+/** @return list<string> */
+function elec_axes(): array { return (array) config('electronics.axes', []); }
+
+/** Métadonnées d'un type d'accessoire, ou null. */
+function elec_type_meta(?string $type): ?array
+{
+    $t = elec_types()[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques d'un accessoire : champs du type validés + compat,
+ * état, garantie. @return array<string,string>
+ */
+function elec_attr_clean(?string $type, array $attrs): array
+{
+    $meta = elec_type_meta($type);
+    if ($meta === null) { return []; }
+    $defs = elec_fields();
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Beauté & cosmétiques ---------- */
 
 /** @return list<string> */

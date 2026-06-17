@@ -17,6 +17,11 @@ $curCol = $curRayonSel === '__other__'
     ? (string) old('collection_other')
     : ($curRayonSel !== '' ? $curRayonSel : (string) ($product['collection'] ?? ''));
 
+// Électronique : le rayon « Accessoires » bascule vers un formulaire adaptatif au
+// type d'accessoire ; les autres rayons gardent la fiche téléphone (marque/modèle/état).
+$isAccessoires = $isPhone && ($curCol === 'Accessoires');
+$elecSection = $isAccessoires ? 'accessoires' : 'phone';
+
 // Repli « vertical » de l'axe taille (utilisé tant qu'aucun rayon n'impose d'axe).
 if ($isPhone) {
     $baseLabel = t('phone.f.storage'); $basePh = t('phone.f.storage_ph'); $baseOpts = phone_storage();
@@ -95,6 +100,28 @@ $fmtP = static function ($cents) use ($cur): string {
         <p class="hint"><?= e(t('product.f.collection_hint')) ?></p>
 
         <?php if ($vertical === 'phone'): ?>
+        <?php
+        $rawOldE  = $_SESSION['_old'] ?? [];
+        $accAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+        $accType  = (string) ($rawOldE['product_type'] ?? ($product['product_type'] ?? ''));
+        $accMeta  = elec_type_meta($accType);
+        $eAttr    = static fn (string $k): string => (string) ($rawOldE[$k] ?? ($accAttrs[$k] ?? ''));
+        $accAtouts = isset($rawOldE['atouts']) && is_array($rawOldE['atouts'])
+            ? array_map('strval', $rawOldE['atouts'])
+            : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+        $accAxis = (string) ($rawOldE['variant_axis'] ?? ($accAttrs['variant_axis'] ?? ($accMeta['axis'] ?? '')));
+        $accHasColor = (bool) ($accMeta['color'] ?? false);
+        foreach ($realVariants as $vv) { $aa = is_array($vv['attributes'] ?? null) ? $vv['attributes'] : (json_decode((string) ($vv['attributes'] ?? ''), true) ?: []); if (!empty($aa['hex'])) { $accHasColor = true; break; } }
+        if (isset($rawOldE['var_has_color'])) { $accHasColor = (string) $rawOldE['var_has_color'] === '1'; }
+        $eSec = static fn (string $s): string => ' data-elec-section="' . $s . '"' . ($s === $elecSection ? '' : ' hidden');
+        ?>
+        <div data-elec
+             data-fields="<?= e((string) json_encode(elec_fields(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-types="<?= e((string) json_encode(elec_types(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-hint-specs="<?= e(t('elec.specs_hint')) ?>" data-hint-pick="<?= e(t('elec.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Fiche téléphone (rayons hors Accessoires) ===== -->
+        <div<?= $eSec('phone') ?>>
         <div class="grid-2">
             <div>
                 <label for="p-brand"><?= e(t('phone.f.brand')) ?></label>
@@ -114,6 +141,81 @@ $fmtP = static function ($cents) use ($cur): string {
             <?php endforeach; ?>
         </select>
         <p class="hint"><?= e(t('phone.f.hint')) ?></p>
+        </div><!-- /phone -->
+
+        <!-- ===== Accessoires (adaptatif au type) ===== -->
+        <div<?= $eSec('accessoires') ?> data-elec-root>
+        <div class="grid-2">
+            <div>
+                <label for="acc-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="acc-brand" name="brand" maxlength="60" value="<?= e((string) ($rawOldE['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('elec.brand_ph')) ?>" data-pv="brand">
+            </div>
+            <div>
+                <label for="acc-type"><?= e(t('elec.f.type')) ?> <span class="req">*</span></label>
+                <select id="acc-type" name="product_type" data-pv="type" data-elec-type>
+                    <option value=""><?= e(t('beauty.f.type_any')) ?></option>
+                    <?php foreach (elec_groups() as $gk => $glabel): ?>
+                        <optgroup label="<?= e($glabel) ?>">
+                            <?php foreach (elec_types() as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                <option value="<?= e($tname) ?>" <?= $accType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>⚙️ <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint" data-elec-hint><?= e($accMeta ? t('elec.specs_hint') : t('elec.specs_pick')) ?></p>
+            <div class="field" data-elec-compat-box<?= ($accMeta && !empty($accMeta['compat'])) ? '' : ' hidden' ?>>
+                <label for="acc-compat"><?= e(t('elec.f.compat')) ?></label>
+                <input type="text" id="acc-compat" name="compatibilite" maxlength="120" value="<?= e($eAttr('compatibilite')) ?>" placeholder="<?= e(t('elec.f.compat_ph')) ?>">
+            </div>
+            <div class="attrs grid-2" data-elec-attrs>
+                <?php if ($accMeta): foreach ((array) ($accMeta['fields'] ?? []) as $fk): $fd = elec_fields()[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($accAttrs[$fk] ?? ''); ?>
+                    <div>
+                        <label><?= e((string) $fd['label']) ?></label>
+                        <select name="attr[<?= e($fk) ?>]">
+                            <option value="">—</option>
+                            <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="acc-condition"><?= e(t('elec.f.condition')) ?></label>
+                    <select id="acc-condition" name="acc_condition">
+                        <?php $cCur = $eAttr('condition') ?: 'Neuf'; foreach (elec_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $cCur === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="acc-garantie"><?= e(t('elec.f.warranty')) ?></label>
+                    <select id="acc-garantie" name="acc_garantie">
+                        <option value=""><?= e(t('elec.f.warranty_none')) ?></option>
+                        <?php foreach (elec_garanties() as $g): ?><option value="<?= e($g) ?>" <?= $eAttr('garantie') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="acc-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="acc-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e((string) ($rawOldE['ean'] ?? ($product['ean'] ?? ''))) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="acc-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="acc-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldE['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="ACC-CHARG-20W">
+                </div>
+            </div>
+            <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks">
+                <?php foreach (elec_atouts() as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $accAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+        </details>
+        </div><!-- /accessoires -->
         <?php elseif ($isApparel): ?>
         <div class="grid-2">
             <div>
@@ -1178,6 +1280,61 @@ $fmtP = static function ($cents) use ($cur): string {
         </details>
         </div><!-- /autre decl -->
         <?php else: ?>
+        <?php if ($isPhone): ?>
+        <?php
+        $accRows = [];
+        foreach ($realVariants as $v) {
+            $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []);
+            $accRows[] = ['name' => (string) ($attr['size'] ?? ($v['label'] ?? '')), 'hex' => (string) ($attr['hex'] ?? '#222222'), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
+        }
+        ?>
+        <div<?= $eSec('accessoires') ?>>
+        <details class="variants-box" data-elec-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>🎚️ <?= e(t('variant.section_generic')) ?></summary>
+            <p class="hint"><?= e(t('elec.decl_hint')) ?></p>
+            <input type="hidden" name="var_has_color" value="0">
+            <div class="grid-2">
+                <div>
+                    <label for="acc-axis"><?= e(t('autre.axis')) ?></label>
+                    <input type="text" id="acc-axis" name="variant_axis" maxlength="24" value="<?= e($accAxis) ?>" placeholder="<?= e(t('elec.axis_ph')) ?>" list="acc-axis-list" data-elec-axis>
+                    <datalist id="acc-axis-list"><?php foreach (elec_axes() as $ax): ?><option value="<?= e($ax) ?>"></option><?php endforeach; ?></datalist>
+                </div>
+                <div>
+                    <label class="check-row" style="margin-top:24px"><input type="checkbox" name="var_has_color" value="1" data-elec-color-toggle <?= $accHasColor ? 'checked' : '' ?>><span><?= e(t('autre.has_color')) ?></span></label>
+                </div>
+            </div>
+            <div class="bvariant-rows autre-rows<?= $accHasColor ? ' has-color' : '' ?>" data-elec-rows>
+                <div class="bvariant-head autre-head">
+                    <span data-elec-axis-label><?= e($accAxis !== '' ? $accAxis : t('variant.option')) ?></span>
+                    <span class="autre-col-color"><?= e(t('perruque.f.color')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span>
+                    <span><?= e(t('variant.price_opt')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($accRows as $ar): ?>
+                    <div class="bvariant-row autre-row">
+                        <input type="text" name="var_size[]" value="<?= e($ar['name']) ?>" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                        <input type="color" name="var_hex[]" class="autre-col-color" value="<?= e($ar['hex'] !== '' ? $ar['hex'] : '#222222') ?>" aria-label="<?= e(t('perruque.f.color')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $ar['stock'] !== null ? (int) $ar['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($ar['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-elec-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-elec-add>+ <?= e(t('autre.option_add')) ?></button>
+            <template id="elec-variant-template">
+                <div class="bvariant-row autre-row">
+                    <input type="text" name="var_size[]" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                    <input type="color" name="var_hex[]" class="autre-col-color" value="#222222" aria-label="<?= e(t('perruque.f.color')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-elec-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /accessoires decl -->
+        <?php endif; ?>
+        <div<?= $isPhone ? $eSec('phone') : '' ?>>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>
             <p class="hint"><?= e($varHint) ?></p>
@@ -1227,6 +1384,7 @@ $fmtP = static function ($cents) use ($cur): string {
             <datalist id="size-suggest"><?php foreach ($sizeOpts as $s): ?><option value="<?= e($s) ?>"></option><?php endforeach; ?></datalist>
             <datalist id="color-suggest"><?php foreach (['Noir','Blanc','Gris','Rouge','Bleu','Vert','Jaune','Orange','Rose','Violet','Marron','Beige'] as $c): ?><option value="<?= e($c) ?>"></option><?php endforeach; ?></datalist>
         </details>
+        </div><!-- /phone decl (ou générique) -->
         <?php endif; ?>
 
         <label for="p-desc"><?= e(t('product.f.description')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

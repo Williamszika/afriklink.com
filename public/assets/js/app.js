@@ -3201,6 +3201,88 @@ document.addEventListener('click', function (ev) {
     update(); syncPhoto();
 })();
 
+/* ---- Électronique · Accessoires : adaptatif au type + déclinaisons à axe libre ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-elec]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var FIELDS = parse('data-fields'), TYPES = parse('data-types');
+    var coll = document.querySelector('[data-collection-select]');
+    var typeSel = document.getElementById('acc-type');
+    var attrsBox = document.querySelector('[data-elec-attrs]');
+    var rowsBox = document.querySelector('[data-elec-rows]');
+    var varTpl = document.getElementById('elec-variant-template');
+    var axisInp = document.querySelector('[data-elec-axis]');
+    var colorTog = document.querySelector('[data-elec-color-toggle]');
+
+    function isAccessoires() { return !!(coll && coll.value === 'Accessoires'); }
+    function meta() { return (typeSel && TYPES[typeSel.value]) ? TYPES[typeSel.value] : null; }
+
+    function toggleSections() {
+        var active = isAccessoires() ? 'accessoires' : 'phone';
+        document.querySelectorAll('[data-elec-section]').forEach(function (sec) {
+            var on = sec.getAttribute('data-elec-section') === active;
+            sec.hidden = !on;
+            sec.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        });
+    }
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        attrsBox.innerHTML = '';
+        var m = meta(); if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = FIELDS[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
+    }
+    function applyColorCol() { if (rowsBox) { rowsBox.classList.toggle('has-color', !!(colorTog && colorTog.checked)); } }
+    function axisLabel() {
+        var lab = document.querySelector('[data-elec-axis-label]');
+        if (lab) { lab.textContent = (axisInp && axisInp.value.trim()) ? axisInp.value.trim() : (cfgEl.getAttribute('data-opt') || 'Option'); }
+    }
+    function onType() {
+        var m = meta();
+        var compat = document.querySelector('[data-elec-compat-box]'); if (compat) { compat.hidden = !(m && m.compat); }
+        if (m) {
+            if (axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+            if (colorTog) { colorTog.checked = !!m.color; }
+        }
+        buildAttrs(); applyColorCol(); axisLabel();
+        var sh = document.querySelector('[data-elec-hint]');
+        if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
+    }
+    function addRow() {
+        if (!varTpl || !varTpl.content || !rowsBox) { return null; }
+        rowsBox.appendChild(varTpl.content.cloneNode(true));
+        return rowsBox.lastElementChild;
+    }
+
+    if (typeSel) { typeSel.addEventListener('change', onType); }
+    if (coll) { coll.addEventListener('change', toggleSections); }
+    if (axisInp) { axisInp.addEventListener('input', axisLabel); }
+    if (colorTog) { colorTog.addEventListener('change', applyColorCol); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        if (ev.target.closest('[data-elec-add]')) { var r = addRow(); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
+        var del = ev.target.closest('[data-elec-del]');
+        if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); } }
+    });
+
+    toggleSections();
+})();
+
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */
 (function () {
     var sel = document.querySelector('[data-collection-select]');
