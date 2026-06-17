@@ -1484,7 +1484,7 @@ final class BoutiqueController
 
     /* ---- Validation des étapes ------------------------------------- */
 
-    private function validateStep1(int $userId, bool $requireCategory = false): array
+    private function validateStep1(int $userId, bool $isCreation = false): array
     {
         $errors = [];
         $nameMax = (int) config('shop.name_max', 80);
@@ -1500,7 +1500,10 @@ final class BoutiqueController
         $max = (int) config('shop.slug_max', 40);
         if (mb_strlen($slug) < $min || mb_strlen($slug) > $max) {
             $errors['slug'] = t('validation.shop_slug', ['min' => $min, 'max' => $max]);
-        } elseif (!Boutique::slugAvailable($slug, $userId)) {
+        // À la CRÉATION le slug doit être globalement unique (exceptUserId = null) :
+        // réutiliser le slug d'une autre de ses boutiques violerait la contrainte
+        // UNIQUE. À l'ÉDITION, le vendeur conserve son propre slug (exceptUserId).
+        } elseif (!Boutique::slugAvailable($slug, $isCreation ? null : $userId)) {
             $errors['slug'] = t('validation.shop_slug_taken');
         }
 
@@ -1521,7 +1524,7 @@ final class BoutiqueController
         }
         $category = whitelist((string) input_string('category', ''), config('listings.categories', []), null);
         // Catégorie principale obligatoire à la CRÉATION (puis verrouillée).
-        if ($requireCategory && $category === null) {
+        if ($isCreation && $category === null) {
             $errors['category'] = t('validation.shop_category');
         }
 
@@ -1661,17 +1664,18 @@ final class BoutiqueController
         }
         $userId = (int) $user['id'];
 
-        // Re-contrôle slug (a pu être pris entre deux étapes).
-        if (!Boutique::slugAvailable($s1['slug'], $userId)) {
-            $s1['slug'] = Boutique::uniqueSlug($s1['slug'], $userId);
-        }
+        // Re-contrôle slug : GLOBALEMENT unique à la création. Un vendeur ne peut
+        // pas réutiliser le slug d'une autre de ses boutiques (colonne UNIQUE →
+        // sinon l'INSERT échoue en erreur 500). uniqueSlug() renvoie le slug tel
+        // quel s'il est libre, sinon -2, -3…
+        $s1['slug'] = Boutique::uniqueSlug($s1['slug']);
 
         // Vérité serveur sur le logo et les bannières (existent sur notre compte).
         $logo    = $this->verifiedImage($s1['logo_public_id'] ?? null);
         $banners = $this->verifiedBanners($s1['banner_ids'] ?? [], []);
         $s2      = $this->verifiedGeo($s2, null);
 
-        $publicId = Boutique::create($userId, [
+        $payload = [
             'slug'             => $s1['slug'],
             'name'             => $s1['name'],
             'tagline'          => $s1['tagline'],
@@ -1700,7 +1704,24 @@ final class BoutiqueController
             'payment_provider' => $step3['payment_provider'] ?? null,
             'contacts'         => $s1['contacts'] ?? [],
             'contact_primary'  => $s1['contact_primary'] ?? '',
-        ]);
+        ];
+
+        // Garde-fou anti-500 : en cas de collision de slug résiduelle (course entre
+        // l'étape et l'INSERT) ou d'aléa DB, on régénère un slug unique et on retente
+        // une fois ; en dernier recours on revient à l'assistant avec un message clair.
+        try {
+            $publicId = Boutique::create($userId, $payload);
+        } catch (\Throwable $e) {
+            log_message('error', 'boutique.create retry (slug=' . $payload['slug'] . '): ' . $e->getMessage());
+            $payload['slug'] = Boutique::uniqueSlug($s1['slug'] . '-' . substr(uuid(), 0, 4));
+            try {
+                $publicId = Boutique::create($userId, $payload);
+            } catch (\Throwable $e2) {
+                log_message('error', 'boutique.create failed: ' . $e2->getMessage());
+                flash('error', t('shop.create_error'));
+                redirect('/boutique/creer?etape=1');
+            }
+        }
 
         AuditLog::record($userId, 'shop.created', 'boutique', null, ['public_id' => $publicId], $request->ipBinary());
         // Multi-boutique : la boutique fraîchement créée devient la boutique active.

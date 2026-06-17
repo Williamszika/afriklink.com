@@ -1100,6 +1100,7 @@ return [
     'shop.draft_note' => 'Votre boutique sera créée en brouillon : vous la publierez quand elle sera prête.',
     'shop.submit' => 'Créer ma boutique',
     'shop.created_flash' => 'Boutique créée ! 🎉 Ajoutez vos produits puis publiez-la.',
+    'shop.create_error' => "La création n'a pas pu aboutir. Vérifiez les informations puis réessayez.",
     'shop.published_flash' => 'Boutique publiée ! Elle est visible du public.',
     'shop.ready.title' => 'Préparez votre boutique',
     'shop.ready.media' => 'Logo ou bannière',

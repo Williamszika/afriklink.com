@@ -1100,6 +1100,7 @@ return [
     'shop.draft_note' => 'Your shop will be created as a draft: publish it when ready.',
     'shop.submit' => 'Create my shop',
     'shop.created_flash' => 'Shop created! 🎉 Add your products then publish it.',
+    'shop.create_error' => 'Creation could not be completed. Please check the details and try again.',
     'shop.published_flash' => 'Shop published! It’s now visible to the public.',
     'shop.ready.title' => 'Get your shop ready',
     'shop.ready.media' => 'Logo or banner',
