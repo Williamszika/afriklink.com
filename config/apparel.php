@@ -358,5 +358,67 @@ return [
                 'Autre sous-vêtement'          => ['group' => '', 'fields' => ['matiere', 'lot'], 'sizes' => 'letter', 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
             ],
         ],
+
+        // =================== T-shirts & hauts (public par type ; tailles par genre) ===================
+        'T-shirts & hauts' => [
+            'garment'     => 'tshirt',
+            'axis'        => 'Taille',
+            'type_public' => true, // le public autorisé dépend du type
+            'genres'      => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant', 'Bébé'],
+            'couleurs'    => ['Noir', 'Blanc', 'Crème', 'Gris', 'Beige', 'Rouge', 'Bordeaux', 'Rose', 'Bleu', 'Bleu marine', 'Vert', 'Kaki', 'Jaune', 'Orange', 'Violet', 'Marron', 'Multicolore', 'Wax / imprimé', 'Autre'],
+            // Tailles DÉPENDANTES DU GENRE (le public est imposé par le type, mais les tailles suivent le genre choisi).
+            'quickfill' => [
+                'Femme' => [
+                    ['label' => 'XS → XXL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL']],
+                    ['label' => 'FR 34–46', 'kind' => 'range', 'from' => 34, 'to' => 46, 'step' => 2],
+                ],
+                'Homme' => [
+                    ['label' => 'S → 3XL', 'kind' => 'list', 'list' => ['S', 'M', 'L', 'XL', 'XXL', '3XL']],
+                ],
+                'Mixte / unisexe' => [
+                    ['label' => 'XS → 3XL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']],
+                    ['label' => 'Taille unique', 'kind' => 'list', 'list' => ['Taille unique']],
+                ],
+                'Fille' => [
+                    ['label' => 'Fille 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']],
+                ],
+                'Garçon' => [
+                    ['label' => 'Garçon 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']],
+                ],
+                'Enfant' => [
+                    ['label' => 'Enfant 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']],
+                ],
+                'Bébé' => [
+                    ['label' => 'Bébé 0–24 mois', 'kind' => 'list', 'list' => ['1 mois', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']],
+                    ['label' => 'Petit 2–5 ans', 'kind' => 'list', 'list' => ['2 ans', '3 ans', '4 ans', '5 ans']],
+                ],
+            ],
+            'atouts' => ['Wax / pagne', 'Coton bio', 'Fait main', 'Oversize', 'Unisexe', 'Éco-responsable', 'Neuf avec étiquette', 'Édition limitée'],
+            'groups' => ['tshirts' => 'T-shirts & basiques', 'chemises' => 'Chemises', 'mailles' => 'Mailles & sweats', 'autre' => 'Autre'],
+            'fields' => [
+                'matiere'   => ['label' => 'Matière', 'opts' => ['Coton', 'Coton bio', 'Lin', 'Jersey', 'Maille', 'Laine', 'Polyester', 'Viscose', 'Modal', 'Molleton', 'Wax / pagne', 'Autre']],
+                'col'       => ['label' => 'Col / encolure', 'opts' => ['Col rond', 'Col V', 'Col montant', 'Col chemise', 'Col polo', 'Col roulé', 'Col bénitier', 'Bateau / sans col']],
+                'manches'   => ['label' => 'Manches', 'opts' => ['Sans manches', 'Manches courtes', 'Manches 3/4', 'Manches longues']],
+                'coupe'     => ['label' => 'Coupe', 'opts' => ['Ajustée', 'Droite / regular', 'Oversize', 'Cintrée', 'Crop / court']],
+                'motif'     => ['label' => 'Motif', 'opts' => ['Uni', 'Wax / imprimé africain', 'Rayé', 'À carreaux', 'Logo / texte', 'Fleuri', 'Graphique']],
+                'fermeture' => ['label' => 'Fermeture', 'opts' => ['Sans', 'Boutons', 'Zip', 'Capuche + cordon']],
+                'epaisseur' => ['label' => 'Épaisseur', 'opts' => ['Léger', 'Moyen', 'Épais / chaud']],
+                'saison'    => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Été', 'Mi-saison', 'Hiver']],
+            ],
+            'types' => [
+                'T-shirt'            => ['group' => 'tshirts', 'fields' => ['col', 'manches', 'coupe', 'matiere', 'motif'], 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant']],
+                'Débardeur'          => ['group' => 'tshirts', 'fields' => ['coupe', 'matiere', 'motif'], 'pub' => ['Femme', 'Homme', 'Mixte / unisexe', 'Enfant']],
+                'Polo'               => ['group' => 'tshirts', 'fields' => ['manches', 'coupe', 'matiere', 'motif'], 'pub' => ['Homme', 'Femme', 'Mixte / unisexe', 'Enfant']],
+                'Crop top'           => ['group' => 'tshirts', 'fields' => ['manches', 'coupe', 'matiere', 'motif'], 'pub' => ['Femme', 'Fille']],
+                'Chemise'            => ['group' => 'chemises', 'fields' => ['col', 'manches', 'coupe', 'matiere', 'motif'], 'pub' => ['Homme', 'Femme', 'Mixte / unisexe', 'Garçon']],
+                'Chemisier / blouse' => ['group' => 'chemises', 'fields' => ['col', 'manches', 'coupe', 'matiere', 'motif'], 'pub' => ['Femme', 'Fille']],
+                'Pull'               => ['group' => 'mailles', 'fields' => ['col', 'manches', 'matiere', 'epaisseur', 'motif'], 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Gilet / cardigan'   => ['group' => 'mailles', 'fields' => ['fermeture', 'matiere', 'epaisseur', 'motif'], 'pub' => ['Femme', 'Homme', 'Mixte / unisexe', 'Enfant']],
+                'Sweat / hoodie'     => ['group' => 'mailles', 'fields' => ['fermeture', 'coupe', 'matiere', 'epaisseur', 'motif'], 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant']],
+                'Body'               => ['group' => 'autre', 'fields' => ['col', 'manches', 'matiere', 'coupe'], 'pub' => ['Femme', 'Bébé']],
+                'Top habillé'        => ['group' => 'autre', 'fields' => ['col', 'manches', 'matiere', 'motif'], 'pub' => ['Femme']],
+                'Autre haut'         => ['group' => 'autre', 'fields' => ['manches', 'matiere', 'motif', 'saison'], 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant']],
+            ],
+        ],
     ],
 ];
