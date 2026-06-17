@@ -20,7 +20,9 @@ $curCol = $curRayonSel === '__other__'
 // Électronique : certains rayons (Accessoires, Audio & écouteurs…) basculent vers un
 // formulaire adaptatif au type ; les autres gardent la fiche téléphone (marque/modèle/état).
 $isElecForm = $isPhone && elec_is_rayon($curCol);
-$elecSection = $isElecForm ? 'elec' : 'phone';
+// Rayon électronique non répertorié (ou vide) => formulaire « autre / nouveau rayon » adaptatif.
+$isElecAutre = $isPhone && !$isElecForm;
+$elecSection = $isElecForm ? 'elec' : 'autre';
 
 // Repli « vertical » de l'axe taille (utilisé tant qu'aucun rayon n'impose d'axe).
 if ($isPhone) {
@@ -106,12 +108,21 @@ $fmtP = static function ($cents) use ($cur): string {
         $elecRayonSSR = elec_is_rayon($curCol) ? $curCol : (elec_rayons()[0] ?? 'Accessoires');
         $accType  = (string) ($rawOldE['product_type'] ?? ($product['product_type'] ?? ''));
         $accMeta  = elec_type_meta($elecRayonSSR, $accType);
+        $eautreCfg = elec_autre_cfg($curCol); // null si rayon générique/inconnu
         $eAttr    = static fn (string $k): string => (string) ($rawOldE[$k] ?? ($accAttrs[$k] ?? ''));
         $accAtouts = isset($rawOldE['atouts']) && is_array($rawOldE['atouts'])
             ? array_map('strval', $rawOldE['atouts'])
             : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
-        $accAxis = (string) ($rawOldE['variant_axis'] ?? ($accAttrs['variant_axis'] ?? ($accMeta['axis'] ?? '')));
-        $accHasColor = (bool) ($accMeta['color'] ?? false);
+        // Caractéristiques libres (rayon « autre ») : ré-affichage erreur (POST) ou édition (attributes).
+        $eautreSpecs = [];
+        if (isset($rawOldE['spec_label']) && is_array($rawOldE['spec_label'])) {
+            foreach ($rawOldE['spec_label'] as $i => $lb) { $eautreSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldE['spec_value'][$i] ?? '')]; }
+        } elseif (is_array($accAttrs['specs'] ?? null)) {
+            foreach ($accAttrs['specs'] as $lb => $val) { $eautreSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+        }
+        // Axe & pastille couleur partagés : depuis le type (rayon connu) sinon depuis la config « autre ».
+        $accAxis = (string) ($rawOldE['variant_axis'] ?? ($accAttrs['variant_axis'] ?? ($accMeta['axis'] ?? ($eautreCfg['axis'] ?? ''))));
+        $accHasColor = (bool) ($accMeta['color'] ?? ($eautreCfg['color'] ?? false));
         $accCapteurs = isset($rawOldE['capteur']) && is_array($rawOldE['capteur'])
             ? array_map('strval', $rawOldE['capteur'])
             : array_map('strval', (array) ($accAttrs['capteurs'] ?? []));
@@ -121,6 +132,9 @@ $fmtP = static function ($cents) use ($cur): string {
         ?>
         <div data-elec
              data-rayons="<?= e((string) json_encode((array) config('electronics.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(elec_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-autre-generic="<?= e(t('elec.autre_generic')) ?>"
+             data-opt="<?= e(t('variant.option')) ?>"
              data-hint-specs="<?= e(t('elec.specs_hint')) ?>" data-hint-pick="<?= e(t('elec.specs_pick')) ?>" hidden></div>
 
         <!-- ===== Fiche téléphone (rayons hors Accessoires) ===== -->
@@ -231,6 +245,102 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
         </div><!-- /elec adaptatif -->
+
+        <!-- ===== Électronique : AUTRE / NOUVEAU RAYON (adaptatif au slug) ===== -->
+        <div<?= $eSec('autre') ?> data-eautre-root>
+        <p class="hint" data-eautre-rayon-hint><?= $eautreCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('elec.autre_generic')) ?></p>
+        <div class="grid-2">
+            <div>
+                <label for="eautre-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="eautre-brand" name="brand" maxlength="60" value="<?= e((string) ($rawOldE['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('elec.brand_ph')) ?>">
+            </div>
+            <div>
+                <label for="eautre-ptype"><?= e(t('elec.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="eautre-ptype" name="product_type" maxlength="60" value="<?= e($accType) ?>" placeholder="<?= e(t('elec.autre_type_ph')) ?>">
+            </div>
+        </div>
+        <label><?= e(t('autre.rayon_suggest')) ?></label>
+        <div class="chips-row" data-eautre-rayon-chips>
+            <?php foreach (elec_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-eautre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+            <div class="axis-suggest" data-eautre-spec-box>
+                <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                <div class="axis-suggest-chips" data-eautre-spec-chips>
+                    <?php foreach (($eautreCfg['specs'] ?? elec_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-eautre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                </div>
+            </div>
+            <div class="spec-rows" data-eautre-specs>
+                <div class="spec-head">
+                    <span><?= e(t('autre.spec_label')) ?></span>
+                    <span><?= e(t('autre.spec_value')) ?></span>
+                    <span></span>
+                </div>
+                <?php foreach ($eautreSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-eautre-spec-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-eautre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+            <template id="eautre-spec-template">
+                <div class="spec-row">
+                    <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                    <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                    <button type="button" class="variant-del" data-eautre-spec-del aria-label="✕">✕</button>
+                </div>
+            </template>
+
+            <div class="field" style="margin-top:14px">
+                <label for="eautre-compat"><?= e(t('elec.f.compat')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="eautre-compat" name="compatibilite" maxlength="120" value="<?= e($eAttr('compatibilite')) ?>" placeholder="<?= e(t('elec.f.compat_ph')) ?>">
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="eautre-condition"><?= e(t('elec.f.condition')) ?></label>
+                    <select id="eautre-condition" name="acc_condition">
+                        <?php $cCur = $eAttr('condition') ?: 'Neuf'; foreach (elec_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $cCur === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="eautre-garantie"><?= e(t('elec.f.warranty')) ?></label>
+                    <select id="eautre-garantie" name="acc_garantie">
+                        <option value=""><?= e(t('elec.f.warranty_none')) ?></option>
+                        <?php foreach (elec_garanties() as $g): ?><option value="<?= e($g) ?>" <?= $eAttr('garantie') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="eautre-ean"><?= e(t('beauty.f.ean')) ?></label>
+                    <input type="text" id="eautre-ean" name="ean" class="mono" inputmode="numeric" maxlength="20" value="<?= e((string) ($rawOldE['ean'] ?? ($product['ean'] ?? ''))) ?>" placeholder="3600000000000">
+                </div>
+                <div>
+                    <label for="eautre-sku"><?= e(t('beauty.f.sku')) ?></label>
+                    <input type="text" id="eautre-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldE['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="REF-001">
+                </div>
+            </div>
+            <div class="warn-box">ℹ️ <?= e((string) config('electronics.autre.warn_text', '')) ?></div>
+            <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks" data-eautre-atouts>
+                <?php
+                $eautreAtoutSugg = elec_autre('atout_suggest');
+                $eautreAllAtouts = array_values(array_unique(array_merge($eautreAtoutSugg, $accAtouts)));
+                foreach ($eautreAllAtouts as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $accAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <div class="autre-atout-add">
+                <input type="text" id="eautre-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-eautre-atout-input>
+                <button type="button" class="btn btn-ghost btn-sm" data-eautre-atout-add><?= e(t('autre.atout_add')) ?></button>
+            </div>
+        </details>
+        </div><!-- /elec autre -->
         <?php elseif ($isApparel): ?>
         <div class="grid-2">
             <div>
@@ -1303,7 +1413,7 @@ $fmtP = static function ($cents) use ($cur): string {
             $accRows[] = ['name' => (string) ($attr['size'] ?? ($v['label'] ?? '')), 'hex' => (string) ($attr['hex'] ?? '#222222'), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
         }
         ?>
-        <div<?= $eSec('elec') ?>>
+        <div><!-- éditeur de déclinaisons à axe libre : partagé entre rayon connu (elec) et « autre » -->
         <details class="variants-box" data-elec-decl <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e(t('variant.section_generic')) ?></summary>
             <p class="hint"><?= e(t('elec.decl_hint')) ?></p>

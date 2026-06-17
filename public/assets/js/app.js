@@ -3218,13 +3218,21 @@ document.addEventListener('click', function (ev) {
     var varTpl = document.getElementById('elec-variant-template');
     var axisInp = document.querySelector('[data-elec-axis]');
     var colorTog = document.querySelector('[data-elec-color-toggle]');
+    // « Autre / nouveau rayon » électronique : specs libres adaptées au slug du rayon.
+    var AUTRE = parse('data-autre');
+    var collOther = document.querySelector('[data-collection-other]');
+    var eautreSpecsBox = document.querySelector('[data-eautre-specs]');
+    var eautreSpecTpl = document.getElementById('eautre-spec-template');
 
     function isElecForm() { return !!(coll && RAYONS[coll.value]); }
     function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
     function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreRayon() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? coll.value : ''); }
+    function autreCfg() { return (AUTRE.R || {})[autreSlug(autreRayon())] || null; }
 
     function toggleSections() {
-        var active = isElecForm() ? 'elec' : 'phone';
+        var active = isElecForm() ? 'elec' : 'autre';
         document.querySelectorAll('[data-elec-section]').forEach(function (sec) {
             var on = sec.getAttribute('data-elec-section') === active;
             sec.hidden = !on;
@@ -3318,18 +3326,84 @@ document.addEventListener('click', function (ev) {
         return rowsBox.lastElementChild;
     }
 
+    // ----- « Autre / nouveau rayon » : adaptation au slug, specs libres, atouts libres -----
+    function autreBuildSpecChips() {
+        var box = document.querySelector('[data-eautre-spec-chips]'); if (!box) { return; }
+        var c = autreCfg();
+        var list = c ? c.specs : (AUTRE.generic_specs || []);
+        box.innerHTML = '';
+        (list || []).forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-eautre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            box.appendChild(b);
+        });
+    }
+    function adaptAutre() {
+        var c = autreCfg();
+        var hint = document.querySelector('[data-eautre-rayon-hint]');
+        if (hint) {
+            var r = autreRayon();
+            hint.textContent = c ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', r)) : (cfgEl.getAttribute('data-autre-generic') || '');
+        }
+        if (c) {
+            if (axisInp && !axisInp.value.trim()) { axisInp.value = c.axis || ''; }
+            if (colorTog) { colorTog.checked = !!c.color; }
+        }
+        autreBuildSpecChips(); applyColorCol(); axisLabel();
+    }
+    function addEautreSpec(label) {
+        if (!eautreSpecTpl || !eautreSpecTpl.content || !eautreSpecsBox) { return null; }
+        eautreSpecsBox.appendChild(eautreSpecTpl.content.cloneNode(true));
+        var row = eautreSpecsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+        return row;
+    }
+    function pushEautreAtout() {
+        var inp = document.querySelector('[data-eautre-atout-input]');
+        var box = document.querySelector('[data-eautre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = '';
+    }
+
     if (typeSel) { typeSel.addEventListener('change', onType); }
-    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isElecForm()) { rebuildElec(); } }); }
+    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isElecForm()) { rebuildElec(); } else { adaptAutre(); } }); }
+    if (collOther) { collOther.addEventListener('input', function () { if (!isElecForm()) { adaptAutre(); } }); }
     if (axisInp) { axisInp.addEventListener('input', axisLabel); }
     if (colorTog) { colorTog.addEventListener('change', applyColorCol); }
+    var eautreAtoutInp = document.querySelector('[data-eautre-atout-input]');
+    if (eautreAtoutInp) { eautreAtoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushEautreAtout(); } }); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         if (ev.target.closest('[data-elec-add]')) { var r = addRow(); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
+        if (ev.target.closest('[data-eautre-spec-add]')) { addEautreSpec(''); return; }
+        if (ev.target.closest('[data-eautre-atout-add]')) { pushEautreAtout(); return; }
+        var aspec = ev.target.closest('[data-eautre-spec]');
+        if (aspec) { ev.preventDefault(); addEautreSpec(aspec.getAttribute('data-val')); return; }
+        var aray = ev.target.closest('[data-eautre-rayon]');
+        if (aray) {
+            ev.preventDefault();
+            var rn = aray.getAttribute('data-eautre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-eautre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } return; }
         var del = ev.target.closest('[data-elec-del]');
         if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); } }
     });
 
     toggleSections();
+    if (!isElecForm()) { adaptAutre(); }
 })();
 
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */

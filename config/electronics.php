@@ -12,7 +12,7 @@ return [
 
     'conditions' => ['Neuf', 'Comme neuf', 'Reconditionné', 'Occasion'],
     'garanties'  => ['3 mois', '6 mois', '1 an', '2 ans'],
-    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack', 'Configuration', 'Stockage', 'RAM', 'Connectivité'],
+    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack', 'Configuration', 'Stockage', 'RAM', 'Connectivité', 'Édition'],
 
     'rayons' => [
         // =================== Téléphones ===================
@@ -250,6 +250,29 @@ return [
                 'Tablette graphique'             => ['fields' => ['surface', 'pression', 'ecran_integre', 'connexion', 'stylet'], 'compat' => false, 'axis' => 'Modèle', 'color' => false],
                 'Autre tablette'                 => ['fields' => ['os', 'ecran_taille', 'ram', 'stockage_cap'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
             ],
+        ],
+    ],
+
+    // « Autre / nouveau rayon » — le vendeur crée son rayon électronique. Le formulaire s'adapte
+    // à l'identifiant (slug) du rayon tapé (config 'R') : specs suggérées, axe, pastille couleur.
+    // Rayon libre/inconnu => mode générique. Specs libres (libellé→valeur) dans attributes(JSON).
+    'autre' => [
+        'rayon_suggest' => ['TV & vidéo', 'Consoles & jeux vidéo', 'Photo & caméras', 'Objets connectés / domotique', 'Drones', 'Stockage & disques', 'Réseau & Wi-Fi', 'Imprimantes & scanners', 'Composants PC', 'Énergie & solaire'],
+        'generic_specs' => ['Compatibilité', 'Puissance', 'Capacité', 'Connectique', 'Dimensions', 'Couleur', 'Norme / certification', 'Alimentation'],
+        'atout_suggest' => ['Sans fil', 'Étanche', 'Charge rapide', 'Reconditionné garanti', 'Original / authentique', 'Compatible universel', 'Garantie incluse'],
+        'warn_text'     => 'Produits électroniques : marquage CE et conformité DEEE (déchets électroniques) requis pour la vente dans l’UE ; la garantie légale de conformité s’applique.',
+        // Config par slug de rayon : specs suggérées, axe de déclinaison, pastille couleur.
+        'R' => [
+            'tv-video'                    => ['specs' => ['Taille (pouces)', 'Résolution', 'Type de dalle', 'Smart TV', 'Connectique', 'Fréquence (Hz)'], 'axis' => 'Taille', 'color' => false],
+            'consoles-jeux-video'         => ['specs' => ['Plateforme', 'Stockage', 'Édition / pack', 'Manettes incluses', 'État du jeu'], 'axis' => 'Édition', 'color' => false],
+            'photo-cameras'               => ['specs' => ['Type', 'Résolution (MP)', 'Zoom', 'Stabilisation', 'Étanchéité', 'Écran'], 'axis' => 'Couleur', 'color' => true],
+            'objets-connectes-domotique'  => ['specs' => ['Type d’objet', 'Protocole (Wi-Fi/Zigbee)', 'Compatibilité (Alexa/Google)', 'Alimentation'], 'axis' => 'Modèle', 'color' => false],
+            'drones'                      => ['specs' => ['Autonomie de vol', 'Portée', 'Caméra', 'Poids', 'Stabilisation', 'Nombre de batteries'], 'axis' => 'Pack', 'color' => false],
+            'stockage-disques'            => ['specs' => ['Type', 'Capacité', 'Interface', 'Vitesse de lecture'], 'axis' => 'Capacité', 'color' => false],
+            'reseau-wi-fi'                => ['specs' => ['Type', 'Norme Wi-Fi', 'Débit', 'Nombre de ports', 'Bandes'], 'axis' => 'Modèle', 'color' => false],
+            'imprimantes-scanners'        => ['specs' => ['Technologie', 'Couleur / Monochrome', 'Fonctions', 'Connectivité', 'Vitesse (ppm)'], 'axis' => 'Modèle', 'color' => false],
+            'composants-pc'               => ['specs' => ['Type de composant', 'Socket / format', 'Capacité / fréquence', 'Connectique'], 'axis' => 'Modèle', 'color' => false],
+            'energie-solaire'             => ['specs' => ['Type', 'Puissance (W)', 'Capacité (Wh/mAh)', 'Entrées / sorties'], 'axis' => 'Puissance', 'color' => false],
         ],
     ],
 ];

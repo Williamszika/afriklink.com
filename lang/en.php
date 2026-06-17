@@ -1654,6 +1654,8 @@ return [
     'elec.f.warranty_none' => 'None',
     'elec.f.sensors' => 'Health sensors',
     'elec.f.sensors_hint' => 'Tick the sensors actually present on the watch or band.',
+    'elec.autre_generic' => 'Free department: generic electronics suggestions. Add your own info (label → value).',
+    'elec.autre_type_ph' => 'e.g. TV, Console, SSD drive…',
     'elec.brand_ph' => 'e.g. Anker, Baseus, Samsung…',
     'elec.specs_hint' => 'Technical fields tailored to the chosen accessory type.',
     'elec.specs_pick' => 'Pick an accessory type above first.',

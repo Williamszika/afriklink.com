@@ -1654,6 +1654,8 @@ return [
     'elec.f.warranty_none' => 'Aucune',
     'elec.f.sensors' => 'Capteurs santé',
     'elec.f.sensors_hint' => 'Coche les capteurs réellement présents sur la montre ou le bracelet.',
+    'elec.autre_generic' => 'Rayon libre : suggestions électronique génériques. Ajoute tes infos (libellé → valeur).',
+    'elec.autre_type_ph' => 'ex. Téléviseur, Console, Disque SSD…',
     'elec.brand_ph' => 'ex. Anker, Baseus, Samsung…',
     'elec.specs_hint' => 'Caractéristiques techniques adaptées au type d’accessoire choisi.',
     'elec.specs_pick' => 'Choisis d’abord un type d’accessoire ci-dessus.',

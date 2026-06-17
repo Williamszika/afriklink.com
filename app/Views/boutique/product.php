@@ -119,9 +119,19 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                     if (!empty($aAttr['garantie'])) { $apTags[] = t('elec.f.warranty') . ' ' . (string) $aAttr['garantie']; }
                 } elseif ($pVertical === 'phone') {
+                    // Fiche téléphone (legacy) OU rayon électronique « autre » : specs libres dans attributes.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['model'])) { $apTags[] = (string) $product['model']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['compatibilite'])) { $apTags[] = (string) $aAttr['compatibilite']; }
+                    if (!empty($aAttr['specs']) && is_array($aAttr['specs'])) {
+                        foreach ($aAttr['specs'] as $sv) { if (is_scalar($sv) && trim((string) $sv) !== '') { $apTags[] = (string) $sv; } }
+                    }
                     if (!empty($product['item_condition'])) { $apTags[] = t('phone.cond.' . (string) $product['item_condition']); }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['garantie'])) { $apTags[] = t('elec.f.warranty') . ' ' . (string) $aAttr['garantie']; }
                 } elseif ($pVertical === 'beauty') {
                     $col0  = (string) ($product['collection'] ?? '');
                     $isOng = $col0 === 'Ongles';

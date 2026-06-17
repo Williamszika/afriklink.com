@@ -798,6 +798,20 @@ function elec_groups(?string $rayon): array { return elec_rayon($rayon, 'groups'
 function elec_atouts(?string $rayon): array { return elec_rayon($rayon, 'atouts'); }
 /** @return list<string> Capteurs (santé) disponibles pour le rayon (ex. montres). */
 function elec_sensors(?string $rayon): array { return elec_rayon($rayon, 'sensors'); }
+
+/** Config « autre / nouveau rayon » électronique (rayon_suggest, generic_specs, atout_suggest, warn_text, R). */
+function elec_autre(?string $key = null): array
+{
+    $cfg = (array) config('electronics.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+/** Config adaptative d'un rayon électronique « autre » par son libellé (slug) — ou null si inconnu. */
+function elec_autre_cfg(?string $rayon): ?array
+{
+    $r = (elec_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
 /** @return list<string> */
 function elec_conditions(): array { return (array) config('electronics.conditions', []); }
 /** @return list<string> */
