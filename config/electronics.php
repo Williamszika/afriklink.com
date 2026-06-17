@@ -12,7 +12,7 @@ return [
 
     'conditions' => ['Neuf', 'Comme neuf', 'Reconditionné', 'Occasion'],
     'garanties'  => ['3 mois', '6 mois', '1 an', '2 ans'],
-    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Pack'],
+    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack'],
 
     'rayons' => [
         // =================== Accessoires ===================
@@ -106,6 +106,41 @@ return [
                 'Barre de son'                => ['group' => 'enceintes', 'fields' => ['puissance_audio', 'canaux', 'caisson', 'connectique_sb', 'dolby'], 'compat' => false, 'axis' => 'Modèle', 'color' => false],
                 'Microphone'                  => ['group' => 'studio', 'fields' => ['mic_type', 'directivite', 'usage_mic', 'connecteur'], 'compat' => false, 'axis' => 'Modèle', 'color' => false],
                 'Autre audio'                 => ['group' => 'studio', 'fields' => [], 'compat' => false, 'axis' => 'Couleur', 'color' => false],
+            ],
+        ],
+
+        // =================== Montres connectées ===================
+        'Montres connectées' => [
+            'groups' => [], // liste à plat (sans optgroups)
+            'atouts' => ['GPS intégré', 'Appels Bluetooth', 'Paiement NFC', 'Étanche', 'Toujours affiché (AOD)', 'Original / authentique', 'Garantie incluse'],
+            // Capteurs santé (multi-sélection) affichés quand le type le permet (sensors=true).
+            'sensors' => ['Cardio', 'SpO2 (oxygène)', 'Sommeil', 'ECG', 'Tension artérielle', 'Température', 'Stress', 'Cycle menstruel'],
+            'fields' => [
+                'compat'         => ['label' => 'Compatibilité', 'opts' => ['Android', 'iOS', 'Android & iOS']],
+                'systeme'        => ['label' => 'Système', 'opts' => ['Wear OS', 'watchOS', 'HarmonyOS', 'Propriétaire / autre']],
+                'forme'          => ['label' => 'Forme', 'opts' => ['Ronde', 'Carrée', 'Rectangulaire']],
+                'ecran_type'     => ['label' => 'Type d’écran', 'opts' => ['AMOLED', 'LCD', 'TFT', 'E-ink']],
+                'boitier'        => ['label' => 'Taille du boîtier', 'opts' => ['38 mm', '40 mm', '41 mm', '42 mm', '44 mm', '45 mm', '46 mm', '49 mm']],
+                'autonomie_j'    => ['label' => 'Autonomie', 'opts' => ['1 jour', '2-3 jours', '5-7 jours', '2 semaines', '1 mois+']],
+                'etancheite'     => ['label' => 'Étanchéité', 'opts' => ['Aucune', 'IP67', 'IP68', '3 ATM', '5 ATM', '10 ATM']],
+                'gps'            => ['label' => 'GPS', 'opts' => ['Intégré', 'Via téléphone', 'Non']],
+                'appels'         => ['label' => 'Appels', 'opts' => ['Bluetooth', 'eSIM / SIM', 'Non']],
+                'nfc'            => ['label' => 'Paiement NFC', 'opts' => ['Oui', 'Non']],
+                'charge'         => ['label' => 'Charge', 'opts' => ['Magnétique', 'Sans fil (Qi)', 'Câble propriétaire']],
+                'boitier_mat'    => ['label' => 'Matière du boîtier', 'opts' => ['Plastique', 'Aluminium', 'Acier inoxydable', 'Titane']],
+                'bracelet_mat'   => ['label' => 'Matière du bracelet', 'opts' => ['Silicone', 'Cuir', 'Métal / maille', 'Nylon', 'Plastique']],
+                'bracelet_inter' => ['label' => 'Bracelet interchangeable', 'opts' => ['Oui', 'Non']],
+                'modes_sport'    => ['label' => 'Modes sportifs', 'opts' => ['Moins de 20', '20 à 50', '50 à 100', '100+']],
+                'camera'         => ['label' => 'Appareil photo', 'opts' => ['Oui', 'Non']],
+                'sos'            => ['label' => 'Bouton SOS', 'opts' => ['Oui', 'Non']],
+            ],
+            'types' => [
+                'Montre connectée'   => ['fields' => ['compat', 'systeme', 'forme', 'ecran_type', 'boitier', 'autonomie_j', 'etancheite', 'gps', 'appels', 'nfc', 'boitier_mat', 'bracelet_mat', 'bracelet_inter', 'charge'], 'sensors' => true,  'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Bracelet connecté'  => ['fields' => ['compat', 'ecran_type', 'autonomie_j', 'etancheite', 'gps', 'appels', 'bracelet_mat'], 'sensors' => true, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Montre sport / GPS' => ['fields' => ['compat', 'forme', 'ecran_type', 'boitier', 'autonomie_j', 'etancheite', 'gps', 'modes_sport', 'boitier_mat', 'bracelet_mat', 'charge'], 'sensors' => true, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Montre enfant'      => ['fields' => ['compat', 'appels', 'gps', 'etancheite', 'camera', 'sos', 'autonomie_j'], 'sensors' => false, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Montre hybride'     => ['fields' => ['compat', 'autonomie_j', 'etancheite', 'boitier_mat', 'bracelet_mat', 'bracelet_inter'], 'sensors' => true, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Autre montre'       => ['fields' => ['compat'], 'sensors' => false, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
             ],
         ],
     ],

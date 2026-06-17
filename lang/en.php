@@ -1652,6 +1652,8 @@ return [
     'elec.f.condition' => 'Condition',
     'elec.f.warranty' => 'Warranty',
     'elec.f.warranty_none' => 'None',
+    'elec.f.sensors' => 'Health sensors',
+    'elec.f.sensors_hint' => 'Tick the sensors actually present on the watch or band.',
     'elec.brand_ph' => 'e.g. Anker, Baseus, Samsung…',
     'elec.specs_hint' => 'Technical fields tailored to the chosen accessory type.',
     'elec.specs_pick' => 'Pick an accessory type above first.',

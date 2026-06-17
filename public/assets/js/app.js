@@ -3212,6 +3212,8 @@ document.addEventListener('click', function (ev) {
     var typeSel = document.getElementById('acc-type');
     var attrsBox = document.querySelector('[data-elec-attrs]');
     var atoutsBox = document.querySelector('[data-elec-atouts-chips]');
+    var sensorsBox = document.querySelector('[data-elec-sensors-box]');
+    var sensorsChips = document.querySelector('[data-elec-sensors-chips]');
     var rowsBox = document.querySelector('[data-elec-rows]');
     var varTpl = document.getElementById('elec-variant-template');
     var axisInp = document.querySelector('[data-elec-axis]');
@@ -3279,6 +3281,18 @@ document.addEventListener('click', function (ev) {
                 lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
             });
         }
+        if (sensorsChips) {
+            var prevCap = {};
+            sensorsChips.querySelectorAll('input:checked').forEach(function (i) { prevCap[i.value] = true; });
+            sensorsChips.innerHTML = '';
+            (c.sensors || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check chip-check--health';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'capteur[]'; inp.value = v;
+                if (prevCap[v]) { inp.checked = true; }
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); sensorsChips.appendChild(lab);
+            });
+        }
         onType();
     }
     function applyColorCol() { if (rowsBox) { rowsBox.classList.toggle('has-color', !!(colorTog && colorTog.checked)); } }
@@ -3289,6 +3303,7 @@ document.addEventListener('click', function (ev) {
     function onType() {
         var m = meta();
         var compat = document.querySelector('[data-elec-compat-box]'); if (compat) { compat.hidden = !(m && m.compat); }
+        if (sensorsBox) { sensorsBox.hidden = !(m && m.sensors); }
         if (m) {
             if (axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
             if (colorTog) { colorTog.checked = !!m.color; }

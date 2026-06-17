@@ -796,6 +796,8 @@ function elec_types(?string $rayon): array { return elec_rayon($rayon, 'types');
 function elec_groups(?string $rayon): array { return elec_rayon($rayon, 'groups'); }
 /** @return list<string> Atouts du rayon. */
 function elec_atouts(?string $rayon): array { return elec_rayon($rayon, 'atouts'); }
+/** @return list<string> Capteurs (santé) disponibles pour le rayon (ex. montres). */
+function elec_sensors(?string $rayon): array { return elec_rayon($rayon, 'sensors'); }
 /** @return list<string> */
 function elec_conditions(): array { return (array) config('electronics.conditions', []); }
 /** @return list<string> */

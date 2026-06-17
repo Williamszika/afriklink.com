@@ -261,6 +261,8 @@ final class ProductController
             if ($cond !== '') { $ea['condition'] = $cond; }
             $gar = beauty_clean(input_string('acc_garantie', ''), elec_garanties());
             if ($gar !== '') { $ea['garantie'] = $gar; }
+            $caps = keep_in_list((array) ($_POST['capteur'] ?? []), elec_sensors($collection));
+            if ($caps !== []) { $ea['capteurs'] = $caps; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

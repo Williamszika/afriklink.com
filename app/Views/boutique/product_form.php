@@ -112,6 +112,9 @@ $fmtP = static function ($cents) use ($cur): string {
             : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
         $accAxis = (string) ($rawOldE['variant_axis'] ?? ($accAttrs['variant_axis'] ?? ($accMeta['axis'] ?? '')));
         $accHasColor = (bool) ($accMeta['color'] ?? false);
+        $accCapteurs = isset($rawOldE['capteur']) && is_array($rawOldE['capteur'])
+            ? array_map('strval', $rawOldE['capteur'])
+            : array_map('strval', (array) ($accAttrs['capteurs'] ?? []));
         foreach ($realVariants as $vv) { $aa = is_array($vv['attributes'] ?? null) ? $vv['attributes'] : (json_decode((string) ($vv['attributes'] ?? ''), true) ?: []); if (!empty($aa['hex'])) { $accHasColor = true; break; } }
         if (isset($rawOldE['var_has_color'])) { $accHasColor = (string) $rawOldE['var_has_color'] === '1'; }
         $eSec = static fn (string $s): string => ' data-elec-section="' . $s . '"' . ($s === $elecSection ? '' : ' hidden');
@@ -154,13 +157,16 @@ $fmtP = static function ($cents) use ($cur): string {
                 <label for="acc-type"><?= e(t('elec.f.type')) ?> <span class="req">*</span></label>
                 <select id="acc-type" name="product_type" data-pv="type" data-elec-type data-any="<?= e(t('beauty.f.type_any')) ?>">
                     <option value=""><?= e(t('beauty.f.type_any')) ?></option>
-                    <?php foreach (elec_groups($elecRayonSSR) as $gk => $glabel): ?>
+                    <?php $eGroups = elec_groups($elecRayonSSR); ?>
+                    <?php if ($eGroups !== []): foreach ($eGroups as $gk => $glabel): ?>
                         <optgroup label="<?= e($glabel) ?>">
                             <?php foreach (elec_types($elecRayonSSR) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
                                 <option value="<?= e($tname) ?>" <?= $accType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
                             <?php endforeach; ?>
                         </optgroup>
-                    <?php endforeach; ?>
+                    <?php endforeach; else: foreach (elec_types($elecRayonSSR) as $tname => $tm): ?>
+                        <option value="<?= e($tname) ?>" <?= $accType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                    <?php endforeach; endif; ?>
                 </select>
             </div>
         </div>
@@ -182,6 +188,15 @@ $fmtP = static function ($cents) use ($cur): string {
                         </select>
                     </div>
                 <?php endforeach; endif; ?>
+            </div>
+            <div class="field" data-elec-sensors-box<?= ($accMeta && !empty($accMeta['sensors'])) ? '' : ' hidden' ?>>
+                <label><?= e(t('elec.f.sensors')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-elec-sensors-chips>
+                    <?php foreach (elec_sensors($elecRayonSSR) as $s): ?>
+                        <label class="chip-check chip-check--health"><input type="checkbox" name="capteur[]" value="<?= e($s) ?>" <?= in_array($s, $accCapteurs, true) ? 'checked' : '' ?>><span><?= e($s) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <p class="hint"><?= e(t('elec.f.sensors_hint')) ?></p>
             </div>
             <div class="grid-2">
                 <div>
