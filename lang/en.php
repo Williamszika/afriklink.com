@@ -1710,7 +1710,7 @@ return [
     'cuisine.f.condition' => 'Condition',
     'cuisine.f.warranty' => 'Warranty',
     'cuisine.f.warranty_none' => 'None / not specified',
-    'cuisine.elec_warn' => 'Electrical appliance: state the voltage (220–240 V in EU/ECOWAS) and warranty. CE marking and a manual are mandatory to import into the EU.',
+    'cuisine.elec_warn' => 'Powered or electrical appliance: state the power source (220–240 V, battery or petrol) and warranty. CE marking and a safety manual are mandatory to import into the EU.',
     'cuisine.axis_ph' => 'Colour / Size / Pieces / Model',
     'elec.decl_hint' => 'The axis is pre-filled from the type (colour, capacity, length…). List the options, each with its stock and price.',
     'elec.axis_ph' => 'e.g. Colour, Capacity, Length…',

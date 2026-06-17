@@ -1710,7 +1710,7 @@ return [
     'cuisine.f.condition' => 'État',
     'cuisine.f.warranty' => 'Garantie',
     'cuisine.f.warranty_none' => 'Aucune / non précisée',
-    'cuisine.elec_warn' => 'Appareil électrique : précise la tension (220–240 V en zone UE/CEDEAO) et la garantie. Le marquage CE et la notice sont obligatoires à l’import dans l’UE.',
+    'cuisine.elec_warn' => 'Appareil motorisé ou électrique : précisez l’alimentation (220–240 V, batterie ou thermique) et la garantie. Le marquage CE et la notice de sécurité sont obligatoires à l’import dans l’UE.',
     'cuisine.axis_ph' => 'Couleur / Taille / Pièces / Modèle',
     'elec.decl_hint' => 'L’axe est pré-rempli selon le type (couleur, capacité, longueur…). Liste les options, chacune avec son stock et son prix.',
     'elec.axis_ph' => 'ex. Couleur, Capacité, Longueur…',
