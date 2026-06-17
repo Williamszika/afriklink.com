@@ -2039,9 +2039,11 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 @media(max-width:680px){.spec-head{display:none}.spec-row,.autre-head,.autre-row,.autre-rows.has-color .autre-row{grid-template-columns:1fr 1fr}}
 
 .auth-card--beauty{max-width:1040px}
+/* Formulaire produit : conteneur large pour loger le formulaire + l'aperçu sans serrer. */
+.auth-card--pf{max-width:1100px}
 .pf-plain{display:contents}
-.pf-grid{display:grid;grid-template-columns:1fr;gap:22px;align-items:start}
-@media(min-width:920px){.pf-grid{grid-template-columns:1fr 300px}}
+.pf-grid{display:grid;grid-template-columns:1fr;gap:26px;align-items:start}
+@media(min-width:920px){.pf-grid{grid-template-columns:minmax(0,1fr) 300px}}
 .pf-preview{position:sticky;top:18px}
 .pv-eyebrow{font:600 .7rem var(--afk-mono,monospace);letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
 .pv-card{background:#fff;border:1px solid var(--afk-ligne,#e4d8bb);border-radius:14px;overflow:hidden}

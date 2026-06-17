@@ -67,14 +67,14 @@ $fmtP = static function ($cents) use ($cur): string {
         : rtrim(rtrim(number_format(((int) $cents) / 100, 2, '.', ''), '0'), '.');
 };
 ?>
-<section class="auth-card <?= $isBeauty ? 'auth-card--beauty' : 'auth-card--wide' ?>">
+<section class="auth-card auth-card--pf"><?php /* formulaire produit : large (2 colonnes form + aperçu) sur toutes les verticales */ ?>
     <h1>📦 <?= e($isEdit ? t('product.edit_title') : t('product.add_title')) ?></h1>
     <p class="muted"><?= e($boutique['name']) ?> · <?= e($cur) ?></p>
 
     <?php if (!$media_ready): ?>
         <div class="notice notice-warning"><p><?= e(t('listing.media_unconfigured')) ?></p></div>
     <?php else: ?>
-    <div class="<?= ($isBeauty || cuisine_capable($boutiqueCat)) ? 'pf-grid' : 'pf-plain' ?>">
+    <div class="pf-grid"><?php /* Aperçu fiche à droite pour TOUTES les verticales */ ?>
     <form method="post" action="<?= e(url($action)) ?>" id="product-form" novalidate
           data-uploading="<?= e(t('kyc.uploading')) ?>" data-max="<?= $maxPhotos ?>">
         <?= csrf_field() ?>
@@ -240,12 +240,12 @@ $fmtP = static function ($cents) use ($cur): string {
         <div class="grid-2">
             <div>
                 <label for="p-brand"><?= e(t('phone.f.brand')) ?></label>
-                <input type="text" id="p-brand" name="brand" list="brand-list" maxlength="60" value="<?= old('brand') ?: e((string) ($product['brand'] ?? '')) ?>" placeholder="<?= e(t('phone.f.brand_ph')) ?>">
+                <input type="text" id="p-brand" name="brand" data-pv="brand" list="brand-list" maxlength="60" value="<?= old('brand') ?: e((string) ($product['brand'] ?? '')) ?>" placeholder="<?= e(t('phone.f.brand_ph')) ?>">
                 <datalist id="brand-list"><?php foreach (phone_brands() as $br): ?><option value="<?= e($br) ?>"></option><?php endforeach; ?></datalist>
             </div>
             <div>
                 <label for="p-model"><?= e(t('phone.f.model')) ?></label>
-                <input type="text" id="p-model" name="model" maxlength="80" value="<?= old('model') ?: e((string) ($product['model'] ?? '')) ?>" placeholder="<?= e(t('phone.f.model_ph')) ?>">
+                <input type="text" id="p-model" name="model" data-pv="type" maxlength="80" value="<?= old('model') ?: e((string) ($product['model'] ?? '')) ?>" placeholder="<?= e(t('phone.f.model_ph')) ?>">
             </div>
         </div>
         <label for="p-condition"><?= e(t('phone.f.condition')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -350,11 +350,11 @@ $fmtP = static function ($cents) use ($cur): string {
         <div class="grid-2">
             <div>
                 <label for="eautre-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <input type="text" id="eautre-brand" name="brand" maxlength="60" value="<?= e((string) ($rawOldE['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('elec.brand_ph')) ?>">
+                <input type="text" id="eautre-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldE['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('elec.brand_ph')) ?>">
             </div>
             <div>
                 <label for="eautre-ptype"><?= e(t('elec.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <input type="text" id="eautre-ptype" name="product_type" maxlength="60" value="<?= e($accType) ?>" placeholder="<?= e(t('elec.autre_type_ph')) ?>">
+                <input type="text" id="eautre-ptype" name="product_type" data-pv="type" maxlength="60" value="<?= e($accType) ?>" placeholder="<?= e(t('elec.autre_type_ph')) ?>">
             </div>
         </div>
         <label><?= e(t('autre.rayon_suggest')) ?></label>
@@ -515,11 +515,11 @@ $fmtP = static function ($cents) use ($cur): string {
         <div class="grid-2">
             <div>
                 <label for="appa-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <input type="text" id="appa-brand" name="brand" maxlength="60" value="<?= e((string) ($rawOldA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('appa.brand_ph')) ?>">
+                <input type="text" id="appa-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('appa.brand_ph')) ?>">
             </div>
             <div>
                 <label for="appa-type"><?= e(t('appa.f.type')) ?> <span class="req">*</span></label>
-                <select id="appa-type" name="product_type" data-appa-type data-any="<?= e(t('beauty.f.type_any')) ?>">
+                <select id="appa-type" name="product_type" data-pv="type" data-appa-type data-any="<?= e(t('beauty.f.type_any')) ?>">
                     <option value=""><?= e(t('beauty.f.type_any')) ?></option>
                     <?php foreach (apparel_groups($appaRayonSSR) as $gk => $glabel): ?>
                         <optgroup label="<?= e($glabel) ?>">
@@ -616,7 +616,7 @@ $fmtP = static function ($cents) use ($cur): string {
         <div class="grid-2" style="margin-top:14px">
             <div>
                 <label for="aautre-ptype"><?= e(t('appa.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <input type="text" id="aautre-ptype" name="product_type" maxlength="60" value="<?= e($appaType) ?>" placeholder="<?= e(t('appa.autre_type_ph')) ?>">
+                <input type="text" id="aautre-ptype" name="product_type" data-pv="type" maxlength="60" value="<?= e($appaType) ?>" placeholder="<?= e(t('appa.autre_type_ph')) ?>">
             </div>
             <div>
                 <label for="aautre-genre"><?= e(t('appa.f.genre')) ?></label>
@@ -1987,7 +1987,6 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <button type="submit" class="btn btn-primary btn-block" id="product-submit"><?= e($isEdit ? t('profile.save') : t('product.add')) ?></button>
     </form>
-    <?php if ($isBeauty || cuisine_capable($boutiqueCat)): ?>
     <aside class="pf-preview" data-pv-root data-cur="<?= e($cur) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>">
         <p class="pv-eyebrow"><?= e(t('beauty.preview.title')) ?></p>
         <div class="pv-card">
@@ -2006,7 +2005,6 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </div>
     </aside>
-    <?php endif; ?>
     </div>
     <?php endif; ?>
 

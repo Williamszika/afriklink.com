@@ -4162,7 +4162,7 @@ document.addEventListener('click', function (ev) {
         } else { if (old) { old.hidden = true; } if (badge) { badge.hidden = true; } }
         // Note : nombre de déclinaisons (lignes remplies) sinon stock.
         var opts = 0;
-        document.querySelectorAll('#variant-rows .variant-row input[name="var_size[]"]').forEach(function (i) { if (String(i.value || '').trim() !== '') { opts++; } });
+        form.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { if (!i.disabled && String(i.value || '').trim() !== '') { opts++; } });
         var stockF = document.getElementById('p-stock'); var s = stockF ? String(stockF.value || '').trim() : '';
         var note = opts > 0 ? (opts + ' déclinaison' + (opts > 1 ? 's' : ''))
             : (s !== '' ? (s + ' en stock') : '');
