@@ -1646,7 +1646,7 @@ return [
     'autre.has_color' => 'Options have a colour',
     'autre.option_add' => 'Add an option',
     // Electronics · Accessories
-    'elec.f.type' => 'Accessory type',
+    'elec.f.type' => 'Product type',
     'elec.f.compat' => 'Compatibility (brand & model)',
     'elec.f.compat_ph' => 'e.g. iPhone 15 Pro, Samsung Galaxy S24, Universal…',
     'elec.f.condition' => 'Condition',

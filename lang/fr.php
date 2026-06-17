@@ -1646,7 +1646,7 @@ return [
     'autre.has_color' => 'Les options ont une couleur',
     'autre.option_add' => 'Ajouter une option',
     // Électronique · Accessoires
-    'elec.f.type' => 'Type d’accessoire',
+    'elec.f.type' => 'Type de produit',
     'elec.f.compat' => 'Compatibilité (marque & modèle)',
     'elec.f.compat_ph' => 'ex. iPhone 15 Pro, Samsung Galaxy S24, Universel…',
     'elec.f.condition' => 'État',

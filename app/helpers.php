@@ -766,9 +766,9 @@ function phone_condition_clean(?string $v): string
     return in_array($v, phone_conditions(), true) ? $v : '';
 }
 
-/* ---------- Électronique : rayon « Accessoires » (adaptatif au type) ---------- */
+/* ---------- Électronique : rayons adaptatifs au type (Accessoires, Audio…) ---------- */
 
-/** Sous-config électronique par clé. */
+/** Sous-config électronique par clé commune (conditions, garanties, axes). */
 function elec(?string $key = null): array
 {
     $cfg = (array) config('electronics', []);
@@ -776,37 +776,49 @@ function elec(?string $key = null): array
     return (array) ($cfg[$key] ?? []);
 }
 
-/** @return array<string,array{label:string,opts:list<string>}> */
-function elec_fields(): array { return (array) config('electronics.fields', []); }
-/** @return array<string,array> Types d'accessoire. */
-function elec_types(): array { return (array) config('electronics.types', []); }
-/** @return array<string,string> Groupes d'accessoires (optgroups). */
-function elec_groups(): array { return (array) config('electronics.groups', []); }
+/** @return list<string> Libellés des rayons électroniques type-driven. */
+function elec_rayons(): array { return array_keys((array) config('electronics.rayons', [])); }
+/** Ce rayon a-t-il un formulaire électronique adaptatif ? */
+function elec_is_rayon(?string $rayon): bool { return isset(((array) config('electronics.rayons', []))[(string) $rayon]); }
+/** Sous-config d'un rayon électronique par clé. */
+function elec_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('electronics.rayons.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> Champs techniques du rayon. */
+function elec_fields(?string $rayon): array { return elec_rayon($rayon, 'fields'); }
+/** @return array<string,array> Types du rayon. */
+function elec_types(?string $rayon): array { return elec_rayon($rayon, 'types'); }
+/** @return array<string,string> Groupes (optgroups) du rayon. */
+function elec_groups(?string $rayon): array { return elec_rayon($rayon, 'groups'); }
+/** @return list<string> Atouts du rayon. */
+function elec_atouts(?string $rayon): array { return elec_rayon($rayon, 'atouts'); }
 /** @return list<string> */
 function elec_conditions(): array { return (array) config('electronics.conditions', []); }
 /** @return list<string> */
 function elec_garanties(): array { return (array) config('electronics.garanties', []); }
 /** @return list<string> */
-function elec_atouts(): array { return (array) config('electronics.atouts', []); }
-/** @return list<string> */
 function elec_axes(): array { return (array) config('electronics.axes', []); }
 
-/** Métadonnées d'un type d'accessoire, ou null. */
-function elec_type_meta(?string $type): ?array
+/** Métadonnées d'un type pour un rayon donné, ou null. */
+function elec_type_meta(?string $rayon, ?string $type): ?array
 {
-    $t = elec_types()[(string) $type] ?? null;
+    $t = elec_types($rayon)[(string) $type] ?? null;
     return is_array($t) ? $t : null;
 }
 
 /**
- * Nettoie les caractéristiques d'un accessoire : champs du type validés + compat,
- * état, garantie. @return array<string,string>
+ * Nettoie les caractéristiques d'un produit électronique : champs du type validés.
+ * @return array<string,string>
  */
-function elec_attr_clean(?string $type, array $attrs): array
+function elec_attr_clean(?string $rayon, ?string $type, array $attrs): array
 {
-    $meta = elec_type_meta($type);
+    $meta = elec_type_meta($rayon, $type);
     if ($meta === null) { return []; }
-    $defs = elec_fields();
+    $defs = elec_fields($rayon);
     $out = [];
     foreach ((array) ($meta['fields'] ?? []) as $key) {
         $val = trim((string) ($attrs[$key] ?? ''));

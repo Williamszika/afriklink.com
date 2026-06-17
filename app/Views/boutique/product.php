@@ -102,8 +102,8 @@ foreach ($realVariants as $rv) {
                 $apTags = [];
                 $pColorLabel = t('variant.color');
                 $pOngColors = [];
-                if ($pVertical === 'phone' && (string) ($product['collection'] ?? '') === 'Accessoires') {
-                    // Accessoires : type-driven (specs dans attributes) + axe de déclinaison libre.
+                if ($pVertical === 'phone' && elec_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Électronique adaptatif : type-driven (specs dans attributes) + axe de déclinaison libre.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
                     if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }

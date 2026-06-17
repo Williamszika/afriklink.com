@@ -249,12 +249,12 @@ final class ProductController
         $expiryDate  = ($expiryRaw !== '' && strtotime($expiryRaw) !== false) ? date('Y-m-d', (int) strtotime($expiryRaw)) : null;
         $ingredients = mb_substr(trim((string) input_string('ingredients', '')), 0, 2000);
 
-        if ($collection === 'Accessoires' && product_vertical((string) ($boutique['category'] ?? '')) === 'phone') {
-            // Électronique · Accessoires : type-driven + specs + compat/état/garantie + axe libre.
-            $productType = beauty_clean(input_string('product_type', ''), array_keys(elec_types()));
+        if (product_vertical((string) ($boutique['category'] ?? '')) === 'phone' && elec_is_rayon($collection)) {
+            // Électronique adaptatif (Accessoires / Audio…) : type-driven + specs + compat/état/garantie + axe libre.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(elec_types($collection)));
             $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
-            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), elec_atouts()));
-            $ea = elec_attr_clean($productType, (array) ($_POST['attr'] ?? []));
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), elec_atouts($collection)));
+            $ea = elec_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
             $compat = mb_substr(trim((string) input_string('compatibilite', '')), 0, 120);
             if ($compat !== '') { $ea['compatibilite'] = $compat; }
             $cond = beauty_clean(input_string('acc_condition', ''), elec_conditions());

@@ -17,10 +17,10 @@ $curCol = $curRayonSel === '__other__'
     ? (string) old('collection_other')
     : ($curRayonSel !== '' ? $curRayonSel : (string) ($product['collection'] ?? ''));
 
-// Électronique : le rayon « Accessoires » bascule vers un formulaire adaptatif au
-// type d'accessoire ; les autres rayons gardent la fiche téléphone (marque/modèle/état).
-$isAccessoires = $isPhone && ($curCol === 'Accessoires');
-$elecSection = $isAccessoires ? 'accessoires' : 'phone';
+// Électronique : certains rayons (Accessoires, Audio & écouteurs…) basculent vers un
+// formulaire adaptatif au type ; les autres gardent la fiche téléphone (marque/modèle/état).
+$isElecForm = $isPhone && elec_is_rayon($curCol);
+$elecSection = $isElecForm ? 'elec' : 'phone';
 
 // Repli « vertical » de l'axe taille (utilisé tant qu'aucun rayon n'impose d'axe).
 if ($isPhone) {
@@ -103,8 +103,9 @@ $fmtP = static function ($cents) use ($cur): string {
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];
         $accAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+        $elecRayonSSR = elec_is_rayon($curCol) ? $curCol : (elec_rayons()[0] ?? 'Accessoires');
         $accType  = (string) ($rawOldE['product_type'] ?? ($product['product_type'] ?? ''));
-        $accMeta  = elec_type_meta($accType);
+        $accMeta  = elec_type_meta($elecRayonSSR, $accType);
         $eAttr    = static fn (string $k): string => (string) ($rawOldE[$k] ?? ($accAttrs[$k] ?? ''));
         $accAtouts = isset($rawOldE['atouts']) && is_array($rawOldE['atouts'])
             ? array_map('strval', $rawOldE['atouts'])
@@ -116,8 +117,7 @@ $fmtP = static function ($cents) use ($cur): string {
         $eSec = static fn (string $s): string => ' data-elec-section="' . $s . '"' . ($s === $elecSection ? '' : ' hidden');
         ?>
         <div data-elec
-             data-fields="<?= e((string) json_encode(elec_fields(), JSON_UNESCAPED_UNICODE)) ?>"
-             data-types="<?= e((string) json_encode(elec_types(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-rayons="<?= e((string) json_encode((array) config('electronics.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-hint-specs="<?= e(t('elec.specs_hint')) ?>" data-hint-pick="<?= e(t('elec.specs_pick')) ?>" hidden></div>
 
         <!-- ===== Fiche téléphone (rayons hors Accessoires) ===== -->
@@ -143,8 +143,8 @@ $fmtP = static function ($cents) use ($cur): string {
         <p class="hint"><?= e(t('phone.f.hint')) ?></p>
         </div><!-- /phone -->
 
-        <!-- ===== Accessoires (adaptatif au type) ===== -->
-        <div<?= $eSec('accessoires') ?> data-elec-root>
+        <!-- ===== Électronique adaptatif (Accessoires / Audio…) ===== -->
+        <div<?= $eSec('elec') ?> data-elec-root>
         <div class="grid-2">
             <div>
                 <label for="acc-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -152,11 +152,11 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
             <div>
                 <label for="acc-type"><?= e(t('elec.f.type')) ?> <span class="req">*</span></label>
-                <select id="acc-type" name="product_type" data-pv="type" data-elec-type>
+                <select id="acc-type" name="product_type" data-pv="type" data-elec-type data-any="<?= e(t('beauty.f.type_any')) ?>">
                     <option value=""><?= e(t('beauty.f.type_any')) ?></option>
-                    <?php foreach (elec_groups() as $gk => $glabel): ?>
+                    <?php foreach (elec_groups($elecRayonSSR) as $gk => $glabel): ?>
                         <optgroup label="<?= e($glabel) ?>">
-                            <?php foreach (elec_types() as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                            <?php foreach (elec_types($elecRayonSSR) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
                                 <option value="<?= e($tname) ?>" <?= $accType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
                             <?php endforeach; ?>
                         </optgroup>
@@ -173,7 +173,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 <input type="text" id="acc-compat" name="compatibilite" maxlength="120" value="<?= e($eAttr('compatibilite')) ?>" placeholder="<?= e(t('elec.f.compat_ph')) ?>">
             </div>
             <div class="attrs grid-2" data-elec-attrs>
-                <?php if ($accMeta): foreach ((array) ($accMeta['fields'] ?? []) as $fk): $fd = elec_fields()[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($accAttrs[$fk] ?? ''); ?>
+                <?php if ($accMeta): foreach ((array) ($accMeta['fields'] ?? []) as $fk): $fd = elec_fields($elecRayonSSR)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($accAttrs[$fk] ?? ''); ?>
                     <div>
                         <label><?= e((string) $fd['label']) ?></label>
                         <select name="attr[<?= e($fk) ?>]">
@@ -209,13 +209,13 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
             </div>
             <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-            <div class="chip-checks">
-                <?php foreach (elec_atouts() as $a): ?>
+            <div class="chip-checks" data-elec-atouts-chips>
+                <?php foreach (elec_atouts($elecRayonSSR) as $a): ?>
                     <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $accAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
                 <?php endforeach; ?>
             </div>
         </details>
-        </div><!-- /accessoires -->
+        </div><!-- /elec adaptatif -->
         <?php elseif ($isApparel): ?>
         <div class="grid-2">
             <div>
@@ -1288,7 +1288,7 @@ $fmtP = static function ($cents) use ($cur): string {
             $accRows[] = ['name' => (string) ($attr['size'] ?? ($v['label'] ?? '')), 'hex' => (string) ($attr['hex'] ?? '#222222'), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null];
         }
         ?>
-        <div<?= $eSec('accessoires') ?>>
+        <div<?= $eSec('elec') ?>>
         <details class="variants-box" data-elec-decl <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e(t('variant.section_generic')) ?></summary>
             <p class="hint"><?= e(t('elec.decl_hint')) ?></p>

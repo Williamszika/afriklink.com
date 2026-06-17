@@ -3201,26 +3201,28 @@ document.addEventListener('click', function (ev) {
     update(); syncPhoto();
 })();
 
-/* ---- Électronique · Accessoires : adaptatif au type + déclinaisons à axe libre ---- */
+/* ---- Électronique (Accessoires / Audio…) : adaptatif au type + axe libre ---- */
 (function () {
     var cfgEl = document.querySelector('[data-elec]');
     var form  = document.getElementById('product-form');
     if (!cfgEl || !form) { return; }
     function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
-    var FIELDS = parse('data-fields'), TYPES = parse('data-types');
+    var RAYONS = parse('data-rayons'); // { 'Accessoires':{fields,groups,types,atouts}, 'Audio & écouteurs':{…} }
     var coll = document.querySelector('[data-collection-select]');
     var typeSel = document.getElementById('acc-type');
     var attrsBox = document.querySelector('[data-elec-attrs]');
+    var atoutsBox = document.querySelector('[data-elec-atouts-chips]');
     var rowsBox = document.querySelector('[data-elec-rows]');
     var varTpl = document.getElementById('elec-variant-template');
     var axisInp = document.querySelector('[data-elec-axis]');
     var colorTog = document.querySelector('[data-elec-color-toggle]');
 
-    function isAccessoires() { return !!(coll && coll.value === 'Accessoires'); }
-    function meta() { return (typeSel && TYPES[typeSel.value]) ? TYPES[typeSel.value] : null; }
+    function isElecForm() { return !!(coll && RAYONS[coll.value]); }
+    function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
+    function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
 
     function toggleSections() {
-        var active = isAccessoires() ? 'accessoires' : 'phone';
+        var active = isElecForm() ? 'elec' : 'phone';
         document.querySelectorAll('[data-elec-section]').forEach(function (sec) {
             var on = sec.getAttribute('data-elec-section') === active;
             sec.hidden = !on;
@@ -3229,12 +3231,13 @@ document.addEventListener('click', function (ev) {
     }
     function buildAttrs() {
         if (!attrsBox) { return; }
+        var fields = cfg().fields || {};
         var prev = {};
         attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
         attrsBox.innerHTML = '';
         var m = meta(); if (!m) { return; }
         (m.fields || []).forEach(function (key) {
-            var def = FIELDS[key]; if (!def) { return; }
+            var def = fields[key]; if (!def) { return; }
             var wrap = document.createElement('div');
             var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
             var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
@@ -3246,6 +3249,37 @@ document.addEventListener('click', function (ev) {
             });
             wrap.appendChild(sel); attrsBox.appendChild(wrap);
         });
+    }
+    // Reconstruit le sélecteur de type + les atouts quand le rayon électronique change.
+    function rebuildElec() {
+        var c = cfg();
+        if (typeSel && c.types) {
+            var cur = typeSel.value;
+            typeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = typeSel.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
+            var groups = c.groups || {};
+            Object.keys(groups).forEach(function (gk) {
+                var og = document.createElement('optgroup'); og.label = groups[gk];
+                Object.keys(c.types).forEach(function (tn) {
+                    if ((c.types[tn].group || '') !== gk) { return; }
+                    var op = document.createElement('option'); op.value = tn; op.textContent = tn;
+                    if (tn === cur) { op.selected = true; }
+                    og.appendChild(op);
+                });
+                typeSel.appendChild(og);
+            });
+            if (typeSel.value !== cur) { typeSel.value = ''; }
+        }
+        if (atoutsBox) {
+            atoutsBox.innerHTML = '';
+            (c.atouts || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'atouts[]'; inp.value = v;
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
+            });
+        }
+        onType();
     }
     function applyColorCol() { if (rowsBox) { rowsBox.classList.toggle('has-color', !!(colorTog && colorTog.checked)); } }
     function axisLabel() {
@@ -3270,7 +3304,7 @@ document.addEventListener('click', function (ev) {
     }
 
     if (typeSel) { typeSel.addEventListener('change', onType); }
-    if (coll) { coll.addEventListener('change', toggleSections); }
+    if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isElecForm()) { rebuildElec(); } }); }
     if (axisInp) { axisInp.addEventListener('input', axisLabel); }
     if (colorTog) { colorTog.addEventListener('change', applyColorCol); }
     document.addEventListener('click', function (ev) {
