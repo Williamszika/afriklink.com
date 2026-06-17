@@ -3437,7 +3437,7 @@ document.addEventListener('click', function (ev) {
     function genre() { return genreSel ? genreSel.value : ''; }
 
     function toggleSections() {
-        var active = isAppaRayon() ? 'adaptive' : 'basic';
+        var active = isAppaRayon() ? 'adaptive' : 'autre';
         document.querySelectorAll('[data-appa-section]').forEach(function (sec) {
             var on = sec.getAttribute('data-appa-section') === active;
             sec.hidden = !on;
@@ -3676,6 +3676,148 @@ document.addEventListener('click', function (ev) {
 
     toggleSections();
     if (isAppaRayon()) { sizesHint(); applyLock(); }
+})();
+
+/* ---- Mode : « nouveau rayon » générique (specs libres, tailles par genre/mètre, adaptatif au slug) ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-appa]');
+    var root  = document.querySelector('[data-appa-autre-root]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !root || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var AUTRE = parse('data-autre'); // { R, genre_sizes, metre_sizes, generic_specs, atout_suggest, couleurs }
+    var RAYONS = parse('data-rayons');
+    var coll = document.querySelector('[data-collection-select]');
+    var collOther = document.querySelector('[data-collection-other]');
+    var genreSel = document.getElementById('aautre-genre');
+    var specsBox = document.querySelector('[data-aautre-specs]');
+    var specTpl = document.getElementById('aautre-spec-template');
+    var rowsBox = document.querySelector('[data-aautre-rows]');
+    var varTpl = document.getElementById('aautre-variant-template');
+    var axisInp = document.querySelector('[data-aautre-axis]');
+    var colorTog = document.querySelector('[data-aautre-color-toggle]');
+
+    function slug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function rayon() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? coll.value : ''); }
+    function isKnown() { return !!(coll && RAYONS[coll.value]); }   // rayon mode répertorié => géré ailleurs
+    function cfg() { return (AUTRE.R || {})[slug(rayon())] || null; }
+    function genre() { return genreSel ? genreSel.value : ''; }
+
+    function genreList() {
+        var c = cfg(), pub = c ? (c.pub || 'all') : 'all';
+        if (pub === 'femme') { return ['Femme']; }
+        if (pub === 'none') { return ['Non applicable']; }
+        return ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant', 'Bébé'];
+    }
+    function buildGenre() {
+        if (!genreSel) { return; }
+        var cur = genreSel.value, list = genreList();
+        genreSel.innerHTML = '';
+        list.forEach(function (g) { var op = document.createElement('option'); op.value = g; op.textContent = g; genreSel.appendChild(op); });
+        genreSel.value = (list.indexOf(cur) !== -1) ? cur : (list[0] || '');
+    }
+    function buildSpecChips() {
+        var box = document.querySelector('[data-aautre-spec-chips]'); if (!box) { return; }
+        var c = cfg(), list = c ? c.specs : (AUTRE.generic_specs || []);
+        box.innerHTML = '';
+        (list || []).forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-aautre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            box.appendChild(b);
+        });
+    }
+    function axisLabel() {
+        var lab = document.querySelector('[data-aautre-axis-label]');
+        if (lab) { lab.textContent = (axisInp && axisInp.value.trim()) ? axisInp.value.trim() : (cfgEl.getAttribute('data-opt') || 'Option'); }
+    }
+    function applyColorCol() { if (rowsBox) { rowsBox.classList.toggle('has-color', !!(colorTog && colorTog.checked)); } }
+    function quickfillSet() {
+        var c = cfg();
+        if (c && c.sizes === 'metre') { return AUTRE.metre_sizes || []; }
+        return (AUTRE.genre_sizes || {})[genre()] || [];
+    }
+    function buildQuickfill() {
+        var box = document.querySelector('[data-aautre-quickfill]'); if (!box) { return; }
+        box.querySelectorAll('[data-aautre-fill]').forEach(function (b) { b.remove(); });
+        var clear = box.querySelector('[data-aautre-clear]');
+        quickfillSet().forEach(function (btn) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-aautre-fill', ''); b.setAttribute('data-fill', JSON.stringify(btn));
+            b.textContent = '+ ' + (btn.label || '');
+            box.insertBefore(b, clear);
+        });
+    }
+    function sizesHint() {
+        var h = document.querySelector('[data-aautre-sizes-hint]'); if (!h) { return; }
+        var c = cfg();
+        h.textContent = (c && c.sizes === 'metre') ? (cfgEl.getAttribute('data-decl-size') || h.textContent)
+            : (cfgEl.getAttribute('data-sizes-genre') || '%G%').replace('%G%', genre());
+    }
+    function adapt() {
+        var c = cfg();
+        var hint = document.querySelector('[data-aautre-hint]');
+        if (hint) { hint.textContent = c ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', rayon())) : (cfgEl.getAttribute('data-autre-generic') || ''); }
+        if (c) {
+            if (axisInp) { axisInp.value = c.axis || axisInp.value; }
+            if (colorTog) { colorTog.checked = !!c.color; }
+        }
+        buildGenre(); buildSpecChips(); buildQuickfill(); applyColorCol(); axisLabel(); sizesHint();
+    }
+    function addRow() { if (!varTpl || !varTpl.content || !rowsBox) { return null; } rowsBox.appendChild(varTpl.content.cloneNode(true)); return rowsBox.lastElementChild; }
+    function pushSizes(list) {
+        if (!rowsBox || !list) { return; }
+        var have = {}; rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value).trim()] = true; });
+        list.forEach(function (val) { if (have[String(val)]) { return; } have[String(val)] = true; var r = addRow(); if (r) { var sz = r.querySelector('input[name="var_size[]"]'); if (sz) { sz.value = String(val); } } });
+    }
+    function fillFromBtn(btn) {
+        if (!btn) { return; }
+        var list = [], kind = btn.kind || 'range';
+        if (kind === 'list') { list = btn.list || []; }
+        else { var step = parseInt(btn.step, 10) || 1; var pfx = kind === 'jeans' ? 'W' : '', sfx = btn.suffix || ''; for (var n = parseInt(btn.from, 10); n <= parseInt(btn.to, 10); n += step) { list.push(pfx + n + sfx); } }
+        pushSizes(list);
+    }
+    function addSpec(label) {
+        if (!specTpl || !specTpl.content || !specsBox) { return; }
+        specsBox.appendChild(specTpl.content.cloneNode(true));
+        var row = specsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+    }
+    function pushAtout() {
+        var inp = document.querySelector('[data-aautre-atout-input]'), box = document.querySelector('[data-aautre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) { var lab = document.createElement('label'); lab.className = 'chip-check'; var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true; var sp = document.createElement('span'); sp.textContent = v; lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab); }
+        inp.value = '';
+    }
+
+    if (genreSel) { genreSel.addEventListener('change', function () { buildQuickfill(); sizesHint(); }); }
+    if (axisInp) { axisInp.addEventListener('input', axisLabel); }
+    if (colorTog) { colorTog.addEventListener('change', applyColorCol); }
+    if (coll) { coll.addEventListener('change', function () { if (!isKnown()) { adapt(); } }); }
+    if (collOther) { collOther.addEventListener('input', function () { if (!isKnown()) { adapt(); } }); }
+    var atoutInp = document.querySelector('[data-aautre-atout-input]');
+    if (atoutInp) { atoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAtout(); } }); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-aautre-fill]');
+        if (fill) { try { fillFromBtn(JSON.parse(fill.getAttribute('data-fill') || 'null')); } catch (e) {} return; }
+        if (ev.target.closest('[data-aautre-clear]')) { if (rowsBox) { rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) { r.remove(); }); } return; }
+        if (ev.target.closest('[data-aautre-add]')) { var r = addRow(); if (r) { var f = r.querySelector('input'); if (f) { f.focus(); } } return; }
+        if (ev.target.closest('[data-aautre-spec-add]')) { addSpec(''); return; }
+        if (ev.target.closest('[data-aautre-atout-add]')) { pushAtout(); return; }
+        var asp = ev.target.closest('[data-aautre-spec]');
+        if (asp) { ev.preventDefault(); addSpec(asp.getAttribute('data-val')); return; }
+        var ar = ev.target.closest('[data-aautre-rayon]');
+        if (ar) { ev.preventDefault(); var rn = ar.getAttribute('data-aautre-rayon'); if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); } if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); } return; }
+        var sdel = ev.target.closest('[data-aautre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } return; }
+        var del = ev.target.closest('[data-aautre-del]');
+        if (del) { var row = del.closest('.bvariant-row'); if (row) { row.remove(); } }
+    });
+
+    if (!isKnown()) { sizesHint(); }
 })();
 
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */

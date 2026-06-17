@@ -1712,6 +1712,8 @@ return [
     'appa.brand_ph' => 'e.g. Nike, Adidas, no brand…',
     'appa.specs_hint' => 'Details tailored to the chosen type.',
     'appa.specs_pick' => 'Pick a type above first.',
+    'appa.autre_generic' => 'Free department: add your product characteristics freely (label → value).',
+    'appa.autre_type_ph' => 'e.g. Boubou, Bikini, Puffer jacket…',
     'appa.sizes' => 'Sizes & stock',
     'appa.sizes_hint' => 'Fill a range of sizes, then adjust stock (and price if different) per size.',
     'appa.sizes_pick' => 'Pick the gender first (Identity section) to suggest the right sizes.',

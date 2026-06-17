@@ -448,6 +448,39 @@ final class ProductController
             $garmentBase = (string) (((array) config('apparel.rayons', []))[$collection]['garment'] ?? '');
             if ($garmentBase === 'shoes' && in_array($genre, ['Enfant', 'Fille', 'Garçon', 'Bébé'], true)) { $garmentBase = 'shoes_kids'; }
             if ($garmentBase !== '') { $garment = $garmentBase; $saleUnit = apparel_category_unit($garment); }
+        } elseif (product_vertical((string) ($boutique['category'] ?? '')) === 'apparel') {
+            // NOUVEAU RAYON mode (libre/personnalisé) : type & specs libres, genre/couleur/état,
+            // axe & atouts libres. Genre/couleur validés contre la config « autre » du slug.
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            // Caractéristiques libres (libellé → valeur), max 20.
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $aa = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($aa[$lb]) && !in_array($lb, ['genre', 'couleur', 'condition', 'variant_axis'], true)) { $aa[$lb] = $vv; }
+                if (count($aa) >= 20) { break; }
+            }
+            $genre = beauty_clean(input_string('genre', ''), apparel_autre_genres($collection));
+            if ($genre !== '') { $aa['genre'] = $genre; }
+            $couleur = beauty_clean(input_string('couleur', ''), apparel_autre('couleurs'));
+            if ($couleur !== '') { $aa['couleur'] = $couleur; }
+            $cond = beauty_clean(input_string('appa_condition', ''), apparel_conditions());
+            if ($cond !== '') { $aa['condition'] = $cond; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $aa['variant_axis'] = $axis; }
+            $attributes = $aa !== [] ? (string) json_encode($aa, JSON_UNESCAPED_UNICODE) : null;
+            $audMap = ['Femme' => 'femme', 'Homme' => 'homme', 'Mixte / unisexe' => 'unisexe', 'Enfant' => 'enfant', 'Fille' => 'enfant', 'Garçon' => 'enfant', 'Bébé' => 'enfant'];
+            if (isset($audMap[$genre])) { $audience = $audMap[$genre]; }
         } else {
             // Maquillage (v2 adaptatif au type) : caractéristiques propres au type en JSON.
             $productType = beauty_clean(input_string('product_type', ''), beauty_product_types());

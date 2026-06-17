@@ -1712,6 +1712,8 @@ return [
     'appa.brand_ph' => 'ex. Nike, Adidas, sans marque…',
     'appa.specs_hint' => 'Caractéristiques adaptées au type choisi.',
     'appa.specs_pick' => 'Choisis d’abord un type ci-dessus.',
+    'appa.autre_generic' => 'Rayon libre : ajoute librement les caractéristiques de ton produit (libellé → valeur).',
+    'appa.autre_type_ph' => 'ex. Boubou, Bikini, Doudoune…',
     'appa.sizes' => 'Tailles & stock',
     'appa.sizes_hint' => 'Remplis une plage de tailles, puis ajuste le stock (et le prix si différent) par taille.',
     'appa.sizes_pick' => 'Choisis d’abord le genre (section Identité) pour proposer les bonnes tailles.',

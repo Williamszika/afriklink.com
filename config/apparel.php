@@ -421,4 +421,50 @@ return [
             ],
         ],
     ],
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // « Nouveau rayon » mode : le vendeur crée son rayon ; le formulaire s'adapte à
+    // l'identifiant (slug) tapé (config 'R') : specs suggérées, axe, système de tailles
+    // (par genre ou au mètre) et public autorisé. Rayon inconnu => modèle générique.
+    // Specs libres (libellé→valeur) dans products.attributes. 'pub' : all|femme|none.
+    // ─────────────────────────────────────────────────────────────────────────────
+    'autre' => [
+        'rayon_suggest' => ['Vestes & manteaux', 'Vêtements de sport', 'Maillots de bain', 'Vêtements traditionnels', 'Tissus & pagnes', 'Vêtements de grossesse', 'Vêtements de travail', 'Déguisements'],
+        'generic_specs' => ['Matière', 'Coupe', 'Manches', 'Motif', 'Fermeture', 'Doublure', 'Saison', 'Dimensions'],
+        'atout_suggest' => ['Wax / pagne', 'Fait main', 'Cousu main', 'Éco-responsable', 'Grande taille', 'Unisexe', 'Neuf avec étiquette', 'Pièce unique'],
+        'couleurs'      => ['Noir', 'Blanc', 'Crème', 'Beige', 'Rouge', 'Bordeaux', 'Rose', 'Bleu', 'Bleu marine', 'Vert', 'Kaki', 'Jaune', 'Orange', 'Violet', 'Marron', 'Doré', 'Multicolore', 'Wax / imprimé', 'Autre'],
+        // Remplissage rapide par genre (sizes='genre') — réutilisé par tous les rayons « autre ».
+        'genre_sizes' => [
+            'Femme' => [
+                ['label' => 'XS → XXL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL']],
+                ['label' => 'FR 34–46', 'kind' => 'range', 'from' => 34, 'to' => 46, 'step' => 2],
+            ],
+            'Homme' => [['label' => 'S → 3XL', 'kind' => 'list', 'list' => ['S', 'M', 'L', 'XL', 'XXL', '3XL']]],
+            'Mixte / unisexe' => [
+                ['label' => 'XS → 3XL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']],
+                ['label' => 'Taille unique', 'kind' => 'list', 'list' => ['Taille unique']],
+            ],
+            'Fille'  => [['label' => 'Fille 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']]],
+            'Garçon' => [['label' => 'Garçon 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']]],
+            'Enfant' => [['label' => 'Enfant 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']]],
+            'Bébé'   => [['label' => 'Bébé 0–24 mois', 'kind' => 'list', 'list' => ['1 mois', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']]],
+        ],
+        // Remplissage rapide au mètre / coupon (sizes='metre').
+        'metre_sizes' => [
+            ['label' => '1 → 6 mètres', 'kind' => 'list', 'list' => ['1 m', '2 m', '3 m', '4 m', '5 m', '6 m']],
+            ['label' => 'Coupon 6 yards', 'kind' => 'list', 'list' => ['6 yards']],
+            ['label' => 'Coupon 12 yards', 'kind' => 'list', 'list' => ['12 yards']],
+        ],
+        // Config par slug : specs suggérées, axe, pastille couleur, système de tailles, public.
+        'R' => [
+            'vestes-manteaux'         => ['specs' => ['Type (blazer, manteau, doudoune…)', 'Matière', 'Coupe', 'Fermeture', 'Doublure', 'Saison'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'genre', 'pub' => 'all'],
+            'vetements-de-sport'      => ['specs' => ['Discipline', 'Matière', 'Coupe', 'Respirant / technique', 'Saison'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'genre', 'pub' => 'all'],
+            'maillots-de-bain'        => ['specs' => ['Type (1 pièce, bikini, short de bain…)', 'Matière', 'Doublure', 'Maintien'], 'axis' => 'Taille', 'color' => true, 'sizes' => 'genre', 'pub' => 'all'],
+            'vetements-traditionnels' => ['specs' => ['Type (boubou, kaftan, ensemble pagne…)', 'Matière', 'Motif / wax', 'Manches', 'Longueur', 'Fait main'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'genre', 'pub' => 'all'],
+            'tissus-pagnes'           => ['specs' => ['Type (wax, bazin, kente…)', 'Largeur / laize', 'Motif', 'Composition'], 'axis' => 'Longueur', 'color' => false, 'sizes' => 'metre', 'pub' => 'none'],
+            'vetements-de-grossesse'  => ['specs' => ['Type', 'Matière', 'Allaitement (oui/non)', 'Coupe', 'Saison'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'genre', 'pub' => 'femme'],
+            'vetements-de-travail'    => ['specs' => ['Type (blouse, combinaison, tablier…)', 'Matière', 'Fermeture', 'Norme / EPI', 'Saison'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'genre', 'pub' => 'all'],
+            'deguisements'            => ['specs' => ['Thème / personnage', 'Matière', 'Pièces incluses', 'Accessoires inclus'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'genre', 'pub' => 'all'],
+        ],
+    ],
 ];

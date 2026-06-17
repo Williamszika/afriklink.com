@@ -794,6 +794,36 @@ function apparel_rayon_conditions(?string $rayon): array
     $c = apparel_rayon($rayon, 'conditions');
     return $c !== [] ? array_values($c) : apparel_conditions();
 }
+
+/* ---------- Mode : « nouveau rayon » générique adaptatif au slug ---------- */
+/** Config « nouveau rayon » mode (rayon_suggest, generic_specs, atout_suggest, couleurs, *_sizes, R). */
+function apparel_autre(?string $key = null): array
+{
+    $cfg = (array) config('apparel.autre', []);
+    if ($key === null) { return $cfg; }
+    return is_array($cfg[$key] ?? null) ? $cfg[$key] : [];
+}
+/** Config adaptative d'un rayon mode « autre » par libellé (slug) — ou null si inconnu. */
+function apparel_autre_cfg(?string $rayon): ?array
+{
+    $r = (apparel_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+/** Publics autorisés pour un rayon « autre » selon 'pub' (all|femme|none). @return list<string> */
+function apparel_autre_genres(?string $rayon): array
+{
+    $pub = (string) (apparel_autre_cfg($rayon)['pub'] ?? 'all');
+    if ($pub === 'femme') { return ['Femme']; }
+    if ($pub === 'none') { return ['Non applicable']; }
+    return apparel_genres();
+}
+/** Boutons de remplissage d'un rayon « autre » : au mètre (sizes='metre') ou par genre. @return list<array<string,mixed>> */
+function apparel_autre_quickfill(?string $rayon, ?string $genre): array
+{
+    $cfg = apparel_autre_cfg($rayon);
+    if ($cfg !== null && ($cfg['sizes'] ?? '') === 'metre') { return apparel_autre('metre_sizes'); }
+    return array_values((array) ((apparel_autre('genre_sizes'))[(string) $genre] ?? []));
+}
 /** Genres globaux (tous publics). @return list<string> */
 function apparel_genres(): array { return (array) config('apparel.genres', []); }
 /** Genres proposés par un rayon (override 'genres' du rayon, sinon les genres globaux). @return list<string> */

@@ -27,7 +27,9 @@ $elecSection = $isElecForm ? 'elec' : 'autre';
 // Mode : certains rayons (Chaussures…) basculent vers un formulaire adaptatif au type
 // (genre + couleur + caractéristiques du type + pointures) ; les autres gardent la fiche basique.
 $isApparelRayon = $isApparel && apparel_is_rayon($curCol);
-$appaSection = $isApparelRayon ? 'adaptive' : 'basic';
+// Rayon mode non répertorié (ou vide) => formulaire « nouveau rayon » adaptatif au slug.
+$isApparelAutre = $isApparel && !$isApparelRayon;
+$appaSection = $isApparelRayon ? 'adaptive' : 'autre';
 
 // Repli « vertical » de l'axe taille (utilisé tant qu'aucun rayon n'impose d'axe).
 if ($isPhone) {
@@ -380,6 +382,8 @@ $fmtP = static function ($cents) use ($cur): string {
              data-opt="<?= e(t('variant.option')) ?>" data-any="<?= e(t('appa.f.genre_any')) ?>"
              data-sizes-hint="<?= e(t('appa.sizes_hint')) ?>" data-sizes-pick="<?= e(t('appa.sizes_pick')) ?>" data-sizes-genre="<?= e(t('appa.sizes_genre', ['genre' => '%G%'])) ?>"
              data-decl-size="<?= e(t('appa.decl_size')) ?>" data-decl-color="<?= e(t('appa.decl_color')) ?>"
+             data-autre="<?= e((string) json_encode(apparel_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-autre-generic="<?= e(t('appa.autre_generic')) ?>"
              data-hint-specs="<?= e(t('appa.specs_hint')) ?>" data-hint-pick="<?= e(t('appa.specs_pick')) ?>" hidden></div>
 
         <!-- ===== Mode : fiche basique (rayons non adaptatifs) ===== -->
@@ -490,6 +494,149 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </details>
         </div><!-- /mode adaptatif -->
+
+        <!-- ===== Mode : NOUVEAU RAYON (générique, adaptatif au slug) ===== -->
+        <?php
+        $autreCfg   = apparel_autre_cfg($curCol);
+        $autreGenres = apparel_autre_genres($curCol);
+        $autreGenreSel = $aAttr('genre') ?: ($autreGenres[0] ?? 'Mixte / unisexe');
+        $autreAxis  = (string) ($rawOldA['variant_axis'] ?? ($appaAttrs['variant_axis'] ?? ($autreCfg['axis'] ?? 'Taille')));
+        $autreColor = (bool) ($autreCfg['color'] ?? false);
+        foreach ($realVariants as $vv) { $aa = is_array($vv['attributes'] ?? null) ? $vv['attributes'] : (json_decode((string) ($vv['attributes'] ?? ''), true) ?: []); if (!empty($aa['hex'])) { $autreColor = true; break; } }
+        if (isset($rawOldA['var_has_color'])) { $autreColor = (string) $rawOldA['var_has_color'] === '1'; }
+        // Caractéristiques libres : ré-affichage (POST) ou édition (attributes hors genre/couleur/condition).
+        $autreSpecs = [];
+        if (isset($rawOldA['spec_label']) && is_array($rawOldA['spec_label'])) {
+            foreach ($rawOldA['spec_label'] as $i => $lb) { $autreSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldA['spec_value'][$i] ?? '')]; }
+        } else {
+            foreach ($appaAttrs as $lb => $val) { if (!in_array($lb, ['genre', 'couleur', 'condition', 'variant_axis'], true) && is_scalar($val)) { $autreSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; } }
+        }
+        $autreRows = [];
+        foreach ($realVariants as $v) { $attr = is_array($v['attributes'] ?? null) ? $v['attributes'] : (json_decode((string) ($v['attributes'] ?? ''), true) ?: []); $autreRows[] = ['name' => (string) ($attr['size'] ?? ($v['label'] ?? '')), 'hex' => (string) ($attr['hex'] ?? '#222222'), 'stock' => $v['stock'], 'price' => $v['price_cents'] ?? null]; }
+        $autreAtoutSugg = apparel_autre('atout_suggest');
+        $autreAllAtouts = array_values(array_unique(array_merge($autreAtoutSugg, $appaAtouts)));
+        ?>
+        <div<?= $aSec('autre') ?> data-appa-autre-root>
+        <p class="hint" data-aautre-hint><?= $autreCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('appa.autre_generic')) ?></p>
+        <label><?= e(t('autre.rayon_suggest')) ?></label>
+        <div class="chips-row" data-aautre-rayon-chips>
+            <?php foreach (apparel_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-aautre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+        </div>
+        <div class="grid-2" style="margin-top:14px">
+            <div>
+                <label for="aautre-ptype"><?= e(t('appa.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <input type="text" id="aautre-ptype" name="product_type" maxlength="60" value="<?= e($appaType) ?>" placeholder="<?= e(t('appa.autre_type_ph')) ?>">
+            </div>
+            <div>
+                <label for="aautre-genre"><?= e(t('appa.f.genre')) ?></label>
+                <select id="aautre-genre" name="genre" data-aautre-genre>
+                    <?php foreach ($autreGenres as $g): ?><option value="<?= e($g) ?>" <?= $autreGenreSel === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="grid-2">
+            <div>
+                <label for="aautre-couleur"><?= e(t('appa.f.color')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <select id="aautre-couleur" name="couleur" data-aautre-couleur>
+                    <option value="">—</option>
+                    <?php foreach (apparel_autre('couleurs') as $c): ?><option value="<?= e($c) ?>" <?= $aAttr('couleur') === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label for="aautre-condition"><?= e(t('appa.f.condition')) ?></label>
+                <select id="aautre-condition" name="appa_condition">
+                    <?php foreach (apparel_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $appaCondition === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+
+        <details class="variants-box" open>
+            <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+            <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+            <div class="axis-suggest" data-aautre-spec-box>
+                <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                <div class="axis-suggest-chips" data-aautre-spec-chips>
+                    <?php foreach (($autreCfg['specs'] ?? apparel_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-aautre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                </div>
+            </div>
+            <div class="spec-rows" data-aautre-specs>
+                <div class="spec-head"><span><?= e(t('autre.spec_label')) ?></span><span><?= e(t('autre.spec_value')) ?></span><span></span></div>
+                <?php foreach ($autreSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-aautre-spec-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-aautre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+            <template id="aautre-spec-template">
+                <div class="spec-row">
+                    <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                    <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                    <button type="button" class="variant-del" data-aautre-spec-del aria-label="✕">✕</button>
+                </div>
+            </template>
+            <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+            <div class="chip-checks" data-aautre-atouts>
+                <?php foreach ($autreAllAtouts as $a): ?>
+                    <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $appaAtouts, true) ? 'checked' : '' ?>><span><?= e($a) ?></span></label>
+                <?php endforeach; ?>
+            </div>
+            <div class="autre-atout-add">
+                <input type="text" id="aautre-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-aautre-atout-input>
+                <button type="button" class="btn btn-ghost btn-sm" data-aautre-atout-add><?= e(t('autre.atout_add')) ?></button>
+            </div>
+        </details>
+
+        <details class="variants-box" data-aautre-decl <?= $realVariants !== [] ? 'open' : '' ?>>
+            <summary>📏 <?= e(t('appa.sizes')) ?></summary>
+            <p class="hint" data-aautre-sizes-hint><?= e(t('appa.sizes_hint')) ?></p>
+            <input type="hidden" name="var_has_color" value="0">
+            <div class="chips-row" data-aautre-quickfill>
+                <?php foreach (apparel_autre_quickfill($curCol, $autreGenreSel) as $qf): ?>
+                    <button type="button" class="axis-chip" data-aautre-fill data-fill="<?= e((string) json_encode($qf, JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) $qf['label']) ?></button>
+                <?php endforeach; ?>
+                <button type="button" class="axis-chip" data-aautre-clear><?= e(t('appa.clear')) ?></button>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <label for="aautre-axis"><?= e(t('autre.axis')) ?></label>
+                    <input type="text" id="aautre-axis" name="variant_axis" maxlength="24" value="<?= e($autreAxis) ?>" placeholder="<?= e(t('appa.axis_ph')) ?>" list="aautre-axis-list" data-aautre-axis>
+                    <datalist id="aautre-axis-list"><?php foreach (['Taille', 'Longueur', 'Couleur', 'Modèle'] as $ax): ?><option value="<?= e($ax) ?>"></option><?php endforeach; ?></datalist>
+                </div>
+                <div>
+                    <label class="check-row" style="margin-top:24px"><input type="checkbox" name="var_has_color" value="1" data-aautre-color-toggle <?= $autreColor ? 'checked' : '' ?>><span><?= e(t('autre.has_color')) ?></span></label>
+                </div>
+            </div>
+            <div class="bvariant-rows autre-rows<?= $autreColor ? ' has-color' : '' ?>" data-aautre-rows>
+                <div class="bvariant-head autre-head">
+                    <span data-aautre-axis-label><?= e($autreAxis !== '' ? $autreAxis : t('variant.option')) ?></span>
+                    <span class="autre-col-color"><?= e(t('perruque.f.color')) ?></span>
+                    <span><?= e(t('variant.stock')) ?></span><span><?= e(t('variant.price_opt')) ?></span><span></span>
+                </div>
+                <?php foreach ($autreRows as $ar): ?>
+                    <div class="bvariant-row autre-row">
+                        <input type="text" name="var_size[]" value="<?= e($ar['name']) ?>" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                        <input type="color" name="var_hex[]" class="autre-col-color" value="<?= e($ar['hex'] !== '' ? $ar['hex'] : '#222222') ?>" aria-label="<?= e(t('perruque.f.color')) ?>">
+                        <input type="text" name="var_stock[]" inputmode="numeric" value="<?= $ar['stock'] !== null ? (int) $ar['stock'] : '' ?>" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                        <input type="text" name="var_price[]" inputmode="decimal" value="<?= e($fmtP($ar['price'])) ?>" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                        <button type="button" class="variant-del" data-aautre-del aria-label="✕">✕</button>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-aautre-add>+ <?= e(t('appa.size_add')) ?></button>
+            <template id="aautre-variant-template">
+                <div class="bvariant-row autre-row">
+                    <input type="text" name="var_size[]" maxlength="60" placeholder="<?= e(t('variant.option')) ?>" aria-label="<?= e(t('variant.option')) ?>">
+                    <input type="color" name="var_hex[]" class="autre-col-color" value="#222222" aria-label="<?= e(t('perruque.f.color')) ?>">
+                    <input type="text" name="var_stock[]" inputmode="numeric" placeholder="∞" aria-label="<?= e(t('variant.stock')) ?>">
+                    <input type="text" name="var_price[]" inputmode="decimal" placeholder="<?= e(t('variant.price_ph')) ?>" aria-label="<?= e(t('variant.price_opt')) ?>">
+                    <button type="button" class="variant-del" data-aautre-del aria-label="✕">✕</button>
+                </div>
+            </template>
+        </details>
+        </div><!-- /mode nouveau rayon -->
         <?php elseif ($isBeauty): ?>
         <?php
         $rawOld = $_SESSION['_old'] ?? [];

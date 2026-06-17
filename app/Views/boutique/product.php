@@ -204,8 +204,21 @@ foreach ($realVariants as $rv) {
                     }
                     if (!empty($aAttr['condition']) && !in_array($aAttr['condition'], ['Neuf', 'Neuf avec étiquette'], true)) { $apTags[] = (string) $aAttr['condition']; }
                 } else {
-                    if (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
-                    if (!empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
+                    // Nouveau rayon mode (libre) : genre / type / couleur / specs dans attributes ;
+                    // sinon fiche basique (audience / catégorie de vêtement).
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['genre']) && $aAttr['genre'] !== 'Non applicable') { $apTags[] = (string) $aAttr['genre']; }
+                    elseif (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
+                    if (!empty($aAttr['couleur'])) { $apTags[] = (string) $aAttr['couleur']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if ($aAttr === [] && !empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }
+                    if (!empty($aAttr['condition']) && !in_array($aAttr['condition'], ['Neuf', 'Neuf avec étiquette'], true)) { $apTags[] = (string) $aAttr['condition']; }
                 }
                 // Atouts (Vegan, Bio…) en petits badges sous les caractéristiques.
                 $pAtouts = array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
