@@ -497,14 +497,14 @@ final class Boutique
         try {
             $active = (int) ($_SESSION['boutique_id'] ?? 0);
             if ($active > 0 && current_user_id() === $userId) {
-                $stmt = db()->prepare('SELECT * FROM boutiques WHERE id = :id AND user_id = :uid LIMIT 1');
+                $stmt = db()->prepare("SELECT * FROM boutiques WHERE id = :id AND user_id = :uid AND status <> 'deleted' LIMIT 1");
                 $stmt->execute(['id' => $active, 'uid' => $userId]);
                 $row = $stmt->fetch();
                 if ($row !== false) {
                     return $row;
                 }
             }
-            $stmt = db()->prepare('SELECT * FROM boutiques WHERE user_id = :uid ORDER BY id LIMIT 1');
+            $stmt = db()->prepare("SELECT * FROM boutiques WHERE user_id = :uid AND status <> 'deleted' ORDER BY id LIMIT 1");
             $stmt->execute(['uid' => $userId]);
             $row = $stmt->fetch();
             return $row !== false ? $row : null;
@@ -517,11 +517,31 @@ final class Boutique
     public static function allForUser(int $userId): array
     {
         try {
-            $stmt = db()->prepare('SELECT * FROM boutiques WHERE user_id = :uid ORDER BY id');
+            $stmt = db()->prepare("SELECT * FROM boutiques WHERE user_id = :uid AND status <> 'deleted' ORDER BY id");
             $stmt->execute(['uid' => $userId]);
             return $stmt->fetchAll() ?: [];
         } catch (\Throwable) {
             return [];
+        }
+    }
+
+    /**
+     * Suppression « douce » : la boutique passe en status='deleted'. Elle
+     * disparaît du back-office vendeur (allForUser / findByUserId) et des pages
+     * publiques (qui filtrent status='published'), tout en préservant l'intégrité
+     * des commandes, paiements et écritures de portefeuille qui la référencent.
+     */
+    public static function softDelete(int $id, int $userId): bool
+    {
+        try {
+            $stmt = db()->prepare(
+                "UPDATE boutiques SET status = 'deleted', updated_at = NOW()
+                 WHERE id = :id AND user_id = :uid AND status <> 'deleted'"
+            );
+            $stmt->execute(['id' => $id, 'uid' => $userId]);
+            return $stmt->rowCount() > 0;
+        } catch (\Throwable) {
+            return false;
         }
     }
 
@@ -543,7 +563,9 @@ final class Boutique
     public static function findBySlug(string $slug): ?array
     {
         try {
-            $stmt = db()->prepare('SELECT * FROM boutiques WHERE slug = :s LIMIT 1');
+            // Une boutique supprimée (status='deleted') n'existe plus publiquement :
+            // son URL renvoie null → 404, y compris pour l'aperçu du propriétaire.
+            $stmt = db()->prepare("SELECT * FROM boutiques WHERE slug = :s AND status <> 'deleted' LIMIT 1");
             $stmt->execute(['s' => $slug]);
             $row = $stmt->fetch();
             return $row !== false ? $row : null;

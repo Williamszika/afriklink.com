@@ -213,6 +213,13 @@ $baseUrl = preg_replace('#^https?://#', '', rtrim((string) (config('app.url') ?:
 
             <button type="submit" class="btn btn-primary btn-block"><?= e(t('profile.save')) ?></button>
         </form>
+
+        <div class="panel">
+            <h2 class="panel-title">⚠️ <?= e(t('shop.danger.title')) ?></h2>
+            <p class="muted"><?= e(t('shop.danger.desc')) ?></p>
+            <a class="btn btn-danger" href="<?= e(url('/boutique/supprimer')) ?>"><?= e(t('shop.danger.delete_btn')) ?></a>
+        </div>
+
         <p class="auth-alt"><a href="<?= e(url('/boutique/gerer')) ?>">← <?= e(t('shop.back_manage')) ?></a></p>
     </div>
 </div>

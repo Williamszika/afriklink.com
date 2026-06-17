@@ -208,6 +208,10 @@ return [
     ['POST', '/boutique/publier', [BoutiqueController::class, 'publish'], ['auth', 'csrf']],
     ['GET',  '/boutique/modifier', [BoutiqueController::class, 'edit'],       ['auth']],
     ['POST', '/boutique/modifier', [BoutiqueController::class, 'updateShop'], ['auth', 'csrf', 'throttle:shop,300,3600']],
+    // Suppression de la boutique, confirmée par un code à 6 chiffres envoyé par e-mail.
+    ['GET',  '/boutique/supprimer',      [BoutiqueController::class, 'deleteForm'],    ['auth']],
+    ['POST', '/boutique/supprimer/code', [BoutiqueController::class, 'requestDelete'], ['auth', 'csrf', 'throttle:shopdel,6,3600']],
+    ['POST', '/boutique/supprimer',      [BoutiqueController::class, 'confirmDelete'], ['auth', 'csrf', 'throttle:shopdelc,30,3600']],
     ['GET',  '/boutique/qr',       [BoutiqueController::class, 'qr'],         ['auth']],
     ['GET',  '/boutique/stats',    [BoutiqueController::class, 'stats'],      ['auth']],
     // Produits du catalogue

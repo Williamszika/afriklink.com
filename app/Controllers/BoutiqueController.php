@@ -217,6 +217,105 @@ final class BoutiqueController
         redirect('/boutique/gerer');
     }
 
+    /* ---- Suppression de la boutique (confirmée par code e-mail) ----- */
+
+    /** Compte les commandes non finalisées d'une boutique (bloquent la suppression). */
+    private function activeOrders(int $boutiqueId): int
+    {
+        $c = \App\Models\Order::countFor($boutiqueId);
+        return (int) $c['new'] + (int) $c['confirmed'] + (int) $c['shipped'];
+    }
+
+    /** Page « zone de danger » : explication, envoi du code, puis saisie du code. */
+    public function deleteForm(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        view('boutique/delete_confirm', [
+            'active'        => 'vitrines',
+            'boutique'      => $boutique,
+            'active_orders' => $this->activeOrders((int) $boutique['id']),
+            'has_email'     => trim((string) ($user['email'] ?? '')) !== '',
+            'code_sent'     => input_string('sent', '') === '1',
+        ] + SellerController::commonData($user));
+    }
+
+    /** Génère un code à 6 chiffres et l'envoie par e-mail au vendeur. */
+    public function requestDelete(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $email = trim((string) ($user['email'] ?? ''));
+        if ($email === '') {
+            flash('error', t('shop.del.no_email'));
+            redirect('/boutique/supprimer');
+        }
+        if (($n = $this->activeOrders((int) $boutique['id'])) > 0) {
+            flash('error', t('shop.del.blocked_orders', ['n' => $n]));
+            redirect('/boutique/supprimer');
+        }
+
+        $code = \App\Models\BoutiqueDeleteCode::issue((int) $user['id'], (int) $boutique['id'], 1800); // 30 min
+        $this->sendDeleteCodeEmail($email, (string) ($user['full_name'] ?? ''), (string) $boutique['name'], $code);
+        flash('info', t('shop.del.code_sent', ['email' => $email]));
+        redirect('/boutique/supprimer?sent=1');
+    }
+
+    /** Vérifie le code et, si correct, supprime (en douceur) la boutique. */
+    public function confirmDelete(Request $request): void
+    {
+        $user     = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        // Re-contrôle : une commande a pu arriver entre l'envoi du code et la confirmation.
+        if (($n = $this->activeOrders((int) $boutique['id'])) > 0) {
+            flash('error', t('shop.del.blocked_orders', ['n' => $n]));
+            redirect('/boutique/supprimer');
+        }
+        if (!\App\Models\BoutiqueDeleteCode::verify((int) $user['id'], (int) $boutique['id'], (string) input_string('code', ''))) {
+            flash('error', t('shop.del.bad_code'));
+            redirect('/boutique/supprimer?sent=1');
+        }
+        if (!Boutique::softDelete((int) $boutique['id'], (int) $user['id'])) {
+            flash('error', t('shop.create_error'));
+            redirect('/boutique/supprimer?sent=1');
+        }
+        AuditLog::record((int) $user['id'], 'shop.deleted', 'boutique', (int) $boutique['id'], ['name' => (string) $boutique['name']], $request->ipBinary());
+        // La boutique active supprimée ne doit plus rester sélectionnée.
+        if ((int) ($_SESSION['boutique_id'] ?? 0) === (int) $boutique['id']) {
+            unset($_SESSION['boutique_id']);
+        }
+        flash('success', t('shop.del.deleted_flash', ['name' => (string) $boutique['name']]));
+        redirect('/vendeur/vitrines');
+    }
+
+    /** E-mail contenant le code de confirmation de suppression. */
+    private function sendDeleteCodeEmail(string $email, string $name, string $shopName, string $code): void
+    {
+        $app     = (string) config('app.name', 'Afriklink');
+        $subject = t('shop.del.email_subject', ['app' => $app]);
+        $html = '<p>' . e(t('vitrine.mail.hello', ['user' => $name])) . '</p>'
+            . '<p>' . e(t('shop.del.email_intro', ['name' => $shopName])) . '</p>'
+            . '<p style="font-size:30px;font-weight:bold;letter-spacing:6px;margin:18px 0">' . e($code) . '</p>'
+            . '<p>' . e(t('shop.del.email_ttl')) . '</p>'
+            . '<p style="color:#888">' . e(t('shop.del.email_ignore')) . '</p>';
+        $text = t('shop.del.email_intro', ['name' => $shopName]) . "\n\n  " . $code . "\n\n"
+            . t('shop.del.email_ttl') . "\n" . t('shop.del.email_ignore');
+        try {
+            \App\Services\MailService::send($email, $subject, $html, $text);
+        } catch (\Throwable) {
+            // L'échec d'envoi ne casse pas le flux ; en mode log, le code est dans les journaux mail.
+        }
+    }
+
     /**
      * État de complétion de la boutique : checklist + score + « prêt à publier ».
      * @return array{items:list<array{key:string,done:bool,req:bool}>,score:int,ready:bool,missing:list<string>}
