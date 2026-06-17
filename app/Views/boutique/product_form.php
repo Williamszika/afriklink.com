@@ -355,6 +355,9 @@ $fmtP = static function ($cents) use ($cur): string {
         $appaMeta  = apparel_type_meta($appaRayonSSR, $appaType);
         $aAttr     = static fn (string $k): string => (string) ($rawOldA[$k] ?? ($appaAttrs[$k] ?? ''));
         $appaCondition = $aAttr('condition') ?: (apparel_conditions()[0] ?? 'Neuf avec étiquette');
+        $appaLocked = apparel_rayon_public($appaRayonSSR); // '' ou public imposé (ex. 'feminin')
+        $appaGenres = apparel_rayon_genres($appaRayonSSR);
+        $appaGenreSel = $aAttr('genre') ?: ($appaLocked !== '' ? ($appaGenres[0] ?? '') : ''); // verrou => 1er genre par défaut
         $appaAtouts = isset($rawOldA['atouts']) && is_array($rawOldA['atouts'])
             ? array_map('strval', $rawOldA['atouts'])
             : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
@@ -368,6 +371,7 @@ $fmtP = static function ($cents) use ($cur): string {
         <div data-appa
              data-rayons="<?= e((string) json_encode((array) config('apparel.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-genres="<?= e((string) json_encode(apparel_genres(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-couleurs="<?= e((string) json_encode(apparel_couleurs(), JSON_UNESCAPED_UNICODE)) ?>"
              data-opt="<?= e(t('variant.option')) ?>" data-any="<?= e(t('appa.f.genre_any')) ?>"
              data-sizes-hint="<?= e(t('appa.sizes_hint')) ?>" data-sizes-pick="<?= e(t('appa.sizes_pick')) ?>" data-sizes-genre="<?= e(t('appa.sizes_genre', ['genre' => '%G%'])) ?>"
              data-hint-specs="<?= e(t('appa.specs_hint')) ?>" data-hint-pick="<?= e(t('appa.specs_pick')) ?>" hidden></div>
@@ -406,6 +410,7 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <!-- ===== Mode adaptatif (Chaussures…) : genre + couleur + type-driven ===== -->
         <div<?= $aSec('adaptive') ?> data-appa-root>
+        <div class="warn-box" data-appa-lockban<?= $appaLocked !== '' ? '' : ' hidden' ?>>🔒 <span data-appa-lockban-text><?= e((string) (((array) config('apparel.rayons', []))[$appaRayonSSR]['lock_label'] ?? '')) ?></span></div>
         <div class="grid-2">
             <div>
                 <label for="appa-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
@@ -430,17 +435,17 @@ $fmtP = static function ($cents) use ($cur): string {
         </div>
         <div class="grid-2">
             <div>
-                <label for="appa-genre"><?= e(t('appa.f.genre')) ?> <span class="req">*</span></label>
+                <label for="appa-genre"><?= e(t('appa.f.genre')) ?> <span class="req">*</span> <span class="lockhint" data-appa-lockhint<?= $appaLocked !== '' ? '' : ' hidden' ?>>🔒 <?= e(t('appa.locked_only')) ?></span></label>
                 <select id="appa-genre" name="genre" data-appa-genre>
-                    <option value=""><?= e(t('appa.f.genre_any')) ?></option>
-                    <?php foreach (apparel_rayon_genres($appaRayonSSR) as $g): ?><option value="<?= e($g) ?>" <?= $aAttr('genre') === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                    <?php if ($appaLocked === ''): ?><option value=""><?= e(t('appa.f.genre_any')) ?></option><?php endif; ?>
+                    <?php foreach ($appaGenres as $g): ?><option value="<?= e($g) ?>" <?= $appaGenreSel === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
                 </select>
             </div>
             <div>
                 <label for="appa-couleur"><?= e(t('appa.f.color')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
-                <select id="appa-couleur" name="couleur">
+                <select id="appa-couleur" name="couleur" data-appa-couleur>
                     <option value="">—</option>
-                    <?php foreach (apparel_couleurs() as $c): ?><option value="<?= e($c) ?>" <?= $aAttr('couleur') === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    <?php foreach (apparel_rayon_couleurs($appaRayonSSR) as $c): ?><option value="<?= e($c) ?>" <?= $aAttr('couleur') === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
                 </select>
             </div>
         </div>

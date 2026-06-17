@@ -1708,6 +1708,7 @@ return [
     'appa.f.genre_any' => '— Choose —',
     'appa.f.color' => 'Main colour',
     'appa.f.condition' => 'Condition',
+    'appa.locked_only' => 'female only',
     'appa.brand_ph' => 'e.g. Nike, Adidas, no brand…',
     'appa.specs_hint' => 'Details tailored to the chosen type.',
     'appa.specs_pick' => 'Pick a type above first.',

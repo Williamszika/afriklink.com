@@ -199,7 +199,7 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['genre'])) { $apTags[] = (string) $aAttr['genre']; }
                     if (!empty($aAttr['couleur'])) { $apTags[] = (string) $aAttr['couleur']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis', 'public'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && !in_array($aAttr['condition'], ['Neuf', 'Neuf avec étiquette'], true)) { $apTags[] = (string) $aAttr['condition']; }

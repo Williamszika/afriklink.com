@@ -429,17 +429,21 @@ final class ProductController
             $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
             $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), apparel_rayon_atouts($collection)));
             $aa = apparel_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
-            $genre = beauty_clean(input_string('genre', ''), apparel_genres());
+            // Genre/couleur validés contre la liste DU RAYON (verrou serveur : un rayon féminin
+            // n'accepte que Femme/Fille/Bébé (fille), même si le POST est trafiqué).
+            $genre = beauty_clean(input_string('genre', ''), apparel_rayon_genres($collection));
             if ($genre !== '') { $aa['genre'] = $genre; }
-            $couleur = beauty_clean(input_string('couleur', ''), apparel_couleurs());
+            $couleur = beauty_clean(input_string('couleur', ''), apparel_rayon_couleurs($collection));
             if ($couleur !== '') { $aa['couleur'] = $couleur; }
             $cond = beauty_clean(input_string('appa_condition', ''), apparel_conditions());
             if ($cond !== '') { $aa['condition'] = $cond; }
+            $rayonPublic = apparel_rayon_public($collection);
+            if ($rayonPublic !== '') { $aa['public'] = $rayonPublic; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $aa['variant_axis'] = $axis; }
             $attributes = $aa !== [] ? (string) json_encode($aa, JSON_UNESCAPED_UNICODE) : null;
             // Rattache aux colonnes mode (filtres/affichage) : genre → audience, rayon → garment (kids si enfant).
-            $audMap = ['Femme' => 'femme', 'Homme' => 'homme', 'Mixte / unisexe' => 'unisexe', 'Enfant' => 'enfant', 'Fille' => 'enfant', 'Garçon' => 'enfant', 'Bébé' => 'enfant'];
+            $audMap = ['Femme' => 'femme', 'Homme' => 'homme', 'Mixte / unisexe' => 'unisexe', 'Enfant' => 'enfant', 'Fille' => 'enfant', 'Garçon' => 'enfant', 'Bébé' => 'enfant', 'Bébé (fille)' => 'enfant'];
             if (isset($audMap[$genre])) { $audience = $audMap[$genre]; }
             $garmentBase = (string) (((array) config('apparel.rayons', []))[$collection]['garment'] ?? '');
             if ($garmentBase === 'shoes' && in_array($genre, ['Enfant', 'Fille', 'Garçon', 'Bébé'], true)) { $garmentBase = 'shoes_kids'; }

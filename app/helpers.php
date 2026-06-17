@@ -766,6 +766,18 @@ function apparel_rayon_genres(?string $rayon): array
     $g = apparel_rayon($rayon, 'genres');
     return $g !== [] ? array_values($g) : apparel_genres();
 }
+/** Couleurs proposées par un rayon (override 'couleurs' du rayon, sinon les couleurs globales). @return list<string> */
+function apparel_rayon_couleurs(?string $rayon): array
+{
+    $c = apparel_rayon($rayon, 'couleurs');
+    return $c !== [] ? array_values($c) : apparel_couleurs();
+}
+/** Public imposé par un rayon verrouillé ('feminin'…) ou '' si non verrouillé. */
+function apparel_rayon_public(?string $rayon): string
+{
+    $cfg = (array) (((array) config('apparel.rayons', []))[(string) $rayon] ?? []);
+    return (string) ($cfg['public'] ?? '');
+}
 /** @return list<string> */
 function apparel_couleurs(): array { return (array) config('apparel.couleurs', []); }
 /** @return list<string> */

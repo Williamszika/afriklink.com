@@ -3415,9 +3415,12 @@ document.addEventListener('click', function (ev) {
     var RAYONS = parse('data-rayons'); // { 'Chaussures':{groups,fields,types,atouts,quickfill,axis} }
     var GENRES = parse('data-genres'); // genres globaux (repli si le rayon n'en impose pas)
     if (!Array.isArray(GENRES)) { GENRES = []; }
+    var COULEURS = parse('data-couleurs'); // couleurs globales (repli)
+    if (!Array.isArray(COULEURS)) { COULEURS = []; }
     var coll = document.querySelector('[data-collection-select]');
     var typeSel = document.getElementById('appa-type');
     var genreSel = document.getElementById('appa-genre');
+    var couleurSel = document.getElementById('appa-couleur');
     var attrsBox = document.querySelector('[data-appa-attrs]');
     var atoutsBox = document.querySelector('[data-appa-atouts-chips]');
     var rowsBox = document.querySelector('[data-appa-rows]');
@@ -3500,17 +3503,33 @@ document.addEventListener('click', function (ev) {
         if (genreSel) {
             var curG = genreSel.value;
             var list = (cfg().genres && cfg().genres.length) ? cfg().genres : GENRES;
+            var locked = !!cfg().public; // rayon verrouillé (ex. féminin) : pas d'option vide
             genreSel.innerHTML = '';
-            var g0 = document.createElement('option'); g0.value = ''; g0.textContent = cfgEl.getAttribute('data-any') || '—'; genreSel.appendChild(g0);
+            if (!locked) { var g0 = document.createElement('option'); g0.value = ''; g0.textContent = cfgEl.getAttribute('data-any') || '—'; genreSel.appendChild(g0); }
             list.forEach(function (gn) {
-                var op = document.createElement('option'); op.value = gn; op.textContent = gn;
-                if (gn === curG) { op.selected = true; }
-                genreSel.appendChild(op);
+                var op = document.createElement('option'); op.value = gn; op.textContent = gn; genreSel.appendChild(op);
             });
-            if (genreSel.value !== curG) { genreSel.value = ''; }
+            genreSel.value = (list.indexOf(curG) !== -1) ? curG : (locked ? (list[0] || '') : '');
         }
+        if (couleurSel) {
+            var curC = couleurSel.value;
+            var clist = (cfg().couleurs && cfg().couleurs.length) ? cfg().couleurs : COULEURS;
+            couleurSel.innerHTML = '';
+            var c0 = document.createElement('option'); c0.value = ''; c0.textContent = '—'; couleurSel.appendChild(c0);
+            clist.forEach(function (cn) { var op = document.createElement('option'); op.value = cn; op.textContent = cn; couleurSel.appendChild(op); });
+            couleurSel.value = (clist.indexOf(curC) !== -1) ? curC : '';
+        }
+        applyLock();
         if (axisInp && !axisInp.value.trim() && cfg().axis) { axisInp.value = cfg().axis; axisLabel(); }
         buildQuickfill(); sizesHint(); onType();
+    }
+    // Bandeau « rayon verrouillé » (ex. public féminin) + indice près du genre.
+    function applyLock() {
+        var locked = !!cfg().public, lab = cfg().lock_label || '';
+        var ban = document.querySelector('[data-appa-lockban]'), bt = document.querySelector('[data-appa-lockban-text]'), lh = document.querySelector('[data-appa-lockhint]');
+        if (bt) { bt.textContent = lab; }
+        if (ban) { ban.hidden = !locked; }
+        if (lh) { lh.hidden = !locked; }
     }
     // Boutons de remplissage rapide : liste statique, ou dépendants du genre (map genre => boutons).
     function quickfillSet() {
@@ -3596,7 +3615,7 @@ document.addEventListener('click', function (ev) {
     });
 
     toggleSections();
-    if (isAppaRayon()) { sizesHint(); }
+    if (isAppaRayon()) { sizesHint(); applyLock(); }
 })();
 
 /* ---- Rayon/Catégorie : révèle un champ libre quand « Autre » est choisi ---- */

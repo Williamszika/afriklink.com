@@ -175,5 +175,60 @@ return [
                 'Autre pantalon'                => ['group' => '', 'fields' => ['matiere', 'coupe', 'saison']],
             ],
         ],
+
+        // =================== Robes & jupes (VERROUILLÉ public féminin) ===================
+        'Robes & jupes' => [
+            'garment'    => 'dress',
+            'axis'       => 'Taille',
+            'public'     => 'feminin', // verrou : stocké en attributes + restreint le public
+            'lock_label' => 'Rayon réservé au public féminin',
+            'genres'     => ['Femme', 'Fille', 'Bébé (fille)'],
+            'couleurs'   => ['Noir', 'Blanc', 'Crème', 'Beige', 'Rouge', 'Bordeaux', 'Rose', 'Fuchsia', 'Bleu', 'Bleu marine', 'Vert', 'Kaki', 'Jaune', 'Orange', 'Violet', 'Doré', 'Argenté', 'Multicolore', 'Wax / imprimé', 'Autre'],
+            'quickfill'  => [
+                'Femme' => [
+                    ['label' => 'FR 34–46', 'kind' => 'range', 'from' => 34, 'to' => 46, 'step' => 2],
+                    ['label' => 'XS → XXL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL']],
+                    ['label' => 'Taille unique', 'kind' => 'list', 'list' => ['Taille unique']],
+                ],
+                'Fille' => [
+                    ['label' => 'Fille 2–16 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans', '16 ans']],
+                ],
+                'Bébé (fille)' => [
+                    ['label' => 'Bébé 0–24 mois', 'kind' => 'list', 'list' => ['1 mois', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']],
+                    ['label' => 'Petite 2–5 ans', 'kind' => 'list', 'list' => ['2 ans', '3 ans', '4 ans', '5 ans']],
+                ],
+            ],
+            'atouts' => ['Wax / pagne', 'Fait main', 'Cousu main', 'Doublé', 'Grande taille', 'Éco-responsable', 'Neuf avec étiquette', 'Pièce unique'],
+            'groups' => ['robes' => 'Robes', 'jupes' => 'Jupes', 'autre' => 'Autre'],
+            'fields' => [
+                'longueur'    => ['label' => 'Longueur', 'opts' => ['Mini / courte', 'Au genou', 'Midi', 'Longue / maxi', 'Cheville']],
+                'coupe'       => ['label' => 'Coupe', 'opts' => ['Ajustée / moulante', 'Droite', 'Trapèze / évasée', 'Patineuse', 'Crayon', 'Portefeuille', 'Empire', 'Fourreau']],
+                'manches'     => ['label' => 'Manches', 'opts' => ['Sans manches', 'Bretelles', 'Manches courtes', 'Manches 3/4', 'Manches longues', 'Bustier']],
+                'encolure'    => ['label' => 'Encolure', 'opts' => ['Ronde', 'En V', 'Bateau', 'Carrée', 'Dos nu', 'Col montant', 'Cache-cœur']],
+                'matiere'     => ['label' => 'Matière principale', 'opts' => ['Coton', 'Lin', 'Viscose', 'Polyester', 'Satin', 'Dentelle', 'Jean / denim', 'Maille', 'Mousseline', 'Cuir / simili', 'Wax / pagne', 'Autre']],
+                'taille_haut' => ['label' => 'Hauteur de taille', 'opts' => ['Taille haute', 'Taille normale', 'Taille basse', 'Taille élastiquée']],
+                'fermeture'   => ['label' => 'Fermeture', 'opts' => ['Zip', 'Boutons', 'Élastique', 'À enfiler', 'Laçage', 'Nœud']],
+                'motif'       => ['label' => 'Motif', 'opts' => ['Uni', 'Wax / imprimé africain', 'Fleuri', 'Rayé', 'À pois', 'Carreaux', 'Animal', 'Géométrique']],
+                'doublure'    => ['label' => 'Doublure', 'opts' => ['Doublé', 'Non doublé']],
+                'occasion'    => ['label' => 'Occasion', 'opts' => ['Quotidien', 'Travail', 'Soirée / fête', 'Cérémonie / mariage', 'Plage / vacances']],
+                'saison'      => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Été', 'Hiver', 'Mi-saison']],
+            ],
+            'types' => [
+                'Robe de jour / casual'     => ['group' => 'robes', 'fields' => ['longueur', 'coupe', 'manches', 'encolure', 'matiere', 'motif', 'saison']],
+                'Robe d’été'                => ['group' => 'robes', 'fields' => ['longueur', 'coupe', 'manches', 'encolure', 'matiere', 'motif']],
+                'Robe de soirée / cocktail' => ['group' => 'robes', 'fields' => ['longueur', 'coupe', 'manches', 'encolure', 'matiere', 'fermeture', 'doublure']],
+                'Robe longue / maxi'        => ['group' => 'robes', 'fields' => ['coupe', 'manches', 'encolure', 'matiere', 'motif', 'occasion']],
+                'Robe de cérémonie'         => ['group' => 'robes', 'fields' => ['longueur', 'coupe', 'manches', 'encolure', 'matiere', 'doublure', 'occasion']],
+                'Robe de mariée'            => ['group' => 'robes', 'fields' => ['longueur', 'coupe', 'manches', 'encolure', 'matiere', 'doublure']],
+                'Jupe courte / mini'        => ['group' => 'jupes', 'fields' => ['coupe', 'taille_haut', 'matiere', 'motif', 'fermeture']],
+                'Jupe midi'                 => ['group' => 'jupes', 'fields' => ['coupe', 'taille_haut', 'matiere', 'motif', 'fermeture']],
+                'Jupe longue'               => ['group' => 'jupes', 'fields' => ['coupe', 'taille_haut', 'matiere', 'motif', 'fermeture']],
+                'Jupe crayon'               => ['group' => 'jupes', 'fields' => ['taille_haut', 'matiere', 'fermeture', 'doublure']],
+                'Jupe plissée'              => ['group' => 'jupes', 'fields' => ['longueur', 'taille_haut', 'matiere', 'motif']],
+                'Jupe en jean'              => ['group' => 'jupes', 'fields' => ['longueur', 'coupe', 'taille_haut', 'fermeture', 'matiere']],
+                'Combinaison'               => ['group' => 'autre', 'fields' => ['longueur', 'manches', 'encolure', 'matiere', 'fermeture', 'occasion']],
+                'Autre robe / jupe'         => ['group' => 'autre', 'fields' => ['longueur', 'matiere', 'motif', 'saison']],
+            ],
+        ],
     ],
 ];
