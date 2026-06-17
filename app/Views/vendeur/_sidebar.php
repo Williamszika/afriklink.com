@@ -51,31 +51,8 @@ $groups = [
         </div>
     </div>
 
-    <?php /* ---- Sélecteur de boutique (multi-boutique) ---- */ ?>
-    <?php $myShops = \App\Models\Boutique::allForUser((int) ($user['id'] ?? 0)); $activeId = (int) ($boutiqueSb['id'] ?? 0); ?>
-    <?php if ($myShops !== []): ?>
-        <details class="shop-switch">
-            <summary class="shop-switch-cur">
-                <span class="shop-switch-ico"><?= icon('store', ['size' => 15]) ?></span>
-                <span class="shop-switch-name"><?= e((string) ($boutiqueSb['name'] ?? '')) ?></span>
-                <span class="shop-switch-caret" aria-hidden="true">▾</span>
-            </summary>
-            <div class="shop-switch-menu">
-                <?php foreach ($myShops as $sh): ?>
-                    <?php if ((int) $sh['id'] === $activeId): ?>
-                        <span class="shop-switch-opt is-active">✓ <?= e((string) $sh['name']) ?></span>
-                    <?php else: ?>
-                        <form method="post" action="<?= e(url('/vendeur/boutique-active')) ?>" class="shop-switch-form">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="boutique_id" value="<?= (int) $sh['id'] ?>">
-                            <button type="submit" class="shop-switch-opt"><?= e((string) $sh['name']) ?></button>
-                        </form>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-                <a class="shop-switch-new" href="<?= e(url('/boutique/creer')) ?>">＋ <?= e(t('seller.shop_switch.new')) ?></a>
-            </div>
-        </details>
-    <?php endif; ?>
+    <?php /* Compte unique : toutes les boutiques du vendeur se gèrent depuis la Vitrine
+             (« Mes vitrines »). Plus de sélecteur « multi-comptes » ici. */ ?>
 
     <nav class="seller-nav">
         <?php foreach ($groups as $group): ?>
