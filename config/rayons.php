@@ -19,7 +19,7 @@ return [
             'Sacs & accessoires' => 'none',
         ],
         'electronique' => [
-            'Téléphones'          => 'stockage',
+            'Téléphones'          => 'none',
             'Tablettes'           => 'none',
             'Ordinateurs'         => 'none',
             'Audio & écouteurs'   => 'none',

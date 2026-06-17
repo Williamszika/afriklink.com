@@ -15,6 +15,46 @@ return [
     'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack', 'Configuration', 'Stockage', 'RAM', 'Connectivité'],
 
     'rayons' => [
+        // =================== Téléphones ===================
+        'Téléphones' => [
+            'groups' => [], // liste à plat (sans optgroups)
+            'atouts' => ['Double SIM', '5G', 'Charge rapide', 'Étanche', 'NFC', 'Débloqué tout opérateur', 'Reconditionné garanti', 'Original / authentique', 'Garantie incluse'],
+            'fields' => [
+                'os'                => ['label' => 'Système', 'opts' => ['Android', 'iOS', 'HarmonyOS', 'KaiOS', 'Autre']],
+                'ecran_taille'      => ['label' => 'Taille de l’écran', 'opts' => ['Moins de 5"', '5"', '6,1"', '6,5"', '6,7"', '6,8" et +']],
+                'ecran_type'        => ['label' => 'Type d’écran', 'opts' => ['LCD', 'IPS', 'AMOLED', 'OLED', 'Dynamic AMOLED']],
+                'refresh'           => ['label' => 'Taux de rafraîchissement', 'opts' => ['60 Hz', '90 Hz', '120 Hz', '144 Hz']],
+                'cpu'               => ['label' => 'Processeur', 'opts' => ['Qualcomm Snapdragon', 'MediaTek Dimensity / Helio', 'Apple A', 'Samsung Exynos', 'Kirin', 'Unisoc', 'Autre']],
+                'ram'               => ['label' => 'Mémoire RAM', 'opts' => ['2 Go', '3 Go', '4 Go', '6 Go', '8 Go', '12 Go', '16 Go']],
+                'stockage_cap'      => ['label' => 'Stockage', 'opts' => ['16 Go', '32 Go', '64 Go', '128 Go', '256 Go', '512 Go', '1 To']],
+                'extensible'        => ['label' => 'Stockage extensible (microSD)', 'opts' => ['Oui', 'Non']],
+                'batterie'          => ['label' => 'Batterie', 'opts' => ['Moins de 3000 mAh', '3000-4000 mAh', '4000-5000 mAh', '5000-6000 mAh', '6000 mAh et +']],
+                'charge_rapide'     => ['label' => 'Charge rapide', 'opts' => ['Non', '18W', '25W', '33W', '45W', '67W', '100W+', 'Charge sans fil']],
+                'camera_mp'         => ['label' => 'Appareil photo principal', 'opts' => ['Moins de 13 MP', '13 MP', '48 MP', '50 MP', '64 MP', '108 MP', '200 MP']],
+                'camera_nb'         => ['label' => 'Caméras arrière', 'opts' => ['1 (simple)', '2 (double)', '3 (triple)', '4 (quad)']],
+                'sim'               => ['label' => 'SIM', 'opts' => ['Simple SIM', 'Double SIM', 'eSIM', 'Double SIM + eSIM']],
+                'reseau'            => ['label' => 'Réseau', 'opts' => ['2G', '3G', '4G / LTE', '5G']],
+                'nfc'               => ['label' => 'NFC', 'opts' => ['Oui', 'Non']],
+                'biometrie'         => ['label' => 'Déverrouillage', 'opts' => ['Empreinte', 'Reconnaissance faciale', 'Empreinte + visage', 'Code uniquement']],
+                'etancheite'        => ['label' => 'Étanchéité', 'opts' => ['Aucune', 'IP53', 'IP67', 'IP68', 'IP69']],
+                'norme_mil'         => ['label' => 'Norme militaire', 'opts' => ['MIL-STD-810G', 'MIL-STD-810H', 'Non']],
+                'clavier_phys'      => ['label' => 'Clavier physique', 'opts' => ['Oui (touches)', 'Non']],
+                'radio_fm'          => ['label' => 'Radio FM', 'opts' => ['Oui', 'Non']],
+                'torche'            => ['label' => 'Lampe torche', 'opts' => ['Oui', 'Non']],
+                'bouton_sos'        => ['label' => 'Bouton SOS', 'opts' => ['Oui', 'Non']],
+                'grandes_touches'   => ['label' => 'Grandes touches', 'opts' => ['Oui', 'Non']],
+                'base_charge'       => ['label' => 'Base de chargement', 'opts' => ['Incluse', 'Non']],
+                'appareil_auditif'  => ['label' => 'Compatible appareils auditifs', 'opts' => ['Oui', 'Non']],
+            ],
+            'types' => [
+                'Smartphone'                    => ['fields' => ['os', 'ecran_taille', 'ecran_type', 'refresh', 'cpu', 'ram', 'stockage_cap', 'extensible', 'batterie', 'charge_rapide', 'camera_mp', 'camera_nb', 'sim', 'reseau', 'nfc', 'biometrie'], 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Téléphone à touches'           => ['fields' => ['reseau', 'sim', 'batterie', 'ecran_taille', 'clavier_phys', 'radio_fm', 'torche'], 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Téléphone senior'              => ['fields' => ['reseau', 'sim', 'grandes_touches', 'bouton_sos', 'base_charge', 'appareil_auditif', 'torche'], 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Smartphone rugged / antichoc'  => ['fields' => ['os', 'ecran_taille', 'cpu', 'ram', 'stockage_cap', 'batterie', 'charge_rapide', 'camera_mp', 'sim', 'reseau', 'etancheite', 'norme_mil'], 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Autre téléphone'               => ['fields' => ['os', 'reseau', 'ram', 'stockage_cap'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+            ],
+        ],
+
         // =================== Accessoires ===================
         'Accessoires' => [
             'groups' => ['protection' => 'Protection', 'energie' => 'Énergie & connectique', 'audio' => 'Audio', 'connecte' => 'Connecté & stockage', 'autre' => 'Autre'],
