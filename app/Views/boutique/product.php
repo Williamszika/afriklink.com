@@ -118,6 +118,18 @@ foreach ($realVariants as $rv) {
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                     if (!empty($aAttr['garantie'])) { $apTags[] = t('elec.f.warranty') . ' ' . (string) $aAttr['garantie']; }
+                } elseif ($pVertical === 'generic' && cuisine_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Cuisine adaptatif (Maison & meubles) : type-driven (specs dans attributes).
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['condition', 'garantie', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['garantie'])) { $apTags[] = t('cuisine.f.warranty') . ' ' . (string) $aAttr['garantie']; }
                 } elseif ($pVertical === 'phone') {
                     // Fiche téléphone (legacy) OU rayon électronique « autre » : specs libres dans attributes.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

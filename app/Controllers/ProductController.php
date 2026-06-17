@@ -300,6 +300,23 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (cuisine_capable((string) ($boutique['category'] ?? '')) && cuisine_is_rayon($collection)) {
+            // Cuisine (Maison & meubles) : type-driven specs + état ; garantie réservée aux
+            // appareils électriques (flag elec). Tout en JSON dans products.attributes.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(cuisine_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), cuisine_atouts($collection)));
+            $ea = cuisine_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $cond = beauty_clean(input_string('acc_condition', ''), cuisine_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $cMeta = cuisine_type_meta($collection, $productType);
+            if ($cMeta !== null && !empty($cMeta['elec'])) {
+                $gar = beauty_clean(input_string('acc_garantie', ''), cuisine_garanties());
+                if ($gar !== '') { $ea['garantie'] = $gar; }
+            }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));

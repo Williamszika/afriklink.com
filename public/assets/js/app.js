@@ -4009,3 +4009,77 @@ document.addEventListener('click', function (ev) {
     var b = ev.target && ev.target.closest ? ev.target.closest('[data-print]') : null;
     if (b) { ev.preventDefault(); window.print(); }
 });
+
+/* ---- Cuisine (Maison & meubles) : formulaire adaptatif au type.
+   Le type pilote les caractéristiques affichées ; les appareils électriques
+   (flag elec) révèlent la garantie + le rappel CE/tension. La section n'est
+   active que lorsque le rayon « Cuisine » est sélectionné (sinon désactivée
+   pour ne pas être envoyée). Déclinaisons : éditeur générique partagé. ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-cuisine]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    var CFG; try { CFG = JSON.parse(cfgEl.getAttribute('data-cfg') || 'null') || {}; } catch (e) { CFG = {}; }
+    var RAYON = cfgEl.getAttribute('data-rayon') || 'Cuisine';
+    var coll     = document.querySelector('[data-collection-select]');
+    var root     = document.querySelector('[data-cuisine-root]');
+    var typeSel  = document.querySelector('[data-cuisine-type]');
+    var attrsBox = document.querySelector('[data-cuisine-attrs]');
+    var elecBox  = document.querySelector('[data-cuisine-elec-box]');
+    var elecWarn = document.querySelector('[data-cuisine-elec-warn]');
+    var hint     = document.querySelector('[data-cuisine-hint]');
+    var axisInp  = document.querySelector('[data-cuisine-axis]');
+    if (!root) { return; }
+
+    function active() { return !!(coll && coll.value === RAYON); }
+    function meta() { var t = CFG.types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+
+    // Reconstruit les caractéristiques (selects) du type choisi, en gardant les valeurs.
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var fields = CFG.fields || {};
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) {
+            var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; }
+        });
+        attrsBox.innerHTML = '';
+        var m = meta(); if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = fields[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
+    }
+    function onType() {
+        var m = meta();
+        var isElec = !!(m && m.elec);
+        if (elecBox)  { elecBox.hidden = !isElec; }
+        if (elecWarn) { elecWarn.hidden = !isElec; }
+        if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+        buildAttrs();
+        if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
+    }
+    // (dés)active toute la section selon le rayon courant ; la garantie reste
+    // réservée aux appareils électriques même quand la section est active.
+    function setEnabled() {
+        var on = active();
+        root.hidden = !on;
+        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        if (on && elecBox && elecBox.hidden) {
+            elecBox.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; });
+        }
+    }
+    function refresh() { if (active()) { onType(); } setEnabled(); }
+
+    if (coll)    { coll.addEventListener('change', refresh); }
+    if (typeSel) { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    refresh();
+})();

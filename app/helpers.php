@@ -998,7 +998,71 @@ function elec_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
-/* ---------- Beauté & cosmétiques ---------- */
+/* ---------- Cuisine (Maison & meubles) : rayon adaptatif au type ---------- */
+
+/** @return list<string> Catégories de boutique qui proposent le rayon Cuisine adaptatif. */
+function cuisine_shop_categories(): array { return (array) config('cuisine.shop_categories', ['maison']); }
+
+/** La boutique (catégorie) propose-t-elle le formulaire Cuisine adaptatif ? */
+function cuisine_capable(?string $boutiqueCategory): bool { return in_array((string) $boutiqueCategory, cuisine_shop_categories(), true); }
+
+/** @return list<string> Libellés des rayons cuisine type-driven. */
+function cuisine_rayons(): array { return array_keys((array) config('cuisine.rayons', [])); }
+
+/** Ce rayon a-t-il un formulaire cuisine adaptatif ? */
+function cuisine_is_rayon(?string $rayon): bool { return isset(((array) config('cuisine.rayons', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon cuisine par clé. */
+function cuisine_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('cuisine.rayons.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function cuisine_fields(?string $rayon): array { return cuisine_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function cuisine_types(?string $rayon): array { return cuisine_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function cuisine_groups(?string $rayon): array { return cuisine_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function cuisine_atouts(?string $rayon): array { return cuisine_rayon($rayon, 'atouts'); }
+
+/** @return list<string> */
+function cuisine_conditions(): array { return (array) config('cuisine.conditions', []); }
+
+/** @return list<string> */
+function cuisine_garanties(): array { return (array) config('cuisine.garanties', []); }
+
+/** Métadonnées d'un type pour un rayon cuisine, ou null. */
+function cuisine_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = cuisine_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques d'un article de cuisine : champs du type validés.
+ * @return array<string,string>
+ */
+function cuisine_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = cuisine_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = cuisine_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
+
 
 /** @return list<string> */
 function beauty_pao(): array { return (array) config('beauty.pao', []); }
