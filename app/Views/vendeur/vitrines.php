@@ -4,6 +4,12 @@ $verticals = [
     ['key' => 'salon',      'icon' => '💈'],
     ['key' => 'service',    'icon' => '🛠️'],
 ];
+// Toutes les boutiques du vendeur, les plus récentes / récemment mises à jour en tête.
+$myBoutiques = $boutiques ?? [];
+usort($myBoutiques, static function (array $a, array $b): int {
+    return strcmp((string) ($b['updated_at'] ?? ''), (string) ($a['updated_at'] ?? ''))
+        ?: ((int) ($b['id'] ?? 0) <=> (int) ($a['id'] ?? 0));
+});
 ?>
 <div class="seller-shell">
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
@@ -14,9 +20,9 @@ $verticals = [
             <p class="muted"><?= e(t('pro.dash.create_desc')) ?></p>
         </div>
 
-        <h2 class="vitrines-section">🛍️ <?= e(t('vitrines.my_shops')) ?></h2>
+        <h2 class="vitrines-section">🛍️ <?= e(t('vitrines.my_shops')) ?><?php if ($myBoutiques !== []): ?> <span class="muted">(<?= count($myBoutiques) ?>)</span><?php endif; ?></h2>
         <div class="action-grid">
-            <?php foreach (($boutiques ?? []) as $b): $isActive = (int) $b['id'] === (int) ($boutique['id'] ?? 0); ?>
+            <?php foreach ($myBoutiques as $b): $isActive = (int) $b['id'] === (int) ($boutique['id'] ?? 0); ?>
                 <form method="post" action="<?= e(url('/vendeur/boutique-active')) ?>" class="action-card action-card--live shop-mini">
                     <?= csrf_field() ?>
                     <input type="hidden" name="boutique_id" value="<?= (int) $b['id'] ?>">

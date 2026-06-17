@@ -201,13 +201,13 @@ return [
 
     // Boutique en ligne (assistant de création + gestion + page publique)
     ['GET',  '/boutique/creer',  [BoutiqueController::class, 'create'],  ['auth']],
-    ['POST', '/boutique/creer',  [BoutiqueController::class, 'submit'],  ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/boutique/creer',  [BoutiqueController::class, 'submit'],  ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['POST', '/vendeur/boutique-active', [BoutiqueController::class, 'switchBoutique'], ['auth', 'csrf']],
     ['GET',  '/api/boutique/slug', [BoutiqueController::class, 'checkSlug'], ['auth', 'throttle:slug,120,3600']],
     ['GET',  '/boutique/gerer',  [BoutiqueController::class, 'manage'],  ['auth']],
     ['POST', '/boutique/publier', [BoutiqueController::class, 'publish'], ['auth', 'csrf']],
     ['GET',  '/boutique/modifier', [BoutiqueController::class, 'edit'],       ['auth']],
-    ['POST', '/boutique/modifier', [BoutiqueController::class, 'updateShop'], ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/boutique/modifier', [BoutiqueController::class, 'updateShop'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['GET',  '/boutique/qr',       [BoutiqueController::class, 'qr'],         ['auth']],
     ['GET',  '/boutique/stats',    [BoutiqueController::class, 'stats'],      ['auth']],
     // Produits du catalogue
@@ -238,7 +238,7 @@ return [
     ['POST', '/boutique/politique',           [BoutiqueController::class, 'updatePolicy'], ['auth', 'csrf']],
     ['POST', '/boutique/promotions',              [BoutiqueController::class, 'createDiscount'], ['auth', 'csrf']],
     ['POST', '/boutique/promotions/{id}/statut',  [BoutiqueController::class, 'toggleDiscount'], ['auth', 'csrf']],
-    ['POST', '/boutique/livraison/zones',             [BoutiqueController::class, 'createShippingZone'], ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/boutique/livraison/zones',             [BoutiqueController::class, 'createShippingZone'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['POST', '/boutique/livraison/zones/{zid}/suppr', [BoutiqueController::class, 'deleteShippingZone'], ['auth', 'csrf']],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
@@ -246,7 +246,7 @@ return [
 
     // Restaurant (vitrine + carte/menu + page publique)
     ['GET',  '/restaurant/creer',  [RestaurantController::class, 'create'], ['auth']],
-    ['POST', '/restaurant/creer',  [RestaurantController::class, 'store'],  ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/restaurant/creer',  [RestaurantController::class, 'store'],  ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['GET',  '/restaurant/gerer',  [RestaurantController::class, 'manage'], ['auth']],
     ['POST', '/restaurant/publier', [RestaurantController::class, 'publish'], ['auth', 'csrf']],
     ['POST', '/restaurant/categorie',            [RestaurantController::class, 'storeCategory'],  ['auth', 'csrf', 'throttle:product,80,3600']],
@@ -256,7 +256,7 @@ return [
     ['POST', '/restaurant/plat/{mid}/statut',    [RestaurantController::class, 'setItemStatus'],  ['auth', 'csrf']],
     ['POST', '/restaurant/plat/{mid}/contenance', [RestaurantController::class, 'setVariantStatus'], ['auth', 'csrf']],
     ['POST', '/restaurant/paiement',             [RestaurantController::class, 'updatePayment'],   ['auth', 'csrf']],
-    ['POST', '/restaurant/livraison/zones',             [RestaurantController::class, 'createDeliveryArea'], ['auth', 'csrf', 'throttle:shop,40,3600']],
+    ['POST', '/restaurant/livraison/zones',             [RestaurantController::class, 'createDeliveryArea'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['POST', '/restaurant/livraison/zones/{zid}/suppr', [RestaurantController::class, 'deleteDeliveryArea'], ['auth', 'csrf']],
     // Commandes restaurant : panier public + suivi côté restaurateur
     ['GET',  '/restaurant/commandes',            [RestaurantController::class, 'orders'],          ['auth']],
