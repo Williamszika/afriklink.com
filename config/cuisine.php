@@ -267,5 +267,61 @@ return [
                 'Autre linge de maison' => ['group' => 'autre', 'fields' => ['matiere', 'motif', 'pieces'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
             ],
         ],
+
+        'Meubles' => [
+            'groups' => [
+                'salon'     => 'Salon',
+                'sam'       => 'Salle à manger',
+                'chambre'   => 'Chambre',
+                'bureau'    => 'Bureau',
+                'rangement' => 'Rangement & entrée',
+                'autre'     => 'Autre',
+            ],
+            'atouts' => ['Bois massif', 'Fait main / artisanal', 'Style africain', 'Montage facile', 'Convertible', 'Rangement intégré', 'Éco-responsable', 'Pièce unique'],
+            'fields' => [
+                'matiere'     => ['label' => 'Matière principale', 'opts' => ['Bois massif', 'Bois / panneau', 'MDF', 'Métal', 'Verre', 'Rotin / osier', 'Tissu', 'Cuir', 'Simili cuir', 'Velours', 'Plastique', 'Marbre', 'Bambou', 'Autre']],
+                'places'      => ['label' => 'Nombre de places', 'opts' => ['1', '2', '3', '4', '5', '6 et +']],
+                'dimensions'  => ['label' => 'Dimensions', 'opts' => ['Petit', 'Moyen', 'Grand', 'Sur mesure']],
+                'montage'     => ['label' => 'Montage', 'opts' => ['Livré monté', 'À monter', 'Pliable', 'Modulable']],
+                'style'       => ['label' => 'Style', 'opts' => ['Moderne', 'Scandinave', 'Industriel', 'Classique', 'Ethnique / africain', 'Vintage', 'Rustique', 'Minimaliste']],
+                'portes'      => ['label' => 'Portes / tiroirs', 'opts' => ['Sans', '1', '2', '3', '4', '5 et +']],
+                'couchage'    => ['label' => 'Couchage', 'opts' => ['1 place (90)', '2 places (140)', 'Queen (160)', 'King (180)', 'Bébé']],
+                'assise'      => ['label' => 'Garnissage / assise', 'opts' => ['Mousse', 'Mousse HR', 'Ressorts', 'Plumes', 'Latex', 'Non précisé']],
+                'convertible' => ['label' => 'Convertible', 'opts' => ['Oui', 'Non']],
+                'rangement'   => ['label' => 'Rangement intégré', 'opts' => ['Oui', 'Non']],
+                'reglable'    => ['label' => 'Réglable en hauteur', 'opts' => ['Oui', 'Non']],
+            ],
+            'types' => [
+                // Salon
+                'Canapé'                          => ['group' => 'salon', 'fields' => ['matiere', 'places', 'convertible', 'assise', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Fauteuil'                        => ['group' => 'salon', 'fields' => ['matiere', 'assise', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Table basse'                     => ['group' => 'salon', 'fields' => ['matiere', 'dimensions', 'montage', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Meuble TV'                       => ['group' => 'salon', 'fields' => ['matiere', 'dimensions', 'portes', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Pouf / repose-pieds'             => ['group' => 'salon', 'fields' => ['matiere', 'rangement', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                // Salle à manger
+                'Table à manger'                  => ['group' => 'sam', 'fields' => ['matiere', 'places', 'montage', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Chaise'                          => ['group' => 'sam', 'fields' => ['matiere', 'assise', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Buffet / vaisselier'             => ['group' => 'sam', 'fields' => ['matiere', 'portes', 'dimensions', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Banc'                            => ['group' => 'sam', 'fields' => ['matiere', 'places', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Tabouret / tabouret de bar'      => ['group' => 'sam', 'fields' => ['matiere', 'reglable', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                // Chambre
+                'Lit'                             => ['group' => 'chambre', 'fields' => ['matiere', 'couchage', 'rangement', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Matelas'                         => ['group' => 'chambre', 'fields' => ['couchage', 'assise', 'dimensions'], 'elec' => false, 'axis' => 'Taille', 'color' => false],
+                'Sommier'                         => ['group' => 'chambre', 'fields' => ['couchage', 'matiere'], 'elec' => false, 'axis' => 'Taille', 'color' => false],
+                'Armoire / dressing'              => ['group' => 'chambre', 'fields' => ['matiere', 'portes', 'dimensions', 'montage'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Commode'                         => ['group' => 'chambre', 'fields' => ['matiere', 'portes', 'dimensions', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Table de chevet'                 => ['group' => 'chambre', 'fields' => ['matiere', 'portes', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                // Bureau
+                'Bureau'                          => ['group' => 'bureau', 'fields' => ['matiere', 'dimensions', 'reglable', 'portes', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Chaise de bureau'                => ['group' => 'bureau', 'fields' => ['matiere', 'reglable', 'assise'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Bibliothèque / étagère'          => ['group' => 'bureau', 'fields' => ['matiere', 'dimensions', 'montage', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                // Rangement & entrée
+                'Meuble de rangement'             => ['group' => 'rangement', 'fields' => ['matiere', 'portes', 'dimensions', 'montage'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Meuble d’entrée / vestiaire'     => ['group' => 'rangement', 'fields' => ['matiere', 'portes', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Étagère murale'                  => ['group' => 'rangement', 'fields' => ['matiere', 'dimensions', 'montage'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                // Autre
+                'Autre meuble'                    => ['group' => 'autre', 'fields' => ['matiere', 'dimensions', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+            ],
+        ],
     ],
 ];
