@@ -1703,7 +1703,7 @@ return [
     // Cuisine (Maison & meubles) — rayon adaptatif
     'cuisine.f.type' => 'Type d’article',
     'cuisine.f.type_any' => '— Choisir un type —',
-    'cuisine.brand_ph' => 'ex. Moulinex, Tefal, sans marque…',
+    'cuisine.brand_ph' => 'ex. marque, artisan local, sans marque…',
     'cuisine.sec.specs' => 'Caractéristiques',
     'cuisine.specs_hint' => 'Caractéristiques adaptées au type d’article choisi.',
     'cuisine.specs_pick' => 'Choisis d’abord un type d’article ci-dessus.',

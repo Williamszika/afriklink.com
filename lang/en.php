@@ -1703,7 +1703,7 @@ return [
     // Kitchen (Home & furniture) — adaptive rayon
     'cuisine.f.type' => 'Item type',
     'cuisine.f.type_any' => '— Choose a type —',
-    'cuisine.brand_ph' => 'e.g. Moulinex, Tefal, no brand…',
+    'cuisine.brand_ph' => 'e.g. brand, local maker, no brand…',
     'cuisine.sec.specs' => 'Specifications',
     'cuisine.specs_hint' => 'Fields tailored to the chosen item type.',
     'cuisine.specs_pick' => 'Pick an item type above first.',

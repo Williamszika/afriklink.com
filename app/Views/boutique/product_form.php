@@ -111,9 +111,10 @@ $fmtP = static function ($cents) use ($cur): string {
         <?php if (cuisine_capable($boutiqueCat)):
             $rawOldC  = $_SESSION['_old'] ?? [];
             $cuiAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
-            $cuiActive = ($curCol === 'Cuisine');
+            $cuiActive = cuisine_is_rayon($curCol);                       // rayon adaptatif Maison sélectionné ?
+            $cuiRayon  = $cuiActive ? $curCol : (cuisine_rayons()[0] ?? 'Cuisine'); // rayon rendu côté serveur
             $cuiType  = (string) ($rawOldC['product_type'] ?? ($product['product_type'] ?? ''));
-            $cuiMeta  = cuisine_type_meta('Cuisine', $cuiType);
+            $cuiMeta  = cuisine_type_meta($cuiRayon, $cuiType);
             $cuiAttr  = static fn (string $k): string => (string) ($rawOldC[$k] ?? ($cuiAttrs[$k] ?? ''));
             $cuiElec  = $cuiMeta !== null && !empty($cuiMeta['elec']);
             $cuiAtoutsSel = isset($rawOldC['atouts']) && is_array($rawOldC['atouts'])
@@ -121,8 +122,9 @@ $fmtP = static function ($cents) use ($cur): string {
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
             $cuiDis = $cuiActive ? '' : ' disabled';
         ?>
-        <div data-cuisine data-rayon="Cuisine"
-             data-cfg="<?= e((string) json_encode(cuisine_rayon('Cuisine'), JSON_UNESCAPED_UNICODE)) ?>"
+        <div data-cuisine
+             data-rayons="<?= e((string) json_encode((array) config('cuisine.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('cuisine.f.type_any')) ?>"
              data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
 
         <!-- ===== Cuisine adaptatif (Maison & meubles) ===== -->
@@ -136,9 +138,9 @@ $fmtP = static function ($cents) use ($cur): string {
                     <label for="cui-type"><?= e(t('cuisine.f.type')) ?> <span class="req">*</span></label>
                     <select id="cui-type" name="product_type" data-pv="type" data-cuisine-type<?= $cuiDis ?>>
                         <option value=""><?= e(t('cuisine.f.type_any')) ?></option>
-                        <?php foreach (cuisine_groups('Cuisine') as $gk => $glabel): ?>
+                        <?php foreach (cuisine_groups($cuiRayon) as $gk => $glabel): ?>
                             <optgroup label="<?= e($glabel) ?>">
-                                <?php foreach (cuisine_types('Cuisine') as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                <?php foreach (cuisine_types($cuiRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
                                     <option value="<?= e($tname) ?>" <?= $cuiType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
                                 <?php endforeach; ?>
                             </optgroup>
@@ -151,7 +153,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
                 <p class="hint" data-cuisine-hint><?= e($cuiMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
                 <div class="attrs grid-2" data-cuisine-attrs>
-                    <?php if ($cuiMeta): foreach ((array) ($cuiMeta['fields'] ?? []) as $fk): $fd = cuisine_fields('Cuisine')[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($cuiAttrs[$fk] ?? ''); ?>
+                    <?php if ($cuiMeta): foreach ((array) ($cuiMeta['fields'] ?? []) as $fk): $fd = cuisine_fields($cuiRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($cuiAttrs[$fk] ?? ''); ?>
                         <div>
                             <label><?= e((string) $fd['label']) ?></label>
                             <select name="attr[<?= e($fk) ?>]"<?= $cuiDis ?>>
@@ -189,7 +191,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
                 <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <div class="chip-checks" data-cuisine-atouts>
-                    <?php foreach (cuisine_atouts('Cuisine') as $a): ?>
+                    <?php foreach (cuisine_atouts($cuiRayon) as $a): ?>
                         <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $cuiAtoutsSel, true) ? 'checked' : '' ?><?= $cuiDis ?>><span><?= e($a) ?></span></label>
                     <?php endforeach; ?>
                 </div>

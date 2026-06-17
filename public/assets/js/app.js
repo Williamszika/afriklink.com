@@ -4010,34 +4010,36 @@ document.addEventListener('click', function (ev) {
     if (b) { ev.preventDefault(); window.print(); }
 });
 
-/* ---- Cuisine (Maison & meubles) : formulaire adaptatif au type.
-   Le type pilote les caractéristiques affichées ; les appareils électriques
-   (flag elec) révèlent la garantie + le rappel CE/tension. La section n'est
-   active que lorsque le rayon « Cuisine » est sélectionné (sinon désactivée
-   pour ne pas être envoyée). Déclinaisons : éditeur générique partagé. ---- */
+/* ---- Maison & meubles : rayons adaptatifs au type (Cuisine, Décoration, …).
+   Le rayon sélectionné pilote la liste de types + atouts ; le type pilote les
+   caractéristiques affichées ; les appareils/luminaires électriques (flag elec)
+   révèlent la garantie + le rappel CE/tension. La section n'est active que pour
+   un rayon Maison adaptatif (sinon désactivée pour ne pas être envoyée).
+   Déclinaisons : éditeur générique partagé. ---- */
 (function () {
     var cfgEl = document.querySelector('[data-cuisine]');
     var form  = document.getElementById('product-form');
     if (!cfgEl || !form) { return; }
-    var CFG; try { CFG = JSON.parse(cfgEl.getAttribute('data-cfg') || 'null') || {}; } catch (e) { CFG = {}; }
-    var RAYON = cfgEl.getAttribute('data-rayon') || 'Cuisine';
-    var coll     = document.querySelector('[data-collection-select]');
-    var root     = document.querySelector('[data-cuisine-root]');
-    var typeSel  = document.querySelector('[data-cuisine-type]');
-    var attrsBox = document.querySelector('[data-cuisine-attrs]');
-    var elecBox  = document.querySelector('[data-cuisine-elec-box]');
-    var elecWarn = document.querySelector('[data-cuisine-elec-warn]');
-    var hint     = document.querySelector('[data-cuisine-hint]');
-    var axisInp  = document.querySelector('[data-cuisine-axis]');
+    var RAYONS; try { RAYONS = JSON.parse(cfgEl.getAttribute('data-rayons') || 'null') || {}; } catch (e) { RAYONS = {}; }
+    var coll      = document.querySelector('[data-collection-select]');
+    var root      = document.querySelector('[data-cuisine-root]');
+    var typeSel   = document.querySelector('[data-cuisine-type]');
+    var attrsBox  = document.querySelector('[data-cuisine-attrs]');
+    var atoutsBox = document.querySelector('[data-cuisine-atouts]');
+    var elecBox   = document.querySelector('[data-cuisine-elec-box]');
+    var elecWarn  = document.querySelector('[data-cuisine-elec-warn]');
+    var hint      = document.querySelector('[data-cuisine-hint]');
+    var axisInp   = document.querySelector('[data-cuisine-axis]');
     if (!root) { return; }
 
-    function active() { return !!(coll && coll.value === RAYON); }
-    function meta() { var t = CFG.types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+    function active() { return !!(coll && RAYONS[coll.value]); }
+    function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
+    function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
 
     // Reconstruit les caractéristiques (selects) du type choisi, en gardant les valeurs.
     function buildAttrs() {
         if (!attrsBox) { return; }
-        var fields = CFG.fields || {};
+        var fields = cfg().fields || {};
         var prev = {};
         attrsBox.querySelectorAll('select').forEach(function (s) {
             var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; }
@@ -4058,6 +4060,40 @@ document.addEventListener('click', function (ev) {
             wrap.appendChild(sel); attrsBox.appendChild(wrap);
         });
     }
+    // Reconstruit le sélecteur de type (groupes) + les atouts quand le RAYON change.
+    function rebuildRayon() {
+        var c = cfg();
+        if (typeSel) {
+            var cur = typeSel.value;
+            typeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = cfgEl.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
+            var groups = c.groups || {}, types = c.types || {};
+            Object.keys(groups).forEach(function (gk) {
+                var og = document.createElement('optgroup'); og.label = groups[gk];
+                Object.keys(types).forEach(function (tn) {
+                    if ((types[tn].group || '') !== gk) { return; }
+                    var op = document.createElement('option'); op.value = tn; op.textContent = tn;
+                    if (tn === cur) { op.selected = true; }
+                    og.appendChild(op);
+                });
+                typeSel.appendChild(og);
+            });
+            if (typeSel.value !== cur) { typeSel.value = ''; }
+        }
+        if (atoutsBox) {
+            var prevAt = {};
+            atoutsBox.querySelectorAll('input:checked').forEach(function (i) { prevAt[i.value] = true; });
+            atoutsBox.innerHTML = '';
+            (c.atouts || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'atouts[]'; inp.value = v;
+                if (prevAt[v]) { inp.checked = true; }
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
+            });
+        }
+        onType();
+    }
     function onType() {
         var m = meta();
         var isElec = !!(m && m.elec);
@@ -4068,7 +4104,7 @@ document.addEventListener('click', function (ev) {
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
     }
     // (dés)active toute la section selon le rayon courant ; la garantie reste
-    // réservée aux appareils électriques même quand la section est active.
+    // réservée aux appareils/luminaires électriques même quand la section est active.
     function setEnabled() {
         var on = active();
         root.hidden = !on;
@@ -4077,9 +4113,12 @@ document.addEventListener('click', function (ev) {
             elecBox.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; });
         }
     }
-    function refresh() { if (active()) { onType(); } setEnabled(); }
+    // Changement de rayon → reconstruit types + atouts. Le serveur a déjà rendu le
+    // bon rayon au chargement : on ne reconstruit pas (préserve la sélection d'édition).
+    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
 
-    if (coll)    { coll.addEventListener('change', refresh); }
+    if (coll)    { coll.addEventListener('change', onColl); }
     if (typeSel) { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
-    refresh();
+    if (active()) { onType(); }
+    setEnabled();
 })();

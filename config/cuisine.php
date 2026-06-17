@@ -2,11 +2,15 @@
 declare(strict_types=1);
 
 /**
- * Rayon adaptatif « Cuisine » du domaine « Maison & meubles » (catégorie boutique
- * « maison »). Même philosophie que config/electronics.php : le TYPE pilote les
- * caractéristiques affichées, la nature de la déclinaison et le mode « appareil
- * électrique » (flag `elec` → garantie + rappel CE/tension). Les specs sont
+ * Moteur de rayons ADAPTATIFS du domaine « Maison & meubles » (catégorie boutique
+ * « maison ») : Cuisine, Décoration, … (un rayon ajouté = config seule). Même
+ * philosophie que config/electronics.php : le RAYON pilote la liste de types, et
+ * le TYPE pilote les caractéristiques affichées, la nature de la déclinaison et le
+ * mode « électrique » (flag `elec` → garantie + rappel CE/tension). Les specs sont
  * stockées dans products.attributes (JSON) — aucune migration.
+ *
+ * (Le fichier garde le nom « cuisine » pour des raisons historiques ; il couvre
+ *  désormais tous les rayons Maison adaptatifs.)
  *
  * 'shop_categories' : catégories de boutique concernées.
  * 'rayons' => libellé du rayon => [ groups, atouts, fields, types ].
@@ -76,6 +80,61 @@ return [
                 'Textile cuisine'             => ['group' => 'rangement', 'fields' => ['matiere', 'pieces'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
                 // Autre
                 'Autre article de cuisine'    => ['group' => 'autre', 'fields' => ['matiere', 'capacite'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+            ],
+        ],
+
+        'Décoration' => [
+            'groups' => [
+                'murs'    => 'Murs & cadres',
+                'lum'     => 'Luminaires',
+                'textile' => 'Textile déco',
+                'objets'  => 'Objets déco',
+                'autre'   => 'Autre',
+            ],
+            'atouts' => ['Wax / pagne', 'Fait main / artisanal', 'Style africain', 'LED', 'Lot / ensemble', 'Éco-responsable', 'Pièce unique', 'Lavable'],
+            'fields' => [
+                'matiere'     => ['label' => 'Matière', 'opts' => ['Bois', 'Métal', 'Verre', 'Céramique', 'Rotin / osier', 'Tissu', 'Coton', 'Velours', 'Wax / pagne', 'Plastique', 'Résine', 'Pierre', 'Bambou', 'Autre']],
+                'dimensions'  => ['label' => 'Dimensions', 'opts' => ['Petit', 'Moyen', 'Grand', 'Très grand']],
+                'forme'       => ['label' => 'Forme', 'opts' => ['Rond', 'Carré', 'Rectangulaire', 'Ovale', 'Irrégulier']],
+                'style'       => ['label' => 'Style', 'opts' => ['Moderne', 'Bohème', 'Scandinave', 'Industriel', 'Ethnique / africain', 'Vintage', 'Classique', 'Minimaliste']],
+                'ampoule'     => ['label' => 'Type d’ampoule', 'opts' => ['LED intégrée', 'E27', 'E14', 'GU10', 'Sans ampoule fournie']],
+                'puissance'   => ['label' => 'Puissance (W)', 'opts' => ['< 10 W', '10–25 W', '25–40 W', '40–60 W', '> 60 W']],
+                'tension'     => ['label' => 'Alimentation', 'opts' => ['220–240 V', 'Pile', 'USB / rechargeable', 'Solaire', 'Sans']],
+                'nb_lumieres' => ['label' => 'Nombre de lumières', 'opts' => ['1', '2', '3', '4', '5 et +']],
+                'pieces'      => ['label' => 'Nombre de pièces / lot', 'opts' => ['1', '2', '3', '4', '6', '+']],
+                'motif'       => ['label' => 'Motif', 'opts' => ['Uni', 'Wax / imprimé africain', 'Géométrique', 'Floral', 'Abstrait', 'Animal', 'Texte']],
+                'remplissage' => ['label' => 'Garnissage', 'opts' => ['Avec garniture', 'Housse seule']],
+                'pose'        => ['label' => 'Pose', 'opts' => ['À poser', 'À suspendre', 'Murale', 'Sur pied']],
+                'parfum'      => ['label' => 'Parfum', 'opts' => ['Sans parfum', 'Vanille', 'Fleuri', 'Boisé', 'Agrumes', 'Épicé']],
+            ],
+            'types' => [
+                // Murs & cadres
+                'Cadre / tableau'           => ['group' => 'murs', 'fields' => ['matiere', 'dimensions', 'forme', 'style', 'motif'], 'elec' => false, 'axis' => 'Taille', 'color' => false],
+                'Miroir'                    => ['group' => 'murs', 'fields' => ['matiere', 'dimensions', 'forme', 'style', 'pose'], 'elec' => false, 'axis' => 'Taille', 'color' => false],
+                'Sticker mural / poster'    => ['group' => 'murs', 'fields' => ['dimensions', 'motif', 'style'], 'elec' => false, 'axis' => 'Modèle', 'color' => false],
+                'Tenture / tapisserie'      => ['group' => 'murs', 'fields' => ['matiere', 'dimensions', 'motif', 'style'], 'elec' => false, 'axis' => 'Taille', 'color' => true],
+                // Luminaires (électriques → garantie + rappel CE/ampoule/tension)
+                'Lampe / lampe de table'    => ['group' => 'lum', 'fields' => ['matiere', 'ampoule', 'puissance', 'tension', 'style'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Suspension / plafonnier'   => ['group' => 'lum', 'fields' => ['matiere', 'ampoule', 'nb_lumieres', 'tension', 'style'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Lampadaire'                => ['group' => 'lum', 'fields' => ['matiere', 'ampoule', 'puissance', 'tension', 'style'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Guirlande lumineuse'       => ['group' => 'lum', 'fields' => ['nb_lumieres', 'tension', 'dimensions'], 'elec' => true, 'axis' => 'Modèle', 'color' => false],
+                'Applique murale'           => ['group' => 'lum', 'fields' => ['matiere', 'ampoule', 'tension', 'style'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                // Textile déco
+                'Coussin'                   => ['group' => 'textile', 'fields' => ['matiere', 'dimensions', 'motif', 'remplissage', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Plaid / jeté'              => ['group' => 'textile', 'fields' => ['matiere', 'dimensions', 'motif', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Rideau / voilage'          => ['group' => 'textile', 'fields' => ['matiere', 'dimensions', 'motif', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Tapis'                     => ['group' => 'textile', 'fields' => ['matiere', 'dimensions', 'forme', 'motif', 'style'], 'elec' => false, 'axis' => 'Taille', 'color' => true],
+                'Nappe / chemin de table'   => ['group' => 'textile', 'fields' => ['matiere', 'dimensions', 'motif'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                // Objets déco
+                'Vase'                      => ['group' => 'objets', 'fields' => ['matiere', 'dimensions', 'forme', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Bougie / bougeoir'         => ['group' => 'objets', 'fields' => ['matiere', 'parfum', 'dimensions', 'pieces'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Photophore'                => ['group' => 'objets', 'fields' => ['matiere', 'dimensions', 'pieces', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Statue / figurine'         => ['group' => 'objets', 'fields' => ['matiere', 'dimensions', 'style'], 'elec' => false, 'axis' => 'Modèle', 'color' => false],
+                'Horloge'                   => ['group' => 'objets', 'fields' => ['matiere', 'dimensions', 'forme', 'style', 'tension'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
+                'Plante artificielle'       => ['group' => 'objets', 'fields' => ['matiere', 'dimensions', 'pose'], 'elec' => false, 'axis' => 'Taille', 'color' => false],
+                'Panier déco / corbeille'   => ['group' => 'objets', 'fields' => ['matiere', 'dimensions', 'pieces', 'style'], 'elec' => false, 'axis' => 'Taille', 'color' => true],
+                // Autre
+                'Autre objet déco'          => ['group' => 'autre', 'fields' => ['matiere', 'dimensions', 'style', 'motif'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
             ],
         ],
     ],
