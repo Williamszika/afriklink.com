@@ -21,7 +21,7 @@ return [
         'electronique' => [
             'Téléphones'          => 'stockage',
             'Tablettes'           => 'stockage',
-            'Ordinateurs'         => 'stockage',
+            'Ordinateurs'         => 'none',
             'Audio & écouteurs'   => 'none',
             'Montres connectées'  => 'none',
             'Accessoires'         => 'none',

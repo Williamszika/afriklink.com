@@ -12,7 +12,7 @@ return [
 
     'conditions' => ['Neuf', 'Comme neuf', 'Reconditionné', 'Occasion'],
     'garanties'  => ['3 mois', '6 mois', '1 an', '2 ans'],
-    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack'],
+    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack', 'Configuration', 'Stockage', 'RAM'],
 
     'rayons' => [
         // =================== Accessoires ===================
@@ -141,6 +141,36 @@ return [
                 'Montre enfant'      => ['fields' => ['compat', 'appels', 'gps', 'etancheite', 'camera', 'sos', 'autonomie_j'], 'sensors' => false, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
                 'Montre hybride'     => ['fields' => ['compat', 'autonomie_j', 'etancheite', 'boitier_mat', 'bracelet_mat', 'bracelet_inter'], 'sensors' => true, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
                 'Autre montre'       => ['fields' => ['compat'], 'sensors' => false, 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+            ],
+        ],
+
+        // =================== Ordinateurs ===================
+        'Ordinateurs' => [
+            'groups' => [], // liste à plat (sans optgroups)
+            'atouts' => ['SSD rapide', 'Reconditionné garanti', 'Léger / ultraportable', 'Écran tactile', 'Clavier rétroéclairé', 'Lecteur d’empreinte', 'Original / authentique', 'Garantie incluse'],
+            'fields' => [
+                'os'            => ['label' => 'Système d’exploitation', 'opts' => ['Windows 11', 'Windows 10', 'macOS', 'ChromeOS', 'Linux', 'Sans OS / FreeDOS']],
+                'cpu'           => ['label' => 'Processeur', 'opts' => ['Intel Core i3', 'Intel Core i5', 'Intel Core i7', 'Intel Core i9', 'Intel Celeron / Pentium', 'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9', 'Apple M1', 'Apple M2', 'Apple M3', 'Apple M4', 'Autre']],
+                'ram'           => ['label' => 'Mémoire RAM', 'opts' => ['4 Go', '8 Go', '12 Go', '16 Go', '32 Go', '64 Go']],
+                'stockage_type' => ['label' => 'Type de stockage', 'opts' => ['SSD', 'HDD', 'SSD + HDD', 'eMMC']],
+                'stockage_cap'  => ['label' => 'Capacité de stockage', 'opts' => ['64 Go', '128 Go', '256 Go', '512 Go', '1 To', '2 To', '4 To']],
+                'gpu'           => ['label' => 'Carte graphique', 'opts' => ['Graphique intégré', 'NVIDIA GeForce RTX', 'NVIDIA GeForce GTX', 'NVIDIA (autre)', 'AMD Radeon', 'Apple GPU intégré', 'Autre dédiée']],
+                'ecran_taille'  => ['label' => 'Taille de l’écran', 'opts' => ['11"', '12"', '13"', '14"', '15"', '16"', '17"', '19" et +']],
+                'ecran_reso'    => ['label' => 'Résolution', 'opts' => ['HD (1366×768)', 'Full HD (1920×1080)', '2K / QHD', '4K / UHD', 'Retina']],
+                'refresh'       => ['label' => 'Taux de rafraîchissement', 'opts' => ['60 Hz', '120 Hz', '144 Hz', '165 Hz', '240 Hz']],
+                'tactile'       => ['label' => 'Écran tactile', 'opts' => ['Oui', 'Non']],
+                'autonomie_h'   => ['label' => 'Autonomie', 'opts' => ['Jusqu’à 4h', 'Jusqu’à 8h', 'Jusqu’à 12h', '15h+']],
+                'clavier'       => ['label' => 'Clavier', 'opts' => ['AZERTY rétroéclairé', 'AZERTY', 'QWERTY', 'Autre']],
+                'format_pc'     => ['label' => 'Format', 'opts' => ['Portable', 'Tour / desktop']],
+            ],
+            'types' => [
+                'PC portable'         => ['fields' => ['os', 'cpu', 'ram', 'stockage_type', 'stockage_cap', 'gpu', 'ecran_taille', 'ecran_reso', 'tactile', 'autonomie_h', 'clavier'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'PC de bureau (tour)' => ['fields' => ['os', 'cpu', 'ram', 'stockage_type', 'stockage_cap', 'gpu'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'Tout-en-un (AIO)'    => ['fields' => ['os', 'cpu', 'ram', 'stockage_type', 'stockage_cap', 'gpu', 'ecran_taille', 'ecran_reso', 'tactile'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'Mini PC'             => ['fields' => ['os', 'cpu', 'ram', 'stockage_type', 'stockage_cap', 'gpu'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'PC gamer'            => ['fields' => ['format_pc', 'os', 'cpu', 'ram', 'stockage_type', 'stockage_cap', 'gpu', 'ecran_taille', 'ecran_reso', 'refresh'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'Chromebook'          => ['fields' => ['cpu', 'ram', 'stockage_type', 'stockage_cap', 'ecran_taille', 'ecran_reso', 'tactile', 'autonomie_h'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'Autre ordinateur'    => ['fields' => ['os', 'cpu', 'ram', 'stockage_cap'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
             ],
         ],
     ],
