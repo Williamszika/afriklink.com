@@ -20,7 +20,7 @@ return [
         ],
         'electronique' => [
             'Téléphones'          => 'stockage',
-            'Tablettes'           => 'stockage',
+            'Tablettes'           => 'none',
             'Ordinateurs'         => 'none',
             'Audio & écouteurs'   => 'none',
             'Montres connectées'  => 'none',

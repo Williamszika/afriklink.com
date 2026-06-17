@@ -12,7 +12,7 @@ return [
 
     'conditions' => ['Neuf', 'Comme neuf', 'Reconditionné', 'Occasion'],
     'garanties'  => ['3 mois', '6 mois', '1 an', '2 ans'],
-    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack', 'Configuration', 'Stockage', 'RAM'],
+    'axes'       => ['Couleur', 'Capacité', 'Longueur', 'Puissance', 'Modèle', 'Taille', 'Taille du boîtier', 'Bracelet', 'Pack', 'Configuration', 'Stockage', 'RAM', 'Connectivité'],
 
     'rayons' => [
         // =================== Accessoires ===================
@@ -171,6 +171,44 @@ return [
                 'PC gamer'            => ['fields' => ['format_pc', 'os', 'cpu', 'ram', 'stockage_type', 'stockage_cap', 'gpu', 'ecran_taille', 'ecran_reso', 'refresh'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
                 'Chromebook'          => ['fields' => ['cpu', 'ram', 'stockage_type', 'stockage_cap', 'ecran_taille', 'ecran_reso', 'tactile', 'autonomie_h'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
                 'Autre ordinateur'    => ['fields' => ['os', 'cpu', 'ram', 'stockage_cap'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+            ],
+        ],
+
+        // =================== Tablettes ===================
+        'Tablettes' => [
+            'groups' => [], // liste à plat (sans optgroups)
+            'atouts' => ['Stylet inclus', 'Clavier inclus', '4G / 5G', 'Léger', 'Reconditionné garanti', 'Contrôle parental', 'Original / authentique', 'Garantie incluse'],
+            'fields' => [
+                'os'                => ['label' => 'Système', 'opts' => ['Android', 'iPadOS', 'Windows', 'HarmonyOS', 'Fire OS', 'Autre']],
+                'ecran_taille'      => ['label' => 'Taille de l’écran', 'opts' => ['6"', '7"', '8"', '9"', '10"', '11"', '12,9"', '13" et +']],
+                'ecran_type'        => ['label' => 'Type d’écran', 'opts' => ['LCD', 'IPS', 'AMOLED', 'E-ink', 'Retina']],
+                'ecran_reso'        => ['label' => 'Résolution', 'opts' => ['HD', 'Full HD', '2K / QHD', '4K / UHD', 'Retina']],
+                'cpu'               => ['label' => 'Puce / processeur', 'opts' => ['Apple A / M', 'Qualcomm Snapdragon', 'MediaTek', 'Samsung Exynos', 'Intel', 'Autre']],
+                'ram'               => ['label' => 'Mémoire RAM', 'opts' => ['2 Go', '3 Go', '4 Go', '6 Go', '8 Go', '12 Go']],
+                'stockage_cap'      => ['label' => 'Stockage', 'opts' => ['16 Go', '32 Go', '64 Go', '128 Go', '256 Go', '512 Go', '1 To']],
+                'extensible'        => ['label' => 'Stockage extensible (microSD)', 'opts' => ['Oui', 'Non']],
+                'connectivite'      => ['label' => 'Connectivité', 'opts' => ['Wi-Fi', 'Wi-Fi + 4G/LTE', 'Wi-Fi + 5G']],
+                'autonomie_h'       => ['label' => 'Autonomie', 'opts' => ['Jusqu’à 6h', 'Jusqu’à 10h', 'Jusqu’à 15h', 'Plusieurs jours', 'Plusieurs semaines']],
+                'stylet'            => ['label' => 'Stylet', 'opts' => ['Inclus', 'Compatible (non fourni)', 'Non']],
+                'clavier'           => ['label' => 'Clavier', 'opts' => ['Inclus', 'Compatible (non fourni)', 'Non']],
+                'camera'            => ['label' => 'Appareil photo', 'opts' => ['Oui', 'Non']],
+                'controle_parental' => ['label' => 'Contrôle parental', 'opts' => ['Oui', 'Non']],
+                'etui'              => ['label' => 'Étui / coque renforcée', 'opts' => ['Inclus', 'Non']],
+                'eclairage'         => ['label' => 'Éclairage frontal', 'opts' => ['Oui (réglable)', 'Oui', 'Non']],
+                'etancheite'        => ['label' => 'Étanchéité', 'opts' => ['Aucune', 'IPX7', 'IPX8']],
+                'formats'           => ['label' => 'Formats supportés', 'opts' => ['EPUB / PDF', 'Kindle (AZW)', 'Multi-formats']],
+                'surface'           => ['label' => 'Surface active', 'opts' => ['4 × 3"', '6 × 4"', '8 × 5"', '10 × 6"', 'Plus grand']],
+                'pression'          => ['label' => 'Niveaux de pression', 'opts' => ['2048', '4096', '8192']],
+                'ecran_integre'     => ['label' => 'Écran intégré', 'opts' => ['Oui', 'Non']],
+                'connexion'         => ['label' => 'Connexion', 'opts' => ['USB', 'USB-C', 'Bluetooth / sans fil']],
+            ],
+            'types' => [
+                'Tablette tactile'               => ['fields' => ['os', 'ecran_taille', 'ecran_type', 'ecran_reso', 'cpu', 'ram', 'stockage_cap', 'extensible', 'connectivite', 'autonomie_h', 'stylet'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'Tablette 2-en-1 / avec clavier' => ['fields' => ['os', 'ecran_taille', 'ecran_type', 'ecran_reso', 'cpu', 'ram', 'stockage_cap', 'connectivite', 'clavier', 'stylet'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
+                'Liseuse (e-reader)'             => ['fields' => ['ecran_taille', 'eclairage', 'stockage_cap', 'etancheite', 'formats', 'autonomie_h'], 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Tablette enfant'                => ['fields' => ['os', 'ecran_taille', 'ram', 'stockage_cap', 'controle_parental', 'etui', 'camera', 'autonomie_h'], 'compat' => false, 'axis' => 'Couleur', 'color' => true],
+                'Tablette graphique'             => ['fields' => ['surface', 'pression', 'ecran_integre', 'connexion', 'stylet'], 'compat' => false, 'axis' => 'Modèle', 'color' => false],
+                'Autre tablette'                 => ['fields' => ['os', 'ecran_taille', 'ram', 'stockage_cap'], 'compat' => false, 'axis' => 'Configuration', 'color' => false],
             ],
         ],
     ],
