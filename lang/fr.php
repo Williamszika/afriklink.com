@@ -1716,6 +1716,8 @@ return [
     'appa.sizes_hint' => 'Remplis une plage de tailles, puis ajuste le stock (et le prix si différent) par taille.',
     'appa.sizes_pick' => 'Choisis d’abord le genre (section Identité) pour proposer les bonnes tailles.',
     'appa.sizes_genre' => 'Tailles adaptées au genre : :genre. Remplis une plage, puis ajuste le stock par taille.',
+    'appa.decl_size' => 'Cet article se décline par TAILLE. Remplis une plage, puis ajuste le stock par option.',
+    'appa.decl_color' => 'Cet article se décline par COULEUR. Clique un coloris pour l’ajouter, puis ajuste le stock.',
     'appa.axis_ph' => 'ex. Taille, Pointure…',
     'appa.clear' => 'Vider',
     'appa.size_add' => 'Ajouter une taille',

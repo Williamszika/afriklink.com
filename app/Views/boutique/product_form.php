@@ -356,14 +356,16 @@ $fmtP = static function ($cents) use ($cur): string {
         $aAttr     = static fn (string $k): string => (string) ($rawOldA[$k] ?? ($appaAttrs[$k] ?? ''));
         $appaCondition = $aAttr('condition') ?: (apparel_conditions()[0] ?? 'Neuf avec étiquette');
         $appaLocked = apparel_rayon_public($appaRayonSSR); // '' ou public imposé (ex. 'feminin')
-        $appaGenres = apparel_rayon_genres($appaRayonSSR);
-        $appaGenreSel = $aAttr('genre') ?: ($appaLocked !== '' ? ($appaGenres[0] ?? '') : ''); // verrou => 1er genre par défaut
+        $appaTypePublic = (bool) (((array) config('apparel.rayons', []))[$appaRayonSSR]['type_public'] ?? false);
+        $appaNoEmpty = $appaLocked !== '' || $appaTypePublic; // pas d'option « — » sur le genre
+        $appaGenres = $appaTypePublic ? apparel_type_public($appaRayonSSR, $appaType) : apparel_rayon_genres($appaRayonSSR);
+        $appaGenreSel = $aAttr('genre') ?: ($appaNoEmpty ? ($appaGenres[0] ?? '') : ''); // 1er genre par défaut si pas d'option vide
         $appaAtouts = isset($rawOldA['atouts']) && is_array($rawOldA['atouts'])
             ? array_map('strval', $rawOldA['atouts'])
             : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
-        $appaAxisDefault = (string) (((array) config('apparel.rayons', []))[$appaRayonSSR]['axis'] ?? 'Pointure');
+        $appaAxisDefault = (string) ($appaMeta['axis'] ?? (((array) config('apparel.rayons', []))[$appaRayonSSR]['axis'] ?? 'Pointure'));
         $appaAxis = (string) ($rawOldA['variant_axis'] ?? ($appaAttrs['variant_axis'] ?? $appaAxisDefault));
-        $appaHasColor = false;
+        $appaHasColor = (bool) ($appaMeta['color'] ?? false);
         foreach ($realVariants as $vv) { $aa = is_array($vv['attributes'] ?? null) ? $vv['attributes'] : (json_decode((string) ($vv['attributes'] ?? ''), true) ?: []); if (!empty($aa['hex'])) { $appaHasColor = true; break; } }
         if (isset($rawOldA['var_has_color'])) { $appaHasColor = (string) $rawOldA['var_has_color'] === '1'; }
         $aSec = static fn (string $s): string => ' data-appa-section="' . $s . '"' . ($s === $appaSection ? '' : ' hidden');
@@ -374,6 +376,7 @@ $fmtP = static function ($cents) use ($cur): string {
              data-couleurs="<?= e((string) json_encode(apparel_couleurs(), JSON_UNESCAPED_UNICODE)) ?>"
              data-opt="<?= e(t('variant.option')) ?>" data-any="<?= e(t('appa.f.genre_any')) ?>"
              data-sizes-hint="<?= e(t('appa.sizes_hint')) ?>" data-sizes-pick="<?= e(t('appa.sizes_pick')) ?>" data-sizes-genre="<?= e(t('appa.sizes_genre', ['genre' => '%G%'])) ?>"
+             data-decl-size="<?= e(t('appa.decl_size')) ?>" data-decl-color="<?= e(t('appa.decl_color')) ?>"
              data-hint-specs="<?= e(t('appa.specs_hint')) ?>" data-hint-pick="<?= e(t('appa.specs_pick')) ?>" hidden></div>
 
         <!-- ===== Mode : fiche basique (rayons non adaptatifs) ===== -->
@@ -437,7 +440,7 @@ $fmtP = static function ($cents) use ($cur): string {
             <div>
                 <label for="appa-genre"><?= e(t('appa.f.genre')) ?> <span class="req">*</span> <span class="lockhint" data-appa-lockhint<?= $appaLocked !== '' ? '' : ' hidden' ?>>🔒 <?= e(t('appa.locked_only')) ?></span></label>
                 <select id="appa-genre" name="genre" data-appa-genre>
-                    <?php if ($appaLocked === ''): ?><option value=""><?= e(t('appa.f.genre_any')) ?></option><?php endif; ?>
+                    <?php if (!$appaNoEmpty): ?><option value=""><?= e(t('appa.f.genre_any')) ?></option><?php endif; ?>
                     <?php foreach ($appaGenres as $g): ?><option value="<?= e($g) ?>" <?= $appaGenreSel === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
                 </select>
             </div>
@@ -1638,8 +1641,9 @@ $fmtP = static function ($cents) use ($cur): string {
             <p class="hint" data-appa-sizes-hint><?= e(t('appa.sizes_hint')) ?></p>
             <input type="hidden" name="var_has_color" value="0">
             <div class="chips-row" data-appa-quickfill>
-                <?php foreach (apparel_quickfill_for($appaRayonSSR, $aAttr('genre')) as $qf): ?>
-                    <button type="button" class="axis-chip" data-appa-fill data-fill="<?= e((string) json_encode($qf, JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) $qf['label']) ?></button>
+                <?php foreach (apparel_quickfill_resolved($appaRayonSSR, $appaType, $appaGenreSel) as $qf): ?>
+                    <?php $isCol = ($qf['kind'] ?? '') === 'color'; ?>
+                    <button type="button" class="axis-chip<?= $isCol ? ' axis-chip--color' : '' ?>" data-appa-fill data-fill="<?= e((string) json_encode($qf, JSON_UNESCAPED_UNICODE)) ?>"><?php if ($isCol): ?><span class="axis-dot" style="background:<?= e((string) ($qf['hex'] ?? '#222')) ?>"></span><?php endif; ?><?= $isCol ? '' : '+ ' ?><?= e((string) $qf['label']) ?></button>
                 <?php endforeach; ?>
                 <button type="button" class="axis-chip" data-appa-clear><?= e(t('appa.clear')) ?></button>
             </div>

@@ -1716,6 +1716,8 @@ return [
     'appa.sizes_hint' => 'Fill a range of sizes, then adjust stock (and price if different) per size.',
     'appa.sizes_pick' => 'Pick the gender first (Identity section) to suggest the right sizes.',
     'appa.sizes_genre' => 'Sizes tailored to: :genre. Fill a range, then adjust stock per size.',
+    'appa.decl_size' => 'This item varies by SIZE. Fill a range, then adjust stock per option.',
+    'appa.decl_color' => 'This item varies by COLOUR. Click a colour to add it, then adjust stock.',
     'appa.axis_ph' => 'e.g. Size, Shoe size…',
     'appa.clear' => 'Clear',
     'appa.size_add' => 'Add a size',

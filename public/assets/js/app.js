@@ -3500,17 +3500,7 @@ document.addEventListener('click', function (ev) {
                 lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
             });
         }
-        if (genreSel) {
-            var curG = genreSel.value;
-            var list = (cfg().genres && cfg().genres.length) ? cfg().genres : GENRES;
-            var locked = !!cfg().public; // rayon verrouillé (ex. féminin) : pas d'option vide
-            genreSel.innerHTML = '';
-            if (!locked) { var g0 = document.createElement('option'); g0.value = ''; g0.textContent = cfgEl.getAttribute('data-any') || '—'; genreSel.appendChild(g0); }
-            list.forEach(function (gn) {
-                var op = document.createElement('option'); op.value = gn; op.textContent = gn; genreSel.appendChild(op);
-            });
-            genreSel.value = (list.indexOf(curG) !== -1) ? curG : (locked ? (list[0] || '') : '');
-        }
+        buildGenreOptions();
         if (couleurSel) {
             var curC = couleurSel.value;
             var clist = (cfg().couleurs && cfg().couleurs.length) ? cfg().couleurs : COULEURS;
@@ -3520,8 +3510,23 @@ document.addEventListener('click', function (ev) {
             couleurSel.value = (clist.indexOf(curC) !== -1) ? curC : '';
         }
         applyLock();
-        if (axisInp && !axisInp.value.trim() && cfg().axis) { axisInp.value = cfg().axis; axisLabel(); }
-        buildQuickfill(); sizesHint(); onType();
+        if (axisInp && cfg().axis) { axisInp.value = cfg().axis; axisLabel(); } // axe par défaut du rayon (le type peut l'imposer ensuite)
+        onType();
+    }
+    // Publics du sélecteur de genre : pub du TYPE (rayon type_public) sinon genres du rayon.
+    function genreList() {
+        var m = meta();
+        if (cfg().type_public && m && m.pub && m.pub.length) { return m.pub; }
+        return (cfg().genres && cfg().genres.length) ? cfg().genres : GENRES;
+    }
+    function noEmptyGenre() { return !!cfg().public || !!cfg().type_public; }
+    function buildGenreOptions() {
+        if (!genreSel) { return; }
+        var curG = genreSel.value, list = genreList(), ne = noEmptyGenre();
+        genreSel.innerHTML = '';
+        if (!ne) { var g0 = document.createElement('option'); g0.value = ''; g0.textContent = cfgEl.getAttribute('data-any') || '—'; genreSel.appendChild(g0); }
+        list.forEach(function (gn) { var op = document.createElement('option'); op.value = gn; op.textContent = gn; genreSel.appendChild(op); });
+        genreSel.value = (list.indexOf(curG) !== -1) ? curG : (ne ? (list[0] || '') : '');
     }
     // Bandeau « rayon verrouillé » (ex. public féminin) + indice près du genre.
     function applyLock() {
@@ -3531,8 +3536,13 @@ document.addEventListener('click', function (ev) {
         if (ban) { ban.hidden = !locked; }
         if (lh) { lh.hidden = !locked; }
     }
-    // Boutons de remplissage rapide : liste statique, ou dépendants du genre (map genre => boutons).
+    // Boutons de remplissage : résolus selon le TYPE (taille/couleur), sinon par genre / statique.
     function quickfillSet() {
+        var m = meta();
+        if (m) {
+            if (m.sizes) { return (cfg().sizesets || {})[m.sizes] || []; }
+            if (m.color && cfg().palette) { return cfg().palette.map(function (p) { return { label: p[0], kind: 'color', hex: p[1] }; }); }
+        }
         var qf = cfg().quickfill;
         if (!qf) { return []; }
         if (Array.isArray(qf)) { return qf; }
@@ -3543,17 +3553,25 @@ document.addEventListener('click', function (ev) {
         box.querySelectorAll('[data-appa-fill]').forEach(function (b) { b.remove(); });
         var clear = box.querySelector('[data-appa-clear]');
         quickfillSet().forEach(function (btn) {
-            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            var isCol = btn.kind === 'color';
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip' + (isCol ? ' axis-chip--color' : '');
             b.setAttribute('data-appa-fill', ''); b.setAttribute('data-fill', JSON.stringify(btn));
-            b.textContent = '+ ' + (btn.label || '');
+            if (isCol) {
+                var dot = document.createElement('span'); dot.className = 'axis-dot'; dot.style.background = btn.hex || '#222';
+                b.appendChild(dot); b.appendChild(document.createTextNode(btn.label || ''));
+            } else { b.textContent = '+ ' + (btn.label || ''); }
             box.insertBefore(b, clear);
         });
     }
     function sizesHint() {
         var h = document.querySelector('[data-appa-sizes-hint]'); if (!h) { return; }
-        var qf = cfg().quickfill;
-        var byGenre = qf && !Array.isArray(qf);
-        var g = genre();
+        var m = meta();
+        if (cfg().type_decl) { // Sacs : la nature de la déclinaison dépend du type
+            if (!m) { h.textContent = cfgEl.getAttribute('data-hint-pick') || h.textContent; }
+            else { h.textContent = (m.sizes ? cfgEl.getAttribute('data-decl-size') : cfgEl.getAttribute('data-decl-color')) || h.textContent; }
+            return;
+        }
+        var qf = cfg().quickfill, byGenre = qf && !Array.isArray(qf), g = genre();
         if (byGenre && !g) { h.textContent = cfgEl.getAttribute('data-sizes-pick') || h.textContent; }
         else if (byGenre && g) { h.textContent = (cfgEl.getAttribute('data-sizes-genre') || '%G%').replace('%G%', g); }
         else { h.textContent = cfgEl.getAttribute('data-sizes-hint') || h.textContent; }
@@ -3565,7 +3583,12 @@ document.addEventListener('click', function (ev) {
     }
     function onType() {
         var m = meta();
-        buildAttrs(); applyColorCol(); axisLabel();
+        if (cfg().type_decl && m) { // Sacs : le type impose l'axe et la pastille couleur
+            if (axisInp && m.axis) { axisInp.value = m.axis; }
+            if (colorTog) { colorTog.checked = !!m.color; }
+        }
+        if (cfg().type_public) { buildGenreOptions(); } // public adapté au type
+        buildAttrs(); applyColorCol(); axisLabel(); buildQuickfill(); sizesHint();
         var sh = document.querySelector('[data-appa-hint]');
         if (sh) { sh.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || sh.textContent) : (cfgEl.getAttribute('data-hint-pick') || sh.textContent); }
     }
@@ -3586,20 +3609,41 @@ document.addEventListener('click', function (ev) {
             var sz = row.querySelector('input[name="var_size[]"]'); if (sz) { sz.value = String(val); }
         });
     }
-    // Génère les valeurs d'un bouton de remplissage : 'range' (de..à pas), 'jeans' (W..), 'list'.
+    // Ajoute UN coloris (nom + pastille hex) à l'éditeur, en activant la colonne couleur.
+    function addColorVariant(name, hex) {
+        if (!rowsBox || !name) { return; }
+        var exists = false;
+        rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { if (String(i.value).trim() === name) { exists = true; } });
+        if (exists) { return; }
+        var row = addRow(); if (!row) { return; }
+        var sz = row.querySelector('input[name="var_size[]"]'); if (sz) { sz.value = name; }
+        var hx = row.querySelector('input[name="var_hex[]"]'); if (hx && hex) { hx.value = hex; }
+        if (colorTog && !colorTog.checked) { colorTog.checked = true; applyColorCol(); }
+    }
+    // Génère les valeurs d'un bouton : 'color' (coloris), 'range' (de..à pas, +suffixe), 'jeans' (W..), 'list'.
     function fillFromBtn(btn) {
         if (!btn) { return; }
+        if (btn.kind === 'color') { addColorVariant(btn.label, btn.hex); return; }
         var list = [], kind = btn.kind || 'range';
         if (kind === 'list') { list = btn.list || []; }
         else {
             var step = parseInt(btn.step, 10) || (kind === 'jeans' ? 2 : 1);
-            var prefix = kind === 'jeans' ? 'W' : '';
-            for (var n = parseInt(btn.from, 10); n <= parseInt(btn.to, 10); n += step) { list.push(prefix + n); }
+            var prefix = kind === 'jeans' ? 'W' : '', suffix = btn.suffix || '';
+            for (var n = parseInt(btn.from, 10); n <= parseInt(btn.to, 10); n += step) { list.push(prefix + n + suffix); }
         }
         pushSizes(list);
     }
 
-    if (typeSel) { typeSel.addEventListener('change', onType); }
+    // Changement de type : si l'axe change (Sacs couleur⇄taille), vide les options devenues caduques.
+    if (typeSel) {
+        typeSel.addEventListener('change', function () {
+            var prevAxis = axisInp ? axisInp.value : '';
+            onType();
+            if (cfg().type_decl && axisInp && axisInp.value !== prevAxis && rowsBox) {
+                rowsBox.querySelectorAll('.bvariant-row').forEach(function (r) { r.remove(); });
+            }
+        });
+    }
     if (genreSel) { genreSel.addEventListener('change', function () { buildAttrs(); buildQuickfill(); sizesHint(); }); }
     if (coll) { coll.addEventListener('change', function () { toggleSections(); if (isAppaRayon()) { rebuildAppa(); } }); }
     if (axisInp) { axisInp.addEventListener('input', axisLabel); }

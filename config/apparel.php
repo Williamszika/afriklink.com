@@ -230,5 +230,68 @@ return [
                 'Autre robe / jupe'         => ['group' => 'autre', 'fields' => ['longueur', 'matiere', 'motif', 'saison']],
             ],
         ],
+
+        // =================== Sacs & accessoires (déclinaison COULEUR ou TAILLE selon le type) ===================
+        'Sacs & accessoires' => [
+            'garment'     => 'accessory',
+            'axis'        => 'Couleur', // défaut rayon ; chaque type impose son axe (Couleur/Taille)
+            'type_public' => true,      // le public proposé dépend du type ('pub')
+            'type_decl'   => true,      // la déclinaison (couleur ⇄ taille) dépend du type
+            'genres'      => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant'],
+            'couleurs'    => ['Noir', 'Blanc', 'Gris', 'Beige', 'Marron', 'Camel', 'Rouge', 'Bordeaux', 'Bleu', 'Bleu marine', 'Vert', 'Kaki', 'Doré', 'Argenté', 'Rose', 'Multicolore', 'Wax / imprimé', 'Autre'],
+            // Pastilles de coloris (mode couleur) : [libellé, hex].
+            'palette' => [
+                ['Noir', '#222222'], ['Blanc', '#ffffff'], ['Gris', '#9aa0a6'], ['Beige', '#d8c3a5'],
+                ['Marron', '#6b4423'], ['Rouge', '#c0392b'], ['Bleu', '#2c3e8f'], ['Vert', '#2e7d4f'],
+                ['Doré', '#c7922e'], ['Argenté', '#bdc3c7'], ['Rose', '#d6749a'], ['Multicolore', '#888888'],
+            ],
+            // Jeux de tailles (mode taille) par clé 'sizes' du type.
+            'sizesets' => [
+                'belt'   => [
+                    ['label' => 'Ceinture 85–115 cm', 'kind' => 'range', 'from' => 85, 'to' => 115, 'step' => 5, 'suffix' => ' cm'],
+                    ['label' => 'S → XL', 'kind' => 'list', 'list' => ['S', 'M', 'L', 'XL']],
+                ],
+                'letter' => [
+                    ['label' => 'Taille unique', 'kind' => 'list', 'list' => ['Taille unique']],
+                    ['label' => 'S → XL', 'kind' => 'list', 'list' => ['S', 'M', 'L', 'XL']],
+                ],
+            ],
+            'atouts' => ['Cuir véritable', 'Fait main', 'Wax / pagne', 'Pièce unique', 'Grande contenance', 'Éco-responsable', 'Neuf avec étiquette', 'Édition limitée'],
+            'groups' => ['sacs' => 'Sacs & maroquinerie', 'acc_taille' => 'Accessoires (taille)', 'acc_couleur' => 'Accessoires (couleur)'],
+            'fields' => [
+                'matiere'          => ['label' => 'Matière principale', 'opts' => ['Cuir', 'Cuir synthétique / simili', 'Toile', 'Nylon', 'Daim', 'Paille / raphia', 'Wax / pagne', 'Métal', 'Tissu', 'Plastique', 'Autre']],
+                'fermeture'        => ['label' => 'Fermeture', 'opts' => ['Zip', 'Aimant', 'Bouton-pression', 'Rabat', 'Cordon', 'Sans fermeture']],
+                'poches'           => ['label' => 'Poches / compartiments', 'opts' => ['1', '2', '3', '4 et +']],
+                'bandouliere'      => ['label' => 'Bandoulière', 'opts' => ['Fixe', 'Amovible / réglable', 'Sans']],
+                'dimensions'       => ['label' => 'Taille du sac', 'opts' => ['Mini', 'Petit', 'Moyen', 'Grand', 'XXL / voyage']],
+                'largeur_ceinture' => ['label' => 'Largeur', 'opts' => ['Fine (< 2 cm)', 'Moyenne (2-4 cm)', 'Large (> 4 cm)']],
+                'boucle'           => ['label' => 'Type de boucle', 'opts' => ['Ardillon', 'Automatique', 'Décorative', 'Sans boucle']],
+                'forme_lunettes'   => ['label' => 'Forme', 'opts' => ['Aviateur', 'Ronde', 'Carrée', 'Papillon', 'Rectangulaire', 'Œil de chat', 'Masque']],
+                'uv'               => ['label' => 'Protection UV', 'opts' => ['UV400', 'Catégorie 3', 'Catégorie 2', 'Polarisé', 'Non précisé']],
+                'monture'          => ['label' => 'Matière de la monture', 'opts' => ['Plastique / acétate', 'Métal', 'Mixte', 'Bois']],
+                'saison'           => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Été', 'Hiver', 'Mi-saison']],
+                'type_bijou'       => ['label' => 'Type de bijou', 'opts' => ['Collier', 'Bracelet', 'Bague', 'Boucles d’oreilles', 'Parure', 'Pendentif', 'Chaîne de cheville']],
+                'matiere_bijou'    => ['label' => 'Matière', 'opts' => ['Plaqué or', 'Or', 'Argent', 'Acier inoxydable', 'Laiton', 'Perles', 'Pierres', 'Fantaisie', 'Wax / tissu']],
+                'chapeau_type'     => ['label' => 'Type', 'opts' => ['Casquette', 'Bob', 'Chapeau', 'Bonnet', 'Béret', 'Bandeau']],
+                'echarpe_type'     => ['label' => 'Type', 'opts' => ['Écharpe', 'Foulard', 'Châle / étole', 'Snood']],
+            ],
+            'types' => [
+                'Sac à main'                   => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'poches', 'bandouliere', 'dimensions'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Femme', 'Mixte / unisexe']],
+                'Sac à dos'                    => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'poches', 'dimensions'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Sac bandoulière'              => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'poches', 'bandouliere', 'dimensions'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme']],
+                'Pochette / clutch'            => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'bandouliere'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Femme', 'Mixte / unisexe']],
+                'Cabas / tote'                 => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'poches', 'dimensions'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme']],
+                'Sac de voyage'                => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'poches', 'dimensions'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme']],
+                'Portefeuille / porte-monnaie' => ['group' => 'sacs', 'fields' => ['matiere', 'fermeture', 'poches'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme']],
+                'Ceinture'                     => ['group' => 'acc_taille', 'fields' => ['matiere', 'largeur_ceinture', 'boucle'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'belt', 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Chapeau / casquette / bonnet' => ['group' => 'acc_taille', 'fields' => ['chapeau_type', 'matiere', 'saison'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'letter', 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant']],
+                'Gants'                        => ['group' => 'acc_taille', 'fields' => ['matiere', 'saison'], 'axis' => 'Taille', 'color' => false, 'sizes' => 'letter', 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Écharpe / foulard / châle'    => ['group' => 'acc_couleur', 'fields' => ['echarpe_type', 'matiere', 'saison'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Lunettes de soleil'           => ['group' => 'acc_couleur', 'fields' => ['forme_lunettes', 'uv', 'monture'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Bijoux'                       => ['group' => 'acc_couleur', 'fields' => ['type_bijou', 'matiere_bijou'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Femme', 'Mixte / unisexe', 'Homme', 'Fille']],
+                'Montre (mode)'                => ['group' => 'acc_couleur', 'fields' => ['matiere', 'boucle'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme']],
+                'Autre accessoire'             => ['group' => '', 'fields' => ['matiere', 'saison'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant']],
+            ],
+        ],
     ],
 ];

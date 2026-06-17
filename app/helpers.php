@@ -756,6 +756,36 @@ function apparel_quickfill_for(?string $rayon, ?string $genre): array
     if (array_is_list($qf)) { return $qf; } // statique
     return array_values((array) ($qf[(string) $genre] ?? [])); // dépendant du genre
 }
+/**
+ * Boutons de remplissage RÉSOLUS selon le type : si le type impose une taille ('sizes'),
+ * renvoie le jeu de tailles du rayon ; sinon, en mode couleur (type 'color' + palette du
+ * rayon), renvoie des pastilles de coloris ; sinon, repli sur le remplissage par genre.
+ * @return list<array<string,mixed>>
+ */
+function apparel_quickfill_resolved(?string $rayon, ?string $type, ?string $genre): array
+{
+    $meta = apparel_type_meta($rayon, $type);
+    if ($meta !== null) {
+        if (!empty($meta['sizes'])) {
+            $sets = apparel_rayon($rayon, 'sizesets');
+            return array_values((array) ($sets[(string) $meta['sizes']] ?? []));
+        }
+        $pal = apparel_rayon($rayon, 'palette');
+        if ($pal !== [] && !empty($meta['color'])) {
+            $out = [];
+            foreach ($pal as $pc) { $pc = array_values((array) $pc); $out[] = ['label' => (string) ($pc[0] ?? ''), 'kind' => 'color', 'hex' => (string) ($pc[1] ?? '#222222')]; }
+            return $out;
+        }
+    }
+    return apparel_quickfill_for($rayon, $genre);
+}
+/** Publics proposés pour un type (override 'pub' du type, sinon les genres du rayon). @return list<string> */
+function apparel_type_public(?string $rayon, ?string $type): array
+{
+    $meta = apparel_type_meta($rayon, $type);
+    if ($meta !== null && !empty($meta['pub']) && is_array($meta['pub'])) { return array_values($meta['pub']); }
+    return apparel_rayon_genres($rayon);
+}
 /** @return list<string> */
 function apparel_conditions(): array { return (array) config('apparel.conditions', []); }
 /** Genres globaux (tous publics). @return list<string> */
