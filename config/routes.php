@@ -13,6 +13,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\AddressController;
 use App\Controllers\NewsletterController;
 use App\Controllers\AdminKycController;
+use App\Controllers\AdminMailController;
 use App\Controllers\AnnouncementController;
 use App\Controllers\WalletController;
 use App\Controllers\BoutiqueController;
@@ -179,6 +180,9 @@ return [
     // Retraits vendeurs : back-office (staff) — versement manuel.
     ['GET',  '/admin/retraits',               [WalletController::class, 'adminIndex'],   ['staff']],
     ['POST', '/admin/retraits/{id}/traiter',  [WalletController::class, 'adminProcess'], ['staff', 'csrf']],
+    // Diagnostic e-mail (staff) : configuration effective + envoi d'un test.
+    ['GET',  '/admin/email',       [AdminMailController::class, 'index'],    ['staff']],
+    ['POST', '/admin/email/test',  [AdminMailController::class, 'sendTest'],  ['staff', 'csrf', 'throttle:mailtest,10,3600']],
     ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
     ['POST', '/vendeur/reglages',  [SellerController::class, 'updateSettings'], ['auth', 'csrf', 'throttle:profile,30,3600']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
