@@ -449,12 +449,12 @@ $fmtP = static function ($cents) use ($cur): string {
             <summary>⚙️ <?= e(t('beauty.sec.specs')) ?></summary>
             <p class="hint" data-appa-hint><?= e($appaMeta ? t('appa.specs_hint') : t('appa.specs_pick')) ?></p>
             <div class="attrs grid-2" data-appa-attrs>
-                <?php if ($appaMeta): foreach ((array) ($appaMeta['fields'] ?? []) as $fk): $fd = apparel_fields($appaRayonSSR)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($appaAttrs[$fk] ?? ''); ?>
+                <?php if ($appaMeta): foreach ((array) ($appaMeta['fields'] ?? []) as $fk): $fd = apparel_fields($appaRayonSSR)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($appaAttrs[$fk] ?? ''); $fDrop = (array) (($fd['exclude'] ?? [])[$aAttr('genre')] ?? []); ?>
                     <div>
                         <label><?= e((string) $fd['label']) ?></label>
                         <select name="attr[<?= e($fk) ?>]">
                             <option value="">—</option>
-                            <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            <?php foreach ((array) $fd['opts'] as $o): if (in_array($o, $fDrop, true)) { continue; } ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
                         </select>
                     </div>
                 <?php endforeach; endif; ?>
