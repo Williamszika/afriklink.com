@@ -4122,3 +4122,62 @@ document.addEventListener('click', function (ev) {
     if (active()) { onType(); }
     setEnabled();
 })();
+
+/* ---- Aperçu fiche GÉNÉRIQUE (verticales hors beauté : Maison & meubles…).
+   Reflète en direct comment le produit s'affichera sur la vitrine publique :
+   photo principale, marque, nom, type, prix (+ promo & remise), stock /
+   déclinaisons. Ne s'active QUE s'il n'y a pas de formulaire beauté (qui a son
+   propre aperçu) ni d'autre [data-pv-root] déjà géré. CSP-safe (zéro inline). ---- */
+(function () {
+    var root = document.querySelector('[data-pv-root]');
+    var form = document.getElementById('product-form');
+    if (!root || !form || document.querySelector('[data-beauty]')) { return; }
+    var curInt = root.getAttribute('data-cur-int') === '1';
+    var cur = root.getAttribute('data-cur') || '';
+    function out(n) { return root.querySelector('[data-pv-out="' + n + '"]'); }
+    // Lit le champ [data-pv] ACTIF (non désactivé) : plusieurs sections partagent une clé.
+    function fval(n) {
+        var list = document.querySelectorAll('[data-pv="' + n + '"]');
+        for (var i = 0; i < list.length; i++) { if (!list[i].disabled) { return String(list[i].value || '').trim(); } }
+        return list[0] ? String(list[0].value || '').trim() : '';
+    }
+    function num(s) { return parseFloat(String(s).replace(',', '.')) || 0; }
+    function fmt(n) { n = curInt ? Math.round(n) : Math.round(n * 100) / 100; return n.toLocaleString('fr-FR', curInt ? {} : { maximumFractionDigits: 2 }) + ' ' + cur; }
+    function setText(n, t) { var el = out(n); if (el) { el.textContent = t; } }
+    var nameOut = out('name'); var nameDefault = nameOut ? nameOut.textContent : '';
+    var imgBox = root.querySelector('[data-pv-img]'); var imgEmpty = imgBox ? imgBox.innerHTML : '';
+
+    function update() {
+        setText('brand', fval('brand'));
+        if (nameOut) { nameOut.textContent = fval('name') || nameDefault; }
+        setText('type', fval('type'));
+        setText('vol', '');
+        var price = num(fval('price')), promo = num(fval('promo'));
+        var now = (promo > 0 && promo < price) ? promo : price;
+        setText('price', now > 0 ? fmt(now) : '');
+        var old = out('old'), badge = out('disc');
+        if (promo > 0 && promo < price) {
+            if (old) { old.textContent = fmt(price); old.hidden = false; }
+            if (badge) { badge.textContent = '-' + Math.round((1 - promo / price) * 100) + '%'; badge.hidden = false; }
+        } else { if (old) { old.hidden = true; } if (badge) { badge.hidden = true; } }
+        // Note : nombre de déclinaisons (lignes remplies) sinon stock.
+        var opts = 0;
+        document.querySelectorAll('#variant-rows .variant-row input[name="var_size[]"]').forEach(function (i) { if (String(i.value || '').trim() !== '') { opts++; } });
+        var stockF = document.getElementById('p-stock'); var s = stockF ? String(stockF.value || '').trim() : '';
+        var note = opts > 0 ? (opts + ' déclinaison' + (opts > 1 ? 's' : ''))
+            : (s !== '' ? (s + ' en stock') : '');
+        setText('stock', note);
+    }
+    function syncPhoto() {
+        if (!imgBox) { return; }
+        var src = document.querySelector('#product-previews .preview:not(.preview-video) img');
+        if (src && src.getAttribute('src')) {
+            imgBox.innerHTML = ''; var img = document.createElement('img'); img.src = src.getAttribute('src'); img.alt = ''; imgBox.appendChild(img);
+        } else if (!imgBox.querySelector('.pv-img-empty')) { imgBox.innerHTML = imgEmpty; }
+    }
+    form.addEventListener('input', update);
+    form.addEventListener('change', function () { update(); syncPhoto(); });
+    var previews = document.getElementById('product-previews');
+    if (previews && window.MutationObserver) { new MutationObserver(syncPhoto).observe(previews, { childList: true, subtree: true }); }
+    update(); syncPhoto();
+})();

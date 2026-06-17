@@ -74,7 +74,7 @@ $fmtP = static function ($cents) use ($cur): string {
     <?php if (!$media_ready): ?>
         <div class="notice notice-warning"><p><?= e(t('listing.media_unconfigured')) ?></p></div>
     <?php else: ?>
-    <div class="<?= $isBeauty ? 'pf-grid' : 'pf-plain' ?>">
+    <div class="<?= ($isBeauty || cuisine_capable($boutiqueCat)) ? 'pf-grid' : 'pf-plain' ?>">
     <form method="post" action="<?= e(url($action)) ?>" id="product-form" novalidate
           data-uploading="<?= e(t('kyc.uploading')) ?>" data-max="<?= $maxPhotos ?>">
         <?= csrf_field() ?>
@@ -1987,7 +1987,7 @@ $fmtP = static function ($cents) use ($cur): string {
 
         <button type="submit" class="btn btn-primary btn-block" id="product-submit"><?= e($isEdit ? t('profile.save') : t('product.add')) ?></button>
     </form>
-    <?php if ($isBeauty): ?>
+    <?php if ($isBeauty || cuisine_capable($boutiqueCat)): ?>
     <aside class="pf-preview" data-pv-root data-cur="<?= e($cur) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>">
         <p class="pv-eyebrow"><?= e(t('beauty.preview.title')) ?></p>
         <div class="pv-card">
