@@ -3417,10 +3417,13 @@ document.addEventListener('click', function (ev) {
     if (!Array.isArray(GENRES)) { GENRES = []; }
     var COULEURS = parse('data-couleurs'); // couleurs globales (repli)
     if (!Array.isArray(COULEURS)) { COULEURS = []; }
+    var CONDS = parse('data-conditions'); // états globaux (repli)
+    if (!Array.isArray(CONDS)) { CONDS = []; }
     var coll = document.querySelector('[data-collection-select]');
     var typeSel = document.getElementById('appa-type');
     var genreSel = document.getElementById('appa-genre');
     var couleurSel = document.getElementById('appa-couleur');
+    var condSel = document.getElementById('appa-condition');
     var attrsBox = document.querySelector('[data-appa-attrs]');
     var atoutsBox = document.querySelector('[data-appa-atouts-chips]');
     var rowsBox = document.querySelector('[data-appa-rows]');
@@ -3509,6 +3512,15 @@ document.addEventListener('click', function (ev) {
             clist.forEach(function (cn) { var op = document.createElement('option'); op.value = cn; op.textContent = cn; couleurSel.appendChild(op); });
             couleurSel.value = (clist.indexOf(curC) !== -1) ? curC : '';
         }
+        if (condSel) {
+            var curK = condSel.value;
+            var klist = (cfg().conditions && cfg().conditions.length) ? cfg().conditions : CONDS;
+            condSel.innerHTML = '';
+            klist.forEach(function (kn) { var op = document.createElement('option'); op.value = kn; op.textContent = kn; condSel.appendChild(op); });
+            condSel.value = (klist.indexOf(curK) !== -1) ? curK : (klist[0] || '');
+            var note = document.querySelector('[data-appa-cond-note]');
+            if (note) { var nt = cfg().condition_note || ''; note.textContent = nt ? ('· ' + nt) : ''; note.hidden = !nt; }
+        }
         applyLock();
         if (axisInp && cfg().axis) { axisInp.value = cfg().axis; axisLabel(); } // axe par défaut du rayon (le type peut l'imposer ensuite)
         onType();
@@ -3569,6 +3581,10 @@ document.addEventListener('click', function (ev) {
         if (cfg().type_decl) { // Sacs : la nature de la déclinaison dépend du type
             if (!m) { h.textContent = cfgEl.getAttribute('data-hint-pick') || h.textContent; }
             else { h.textContent = (m.sizes ? cfgEl.getAttribute('data-decl-size') : cfgEl.getAttribute('data-decl-color')) || h.textContent; }
+            return;
+        }
+        if (cfg().type_sizes) { // Sous-vêtements : tailles selon le type
+            h.textContent = (m ? cfgEl.getAttribute('data-sizes-hint') : cfgEl.getAttribute('data-hint-pick')) || h.textContent;
             return;
         }
         var qf = cfg().quickfill, byGenre = qf && !Array.isArray(qf), g = genre();

@@ -354,7 +354,9 @@ $fmtP = static function ($cents) use ($cur): string {
         $appaType  = (string) ($rawOldA['product_type'] ?? ($product['product_type'] ?? ''));
         $appaMeta  = apparel_type_meta($appaRayonSSR, $appaType);
         $aAttr     = static fn (string $k): string => (string) ($rawOldA[$k] ?? ($appaAttrs[$k] ?? ''));
-        $appaCondition = $aAttr('condition') ?: (apparel_conditions()[0] ?? 'Neuf avec étiquette');
+        $appaConds = apparel_rayon_conditions($appaRayonSSR);
+        $appaCondition = $aAttr('condition') ?: ($appaConds[0] ?? 'Neuf avec étiquette');
+        $appaCondNote = (string) (((array) config('apparel.rayons', []))[$appaRayonSSR]['condition_note'] ?? '');
         $appaLocked = apparel_rayon_public($appaRayonSSR); // '' ou public imposé (ex. 'feminin')
         $appaTypePublic = (bool) (((array) config('apparel.rayons', []))[$appaRayonSSR]['type_public'] ?? false);
         $appaNoEmpty = $appaLocked !== '' || $appaTypePublic; // pas d'option « — » sur le genre
@@ -374,6 +376,7 @@ $fmtP = static function ($cents) use ($cur): string {
              data-rayons="<?= e((string) json_encode((array) config('apparel.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-genres="<?= e((string) json_encode(apparel_genres(), JSON_UNESCAPED_UNICODE)) ?>"
              data-couleurs="<?= e((string) json_encode(apparel_couleurs(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-conditions="<?= e((string) json_encode(apparel_conditions(), JSON_UNESCAPED_UNICODE)) ?>"
              data-opt="<?= e(t('variant.option')) ?>" data-any="<?= e(t('appa.f.genre_any')) ?>"
              data-sizes-hint="<?= e(t('appa.sizes_hint')) ?>" data-sizes-pick="<?= e(t('appa.sizes_pick')) ?>" data-sizes-genre="<?= e(t('appa.sizes_genre', ['genre' => '%G%'])) ?>"
              data-decl-size="<?= e(t('appa.decl_size')) ?>" data-decl-color="<?= e(t('appa.decl_color')) ?>"
@@ -469,9 +472,9 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
             <div class="grid-2">
                 <div>
-                    <label for="appa-condition"><?= e(t('appa.f.condition')) ?></label>
-                    <select id="appa-condition" name="appa_condition">
-                        <?php foreach (apparel_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $appaCondition === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    <label for="appa-condition"><?= e(t('appa.f.condition')) ?> <span class="hint" data-appa-cond-note<?= $appaCondNote !== '' ? '' : ' hidden' ?>>· <?= e($appaCondNote) ?></span></label>
+                    <select id="appa-condition" name="appa_condition" data-appa-condition>
+                        <?php foreach ($appaConds as $c): ?><option value="<?= e($c) ?>" <?= $appaCondition === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div>

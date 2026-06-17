@@ -788,6 +788,12 @@ function apparel_type_public(?string $rayon, ?string $type): array
 }
 /** @return list<string> */
 function apparel_conditions(): array { return (array) config('apparel.conditions', []); }
+/** États proposés par un rayon (override 'conditions' du rayon, sinon les états globaux). @return list<string> */
+function apparel_rayon_conditions(?string $rayon): array
+{
+    $c = apparel_rayon($rayon, 'conditions');
+    return $c !== [] ? array_values($c) : apparel_conditions();
+}
 /** Genres globaux (tous publics). @return list<string> */
 function apparel_genres(): array { return (array) config('apparel.genres', []); }
 /** Genres proposés par un rayon (override 'genres' du rayon, sinon les genres globaux). @return list<string> */

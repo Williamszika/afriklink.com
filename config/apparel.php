@@ -293,5 +293,70 @@ return [
                 'Autre accessoire'             => ['group' => '', 'fields' => ['matiere', 'saison'], 'axis' => 'Couleur', 'color' => true, 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant']],
             ],
         ],
+
+        // =================== Sous-vêtements (public & tailles par type ; NEUF only — hygiène) ===================
+        'Sous-vêtements' => [
+            'axis'           => 'Taille',
+            'type_public'    => true, // le public autorisé dépend du type
+            'type_sizes'     => true, // le système de tailles dépend du type ('sizes')
+            'genres'         => ['Mixte / unisexe', 'Femme', 'Homme', 'Fille', 'Garçon', 'Enfant', 'Bébé'],
+            'couleurs'       => ['Noir', 'Blanc', 'Gris', 'Beige', 'Nude / chair', 'Rouge', 'Bordeaux', 'Bleu', 'Bleu marine', 'Vert', 'Rose', 'Violet', 'Imprimé', 'Multicolore', 'Autre'],
+            'conditions'     => ['Neuf avec étiquette', 'Neuf sous emballage'], // hygiène : neuf uniquement
+            'condition_note' => 'neuf uniquement (hygiène)',
+            'sizesets' => [
+                'letter'   => [
+                    ['label' => 'XS → 3XL', 'kind' => 'list', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']],
+                    ['label' => 'Taille unique', 'kind' => 'list', 'list' => ['Taille unique']],
+                ],
+                'bra'      => [
+                    ['label' => 'Soutien-gorge 80–100', 'kind' => 'list', 'list' => ['80B', '85B', '85C', '90B', '90C', '90D', '95C', '95D', '100D']],
+                    ['label' => 'S → XL', 'kind' => 'list', 'list' => ['S', 'M', 'L', 'XL']],
+                ],
+                'collants' => [
+                    ['label' => 'T1 → T4', 'kind' => 'list', 'list' => ['T1', 'T2', 'T3', 'T4']],
+                    ['label' => 'S → XL', 'kind' => 'list', 'list' => ['S', 'M', 'L', 'XL']],
+                ],
+                'socks'    => [
+                    ['label' => 'Pointures', 'kind' => 'list', 'list' => ['35-38', '39-42', '43-46', '47+']],
+                    ['label' => 'Taille unique', 'kind' => 'list', 'list' => ['Taille unique']],
+                    ['label' => 'Lot', 'kind' => 'list', 'list' => ['Lot de 3', 'Lot de 5', 'Lot de 10']],
+                ],
+                'kids'     => [
+                    ['label' => 'Enfant 2–14 ans', 'kind' => 'list', 'list' => ['2 ans', '4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans']],
+                    ['label' => 'Bébé 0–24 mois', 'kind' => 'list', 'list' => ['1 mois', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']],
+                ],
+            ],
+            'atouts' => ['Coton bio', 'Sans couture', 'Lot économique', 'Confort', 'Maintien', 'Éco-responsable', 'Neuf avec étiquette'],
+            'groups' => ['femme' => 'Femme', 'homme' => 'Homme', 'mixte' => 'Mixte', 'enfant' => 'Enfant'],
+            'fields' => [
+                'matiere'              => ['label' => 'Matière', 'opts' => ['Coton', 'Coton bio', 'Microfibre', 'Dentelle', 'Satin', 'Soie', 'Modal', 'Bambou', 'Polyester', 'Laine', 'Autre']],
+                'doublure_rembourrage' => ['label' => 'Rembourrage', 'opts' => ['Non rembourré', 'Légèrement rembourré', 'Push-up', 'Coques']],
+                'armatures'            => ['label' => 'Armatures', 'opts' => ['Avec armatures', 'Sans armatures']],
+                'type_culotte'         => ['label' => 'Forme', 'opts' => ['Culotte classique', 'Tanga', 'String', 'Shorty', 'Taille haute', 'Brésilienne']],
+                'type_boxer'           => ['label' => 'Forme', 'opts' => ['Boxer', 'Caleçon', 'Slip']],
+                'lot'                  => ['label' => 'Conditionnement', 'opts' => ['À l’unité', 'Lot de 2', 'Lot de 3', 'Lot de 5']],
+                'taille_haut'          => ['label' => 'Hauteur', 'opts' => ['Taille haute', 'Taille normale', 'Taille basse']],
+                'transparence'         => ['label' => 'Opacité', 'opts' => ['Opaque', 'Semi-opaque', 'Voile / fin', 'Résille']],
+                'denier'               => ['label' => 'Épaisseur (deniers)', 'opts' => ['20D', '40D', '60D', '80D', '100D et +']],
+                'maintien'             => ['label' => 'Maintien', 'opts' => ['Léger', 'Moyen', 'Fort / gainant']],
+                'saison'               => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Été', 'Hiver']],
+                'manches'              => ['label' => 'Coupe', 'opts' => ['Manches courtes', 'Manches longues', 'Short', 'Pantalon long', 'Débardeur']],
+            ],
+            'types' => [
+                'Culotte / string'             => ['group' => 'femme', 'fields' => ['type_culotte', 'matiere', 'taille_haut', 'lot'], 'sizes' => 'letter', 'pub' => ['Femme']],
+                'Soutien-gorge'                => ['group' => 'femme', 'fields' => ['doublure_rembourrage', 'armatures', 'matiere'], 'sizes' => 'bra', 'pub' => ['Femme']],
+                'Ensemble lingerie'            => ['group' => 'femme', 'fields' => ['matiere', 'doublure_rembourrage', 'armatures'], 'sizes' => 'letter', 'pub' => ['Femme']],
+                'Nuisette / déshabillé'        => ['group' => 'femme', 'fields' => ['matiere', 'manches'], 'sizes' => 'letter', 'pub' => ['Femme']],
+                'Collants / bas'               => ['group' => 'femme', 'fields' => ['transparence', 'denier', 'maintien', 'matiere'], 'sizes' => 'collants', 'pub' => ['Femme']],
+                'Boxer / caleçon'              => ['group' => 'homme', 'fields' => ['type_boxer', 'matiere', 'lot'], 'sizes' => 'letter', 'pub' => ['Homme']],
+                'Slip'                         => ['group' => 'homme', 'fields' => ['matiere', 'lot'], 'sizes' => 'letter', 'pub' => ['Homme', 'Mixte / unisexe']],
+                'Maillot de corps / débardeur' => ['group' => 'homme', 'fields' => ['matiere', 'manches', 'lot'], 'sizes' => 'letter', 'pub' => ['Homme', 'Femme', 'Mixte / unisexe']],
+                'Chaussettes'                  => ['group' => 'mixte', 'fields' => ['matiere', 'saison', 'lot'], 'sizes' => 'socks', 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+                'Pyjama / vêtement de nuit'    => ['group' => 'mixte', 'fields' => ['matiere', 'manches', 'saison'], 'sizes' => 'letter', 'pub' => ['Femme', 'Homme', 'Mixte / unisexe']],
+                'Sous-vêtements enfant'        => ['group' => 'enfant', 'fields' => ['matiere', 'lot', 'saison'], 'sizes' => 'kids', 'pub' => ['Fille', 'Garçon', 'Enfant', 'Bébé']],
+                'Pyjama enfant'                => ['group' => 'enfant', 'fields' => ['matiere', 'manches', 'saison'], 'sizes' => 'kids', 'pub' => ['Fille', 'Garçon', 'Enfant', 'Bébé']],
+                'Autre sous-vêtement'          => ['group' => '', 'fields' => ['matiere', 'lot'], 'sizes' => 'letter', 'pub' => ['Mixte / unisexe', 'Femme', 'Homme', 'Enfant']],
+            ],
+        ],
     ],
 ];
