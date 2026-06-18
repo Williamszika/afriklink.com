@@ -17,7 +17,7 @@ return [
     'shop_categories' => ['alimentation'],
     'conservations'   => ['Ambiante / sèche', 'Au frais (réfrigéré)', 'Surgelé / congelé'],
     'dlc_types'       => ['DLC (à consommer jusqu’au)', 'DDM (de préférence avant le)'],
-    'allergenes'      => ['Gluten', 'Lait', 'Œuf', 'Fruits à coque', 'Arachide', 'Soja', 'Sésame', 'Sulfites', 'Moutarde', 'Poisson', 'Crustacés', 'Céleri'],
+    'allergenes'      => ['Gluten', 'Lait', 'Œuf', 'Fruits à coque', 'Arachide', 'Soja', 'Sésame', 'Sulfites', 'Moutarde', 'Poisson', 'Crustacés', 'Mollusques', 'Céleri', 'Lupin'],
 
     'rayons' => [
         'Bio & naturel' => [
@@ -93,6 +93,62 @@ return [
                 'Cidre'                                     => ['group' => 'alcool', 'fields' => ['contenance', 'degre', 'conditionnement', 'origine'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Contenance', 'alcool' => true],
                 // Autre
                 'Autre boisson'                             => ['group' => 'autre', 'fields' => ['contenance', 'conditionnement', 'sucre', 'origine'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Contenance', 'alcool' => false],
+            ],
+        ],
+
+        'Produits frais' => [
+            'groups' => [
+                'boucherie'   => 'Boucherie & volaille',
+                'poisson'     => 'Poissonnerie',
+                'charcuterie' => 'Charcuterie & traiteur',
+                'cremerie'    => 'Crèmerie',
+                'fl'          => 'Fruits & légumes frais',
+                'boulangerie' => 'Boulangerie & pâtisserie fraîche',
+                'autre'       => 'Autre',
+            ],
+            'atouts' => ['Bio', 'Halal', 'Local / circuit court', 'De saison', 'Élevage plein air', 'Pêche durable', 'Fait maison', 'Sans additifs'],
+            'fields' => [
+                'contenance'      => ['label' => 'Poids / quantité', 'opts' => ['< 250 g', '250 g', '500 g', '1 kg', '2 kg', 'À la pièce', 'Au kg']],
+                'origine'         => ['label' => 'Origine', 'opts' => ['France', 'Union européenne', 'Afrique de l’Ouest', 'Hors UE', 'Origines multiples']],
+                'conditionnement' => ['label' => 'Conditionnement', 'opts' => ['Barquette', 'Sous vide', 'Sachet', 'Vrac', 'À la coupe', 'Filet', 'Boîte']],
+                'halal'           => ['label' => 'Certification', 'opts' => ['Halal', 'Casher', 'Aucune']],
+                'coupe'           => ['label' => 'Découpe', 'opts' => ['Entier', 'En morceaux', 'Tranché', 'Haché', 'Filet', 'Émincé', 'Escalope']],
+                'maturation'      => ['label' => 'Préparation', 'opts' => ['Cru / frais', 'Mariné', 'Cuit', 'Fumé', 'Séché']],
+                'lait_type'       => ['label' => 'Type de lait', 'opts' => ['Vache', 'Chèvre', 'Brebis', 'Bufflonne', 'Mélange']],
+                'fromage_type'    => ['label' => 'Type de fromage', 'opts' => ['Pâte molle', 'Pâte pressée', 'Pâte persillée', 'Frais', 'À tartiner']],
+                'maturite'        => ['label' => 'Maturité', 'opts' => ['À consommer rapidement', 'Mûr à point', 'À faire mûrir']],
+                'calibre'         => ['label' => 'Calibre', 'opts' => ['Petit', 'Moyen', 'Gros', 'Extra gros']],
+                'regime'          => ['label' => 'Régime / qualité', 'opts' => ['Bio', 'Sans gluten', 'Sans lactose', 'Halal', 'Vegan', 'Aucun']],
+            ],
+            'types' => [
+                // Boucherie & volaille
+                'Viande (bœuf, agneau…)'      => ['group' => 'boucherie', 'fields' => ['coupe', 'contenance', 'halal', 'origine', 'maturation'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Volaille'                    => ['group' => 'boucherie', 'fields' => ['coupe', 'contenance', 'halal', 'origine'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Viande hachée'               => ['group' => 'boucherie', 'fields' => ['contenance', 'halal', 'origine'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                // Poissonnerie
+                'Poisson frais'               => ['group' => 'poisson', 'fields' => ['coupe', 'contenance', 'origine', 'maturation'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Fruits de mer / crustacés'   => ['group' => 'poisson', 'fields' => ['contenance', 'origine', 'maturation'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Poisson fumé / transformé'   => ['group' => 'poisson', 'fields' => ['contenance', 'origine', 'maturation', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                // Charcuterie & traiteur
+                'Charcuterie'                 => ['group' => 'charcuterie', 'fields' => ['contenance', 'halal', 'origine', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Plat préparé frais'          => ['group' => 'charcuterie', 'fields' => ['contenance', 'regime', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Traiteur / salade'           => ['group' => 'charcuterie', 'fields' => ['contenance', 'regime', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                // Crèmerie
+                'Lait frais'                  => ['group' => 'cremerie', 'fields' => ['contenance', 'lait_type', 'origine', 'regime'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Contenance'],
+                'Fromage'                     => ['group' => 'cremerie', 'fields' => ['fromage_type', 'lait_type', 'contenance', 'origine'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Yaourt / dessert lacté'      => ['group' => 'cremerie', 'fields' => ['contenance', 'lait_type', 'regime'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Beurre / crème'              => ['group' => 'cremerie', 'fields' => ['contenance', 'lait_type', 'origine'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Œufs'                        => ['group' => 'cremerie', 'fields' => ['contenance', 'calibre', 'origine', 'regime'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                // Fruits & légumes frais
+                'Fruits frais'                => ['group' => 'fl', 'fields' => ['contenance', 'origine', 'maturite', 'calibre'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Légumes frais'               => ['group' => 'fl', 'fields' => ['contenance', 'origine', 'calibre', 'regime'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Herbes aromatiques'          => ['group' => 'fl', 'fields' => ['contenance', 'origine', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                // Boulangerie & pâtisserie fraîche
+                'Pâtes fraîches'              => ['group' => 'boulangerie', 'fields' => ['contenance', 'regime', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Pâtisserie / dessert frais'  => ['group' => 'boulangerie', 'fields' => ['contenance', 'regime', 'conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+                'Pain frais'                  => ['group' => 'boulangerie', 'fields' => ['contenance', 'regime', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Autre
+                'Autre produit frais'         => ['group' => 'autre', 'fields' => ['contenance', 'origine', 'regime'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
             ],
         ],
     ],

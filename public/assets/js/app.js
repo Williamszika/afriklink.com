@@ -4340,6 +4340,7 @@ document.addEventListener('click', function (ev) {
     var conservSel= document.querySelector('[data-alim-conserv]');
     var coldNote  = document.querySelector('[data-alim-cold-note]');
     var alcNote   = document.querySelector('[data-alim-alc-note]');
+    var dlcSel    = document.querySelector('[data-alim-dlc]');
     var hint      = document.querySelector('[data-alim-hint]');
     var axisInp   = document.querySelector('[data-alim-axis]');
     if (!root) { return; }
@@ -4428,6 +4429,11 @@ document.addEventListener('click', function (ev) {
         // Conservation par défaut selon le type, sauf si le vendeur l'a réglée.
         if (m && conservSel && !conservSel.dataset.touched && m.conserv) { conservSel.value = m.conserv; }
         if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+        // Type de date par défaut : DLC pour un produit frais/surgelé, DDM sinon.
+        if (m && dlcSel && !dlcSel.dataset.touched && m.conserv) {
+            var dopts = Array.prototype.map.call(dlcSel.options, function (o) { return o.value; }).filter(function (v) { return v !== ''; });
+            dlcSel.value = (m.conserv !== AMBIENT) ? (dopts[0] || '') : (dopts[1] || dopts[0] || '');
+        }
         if (alcNote) { alcNote.hidden = !(m && m.alcool); }
         buildAttrs(); buildSizeChips(); coldToggle();
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
@@ -4459,6 +4465,7 @@ document.addEventListener('click', function (ev) {
     if (coll)      { coll.addEventListener('change', onColl); }
     if (typeSel)   { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
     if (conservSel){ conservSel.addEventListener('change', function () { this.dataset.touched = '1'; coldToggle(); }); }
+    if (dlcSel)    { dlcSel.addEventListener('change', function () { this.dataset.touched = '1'; }); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-alim-fill]');

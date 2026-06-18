@@ -385,7 +385,7 @@ $fmtP = static function ($cents) use ($cur): string {
                     </div>
                     <div>
                         <label for="alim-dlc"><?= e(t('alim.f.dlc_type')) ?></label>
-                        <select id="alim-dlc" name="dlc_type"<?= $alimDis ?>>
+                        <select id="alim-dlc" name="dlc_type" data-alim-dlc<?= $alimDis ?>>
                             <option value=""><?= e(t('alim.f.dlc_none')) ?></option>
                             <?php foreach (alim_dlc_types() as $d): ?><option value="<?= e($d) ?>" <?= $alimDlc === $d ? 'selected' : '' ?>><?= e($d) ?></option><?php endforeach; ?>
                         </select>
