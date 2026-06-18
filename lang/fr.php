@@ -1715,6 +1715,7 @@ return [
     'cuisine.autre_generic' => 'Rayon personnalisé : décris librement le produit (caractéristiques, déclinaisons).',
     'cuisine.autre_type_ph' => 'ex. Meuble vasque, Plafonnier, Tapis…',
     'cuisine.autre_elec_q' => 'Appareil électrique ? (ajoute garantie + rappel CE)',
+    'cuisine.autre_sizes' => 'Remplissage rapide des tailles',
     'elec.decl_hint' => 'L’axe est pré-rempli selon le type (couleur, capacité, longueur…). Liste les options, chacune avec son stock et son prix.',
     'elec.axis_ph' => 'ex. Couleur, Capacité, Longueur…',
     'product.f.name_ph' => 'Ex. : Robe wax taille 38',

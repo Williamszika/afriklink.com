@@ -289,6 +289,11 @@ $fmtP = static function ($cents) use ($cur): string {
                         <input type="text" id="cua-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldC['variant_axis'] ?? ($cuiAttrs['variant_axis'] ?? ($cuiAutreCfg['axis'] ?? '')))) ?>" placeholder="<?= e(t('cuisine.axis_ph')) ?>" data-cuisine-autre-axis<?= $cuiAutreDis ?>>
                     </div>
                 </div>
+                <?php $cuaSizes = ($cuiAutreCfg && !empty($cuiAutreCfg['sizes'])) ? (array) (cuisine_autre('size_systems')[$cuiAutreCfg['sizes']] ?? []) : []; ?>
+                <label data-cuisine-autre-size-label<?= $cuaSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-cuisine-autre-size-chips<?= $cuaSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($cuaSizes as $sb): ?><button type="button" class="axis-chip" data-cuisine-autre-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
                 <div class="warn-box">ℹ️ <?= e((string) config('cuisine.autre.warn_text', '')) ?></div>
                 <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <div class="chip-checks" data-cuisine-autre-atouts>

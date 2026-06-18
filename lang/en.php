@@ -1715,6 +1715,7 @@ return [
     'cuisine.autre_generic' => 'Custom rayon: describe the product freely (specs, variants).',
     'cuisine.autre_type_ph' => 'e.g. Vanity unit, Ceiling light, Rug…',
     'cuisine.autre_elec_q' => 'Electrical appliance? (adds warranty + CE notice)',
+    'cuisine.autre_sizes' => 'Quick size fill',
     'elec.decl_hint' => 'The axis is pre-filled from the type (colour, capacity, length…). List the options, each with its stock and price.',
     'elec.axis_ph' => 'e.g. Colour, Capacity, Length…',
     'product.f.name_ph' => 'E.g.: Wax dress size 38',

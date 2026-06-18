@@ -399,15 +399,27 @@ return [
         'generic_specs' => ['Matière', 'Dimensions', 'Couleur', 'Montage', 'Style', 'Capacité', 'Puissance'],
         'atout_suggest' => ['Fait main / artisanal', 'Wax / pagne', 'Style africain', 'Montage facile', 'Éco-responsable', 'Garantie incluse', 'Connecté', 'Pièce unique'],
         'warn_text'     => 'Produits maison : pour un article électrique, le marquage CE et la notice sont obligatoires à l’import dans l’UE ; la garantie légale de conformité s’applique. Pour le mobilier volumineux, précise les modalités de livraison / montage dans la description.',
+        // Remplissage rapide de tailles : un système de tailles (clé) → boutons qui
+        // pré-remplissent l'éditeur de déclinaisons. Référencé par 'sizes' dans R.
+        'size_systems' => [
+            'gm' => [
+                ['label' => 'Petit · Moyen · Grand', 'list' => ['Petit', 'Moyen', 'Grand', 'Très grand']],
+                ['label' => 'Contenance 5–50 L', 'list' => ['5 L', '10 L', '20 L', '50 L']],
+            ],
+            'tapis' => [
+                ['label' => 'Tapis 120×170 / 160×230', 'list' => ['120×170 cm', '160×230 cm', '200×290 cm']],
+                ['label' => 'Petit · Moyen · Grand', 'list' => ['Petit', 'Moyen', 'Grand']],
+            ],
+        ],
         'R' => [
             'salle-de-bain'          => ['specs' => ['Type (meuble, robinet, miroir…)', 'Matière', 'Dimensions', 'Montage'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
-            'rangement-organisation' => ['specs' => ['Type', 'Matière', 'Dimensions', 'Nombre de compartiments'], 'axis' => 'Taille', 'color' => true, 'elec' => false],
+            'rangement-organisation' => ['specs' => ['Type', 'Matière', 'Dimensions', 'Nombre de compartiments'], 'axis' => 'Taille', 'color' => true, 'elec' => false, 'sizes' => 'gm'],
             'luminaires'             => ['specs' => ['Type', 'Type d’ampoule', 'Nombre de lumières', 'Alimentation'], 'axis' => 'Couleur', 'color' => true, 'elec' => true],
             'petit-electromenager'   => ['specs' => ['Type', 'Puissance', 'Capacité', 'Tension'], 'axis' => 'Couleur', 'color' => true, 'elec' => true],
             'arts-de-la-table'       => ['specs' => ['Type', 'Matière', 'Nombre de pièces'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
-            'tapis-et-sols'          => ['specs' => ['Type', 'Matière', 'Dimensions', 'Forme'], 'axis' => 'Taille', 'color' => true, 'elec' => false],
-            'securite-et-domotique'  => ['specs' => ['Type', 'Connectivité', 'Alimentation', 'Portée'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
-            'bricolage-et-outillage' => ['specs' => ['Type', 'Puissance / manuel', 'Alimentation', 'Accessoires inclus'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+            'tapis-sols'          => ['specs' => ['Type', 'Matière', 'Dimensions', 'Forme'], 'axis' => 'Taille', 'color' => true, 'elec' => false, 'sizes' => 'tapis'],
+            'securite-domotique'  => ['specs' => ['Type', 'Connectivité', 'Alimentation', 'Portée'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+            'bricolage-outillage' => ['specs' => ['Type', 'Puissance / manuel', 'Alimentation', 'Accessoires inclus'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
             'chambre-bebe'           => ['specs' => ['Type', 'Matière', 'Dimensions', 'Norme de sécurité'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
         ],
     ],

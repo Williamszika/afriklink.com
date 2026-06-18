@@ -4138,6 +4138,41 @@ document.addEventListener('click', function (ev) {
             autreSpecChips.appendChild(b);
         });
     }
+    // Remplissage rapide de tailles : puces (selon le système de tailles du rayon)
+    // qui pré-remplissent l'éditeur de déclinaisons générique partagé.
+    function buildAutreSizeChips() {
+        var box = document.querySelector('[data-cuisine-autre-size-chips]');
+        var lab = document.querySelector('[data-cuisine-autre-size-label]');
+        if (!box) { return; }
+        var c = autreCfg();
+        var btns = (c && c.sizes && AUTRE.size_systems) ? (AUTRE.size_systems[c.sizes] || []) : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-cuisine-autre-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function autreFill(list) {
+        var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');
+        var tpl = document.getElementById('variant-template');
+        if (!rowsBox || !tpl || !tpl.content) { return; }
+        var have = {};
+        rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value || '').trim().toLowerCase()] = true; });
+        (list || []).forEach(function (sz) {
+            var key = String(sz).trim().toLowerCase();
+            if (key === '' || have[key]) { return; }
+            rowsBox.appendChild(tpl.content.cloneNode(true));
+            var row = rowsBox.lastElementChild;
+            var inp = row && row.querySelector('input[name="var_size[]"]');
+            if (inp) { inp.value = sz; }
+            have[key] = true;
+        });
+        var det = rowsBox.closest('details'); if (det) { det.open = true; }
+    }
     function adaptAutre() {
         var c = autreCfg();
         if (autreHint) {
@@ -4145,7 +4180,7 @@ document.addEventListener('click', function (ev) {
             autreHint.textContent = c ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', rn))
                 : (cfgEl.getAttribute('data-autre-generic') || autreHint.textContent);
         }
-        autreBuildSpecChips();
+        autreBuildSpecChips(); buildAutreSizeChips();
         if (c && autreAxisInp && !autreAxisInp.value.trim()) { autreAxisInp.value = c.axis || ''; }
         // Mode électrique par défaut depuis le rayon connu, sauf si l'utilisateur l'a réglé.
         if (c && autreElecTog && !autreElecTog.dataset.touched) { autreElecTog.checked = !!c.elec; autreElecToggle(); }
@@ -4205,6 +4240,8 @@ document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         if (ev.target.closest('[data-cuisine-autre-spec-add]')) { addAutreSpec(''); return; }
         if (ev.target.closest('[data-cuisine-autre-atout-add]')) { pushAutreAtout(); return; }
+        var fill = ev.target.closest('[data-cuisine-autre-fill]');
+        if (fill) { ev.preventDefault(); try { autreFill(JSON.parse(fill.getAttribute('data-cuisine-autre-fill') || '[]')); } catch (e) {} return; }
         var sp = ev.target.closest('[data-cuisine-autre-spec]');
         if (sp) { ev.preventDefault(); addAutreSpec(sp.getAttribute('data-val')); return; }
         var ray = ev.target.closest('[data-cuisine-autre-rayon]');
