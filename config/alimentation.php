@@ -151,6 +151,47 @@ return [
                 'Autre produit frais'         => ['group' => 'autre', 'fields' => ['contenance', 'origine', 'regime'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
             ],
         ],
+
+        'Snacks' => [
+            'groups' => [
+                'sale'  => 'Salé',
+                'sucre' => 'Sucré',
+                'monde' => 'Du monde & diététique',
+                'autre' => 'Autre',
+            ],
+            'atouts' => ['Bio', 'Vegan', 'Sans gluten', 'Sans huile de palme', 'Artisanal', 'Fait maison', 'Sans sucre ajouté', 'Local / circuit court'],
+            'fields' => [
+                'contenance'      => ['label' => 'Poids / contenance', 'opts' => ['< 50 g', '50 g', '100 g', '150 g', '200 g', '250 g', '500 g']],
+                'conditionnement' => ['label' => 'Conditionnement', 'opts' => ['Sachet', 'Paquet', 'Boîte', 'Étui', 'Vrac', 'Lot / pack', 'Sachets individuels']],
+                'gout'            => ['label' => 'Goût / saveur', 'opts' => ['Nature', 'Salé', 'Sucré', 'Épicé', 'Barbecue', 'Fromage', 'Chocolat', 'Fruité', 'Caramel']],
+                'sucre'           => ['label' => 'Teneur en sucre', 'opts' => ['Sans sucre', 'Sans sucre ajouté', 'Allégé', 'Normal']],
+                'labels'          => ['label' => 'Label / qualité', 'opts' => ['Bio (AB / Eurofeuille)', 'Commerce équitable', 'Artisanal', 'Aucun']],
+                'regime'          => ['label' => 'Régime', 'opts' => ['Vegan', 'Sans gluten', 'Sans lactose', 'Halal', 'Bio', 'Aucun']],
+                'origine'         => ['label' => 'Origine', 'opts' => ['France', 'Union européenne', 'Afrique de l’Ouest', 'Hors UE', 'Origines multiples']],
+                'proteine'        => ['label' => 'Teneur en protéines', 'opts' => ['Standard', 'Riche en protéines (> 20 %)']],
+                'cacao'           => ['label' => '% cacao', 'opts' => ['Lait', '< 50 %', '50–70 %', '70–85 %', '> 85 %']],
+                'piece'           => ['label' => 'Conditionnement par', 'opts' => ['À l’unité', 'Lot de 3', 'Lot de 6', 'Lot de 12', 'Format familial']],
+            ],
+            'types' => [
+                // Salé
+                'Chips / tuiles'                            => ['group' => 'sale', 'fields' => ['contenance', 'gout', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Crackers / biscuits salés'                 => ['group' => 'sale', 'fields' => ['contenance', 'gout', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Snacks apéritifs'                          => ['group' => 'sale', 'fields' => ['contenance', 'gout', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Popcorn'                                   => ['group' => 'sale', 'fields' => ['contenance', 'gout', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Fruits secs / oléagineux'                  => ['group' => 'sale', 'fields' => ['contenance', 'gout', 'origine', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Sucré
+                'Biscuits / cookies'                        => ['group' => 'sucre', 'fields' => ['contenance', 'sucre', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Gâteaux / biscuiterie'                     => ['group' => 'sucre', 'fields' => ['contenance', 'sucre', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Barres céréalières'                        => ['group' => 'sucre', 'fields' => ['contenance', 'sucre', 'regime', 'piece'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Chocolat / tablette'                       => ['group' => 'sucre', 'fields' => ['contenance', 'cacao', 'origine', 'labels'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Confiserie / bonbons'                      => ['group' => 'sucre', 'fields' => ['contenance', 'gout', 'sucre', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Du monde & diététique
+                'Snacks africains (chin-chin, plantain…)'   => ['group' => 'monde', 'fields' => ['contenance', 'gout', 'origine', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Snacks protéinés / sportifs'               => ['group' => 'monde', 'fields' => ['contenance', 'proteine', 'sucre', 'piece'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Autre
+                'Autre snack'                               => ['group' => 'autre', 'fields' => ['contenance', 'gout', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            ],
+        ],
     ],
 
     // Remplissage rapide des déclinaisons selon l'axe (Poids / Contenance).
