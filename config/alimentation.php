@@ -192,6 +192,61 @@ return [
                 'Autre snack'                               => ['group' => 'autre', 'fields' => ['contenance', 'gout', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
             ],
         ],
+
+        'Épicerie' => [
+            'groups' => [
+                'feculents'    => 'Féculents & céréales',
+                'legumineuses' => 'Légumineuses',
+                'conserves'    => 'Conserves',
+                'condiments'   => 'Condiments & sauces',
+                'sucre_pdej'   => 'Petit-déjeuner & sucré',
+                'monde'        => 'Du monde & aides culinaires',
+                'autre'        => 'Autre',
+            ],
+            'atouts' => ['Bio', 'Halal', 'Commerce équitable', 'Local / circuit court', 'Sans additifs', 'Produit du terroir', 'Fait maison', 'Sans gluten'],
+            'fields' => [
+                'contenance'      => ['label' => 'Poids / contenance', 'opts' => ['250 g', '500 g', '1 kg', '2 kg', '5 kg', '25 cl', '50 cl', '1 L']],
+                'conditionnement' => ['label' => 'Conditionnement', 'opts' => ['Sachet', 'Paquet', 'Boîte / conserve', 'Bocal', 'Bouteille', 'Brique', 'Vrac', 'Lot / pack']],
+                'origine'         => ['label' => 'Origine', 'opts' => ['France', 'Union européenne', 'Afrique de l’Ouest', 'Hors UE', 'Origines multiples']],
+                'labels'          => ['label' => 'Label / qualité', 'opts' => ['Bio (AB / Eurofeuille)', 'Commerce équitable', 'AOP / IGP', 'Aucun']],
+                'regime'          => ['label' => 'Régime', 'opts' => ['Bio', 'Sans gluten', 'Sans lactose', 'Halal', 'Vegan', 'Aucun']],
+                'riz_type'        => ['label' => 'Type de riz', 'opts' => ['Long grain', 'Basmati', 'Parfumé / jasmin', 'Rond', 'Complet', 'Étuvé']],
+                'pates_forme'     => ['label' => 'Forme', 'opts' => ['Spaghetti', 'Penne', 'Coquillettes', 'Tagliatelle', 'Macaroni', 'Autre']],
+                'farine_type'     => ['label' => 'Type de farine', 'opts' => ['Blé T45', 'Blé T55', 'Blé T65', 'Complète', 'Maïs', 'Manioc', 'Sans gluten']],
+                'transformation'  => ['label' => 'Préparation', 'opts' => ['Cru / brut', 'Précuit', 'Cuit / prêt à l’emploi', 'Déshydraté']],
+                'piquant'         => ['label' => 'Intensité', 'opts' => ['Doux', 'Relevé', 'Piquant', 'Très piquant']],
+                'teneur'          => ['label' => 'Teneur', 'opts' => ['Nature', 'Sucré', 'Salé', 'Sans sel ajouté', 'Sans sucre ajouté']],
+            ],
+            'types' => [
+                // Féculents & céréales
+                'Riz'                                        => ['group' => 'feculents', 'fields' => ['riz_type', 'contenance', 'origine', 'conditionnement', 'labels'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Pâtes'                                      => ['group' => 'feculents', 'fields' => ['pates_forme', 'contenance', 'origine', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Céréales / muesli'                          => ['group' => 'feculents', 'fields' => ['contenance', 'teneur', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Farine'                                     => ['group' => 'feculents', 'fields' => ['farine_type', 'contenance', 'origine', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Semoule / couscous'                         => ['group' => 'feculents', 'fields' => ['contenance', 'origine', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Légumineuses
+                'Légumes secs (lentilles, haricots…)'        => ['group' => 'legumineuses', 'fields' => ['contenance', 'origine', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Conserves
+                'Conserves de légumes'                       => ['group' => 'conserves', 'fields' => ['contenance', 'conditionnement', 'transformation', 'origine'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Conserves de poisson / viande'              => ['group' => 'conserves', 'fields' => ['contenance', 'conditionnement', 'transformation', 'origine'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Plats cuisinés en conserve'                 => ['group' => 'conserves', 'fields' => ['contenance', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Condiments & sauces
+                'Huile'                                      => ['group' => 'condiments', 'fields' => ['contenance', 'conditionnement', 'origine', 'labels'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Contenance'],
+                'Vinaigre'                                   => ['group' => 'condiments', 'fields' => ['contenance', 'conditionnement', 'origine'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Contenance'],
+                'Sauce / condiment'                          => ['group' => 'condiments', 'fields' => ['contenance', 'conditionnement', 'piquant', 'origine'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Contenance'],
+                'Épices & herbes'                            => ['group' => 'condiments', 'fields' => ['contenance', 'piquant', 'origine', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Sel / sucre'                                => ['group' => 'condiments', 'fields' => ['contenance', 'teneur', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Petit-déjeuner & sucré
+                'Confiture / pâte à tartiner'                => ['group' => 'sucre_pdej', 'fields' => ['contenance', 'teneur', 'conditionnement', 'labels'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Miel / sirop'                               => ['group' => 'sucre_pdej', 'fields' => ['contenance', 'origine', 'conditionnement', 'labels'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Du monde & aides culinaires
+                'Produits africains (attiéké, gari, fufu…)'  => ['group' => 'monde', 'fields' => ['contenance', 'origine', 'transformation', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Bouillon / aide culinaire'                  => ['group' => 'monde', 'fields' => ['contenance', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                'Levure / aide pâtisserie'                   => ['group' => 'monde', 'fields' => ['contenance', 'conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+                // Autre
+                'Autre produit d’épicerie'                   => ['group' => 'autre', 'fields' => ['contenance', 'origine', 'conditionnement', 'regime'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            ],
+        ],
     ],
 
     // Remplissage rapide des déclinaisons selon l'axe (Poids / Contenance).
