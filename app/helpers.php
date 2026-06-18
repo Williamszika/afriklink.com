@@ -1077,6 +1077,73 @@ function cuisine_autre_cfg(?string $rayon): ?array
     return is_array($r) ? $r : null;
 }
 
+/* ---------- Alimentation : rayons adaptatifs au type (Bio & naturel…) ---------- */
+
+/** @return list<string> Catégories de boutique proposant les rayons alimentaires adaptatifs. */
+function alim_shop_categories(): array { return (array) config('alimentation.shop_categories', ['alimentation']); }
+
+/** La boutique (catégorie) propose-t-elle le formulaire alimentaire adaptatif ? */
+function alim_capable(?string $boutiqueCategory): bool { return in_array((string) $boutiqueCategory, alim_shop_categories(), true); }
+
+/** @return list<string> Libellés des rayons alimentaires type-driven. */
+function alim_rayons(): array { return array_keys((array) config('alimentation.rayons', [])); }
+
+/** Ce rayon a-t-il un formulaire alimentaire adaptatif ? */
+function alim_is_rayon(?string $rayon): bool { return isset(((array) config('alimentation.rayons', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon alimentaire par clé. */
+function alim_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('alimentation.rayons.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function alim_fields(?string $rayon): array { return alim_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function alim_types(?string $rayon): array { return alim_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function alim_groups(?string $rayon): array { return alim_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function alim_atouts(?string $rayon): array { return alim_rayon($rayon, 'atouts'); }
+
+/** @return list<string> */
+function alim_conservations(): array { return (array) config('alimentation.conservations', []); }
+
+/** @return list<string> */
+function alim_dlc_types(): array { return (array) config('alimentation.dlc_types', []); }
+
+/** @return list<string> */
+function alim_allergenes(): array { return (array) config('alimentation.allergenes', []); }
+
+/** Métadonnées d'un type pour un rayon alimentaire, ou null. */
+function alim_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = alim_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques d'un produit alimentaire : champs du type validés.
+ * @return array<string,string>
+ */
+function alim_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = alim_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = alim_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 
 
 /** @return list<string> */

@@ -310,6 +310,121 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /cuisine nouveau rayon -->
         <?php endif; ?>
 
+        <?php if (alim_capable($boutiqueCat)):
+            $rawOldF   = $_SESSION['_old'] ?? [];
+            $alimAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $alimActive = alim_is_rayon($curCol);
+            $alimRayon  = $alimActive ? $curCol : (alim_rayons()[0] ?? 'Bio & naturel');
+            $alimType   = (string) ($rawOldF['product_type'] ?? ($product['product_type'] ?? ''));
+            $alimMeta   = alim_type_meta($alimRayon, $alimType);
+            $alimConserv = (string) ($rawOldF['conservation'] ?? ($alimAttrs['conservation'] ?? ($alimMeta['conserv'] ?? 'Ambiante / sèche')));
+            $alimDlc     = (string) ($rawOldF['dlc_type'] ?? ($alimAttrs['dlc_type'] ?? ''));
+            $alimDate    = (string) ($rawOldF['date_limite'] ?? ($alimAttrs['date_limite'] ?? ''));
+            $alimAtoutsSel = isset($rawOldF['atouts']) && is_array($rawOldF['atouts'])
+                ? array_map('strval', $rawOldF['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $alimAllergSel = isset($rawOldF['allergenes']) && is_array($rawOldF['allergenes'])
+                ? array_map('strval', $rawOldF['allergenes'])
+                : array_map('strval', (array) ($alimAttrs['allergenes'] ?? []));
+            $alimCold = $alimConserv !== '' && $alimConserv !== 'Ambiante / sèche';
+            $alimDis = $alimActive ? '' : ' disabled';
+        ?>
+        <div data-alim
+             data-rayons="<?= e((string) json_encode((array) config('alimentation.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('alimentation.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('alim.f.type_any')) ?>" data-ambient="Ambiante / sèche"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Alimentation adaptatif (Bio & naturel…) ===== -->
+        <div data-alim-root<?= $alimActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="alim-brand"><?= e(t('alim.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="alim-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldF['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('alim.brand_ph')) ?>"<?= $alimDis ?>>
+                </div>
+                <div>
+                    <label for="alim-type"><?= e(t('alim.f.type')) ?> <span class="req">*</span></label>
+                    <select id="alim-type" name="product_type" data-pv="type" data-alim-type<?= $alimDis ?>>
+                        <option value=""><?= e(t('alim.f.type_any')) ?></option>
+                        <?php foreach (alim_types($alimRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $alimType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-alim-hint><?= e($alimMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-alim-attrs>
+                    <?php if ($alimMeta): foreach ((array) ($alimMeta['fields'] ?? []) as $fk): $fd = alim_fields($alimRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($alimAttrs[$fk] ?? ''); ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $alimDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label for="alim-conserv"><?= e(t('alim.f.conservation')) ?></label>
+                        <select id="alim-conserv" name="conservation" data-alim-conserv<?= $alimDis ?>>
+                            <?php foreach (alim_conservations() as $cs): ?><option value="<?= e($cs) ?>" <?= $alimConserv === $cs ? 'selected' : '' ?>><?= e($cs) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="alim-dlc"><?= e(t('alim.f.dlc_type')) ?></label>
+                        <select id="alim-dlc" name="dlc_type"<?= $alimDis ?>>
+                            <option value=""><?= e(t('alim.f.dlc_none')) ?></option>
+                            <?php foreach (alim_dlc_types() as $d): ?><option value="<?= e($d) ?>" <?= $alimDlc === $d ? 'selected' : '' ?>><?= e($d) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label for="alim-date"><?= e(t('alim.f.date_limite')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                        <input type="date" id="alim-date" name="date_limite" value="<?= e($alimDate) ?>"<?= $alimDis ?>>
+                    </div>
+                    <div>
+                        <label for="alim-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="alim-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldF['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="BIO-001"<?= $alimDis ?>>
+                    </div>
+                </div>
+                <div class="notice notice-info" data-alim-cold-note<?= $alimCold ? '' : ' hidden' ?>><p>❄️ <?= e(t('alim.cold_note')) ?></p></div>
+
+                <label style="margin-top:12px"><?= e(t('alim.f.allergenes')) ?> <span class="muted">(<?= e(t('alim.f.allergenes_opt')) ?>)</span></label>
+                <div class="chip-checks" data-alim-allergenes>
+                    <?php foreach (alim_allergenes() as $al): ?>
+                        <label class="chip-check chip-check--health"><input type="checkbox" name="allergenes[]" value="<?= e($al) ?>" <?= in_array($al, $alimAllergSel, true) ? 'checked' : '' ?><?= $alimDis ?>><span><?= e($al) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="notice notice-warning"><p>🌿 <?= e(t('alim.bio_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:12px">
+                    <div>
+                        <label for="alim-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="alim-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldF['variant_axis'] ?? ($alimAttrs['variant_axis'] ?? ($alimMeta['axis'] ?? 'Poids')))) ?>" placeholder="<?= e(t('alim.axis_ph')) ?>" data-alim-axis<?= $alimDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $alimSizes = ($alimMeta && !empty($alimMeta['axis'])) ? (array) (config('alimentation.size_systems')[$alimMeta['axis']] ?? []) : []; ?>
+                <label data-alim-size-label<?= $alimSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-alim-size-chips<?= $alimSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($alimSizes as $sb): ?><button type="button" class="axis-chip" data-alim-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-alim-atouts>
+                    <?php foreach (alim_atouts($alimRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $alimAtoutsSel, true) ? 'checked' : '' ?><?= $alimDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /alim adaptatif -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

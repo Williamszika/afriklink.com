@@ -352,6 +352,24 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (alim_capable((string) ($boutique['category'] ?? '')) && alim_is_rayon($collection)) {
+            // Alimentation adaptatif (Bio & naturel…) : type-driven specs + conservation,
+            // DLC/DDM + date limite, allergènes. Tout en JSON dans products.attributes.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(alim_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), alim_atouts($collection)));
+            $ea = alim_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $cons = beauty_clean(input_string('conservation', ''), alim_conservations());
+            if ($cons !== '') { $ea['conservation'] = $cons; }
+            $dlc = beauty_clean(input_string('dlc_type', ''), alim_dlc_types());
+            if ($dlc !== '') { $ea['dlc_type'] = $dlc; }
+            $dlRaw = trim((string) input_string('date_limite', ''));
+            if ($dlRaw !== '' && strtotime($dlRaw) !== false) { $ea['date_limite'] = date('Y-m-d', (int) strtotime($dlRaw)); }
+            $allerg = keep_in_list((array) ($_POST['allergenes'] ?? []), alim_allergenes());
+            if ($allerg !== []) { $ea['allergenes'] = $allerg; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));

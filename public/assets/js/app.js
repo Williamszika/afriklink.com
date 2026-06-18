@@ -4319,3 +4319,144 @@ document.addEventListener('click', function (ev) {
     if (previews && window.MutationObserver) { new MutationObserver(syncPhoto).observe(previews, { childList: true, subtree: true }); }
     update(); syncPhoto();
 })();
+
+/* ---- Alimentation : rayons adaptatifs au type (Bio & naturel…).
+   Le type pilote les caractéristiques, la conservation par défaut et l'axe de
+   déclinaison (Poids / Contenance). Conservation au froid → rappel chaîne du
+   froid. Allergènes (multi). Remplissage rapide des tailles. CSP-safe. ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-alim]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var RAYONS = parse('data-rayons');
+    var SIZES  = parse('data-size-systems');
+    var AMBIENT = cfgEl.getAttribute('data-ambient') || 'Ambiante / sèche';
+    var coll      = document.querySelector('[data-collection-select]');
+    var root      = document.querySelector('[data-alim-root]');
+    var typeSel   = document.querySelector('[data-alim-type]');
+    var attrsBox  = document.querySelector('[data-alim-attrs]');
+    var atoutsBox = document.querySelector('[data-alim-atouts]');
+    var conservSel= document.querySelector('[data-alim-conserv]');
+    var coldNote  = document.querySelector('[data-alim-cold-note]');
+    var hint      = document.querySelector('[data-alim-hint]');
+    var axisInp   = document.querySelector('[data-alim-axis]');
+    if (!root) { return; }
+
+    function active() { return !!(coll && RAYONS[coll.value]); }
+    function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
+    function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var fields = cfg().fields || {};
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        attrsBox.innerHTML = '';
+        var m = meta(); if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = fields[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
+    }
+    // Reconstruit le sélecteur de type (liste à plat) + les atouts quand le rayon change.
+    function rebuildRayon() {
+        var c = cfg();
+        if (typeSel) {
+            var cur = typeSel.value;
+            typeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = cfgEl.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
+            Object.keys(c.types || {}).forEach(function (tn) {
+                var op = document.createElement('option'); op.value = tn; op.textContent = tn;
+                if (tn === cur) { op.selected = true; }
+                typeSel.appendChild(op);
+            });
+            if (typeSel.value !== cur) { typeSel.value = ''; }
+        }
+        if (atoutsBox) {
+            var prevAt = {};
+            atoutsBox.querySelectorAll('input:checked').forEach(function (i) { prevAt[i.value] = true; });
+            atoutsBox.innerHTML = '';
+            (c.atouts || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'atouts[]'; inp.value = v;
+                if (prevAt[v]) { inp.checked = true; }
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
+            });
+        }
+        onType();
+    }
+    function buildSizeChips() {
+        var box = document.querySelector('[data-alim-size-chips]');
+        var lab = document.querySelector('[data-alim-size-label]');
+        if (!box) { return; }
+        var m = meta();
+        var btns = (m && m.axis && SIZES[m.axis]) ? SIZES[m.axis] : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-alim-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function coldToggle() {
+        if (!coldNote) { return; }
+        var v = conservSel ? String(conservSel.value || '') : '';
+        coldNote.hidden = !(v !== '' && v !== AMBIENT);
+    }
+    function onType() {
+        var m = meta();
+        // Conservation par défaut selon le type, sauf si le vendeur l'a réglée.
+        if (m && conservSel && !conservSel.dataset.touched && m.conserv) { conservSel.value = m.conserv; }
+        if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+        buildAttrs(); buildSizeChips(); coldToggle();
+        if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
+    }
+    function alimFill(list) {
+        var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');
+        var tpl = document.getElementById('variant-template');
+        if (!rowsBox || !tpl || !tpl.content) { return; }
+        var have = {};
+        rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value || '').trim().toLowerCase()] = true; });
+        (list || []).forEach(function (sz) {
+            var key = String(sz).trim().toLowerCase();
+            if (key === '' || have[key]) { return; }
+            rowsBox.appendChild(tpl.content.cloneNode(true));
+            var row = rowsBox.lastElementChild;
+            var inp = row && row.querySelector('input[name="var_size[]"]');
+            if (inp) { inp.value = sz; }
+            have[key] = true;
+        });
+        var det = rowsBox.closest('details'); if (det) { det.open = true; }
+    }
+    function setEnabled() {
+        var on = active();
+        root.hidden = !on;
+        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+    }
+    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
+
+    if (coll)      { coll.addEventListener('change', onColl); }
+    if (typeSel)   { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    if (conservSel){ conservSel.addEventListener('change', function () { this.dataset.touched = '1'; coldToggle(); }); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-alim-fill]');
+        if (fill) { ev.preventDefault(); try { alimFill(JSON.parse(fill.getAttribute('data-alim-fill') || '[]')); } catch (e) {} }
+    });
+    if (active()) { onType(); }
+    setEnabled();
+})();

@@ -141,6 +141,20 @@ foreach ($realVariants as $rv) {
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                     if (!empty($aAttr['garantie'])) { $apTags[] = t('cuisine.f.warranty') . ' ' . (string) $aAttr['garantie']; }
+                } elseif ($pVertical === 'generic' && alim_capable((string) ($boutique['category'] ?? '')) && alim_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Alimentation adaptatif (Bio & naturel…) : specs alimentaires dans attributes.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['conservation']) && $aAttr['conservation'] !== 'Ambiante / sèche') { $apTags[] = (string) $aAttr['conservation']; }
+                    if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
+                        $apTags[] = t('alim.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
+                    }
                 } elseif ($pVertical === 'phone') {
                     // Fiche téléphone (legacy) OU rayon électronique « autre » : specs libres dans attributes.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
