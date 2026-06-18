@@ -387,4 +387,28 @@ return [
             ],
         ],
     ],
+
+    /**
+     * « Nouveau rayon » Maison : le vendeur crée un rayon hors des 6 répertoriés.
+     * Le formulaire s'adapte au SLUG du nom : si connu (R), il suggère des specs,
+     * un axe et le mode électrique ; sinon, modèle générique + specs libres +
+     * interrupteur « appareil électrique » manuel.
+     */
+    'autre' => [
+        'rayon_suggest' => ['Salle de bain', 'Rangement & organisation', 'Luminaires', 'Petit électroménager', 'Arts de la table', 'Tapis & sols', 'Sécurité & domotique', 'Bricolage & outillage', 'Chambre bébé'],
+        'generic_specs' => ['Matière', 'Dimensions', 'Couleur', 'Montage', 'Style', 'Capacité', 'Puissance'],
+        'atout_suggest' => ['Fait main / artisanal', 'Wax / pagne', 'Style africain', 'Montage facile', 'Éco-responsable', 'Garantie incluse', 'Connecté', 'Pièce unique'],
+        'warn_text'     => 'Produits maison : pour un article électrique, le marquage CE et la notice sont obligatoires à l’import dans l’UE ; la garantie légale de conformité s’applique. Pour le mobilier volumineux, précise les modalités de livraison / montage dans la description.',
+        'R' => [
+            'salle-de-bain'          => ['specs' => ['Type (meuble, robinet, miroir…)', 'Matière', 'Dimensions', 'Montage'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+            'rangement-organisation' => ['specs' => ['Type', 'Matière', 'Dimensions', 'Nombre de compartiments'], 'axis' => 'Taille', 'color' => true, 'elec' => false],
+            'luminaires'             => ['specs' => ['Type', 'Type d’ampoule', 'Nombre de lumières', 'Alimentation'], 'axis' => 'Couleur', 'color' => true, 'elec' => true],
+            'petit-electromenager'   => ['specs' => ['Type', 'Puissance', 'Capacité', 'Tension'], 'axis' => 'Couleur', 'color' => true, 'elec' => true],
+            'arts-de-la-table'       => ['specs' => ['Type', 'Matière', 'Nombre de pièces'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+            'tapis-et-sols'          => ['specs' => ['Type', 'Matière', 'Dimensions', 'Forme'], 'axis' => 'Taille', 'color' => true, 'elec' => false],
+            'securite-et-domotique'  => ['specs' => ['Type', 'Connectivité', 'Alimentation', 'Portée'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+            'bricolage-et-outillage' => ['specs' => ['Type', 'Puissance / manuel', 'Alimentation', 'Accessoires inclus'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+            'chambre-bebe'           => ['specs' => ['Type', 'Matière', 'Dimensions', 'Norme de sécurité'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+        ],
+    ],
 ];

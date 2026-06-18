@@ -2676,7 +2676,7 @@ document.addEventListener('click', function (ev) {
     var autreRowsBox = document.querySelector('[data-autre-rows]');
     var autreVarTpl = document.getElementById('autre-variant-template');
     var SPECIALIZED = ['Maquillage', 'Parfums', 'Perruque', 'Ongles', 'Soins corps', 'Soins visage'];
-    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
     function autreRayon() {
         if (coll && coll.value === '__other__') { return collOther ? String(collOther.value || '').trim() : ''; }
         return coll ? coll.value : '';
@@ -3227,7 +3227,7 @@ document.addEventListener('click', function (ev) {
     function isElecForm() { return !!(coll && RAYONS[coll.value]); }
     function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
     function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
-    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
     function autreRayon() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? coll.value : ''); }
     function autreCfg() { return (AUTRE.R || {})[autreSlug(autreRayon())] || null; }
 
@@ -3697,7 +3697,7 @@ document.addEventListener('click', function (ev) {
     var axisInp = document.querySelector('[data-aautre-axis]');
     var colorTog = document.querySelector('[data-aautre-color-toggle]');
 
-    function slug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function slug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
     function rayon() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? coll.value : ''); }
     function isKnown() { return !!(coll && RAYONS[coll.value]); }   // rayon mode répertorié => géré ailleurs
     function cfg() { return (AUTRE.R || {})[slug(rayon())] || null; }
@@ -4030,9 +4030,26 @@ document.addEventListener('click', function (ev) {
     var elecWarn  = document.querySelector('[data-cuisine-elec-warn]');
     var hint      = document.querySelector('[data-cuisine-hint]');
     var axisInp   = document.querySelector('[data-cuisine-axis]');
-    if (!root) { return; }
+    // « Nouveau rayon » Maison : specs libres adaptées au slug du rayon saisi.
+    var AUTRE; try { AUTRE = JSON.parse(cfgEl.getAttribute('data-autre') || 'null') || {}; } catch (e) { AUTRE = {}; }
+    var collOther     = document.querySelector('[data-collection-other]');
+    var autreRoot     = document.querySelector('[data-cuisine-autre-root]');
+    var autreHint     = document.querySelector('[data-cuisine-autre-hint]');
+    var autreSpecsBox = document.querySelector('[data-cuisine-autre-specs]');
+    var autreSpecChips= document.querySelector('[data-cuisine-autre-spec-chips]');
+    var autreElecTog  = document.querySelector('[data-cuisine-autre-elec-toggle]');
+    var autreElecBox  = document.querySelector('[data-cuisine-autre-elec-box]');
+    var autreElecWarn = document.querySelector('[data-cuisine-autre-elec-warn]');
+    var autreAxisInp  = document.querySelector('[data-cuisine-autre-axis]');
+    if (!root && !autreRoot) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
+    // Nouveau rayon : collection non vide et hors des 6 rayons connus (« __other__ »
+    // ou rayon personnalisé déjà enregistré sélectionné dans la liste).
+    function autreActive() { return !!(coll && coll.value !== '' && !RAYONS[coll.value]); }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreRayonName() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? String(coll.value || '').trim() : ''); }
+    function autreCfg() { return (AUTRE.R || {})[autreSlug(autreRayonName())] || null; }
     function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
     function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
 
@@ -4103,23 +4120,107 @@ document.addEventListener('click', function (ev) {
         buildAttrs();
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
     }
-    // (dés)active toute la section selon le rayon courant ; la garantie reste
-    // réservée aux appareils/luminaires électriques même quand la section est active.
+    // ----- « Nouveau rayon » : adaptation au slug, specs libres, interrupteur électrique -----
+    function autreElecToggle() {
+        var on = !!(autreElecTog && autreElecTog.checked);
+        if (autreElecBox)  { autreElecBox.hidden = !on; }
+        if (autreElecWarn) { autreElecWarn.hidden = !on; }
+        setEnabled();
+    }
+    function autreBuildSpecChips() {
+        if (!autreSpecChips) { return; }
+        var c = autreCfg();
+        var list = c ? (c.specs || []) : (AUTRE.generic_specs || []);
+        autreSpecChips.innerHTML = '';
+        list.forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-cuisine-autre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            autreSpecChips.appendChild(b);
+        });
+    }
+    function adaptAutre() {
+        var c = autreCfg();
+        if (autreHint) {
+            var rn = autreRayonName();
+            autreHint.textContent = c ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', rn))
+                : (cfgEl.getAttribute('data-autre-generic') || autreHint.textContent);
+        }
+        autreBuildSpecChips();
+        if (c && autreAxisInp && !autreAxisInp.value.trim()) { autreAxisInp.value = c.axis || ''; }
+        // Mode électrique par défaut depuis le rayon connu, sauf si l'utilisateur l'a réglé.
+        if (c && autreElecTog && !autreElecTog.dataset.touched) { autreElecTog.checked = !!c.elec; autreElecToggle(); }
+    }
+    function addAutreSpec(label) {
+        var tpl = document.getElementById('cuisine-autre-spec-template');
+        if (!tpl || !tpl.content || !autreSpecsBox) { return; }
+        autreSpecsBox.appendChild(tpl.content.cloneNode(true));
+        var row = autreSpecsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+    }
+    function pushAutreAtout() {
+        var inp = document.querySelector('[data-cuisine-autre-atout-input]');
+        var box = document.querySelector('[data-cuisine-autre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = '';
+    }
+
+    // (dés)active la section selon le rayon courant : connu (root), nouveau rayon
+    // (autreRoot) ou aucun. Les inputs cachés sont désactivés (non envoyés).
     function setEnabled() {
-        var on = active();
-        root.hidden = !on;
-        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
-        if (on && elecBox && elecBox.hidden) {
-            elecBox.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; });
+        var known = active(), isAutre = autreActive();
+        if (root) {
+            root.hidden = !known;
+            root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !known; });
+            if (known && elecBox && elecBox.hidden) { elecBox.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; }); }
+        }
+        if (autreRoot) {
+            autreRoot.hidden = !isAutre;
+            autreRoot.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !isAutre; });
+            if (isAutre && autreElecBox && autreElecBox.hidden) { autreElecBox.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; }); }
         }
     }
-    // Changement de rayon → reconstruit types + atouts. Le serveur a déjà rendu le
-    // bon rayon au chargement : on ne reconstruit pas (préserve la sélection d'édition).
-    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
+    // Changement de rayon → reconstruit la section active.
+    function onColl() {
+        if (active()) { rebuildRayon(); }
+        else if (autreActive()) { adaptAutre(); }
+        setEnabled();
+    }
 
-    if (coll)    { coll.addEventListener('change', onColl); }
-    if (typeSel) { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    if (coll)      { coll.addEventListener('change', onColl); }
+    if (collOther) { collOther.addEventListener('input', function () { if (autreActive()) { adaptAutre(); } }); }
+    if (typeSel)   { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    if (autreElecTog) { autreElecTog.addEventListener('change', function () { this.dataset.touched = '1'; autreElecToggle(); }); }
+    var autreAtoutInp = document.querySelector('[data-cuisine-autre-atout-input]');
+    if (autreAtoutInp) { autreAtoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAutreAtout(); } }); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        if (ev.target.closest('[data-cuisine-autre-spec-add]')) { addAutreSpec(''); return; }
+        if (ev.target.closest('[data-cuisine-autre-atout-add]')) { pushAutreAtout(); return; }
+        var sp = ev.target.closest('[data-cuisine-autre-spec]');
+        if (sp) { ev.preventDefault(); addAutreSpec(sp.getAttribute('data-val')); return; }
+        var ray = ev.target.closest('[data-cuisine-autre-rayon]');
+        if (ray) {
+            ev.preventDefault();
+            var rn = ray.getAttribute('data-cuisine-autre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-cuisine-autre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } }
+    });
+
     if (active()) { onType(); }
+    else if (autreActive()) { adaptAutre(); }
     setEnabled();
 })();
 

@@ -317,6 +317,41 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (cuisine_capable((string) ($boutique['category'] ?? '')) && $collection !== '' && !cuisine_is_rayon($collection)) {
+            // NOUVEAU RAYON Maison (hors des 6 répertoriés) : type & caractéristiques libres,
+            // état, interrupteur « appareil électrique » → garantie. Tout en JSON.
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            // Atouts libres (suggérés + personnalisés), max 20.
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            // Caractéristiques libres (libellé → valeur), max 20.
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $specs = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($specs[$lb])) { $specs[$lb] = $vv; }
+                if (count($specs) >= 20) { break; }
+            }
+            $ea = [];
+            if ($specs !== []) { $ea['specs'] = $specs; }
+            $cond = beauty_clean(input_string('acc_condition', ''), cuisine_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            if (input_string('elec_on', '') === '1') {
+                $ea['elec'] = true;
+                $gar = beauty_clean(input_string('acc_garantie', ''), cuisine_garanties());
+                if ($gar !== '') { $ea['garantie'] = $gar; }
+            }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));

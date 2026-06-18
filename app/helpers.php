@@ -1062,6 +1062,21 @@ function cuisine_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/** Config « nouveau rayon » Maison (rayon_suggest, generic_specs, atout_suggest, warn_text, R). */
+function cuisine_autre(?string $key = null): array
+{
+    $cfg = (array) config('cuisine.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Config adaptative d'un rayon Maison « autre » par son libellé (slug) — ou null si inconnu. */
+function cuisine_autre_cfg(?string $rayon): ?array
+{
+    $r = (cuisine_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
 
 
 /** @return list<string> */
