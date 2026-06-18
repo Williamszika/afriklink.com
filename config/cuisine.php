@@ -323,5 +323,68 @@ return [
                 'Autre meuble'                    => ['group' => 'autre', 'fields' => ['matiere', 'dimensions', 'style'], 'elec' => false, 'axis' => 'Couleur', 'color' => true],
             ],
         ],
+
+        'Électroménager' => [
+            'groups' => [
+                'lavage'    => 'Lavage',
+                'froid'     => 'Froid',
+                'cuisson'   => 'Cuisson',
+                'clim'      => 'Climatisation & air',
+                'entretien' => 'Entretien',
+                'autre'     => 'Autre',
+            ],
+            'atouts' => ['Classe A', 'No Frost', 'Faible consommation', 'Silencieux', 'Connecté / WiFi', 'Reconditionné', 'Garantie incluse', 'Livraison + installation'],
+            'fields' => [
+                'capacite_kg'  => ['label' => 'Capacité (kg)', 'opts' => ['< 6 kg', '6 kg', '7 kg', '8 kg', '9 kg', '10 kg et +']],
+                'capacite_l'   => ['label' => 'Capacité (litres)', 'opts' => ['< 100 L', '100–200 L', '200–300 L', '300–400 L', '> 400 L']],
+                'couverts'     => ['label' => 'Couverts', 'opts' => ['6', '8', '10', '12', '14', '16']],
+                'energie'      => ['label' => 'Classe énergie', 'opts' => ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'Non précisé']],
+                'tension'      => ['label' => 'Tension', 'opts' => ['220–240 V', '110 V', 'Bi-tension']],
+                'puissance'    => ['label' => 'Puissance', 'opts' => ['< 1000 W', '1000–1500 W', '1500–2000 W', '2000–2500 W', '> 2500 W']],
+                'pose'         => ['label' => 'Installation', 'opts' => ['Pose libre', 'Encastrable', 'Sous plan', 'Mural']],
+                'programmes'   => ['label' => 'Programmes', 'opts' => ['1–5', '6–10', '11–15', '> 15']],
+                'essorage'     => ['label' => 'Essorage (tr/min)', 'opts' => ['800', '1000', '1200', '1400', '1600']],
+                'froid_type'   => ['label' => 'Type de froid', 'opts' => ['Statique', 'Brassé', 'No Frost / ventilé']],
+                'btu'          => ['label' => 'Puissance frigorifique', 'opts' => ['< 9000 BTU', '9000 BTU', '12000 BTU', '18000 BTU', '24000 BTU et +']],
+                'surface'      => ['label' => 'Surface couverte', 'opts' => ['< 15 m²', '15–25 m²', '25–40 m²', '> 40 m²']],
+                'foyers'       => ['label' => 'Nombre de foyers', 'opts' => ['1', '2', '3', '4', '5 et +']],
+                'type_energie' => ['label' => 'Énergie de cuisson', 'opts' => ['Électrique', 'Gaz', 'Mixte', 'Induction', 'Vitrocéramique']],
+                'autonomie'    => ['label' => 'Autonomie batterie', 'opts' => ['< 30 min', '30–45 min', '45–60 min', '> 60 min']],
+                'reservoir'    => ['label' => 'Capacité réservoir', 'opts' => ['< 1 L', '1–2 L', '2–3 L', '> 3 L']],
+            ],
+            'types' => [
+                // Lavage (tous électriques → garantie + classe énergie + rappel CE)
+                'Lave-linge'                         => ['group' => 'lavage', 'fields' => ['capacite_kg', 'essorage', 'programmes', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Sèche-linge'                        => ['group' => 'lavage', 'fields' => ['capacite_kg', 'programmes', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Lave-linge séchant'                 => ['group' => 'lavage', 'fields' => ['capacite_kg', 'essorage', 'programmes', 'energie'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Lave-vaisselle'                     => ['group' => 'lavage', 'fields' => ['couverts', 'programmes', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                // Froid
+                'Réfrigérateur'                      => ['group' => 'froid', 'fields' => ['capacite_l', 'froid_type', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Réfrigérateur combiné'              => ['group' => 'froid', 'fields' => ['capacite_l', 'froid_type', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Congélateur'                        => ['group' => 'froid', 'fields' => ['capacite_l', 'froid_type', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Cave à vin'                         => ['group' => 'froid', 'fields' => ['capacite_l', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                // Cuisson
+                'Cuisinière'                         => ['group' => 'cuisson', 'fields' => ['foyers', 'type_energie', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Four encastrable'                   => ['group' => 'cuisson', 'fields' => ['capacite_l', 'programmes', 'energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Plaque de cuisson'                  => ['group' => 'cuisson', 'fields' => ['foyers', 'type_energie', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Hotte aspirante'                    => ['group' => 'cuisson', 'fields' => ['puissance', 'pose', 'programmes'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Micro-ondes'                        => ['group' => 'cuisson', 'fields' => ['capacite_l', 'puissance', 'programmes'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                // Climatisation & air
+                'Climatiseur'                        => ['group' => 'clim', 'fields' => ['btu', 'surface', 'energie', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Ventilateur'                        => ['group' => 'clim', 'fields' => ['puissance', 'programmes', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Chauffage / radiateur'              => ['group' => 'clim', 'fields' => ['puissance', 'surface', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Purificateur d’air'                 => ['group' => 'clim', 'fields' => ['surface', 'puissance', 'programmes'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Déshumidificateur'                  => ['group' => 'clim', 'fields' => ['reservoir', 'surface', 'puissance'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                // Entretien
+                'Aspirateur'                         => ['group' => 'entretien', 'fields' => ['puissance', 'reservoir', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Aspirateur robot'                   => ['group' => 'entretien', 'fields' => ['autonomie', 'programmes', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Nettoyeur vapeur'                   => ['group' => 'entretien', 'fields' => ['puissance', 'reservoir', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Centrale vapeur / fer à repasser'   => ['group' => 'entretien', 'fields' => ['puissance', 'reservoir', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                // Autre
+                'Chauffe-eau'                        => ['group' => 'autre', 'fields' => ['capacite_l', 'puissance', 'pose'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Machine à coudre'                   => ['group' => 'autre', 'fields' => ['programmes', 'puissance', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+                'Autre appareil'                     => ['group' => 'autre', 'fields' => ['puissance', 'energie', 'tension'], 'elec' => true, 'axis' => 'Couleur', 'color' => true],
+            ],
+        ],
     ],
 ];
