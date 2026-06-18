@@ -1730,6 +1730,7 @@ return [
     'alim.axis_ph' => 'Weight / Volume',
     'alim.cold_note' => 'Chilled/frozen product: keep the cold chain and state delivery conditions (insulated packaging, short lead times) in the description.',
     'alim.bio_note' => 'The “organic” claim is reserved for certified products (AB / EU organic leaf). State the certifier and the full ingredient list in the description.',
+    'alim.alc_note' => 'Alcoholic drink: sale strictly forbidden to minors (18+). State the alcohol content. Online alcohol sales are subject to local regulation (licence, age verification on delivery, “Drink responsibly” notice).',
     'elec.decl_hint' => 'The axis is pre-filled from the type (colour, capacity, length…). List the options, each with its stock and price.',
     'elec.axis_ph' => 'e.g. Colour, Capacity, Length…',
     'product.f.name_ph' => 'E.g.: Wax dress size 38',

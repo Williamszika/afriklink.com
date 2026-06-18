@@ -1730,6 +1730,7 @@ return [
     'alim.axis_ph' => 'Poids / Contenance',
     'alim.cold_note' => 'Produit à conserver au froid : respecte la chaîne du froid et précise les conditions de livraison (emballage isotherme, délais courts) dans la description.',
     'alim.bio_note' => 'La mention « bio » est réservée aux produits certifiés (AB / Eurofeuille UE). Indique l’organisme certificateur et la liste complète des ingrédients dans la description.',
+    'alim.alc_note' => 'Boisson alcoolisée : vente strictement interdite aux mineurs (18 ans). Indique le degré d’alcool. La vente en ligne d’alcool est soumise à la réglementation locale (licence, vérification de l’âge à la livraison, mention « L’abus d’alcool est dangereux pour la santé »).',
     'elec.decl_hint' => 'L’axe est pré-rempli selon le type (couleur, capacité, longueur…). Liste les options, chacune avec son stock et son prix.',
     'elec.axis_ph' => 'ex. Couleur, Capacité, Longueur…',
     'product.f.name_ph' => 'Ex. : Robe wax taille 38',

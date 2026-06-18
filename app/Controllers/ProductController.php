@@ -367,6 +367,9 @@ final class ProductController
             if ($dlRaw !== '' && strtotime($dlRaw) !== false) { $ea['date_limite'] = date('Y-m-d', (int) strtotime($dlRaw)); }
             $allerg = keep_in_list((array) ($_POST['allergenes'] ?? []), alim_allergenes());
             if ($allerg !== []) { $ea['allergenes'] = $allerg; }
+            // Mode alcoolisé : déterminé par le type (config), pas par le POST (anti-triche).
+            $aMeta = alim_type_meta($collection, $productType);
+            if ($aMeta !== null && !empty($aMeta['alcool'])) { $ea['alcoolise'] = true; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

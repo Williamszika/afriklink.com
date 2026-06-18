@@ -327,6 +327,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 ? array_map('strval', $rawOldF['allergenes'])
                 : array_map('strval', (array) ($alimAttrs['allergenes'] ?? []));
             $alimCold = $alimConserv !== '' && $alimConserv !== 'Ambiante / sèche';
+            $alimAlc  = $alimMeta !== null && !empty($alimMeta['alcool']);
             $alimDis = $alimActive ? '' : ' disabled';
         ?>
         <div data-alim
@@ -346,9 +347,16 @@ $fmtP = static function ($cents) use ($cur): string {
                     <label for="alim-type"><?= e(t('alim.f.type')) ?> <span class="req">*</span></label>
                     <select id="alim-type" name="product_type" data-pv="type" data-alim-type<?= $alimDis ?>>
                         <option value=""><?= e(t('alim.f.type_any')) ?></option>
-                        <?php foreach (alim_types($alimRayon) as $tname => $tm): ?>
+                        <?php $alimGroups = alim_groups($alimRayon); ?>
+                        <?php if ($alimGroups !== []): foreach ($alimGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (alim_types($alimRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $alimType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (alim_types($alimRayon) as $tname => $tm): ?>
                             <option value="<?= e($tname) ?>" <?= $alimType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
-                        <?php endforeach; ?>
+                        <?php endforeach; endif; ?>
                     </select>
                 </div>
             </div>
@@ -367,6 +375,7 @@ $fmtP = static function ($cents) use ($cur): string {
                         </div>
                     <?php endforeach; endif; ?>
                 </div>
+                <div class="notice notice-warn" data-alim-alc-note<?= $alimAlc ? '' : ' hidden' ?>><p>🔞 <?= e(t('alim.alc_note')) ?></p></div>
                 <div class="grid-2">
                     <div>
                         <label for="alim-conserv"><?= e(t('alim.f.conservation')) ?></label>

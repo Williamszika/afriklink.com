@@ -4339,6 +4339,7 @@ document.addEventListener('click', function (ev) {
     var atoutsBox = document.querySelector('[data-alim-atouts]');
     var conservSel= document.querySelector('[data-alim-conserv]');
     var coldNote  = document.querySelector('[data-alim-cold-note]');
+    var alcNote   = document.querySelector('[data-alim-alc-note]');
     var hint      = document.querySelector('[data-alim-hint]');
     var axisInp   = document.querySelector('[data-alim-axis]');
     if (!root) { return; }
@@ -4368,18 +4369,23 @@ document.addEventListener('click', function (ev) {
             wrap.appendChild(sel); attrsBox.appendChild(wrap);
         });
     }
-    // Reconstruit le sélecteur de type (liste à plat) + les atouts quand le rayon change.
+    // Reconstruit le sélecteur de type (groupes ou liste à plat) + les atouts au changement de rayon.
     function rebuildRayon() {
         var c = cfg();
         if (typeSel) {
-            var cur = typeSel.value;
+            var cur = typeSel.value, types = c.types || {}, groups = c.groups || {};
             typeSel.innerHTML = '';
             var o0 = document.createElement('option'); o0.value = ''; o0.textContent = cfgEl.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
-            Object.keys(c.types || {}).forEach(function (tn) {
-                var op = document.createElement('option'); op.value = tn; op.textContent = tn;
-                if (tn === cur) { op.selected = true; }
-                typeSel.appendChild(op);
-            });
+            function addOpt(parent, tn) { var op = document.createElement('option'); op.value = tn; op.textContent = tn; if (tn === cur) { op.selected = true; } parent.appendChild(op); }
+            if (Object.keys(groups).length) {
+                Object.keys(groups).forEach(function (gk) {
+                    var og = document.createElement('optgroup'); og.label = groups[gk];
+                    Object.keys(types).forEach(function (tn) { if ((types[tn].group || '') === gk) { addOpt(og, tn); } });
+                    typeSel.appendChild(og);
+                });
+            } else {
+                Object.keys(types).forEach(function (tn) { addOpt(typeSel, tn); });
+            }
             if (typeSel.value !== cur) { typeSel.value = ''; }
         }
         if (atoutsBox) {
@@ -4422,6 +4428,7 @@ document.addEventListener('click', function (ev) {
         // Conservation par défaut selon le type, sauf si le vendeur l'a réglée.
         if (m && conservSel && !conservSel.dataset.touched && m.conserv) { conservSel.value = m.conserv; }
         if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+        if (alcNote) { alcNote.hidden = !(m && m.alcool); }
         buildAttrs(); buildSizeChips(); coldToggle();
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
     }

@@ -148,9 +148,10 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'variant_axis', 'alcoolise'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
+                    if (!empty($aAttr['alcoolise'])) { $apTags[] = '🔞 18+'; }
                     if (!empty($aAttr['conservation']) && $aAttr['conservation'] !== 'Ambiante / sèche') { $apTags[] = (string) $aAttr['conservation']; }
                     if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
                         $apTags[] = t('alim.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
