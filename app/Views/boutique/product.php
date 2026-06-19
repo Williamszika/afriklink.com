@@ -729,6 +729,8 @@ $dotHtml = static function (array $hexes): string {
                     </form>
                 </details>
             <?php endif; ?>
+        <?php elseif ($is_owner): ?>
+            <p class="notice notice-info review-gate"><?= icon('star', ['size' => 16]) ?> <?= e(t('review.draft_preview')) ?></p>
         <?php endif; ?>
     </div>
 

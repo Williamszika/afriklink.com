@@ -2312,6 +2312,7 @@ return [
     'review.already' => 'Vous avez déjà laissé un avis sur ce produit.',
     'review.thanks_posted' => 'Merci, votre avis est publié !',
     'review.gate_notice' => 'Les avis sont réservés aux clients ayant reçu ce produit. Vous pourrez en laisser un après la livraison de votre commande.',
+    'review.draft_preview' => 'Aperçu vendeur : une fois votre boutique publiée, vos clients pourront laisser un avis accompagné d’une photo après avoir reçu leur commande.',
     'review.invite_photo' => 'Ajoutez une ou plusieurs photos : aidez les autres acheteurs à se décider !',
     'review.photo_label' => 'Vos photos du produit',
     'review.add_photos' => 'Ajouter une photo',

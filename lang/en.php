@@ -2312,6 +2312,7 @@ return [
     'review.already' => 'You have already reviewed this product.',
     'review.thanks_posted' => 'Thanks, your review is published!',
     'review.gate_notice' => 'Reviews are reserved for customers who received this product. You can leave one after your order is delivered.',
+    'review.draft_preview' => 'Seller preview: once your shop is published, customers will be able to leave a review with a photo after they receive their order.',
     'review.invite_photo' => 'Add one or more photos: help other shoppers decide!',
     'review.photo_label' => 'Your product photos',
     'review.add_photos' => 'Add a photo',
