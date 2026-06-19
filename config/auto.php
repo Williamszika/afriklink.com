@@ -65,6 +65,48 @@ return [
                 'Autre accessoire'              => ['group' => 'autre', 'fields' => ['matiere', 'taille'], 'axis' => 'Modèle', 'color' => true, 'elec' => false],
             ],
         ],
+
+        'Audio auto' => [
+            'groups' => [
+                'sources' => 'Sources & multimédia',
+                'hp'      => 'Haut-parleurs & caissons',
+                'ampli'   => 'Amplification & traitement',
+                'install' => 'Installation',
+                'autre'   => 'Autre',
+            ],
+            'atouts' => ['Bluetooth', 'CarPlay / Android Auto', 'Mains libres', 'Installation facile', 'Garantie incluse', 'Marque premium', 'Commande au volant', 'Sortie caisson'],
+            'fields' => [
+                'format_din'   => ['label' => 'Format', 'opts' => ['1 DIN', '2 DIN', 'Sans façade (universel)', 'Flottant / tablette']],
+                'ecran'        => ['label' => 'Écran', 'opts' => ['Sans écran', 'Écran tactile', 'CarPlay / Android Auto', 'Affichage LED']],
+                'connectivite' => ['label' => 'Connectivité', 'opts' => ['Bluetooth', 'USB', 'AUX / Jack', 'Carte SD', 'Wi-Fi', 'Radio FM/AM', 'DAB+']],
+                'puissance'    => ['label' => 'Puissance', 'opts' => ['< 50 W', '50–100 W', '100–200 W', '200–500 W', '> 500 W']],
+                'diametre'     => ['label' => 'Diamètre', 'opts' => ['8 cm', '10 cm', '13 cm', '16 cm', '16x24 cm (ovale)', '20 cm', '25 cm', '30 cm', '38 cm']],
+                'impedance'    => ['label' => 'Impédance', 'opts' => ['2 Ω', '4 Ω', '8 Ω', 'Double bobine']],
+                'canaux'       => ['label' => 'Canaux', 'opts' => ['Mono (1)', '2 canaux', '4 canaux', '5 canaux', '6 canaux']],
+                'alimentation' => ['label' => 'Alimentation', 'opts' => ['12 V', '12 V / 24 V', 'Allume-cigare 12 V', 'USB']],
+                'garantie'     => ['label' => 'Garantie', 'opts' => ['Aucune', '3 mois', '6 mois', '1 an', '2 ans']],
+                'norme'        => ['label' => 'Norme', 'opts' => ['CE', 'RoHS', 'CE + RoHS', 'Aucune / non précisée']],
+            ],
+            'types' => [
+                // Sources & multimédia
+                'Autoradio 1 DIN'                    => ['group' => 'sources', 'fields' => ['format_din', 'ecran', 'connectivite', 'puissance', 'garantie', 'norme'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                'Autoradio 2 DIN / multimédia'       => ['group' => 'sources', 'fields' => ['format_din', 'ecran', 'connectivite', 'puissance', 'garantie', 'norme'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                'Kit mains libres Bluetooth'         => ['group' => 'sources', 'fields' => ['connectivite', 'alimentation', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                'Transmetteur FM Bluetooth'          => ['group' => 'sources', 'fields' => ['connectivite', 'alimentation', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                // Haut-parleurs & caissons
+                'Haut-parleurs / enceintes'          => ['group' => 'hp', 'fields' => ['diametre', 'puissance', 'impedance', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                'Tweeter / kit éclaté'               => ['group' => 'hp', 'fields' => ['diametre', 'puissance', 'impedance', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                'Caisson de basses / subwoofer'      => ['group' => 'hp', 'fields' => ['diametre', 'puissance', 'impedance', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                // Amplification & traitement
+                'Amplificateur'                      => ['group' => 'ampli', 'fields' => ['canaux', 'puissance', 'impedance', 'garantie', 'norme'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                'Égaliseur / processeur DSP'         => ['group' => 'ampli', 'fields' => ['canaux', 'connectivite', 'garantie', 'norme'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+                // Installation
+                'Antenne auto'                       => ['group' => 'install', 'fields' => ['connectivite', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                'Câblage / faisceau / installation'  => ['group' => 'install', 'fields' => ['norme'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                // Autre
+                'Autre matériel audio'               => ['group' => 'autre', 'fields' => ['connectivite', 'puissance', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+            ],
+        ],
     ],
 
     // Remplissage rapide des déclinaisons selon l'axe (Taille / Couleur).
