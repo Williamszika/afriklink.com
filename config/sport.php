@@ -233,7 +233,35 @@ return [
             ['label' => 'Tailles basket', 'list' => ['Taille 5', 'Taille 6', 'Taille 7']],
         ],
         'Contenance boisson' => [['label' => 'Contenances', 'list' => ['500 ml', '750 ml', '1 L', '1,5 L']]],
+        'Saveur'     => [['label' => 'Saveurs', 'list' => ['Chocolat', 'Vanille', 'Fraise', 'Fruits rouges', 'Citron', 'Neutre']]],
         'Modèle'     => [],
         'Couleur'    => [],
+    ],
+
+    /* =================================================================
+     * NOUVEAU RAYON — le vendeur crée un rayon sport hors des cinq
+     * répertoriés. Le formulaire s'adapte au SLUG du nom (R) : specs
+     * suggérées, axe, couleur, et garde-fous (CE protections/casques ; DLC
+     * nutrition sportive ; gilet nautique ; CE+garantie électronique sport).
+     * Rayon inconnu → modèle générique + specs libres. Clés R = beauty_slug
+     * du libellé (« & » devient un séparateur, PAS « et »).
+     * ================================================================= */
+    'autre' => [
+        'rayon_suggest' => ['Vélo & cyclisme', 'Sports nautiques', 'Mobilité & glisse', 'Sports collectifs', 'Arts martiaux & combat', 'Protections & sécurité', 'Électronique sport', 'Nutrition sportive', 'Jeux & loisirs', 'Danse & gymnastique'],
+        'generic_specs' => ['Type', 'Sport', 'Taille', 'Matière', 'Public', 'Couleur'],
+        'atout_suggest' => ['Conforme CE', 'Léger', 'Résistant', 'Compétition', 'Accessoires inclus', 'Garantie incluse', 'Occasion testée', 'Norme officielle'],
+        // Clés = slug (beauty_slug). Drapeaux : ce / elec / nutrition / watersport.
+        'R' => [
+            'velo-cyclisme'        => ['specs' => ['Type', 'Taille / cadre', 'Public', 'Matière'], 'axis' => 'Modèle', 'color' => true, 'ce' => true],
+            'sports-nautiques'     => ['specs' => ['Type', 'Taille', 'Matière'], 'axis' => 'Couleur', 'color' => true, 'watersport' => true],
+            'mobilite-glisse'      => ['specs' => ['Type', 'Taille', 'Public'], 'axis' => 'Couleur', 'color' => true, 'ce' => true],
+            'sports-collectifs'    => ['specs' => ['Sport', 'Taille', 'Matière'], 'axis' => 'Taille', 'color' => true],
+            'arts-martiaux-combat' => ['specs' => ['Discipline', 'Taille', 'Matière'], 'axis' => 'Taille', 'color' => true],
+            'protections-securite' => ['specs' => ['Type', 'Sport', 'Taille'], 'axis' => 'Taille', 'color' => true, 'ce' => true],
+            'electronique-sport'   => ['specs' => ['Type', 'Connectivité', 'Autonomie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
+            'nutrition-sportive'   => ['specs' => ['Type', 'Saveur', 'Conditionnement'], 'axis' => 'Saveur', 'color' => false, 'nutrition' => true],
+            'jeux-loisirs'         => ['specs' => ['Type', 'Public', 'Matière'], 'axis' => 'Modèle', 'color' => true],
+            'danse-gymnastique'    => ['specs' => ['Type', 'Taille', 'Matière'], 'axis' => 'Taille', 'color' => true],
+        ],
     ],
 ];

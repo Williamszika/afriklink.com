@@ -1571,6 +1571,21 @@ function sport_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/** Config « nouveau rayon » Sport (rayon_suggest, generic_specs, atout_suggest, R). */
+function sport_autre(?string $key = null): array
+{
+    $cfg = (array) config('sport.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Config adaptative d'un rayon Sport « autre » par son libellé (slug) — ou null si inconnu. */
+function sport_autre_cfg(?string $rayon): ?array
+{
+    $r = (sport_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */

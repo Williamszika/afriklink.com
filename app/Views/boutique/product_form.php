@@ -2027,6 +2027,137 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /sport adaptatif -->
         <?php endif; ?>
 
+        <?php if (sport_capable($boutiqueCat)):
+            $rawOldSA = $_SESSION['_old'] ?? [];
+            $saAttrs  = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $saActive = $curCol !== '' && !sport_is_rayon($curCol);
+            $saCfg    = sport_autre_cfg($curCol);
+            $saType   = (string) ($rawOldSA['product_type'] ?? ($product['product_type'] ?? ''));
+            $saCond   = (string) ($rawOldSA['acc_condition'] ?? ($saAttrs['condition'] ?? 'Neuf'));
+            $saPerem  = (string) ($rawOldSA['peremption'] ?? ($saAttrs['peremption'] ?? ''));
+            $saCE     = isset($rawOldSA['ce']) ? ((string) $rawOldSA['ce'] === '1')
+                : (array_key_exists('ce', $saAttrs) ? !empty($saAttrs['ce']) : ($saCfg !== null && !empty($saCfg['ce'])));
+            $saCfgCe    = $saCfg !== null && !empty($saCfg['ce']);
+            $saCfgElec  = $saCfg !== null && !empty($saCfg['elec']);
+            $saCfgNutri = $saCfg !== null && !empty($saCfg['nutrition']);
+            $saCfgWater = $saCfg !== null && !empty($saCfg['watersport']);
+            $saSpecs = [];
+            if (isset($rawOldSA['spec_label']) && is_array($rawOldSA['spec_label'])) {
+                foreach ($rawOldSA['spec_label'] as $i => $lb) { $saSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldSA['spec_value'][$i] ?? '')]; }
+            } elseif (is_array($saAttrs['specs'] ?? null)) {
+                foreach ($saAttrs['specs'] as $lb => $val) { $saSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+            }
+            $saAtoutsSel = isset($rawOldSA['atouts']) && is_array($rawOldSA['atouts'])
+                ? array_map('strval', $rawOldSA['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $saDis = $saActive ? '' : ' disabled';
+        ?>
+        <div data-sport-autre
+             data-known="<?= e((string) json_encode(sport_rayons(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(sport_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('sport.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-generic="<?= e(t('sport.autre.generic')) ?>" hidden></div>
+
+        <!-- ===== Sport & loisirs · Nouveau rayon (générique adaptatif) ===== -->
+        <div data-sport-autre-root<?= $saActive ? '' : ' hidden' ?>>
+            <p class="hint" data-sport-autre-hint><?= $saCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('sport.autre.generic')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="sau-brand"><?= e(t('sport.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="sau-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldSA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="marque, sans marque…"<?= $saDis ?>>
+                </div>
+                <div>
+                    <label for="sau-type"><?= e(t('cuisine.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="sau-type" name="product_type" data-pv="type" maxlength="60" value="<?= e($saType) ?>" placeholder="<?= e(t('sport.autre.type_ph')) ?>"<?= $saDis ?>>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="sau-cond"><?= e(t('sport.f.condition')) ?></label>
+                    <select id="sau-cond" name="acc_condition"<?= $saDis ?>>
+                        <?php foreach (sport_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $saCond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+            <label style="margin-top:10px"><?= e(t('autre.rayon_suggest')) ?></label>
+            <div class="chips-row" data-sport-autre-rayon-chips>
+                <?php foreach (sport_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-sport-autre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+                <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+                <div class="axis-suggest" data-sport-autre-spec-box>
+                    <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                    <div class="axis-suggest-chips" data-sport-autre-spec-chips>
+                        <?php foreach (($saCfg['specs'] ?? sport_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-sport-autre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="spec-rows" data-sport-autre-specs>
+                    <div class="spec-head"><span><?= e(t('autre.spec_label')) ?></span><span><?= e(t('autre.spec_value')) ?></span><span></span></div>
+                    <?php foreach ($saSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                        <div class="spec-row">
+                            <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>"<?= $saDis ?>>
+                            <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>"<?= $saDis ?>>
+                            <button type="button" class="variant-del" data-sport-autre-spec-del aria-label="✕">✕</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" data-sport-autre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+                <template id="sport-autre-spec-template">
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-sport-autre-spec-del aria-label="✕">✕</button>
+                    </div>
+                </template>
+
+                <div data-sport-autre-ce-wrap<?= $saCfgCe ? '' : ' hidden' ?>>
+                    <label class="check-row" style="margin-top:14px"><input type="checkbox" name="ce" value="1" data-sport-autre-ce <?= $saCE ? 'checked' : '' ?><?= $saCfgCe ? $saDis : ' disabled' ?>><span><strong><?= e(t('sport.f.ce')) ?></strong> — <?= e(t('sport.autre.ce_hint')) ?></span></label>
+                </div>
+                <div data-sport-autre-perem-wrap<?= $saCfgNutri ? '' : ' hidden' ?>>
+                    <label for="sau-perem" style="margin-top:12px"><?= e(t('sport.autre.f.peremption')) ?> <span class="req">*</span></label>
+                    <input type="date" id="sau-perem" name="peremption" value="<?= e($saPerem) ?>"<?= $saCfgNutri ? $saDis : ' disabled' ?>>
+                    <span class="hint"><?= e(t('sport.autre.peremption_hint')) ?></span>
+                    <?php if (has_error('peremption')): ?><p class="field-error"><?= e(error('peremption')) ?></p><?php endif; ?>
+                </div>
+                <div class="notice notice-warning" data-sport-autre-ce-note<?= ($saCfgCe && !$saCE) ? '' : ' hidden' ?>><p>⛑️ <?= e(t('sport.autre.ce_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-autre-elec-note<?= $saCfgElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('sport.autre.elec_note')) ?></p></div>
+                <div class="notice notice-warning" data-sport-autre-nutrition-note<?= $saCfgNutri ? '' : ' hidden' ?>><p>🥤 <?= e(t('sport.autre.nutrition_note')) ?></p></div>
+                <div class="notice notice-warning" data-sport-autre-watersport-note<?= $saCfgWater ? '' : ' hidden' ?>><p>🦺 <?= e(t('sport.watersport_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="sau-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="sau-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldSA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="SPT-001"<?= $saDis ?>>
+                    </div>
+                    <div>
+                        <label for="sau-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="sau-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldSA['variant_axis'] ?? ($saAttrs['variant_axis'] ?? ($saCfg['axis'] ?? '')))) ?>" placeholder="<?= e(t('sport.axis_ph')) ?>" data-sport-autre-axis<?= $saDis ?>>
+                    </div>
+                </div>
+                <?php $saSizes = ($saCfg && !empty($saCfg['axis'])) ? (array) (config('sport.size_systems')[$saCfg['axis']] ?? []) : []; ?>
+                <label data-sport-autre-size-label<?= $saSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-sport-autre-size-chips<?= $saSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($saSizes as $sb): ?><button type="button" class="axis-chip" data-sport-autre-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-sport-autre-atouts>
+                    <?php $saAll = array_values(array_unique(array_merge(sport_autre('atout_suggest'), $saAtoutsSel)));
+                    foreach ($saAll as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $saAtoutsSel, true) ? 'checked' : '' ?><?= $saDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="autre-atout-add">
+                    <input type="text" id="sau-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-sport-autre-atout-input>
+                    <button type="button" class="btn btn-ghost btn-sm" data-sport-autre-atout-add><?= e(t('autre.atout_add')) ?></button>
+                </div>
+            </details>
+        </div><!-- /sport nouveau rayon -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

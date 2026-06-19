@@ -609,6 +609,46 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (sport_capable((string) ($boutique['category'] ?? '')) && $collection !== '' && !sport_is_rayon($collection)) {
+            // NOUVEAU RAYON Sport (rayon personnalisé) : type & caractéristiques libres, état,
+            // garde-fous selon le slug — CE (protections/casques), DLC obligatoire (nutrition).
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $specs = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($specs[$lb])) { $specs[$lb] = $vv; }
+                if (count($specs) >= 20) { break; }
+            }
+            $ea = [];
+            if ($specs !== []) { $ea['specs'] = $specs; }
+            $cond = beauty_clean(input_string('acc_condition', ''), sport_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $saCfg = sport_autre_cfg($collection);
+            // CE : seulement si le rayon le requiert (protections / casques).
+            if ($saCfg !== null && !empty($saCfg['ce']) && input_string('ce', '') === '1') { $ea['ce'] = true; }
+            // Nutrition sportive : date de péremption (DLC/DDM) OBLIGATOIRE.
+            if ($saCfg !== null && !empty($saCfg['nutrition'])) {
+                $perRaw = trim((string) input_string('peremption', ''));
+                if ($perRaw === '' || strtotime($perRaw) === false) {
+                    $errors['peremption'] = t('sport.autre.date_required');
+                } else {
+                    $ea['peremption'] = date('Y-m-d', (int) strtotime($perRaw));
+                }
+            }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

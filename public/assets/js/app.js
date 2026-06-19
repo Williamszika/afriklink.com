@@ -5809,6 +5809,170 @@ document.addEventListener('click', function (ev) {
     setEnabled();
 })();
 
+/* ---- Sport & loisirs : « Nouveau rayon » générique adaptatif au SLUG du rayon saisi.
+   Specs suggérées (R par slug) ou génériques, axe + remplissage, garde-fous (CE
+   protections/casques ; DLC nutrition ; gilet nautique ; CE électronique sport).
+   Caractéristiques et atouts libres. CSP-safe (zéro inline). ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-sport-autre]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var AUTRE = parse('data-autre');
+    var SIZES = parse('data-size-systems');
+    var KNOWN = parse('data-known');
+    var coll        = document.querySelector('[data-collection-select]');
+    var collOther   = document.querySelector('[data-collection-other]');
+    var root        = document.querySelector('[data-sport-autre-root]');
+    var hint        = document.querySelector('[data-sport-autre-hint]');
+    var specChips   = document.querySelector('[data-sport-autre-spec-chips]');
+    var specsBox    = document.querySelector('[data-sport-autre-specs]');
+    var axisInp     = document.querySelector('[data-sport-autre-axis]');
+    var ceWrap      = document.querySelector('[data-sport-autre-ce-wrap]');
+    var ceChk       = document.querySelector('[data-sport-autre-ce]');
+    var ceNote      = document.querySelector('[data-sport-autre-ce-note]');
+    var peremWrap   = document.querySelector('[data-sport-autre-perem-wrap]');
+    var elecNote    = document.querySelector('[data-sport-autre-elec-note]');
+    var nutriNote   = document.querySelector('[data-sport-autre-nutrition-note]');
+    var waterNote   = document.querySelector('[data-sport-autre-watersport-note]');
+    if (!root) { return; }
+
+    function show(el, on) { if (el) { el.hidden = !on; } }
+    function knownHas(v) { return (KNOWN || []).indexOf(v) > -1; }
+    function autreActive() { return !!(coll && coll.value !== '' && !knownHas(coll.value)); }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function rayonName() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? String(coll.value || '').trim() : ''); }
+    function cfg() { return (AUTRE.R || {})[autreSlug(rayonName())] || null; }
+
+    function buildSpecChips() {
+        if (!specChips) { return; }
+        var c = cfg();
+        var list = c ? (c.specs || []) : (AUTRE.generic_specs || []);
+        specChips.innerHTML = '';
+        list.forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-sport-autre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            specChips.appendChild(b);
+        });
+    }
+    function buildSizeChips() {
+        var box = document.querySelector('[data-sport-autre-size-chips]');
+        var lab = document.querySelector('[data-sport-autre-size-label]');
+        if (!box) { return; }
+        var c = cfg();
+        var axis = (c && c.axis) ? c.axis : (axisInp ? String(axisInp.value || '').trim() : '');
+        var btns = (axis && SIZES[axis]) ? SIZES[axis] : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-sport-autre-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function addSpec(label) {
+        var tpl = document.getElementById('sport-autre-spec-template');
+        if (!tpl || !tpl.content || !specsBox) { return; }
+        specsBox.appendChild(tpl.content.cloneNode(true));
+        var row = specsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+    }
+    function pushAtout() {
+        var inp = document.querySelector('[data-sport-autre-atout-input]');
+        var box = document.querySelector('[data-sport-autre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = '';
+    }
+    function tipsToggle() {
+        var c = cfg();
+        var ce = !!(c && c.ce), nutri = !!(c && c.nutrition);
+        show(ceWrap, ce);
+        if (ceWrap) { ceWrap.querySelectorAll('input').forEach(function (i) { i.disabled = !ce || !autreActive(); }); }
+        show(peremWrap, nutri);
+        if (peremWrap) { peremWrap.querySelectorAll('input').forEach(function (i) { i.disabled = !nutri || !autreActive(); }); }
+        show(ceNote, ce && !(ceChk && ceChk.checked));
+        show(elecNote, !!(c && c.elec));
+        show(nutriNote, nutri);
+        show(waterNote, !!(c && c.watersport));
+    }
+    function adaptAutre() {
+        var c = cfg();
+        if (hint) {
+            var rn = rayonName();
+            hint.textContent = c ? ((cfgEl.getAttribute('data-adapted') || '%R%').replace('%R%', rn))
+                : (cfgEl.getAttribute('data-generic') || hint.textContent);
+        }
+        buildSpecChips(); buildSizeChips();
+        if (c && axisInp && !axisInp.value.trim()) { axisInp.value = c.axis || ''; }
+        if (ceChk && !ceChk.dataset.touched) { ceChk.checked = !!(c && c.ce); }
+        tipsToggle();
+    }
+    function setEnabled() {
+        var on = autreActive();
+        root.hidden = !on;
+        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+        if (on) { tipsToggle(); } // réapplique l'état des wraps masqués (CE / péremption)
+    }
+    function onColl() { if (autreActive()) { adaptAutre(); } setEnabled(); }
+
+    if (coll)      { coll.addEventListener('change', onColl); }
+    if (collOther) { collOther.addEventListener('input', function () { if (autreActive()) { adaptAutre(); } }); }
+    if (ceChk)     { ceChk.addEventListener('change', function () { this.dataset.touched = '1'; tipsToggle(); }); }
+    if (axisInp)   { axisInp.addEventListener('input', buildSizeChips); }
+    var atoutInp = document.querySelector('[data-sport-autre-atout-input]');
+    if (atoutInp) { atoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAtout(); } }); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-sport-autre-fill]');
+        if (fill) {
+            ev.preventDefault();
+            var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');
+            var tpl = document.getElementById('variant-template');
+            if (rowsBox && tpl && tpl.content) {
+                var have = {};
+                rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value || '').trim().toLowerCase()] = true; });
+                var list = []; try { list = JSON.parse(fill.getAttribute('data-sport-autre-fill') || '[]'); } catch (e) {}
+                list.forEach(function (sz) {
+                    var key = String(sz).trim().toLowerCase();
+                    if (key === '' || have[key]) { return; }
+                    rowsBox.appendChild(tpl.content.cloneNode(true));
+                    var r = rowsBox.lastElementChild; var inp = r && r.querySelector('input[name="var_size[]"]');
+                    if (inp) { inp.value = sz; } have[key] = true;
+                });
+                var det = rowsBox.closest('details'); if (det) { det.open = true; }
+            }
+            return;
+        }
+        if (ev.target.closest('[data-sport-autre-spec-add]')) { ev.preventDefault(); addSpec(''); return; }
+        if (ev.target.closest('[data-sport-autre-atout-add]')) { ev.preventDefault(); pushAtout(); return; }
+        var sp = ev.target.closest('[data-sport-autre-spec]');
+        if (sp) { ev.preventDefault(); addSpec(sp.getAttribute('data-val')); return; }
+        var ray = ev.target.closest('[data-sport-autre-rayon]');
+        if (ray) {
+            ev.preventDefault();
+            var rn = ray.getAttribute('data-sport-autre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-sport-autre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } }
+    });
+    if (autreActive()) { adaptAutre(); }
+    setEnabled();
+})();
+
 /* ---- Auto & pièces : rayons adaptatifs au type (Accessoires…).
    Le TYPE pilote les caractéristiques, l'axe (Couleur / Taille / Modèle / Parfum),
    le mode électrique (note CE). Bloc COMPATIBILITÉ VÉHICULE : universel → masque la
