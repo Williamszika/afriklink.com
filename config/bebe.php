@@ -303,4 +303,40 @@ return [
         'Taille'  => [['label' => 'Tailles', 'list' => ['Naissance', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']]],
         'Couleur' => [['label' => 'Couleurs', 'list' => ['Blanc', 'Écru', 'Bleu ciel', 'Rose poudré', 'Vert sauge', 'Jaune', 'Gris', 'Beige', 'Moutarde', 'Terracotta', 'Marine', 'Multicolore']]],
     ],
+
+    /* =================================================================
+     * NOUVEAU RAYON — le vendeur crée un rayon bébé/enfant hors des cinq
+     * répertoriés. Le formulaire s'adapte au SLUG du nom (R) : specs
+     * suggérées, axe de déclinaison, couleur, conformité CE. Rayon inconnu →
+     * modèle générique + specs libres. Carte SÉCURITÉ ENFANT systématique
+     * (âge, CE, petites pièces, cordons). Clés R = beauty_slug du libellé
+     * (« & » devient un séparateur, PAS « et »).
+     * ================================================================= */
+    'autre' => [
+        'rayon_suggest' => ['Vêtements enfant', 'Chaussures', 'Mobilier chambre', 'Cartables & fournitures', 'Livres & éveil', 'Déguisements & fête', 'Portage & sortie', 'Sécurité maison', 'Cadeaux de naissance', 'Décoration chambre'],
+        'generic_specs' => ['Type', 'Âge / taille', 'Matière', 'Public', 'Dimensions', 'Couleur'],
+        'atout_suggest' => ['Coton bio', 'Sans BPA', 'Conforme CE', 'Évolutif', 'Occasion testée', 'Lot / pack', 'Éveil / pédagogique', 'Made in UE'],
+        'age_opts'      => ['0–6 mois', '6–12 mois', '12–24 mois', 'Dès 2 ans', 'Dès 3 ans', 'Dès 4 ans', 'Dès 6 ans', 'Dès 8 ans', 'Dès 10 ans', 'Tout âge'],
+        'conditions'    => ['Neuf avec étiquette', 'Neuf', 'Comme neuf', 'Très bon état', 'Bon état', 'Occasion'],
+        // Clés = slug (beauty_slug) du libellé. ce=true → article généralement soumis au marquage CE.
+        'R' => [
+            'vetements-enfant'      => ['specs' => ['Taille (âge)', 'Public', 'Matière', 'Saison'], 'axis' => 'Taille', 'color' => true, 'ce' => false],
+            'chaussures'            => ['specs' => ['Pointure', 'Public', 'Matière', 'Type'], 'axis' => 'Pointure', 'color' => true, 'ce' => false],
+            'mobilier-chambre'      => ['specs' => ['Type', 'Matière', 'Dimensions', 'Âge'], 'axis' => 'Couleur', 'color' => true, 'ce' => false],
+            'cartables-fournitures' => ['specs' => ['Type', 'Âge', 'Matière', 'Capacité'], 'axis' => 'Couleur', 'color' => true, 'ce' => false],
+            'livres-eveil'          => ['specs' => ['Âge', 'Type', 'Langue'], 'axis' => 'Modèle', 'color' => false, 'ce' => false],
+            'deguisements-fete'     => ['specs' => ['Taille (âge)', 'Thème', 'Matière'], 'axis' => 'Taille', 'color' => true, 'ce' => true],
+            'portage-sortie'        => ['specs' => ['Âge', 'Type', 'Matière'], 'axis' => 'Couleur', 'color' => true, 'ce' => false],
+            'securite-maison'       => ['specs' => ['Type', 'Fixation', 'Tranche d’âge'], 'axis' => 'Modèle', 'color' => false, 'ce' => true],
+            'cadeaux-de-naissance'  => ['specs' => ['Âge', 'Type', 'Matière'], 'axis' => 'Modèle', 'color' => true, 'ce' => false],
+            'decoration-chambre'    => ['specs' => ['Type', 'Matière', 'Dimensions', 'Thème'], 'axis' => 'Couleur', 'color' => true, 'ce' => false],
+        ],
+    ],
+
+    'autre_size_systems' => [
+        'Taille'   => [['label' => 'Tailles', 'list' => ['Naissance', '3 mois', '6 mois', '12 mois', '18 mois', '24 mois', '3 ans', '4 ans']]],
+        'Pointure' => [['label' => 'Pointures', 'list' => ['17', '18', '19', '20', '21', '22', '24', '26', '28', '30']]],
+        'Couleur'  => [['label' => 'Couleurs', 'list' => ['Blanc', 'Bleu', 'Rose', 'Vert', 'Jaune', 'Rouge', 'Gris', 'Beige', 'Marine', 'Multicolore']]],
+        'Modèle'   => [],
+    ],
 ];

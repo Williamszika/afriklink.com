@@ -1472,6 +1472,30 @@ function bebe_vet_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/* ---------- Bébé & Enfant · NOUVEAU RAYON (générique adaptatif au slug) ---------- */
+
+/** Le rayon est-il l'un des CINQ rayons bébé répertoriés (sinon = rayon personnalisé) ? */
+function bebe_any_rayon(?string $rayon): bool
+{
+    return bebe_is_rayon($rayon) || bebe_toy_is_rayon($rayon) || bebe_puer_is_rayon($rayon)
+        || bebe_soin_is_rayon($rayon) || bebe_vet_is_rayon($rayon);
+}
+
+/** Config « nouveau rayon » Bébé (rayon_suggest, generic_specs, atout_suggest, age_opts, conditions, R). */
+function bebe_autre(?string $key = null): array
+{
+    $cfg = (array) config('bebe.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Config adaptative d'un rayon Bébé « autre » par son libellé (slug) — ou null si inconnu. */
+function bebe_autre_cfg(?string $rayon): ?array
+{
+    $r = (bebe_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */

@@ -5482,6 +5482,151 @@ document.addEventListener('click', function (ev) {
     setEnabled();
 })();
 
+/* ---- Bébé & Enfant : « Nouveau rayon » générique adaptatif au SLUG du rayon saisi.
+   Specs suggérées (R par slug) ou génériques, axe + remplissage, conformité CE
+   (défaut selon le rayon). Carte sécurité enfant systématique (rappel EN + CE).
+   Caractéristiques et atouts libres. CSP-safe (zéro inline). ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-bebe-autre]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var AUTRE = parse('data-autre');
+    var SIZES = parse('data-size-systems');
+    var KNOWN = parse('data-known');
+    var coll       = document.querySelector('[data-collection-select]');
+    var collOther  = document.querySelector('[data-collection-other]');
+    var root       = document.querySelector('[data-bebe-autre-root]');
+    var hint       = document.querySelector('[data-bebe-autre-hint]');
+    var specChips  = document.querySelector('[data-bebe-autre-spec-chips]');
+    var specsBox   = document.querySelector('[data-bebe-autre-specs]');
+    var axisInp    = document.querySelector('[data-bebe-autre-axis]');
+    var ceChk      = document.querySelector('[data-bebe-autre-ce]');
+    var ceNote     = document.querySelector('[data-bebe-autre-ce-note]');
+    if (!root) { return; }
+
+    function knownHas(v) { return (KNOWN || []).indexOf(v) > -1; }
+    function autreActive() { return !!(coll && coll.value !== '' && !knownHas(coll.value)); }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function rayonName() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? String(coll.value || '').trim() : ''); }
+    function cfg() { return (AUTRE.R || {})[autreSlug(rayonName())] || null; }
+
+    function buildSpecChips() {
+        if (!specChips) { return; }
+        var c = cfg();
+        var list = c ? (c.specs || []) : (AUTRE.generic_specs || []);
+        specChips.innerHTML = '';
+        list.forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-bebe-autre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            specChips.appendChild(b);
+        });
+    }
+    function buildSizeChips() {
+        var box = document.querySelector('[data-bebe-autre-size-chips]');
+        var lab = document.querySelector('[data-bebe-autre-size-label]');
+        if (!box) { return; }
+        var c = cfg();
+        var axis = (c && c.axis) ? c.axis : (axisInp ? String(axisInp.value || '').trim() : '');
+        var btns = (axis && SIZES[axis]) ? SIZES[axis] : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-bebe-autre-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function addSpec(label) {
+        var tpl = document.getElementById('bebe-autre-spec-template');
+        if (!tpl || !tpl.content || !specsBox) { return; }
+        specsBox.appendChild(tpl.content.cloneNode(true));
+        var row = specsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+    }
+    function pushAtout() {
+        var inp = document.querySelector('[data-bebe-autre-atout-input]');
+        var box = document.querySelector('[data-bebe-autre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = '';
+    }
+    function adaptAutre() {
+        var c = cfg();
+        if (hint) {
+            var rn = rayonName();
+            hint.textContent = c ? ((cfgEl.getAttribute('data-adapted') || '%R%').replace('%R%', rn))
+                : (cfgEl.getAttribute('data-generic') || hint.textContent);
+        }
+        buildSpecChips(); buildSizeChips();
+        if (c && axisInp && !axisInp.value.trim()) { axisInp.value = c.axis || ''; }
+        if (ceChk && !ceChk.dataset.touched) { ceChk.checked = !!(c && c.ce); }
+        if (ceNote) { ceNote.hidden = !(c && c.ce); }
+    }
+    function setEnabled() {
+        var on = autreActive();
+        root.hidden = !on;
+        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
+    }
+    function onColl() { if (autreActive()) { adaptAutre(); } setEnabled(); }
+
+    if (coll)      { coll.addEventListener('change', onColl); }
+    if (collOther) { collOther.addEventListener('input', function () { if (autreActive()) { adaptAutre(); } }); }
+    if (ceChk)     { ceChk.addEventListener('change', function () { this.dataset.touched = '1'; }); }
+    if (axisInp)   { axisInp.addEventListener('input', buildSizeChips); }
+    var atoutInp = document.querySelector('[data-bebe-autre-atout-input]');
+    if (atoutInp) { atoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAtout(); } }); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-bebe-autre-fill]');
+        if (fill) {
+            ev.preventDefault();
+            var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');
+            var tpl = document.getElementById('variant-template');
+            if (rowsBox && tpl && tpl.content) {
+                var have = {};
+                rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value || '').trim().toLowerCase()] = true; });
+                var list = []; try { list = JSON.parse(fill.getAttribute('data-bebe-autre-fill') || '[]'); } catch (e) {}
+                list.forEach(function (sz) {
+                    var key = String(sz).trim().toLowerCase();
+                    if (key === '' || have[key]) { return; }
+                    rowsBox.appendChild(tpl.content.cloneNode(true));
+                    var r = rowsBox.lastElementChild; var inp = r && r.querySelector('input[name="var_size[]"]');
+                    if (inp) { inp.value = sz; } have[key] = true;
+                });
+                var det = rowsBox.closest('details'); if (det) { det.open = true; }
+            }
+            return;
+        }
+        if (ev.target.closest('[data-bebe-autre-spec-add]')) { ev.preventDefault(); addSpec(''); return; }
+        if (ev.target.closest('[data-bebe-autre-atout-add]')) { ev.preventDefault(); pushAtout(); return; }
+        var sp = ev.target.closest('[data-bebe-autre-spec]');
+        if (sp) { ev.preventDefault(); addSpec(sp.getAttribute('data-val')); return; }
+        var ray = ev.target.closest('[data-bebe-autre-rayon]');
+        if (ray) {
+            ev.preventDefault();
+            var rn = ray.getAttribute('data-bebe-autre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-bebe-autre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } }
+    });
+    if (autreActive()) { adaptAutre(); }
+    setEnabled();
+})();
+
 /* ---- Auto & pièces : rayons adaptatifs au type (Accessoires…).
    Le TYPE pilote les caractéristiques, l'axe (Couleur / Taille / Modèle / Parfum),
    le mode électrique (note CE). Bloc COMPATIBILITÉ VÉHICULE : universel → masque la

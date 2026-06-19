@@ -543,6 +543,39 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (bebe_capable((string) ($boutique['category'] ?? '')) && $collection !== '' && !bebe_any_rayon($collection)) {
+            // NOUVEAU RAYON Bébé & Enfant (rayon personnalisé, hors des cinq répertoriés) :
+            // type & caractéristiques libres, état, âge, conformité CE, sécurité enfant,
+            // atouts libres. Tout en JSON dans products.attributes.
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $specs = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($specs[$lb])) { $specs[$lb] = $vv; }
+                if (count($specs) >= 20) { break; }
+            }
+            $ea = [];
+            if ($specs !== []) { $ea['specs'] = $specs; }
+            $cond = beauty_clean(input_string('acc_condition', ''), bebe_autre('conditions'));
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $age = beauty_clean(input_string('age_min', ''), bebe_autre('age_opts'));
+            if ($age !== '') { $ea['age_min'] = $age; }
+            $ea['ce'] = input_string('ce', '') === '1';
+            $ea['securite_enfant'] = input_string('securite_enfant', '') === '1';
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

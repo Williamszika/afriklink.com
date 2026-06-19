@@ -1734,6 +1734,136 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /bébé vêtements -->
         <?php endif; ?>
 
+        <?php if (bebe_capable($boutiqueCat)):
+            $rawOldBA   = $_SESSION['_old'] ?? [];
+            $baAttrs    = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $baActive   = $curCol !== '' && !bebe_any_rayon($curCol);
+            $baCfg      = bebe_autre_cfg($curCol);
+            $baType     = (string) ($rawOldBA['product_type'] ?? ($product['product_type'] ?? ''));
+            $baCond     = (string) ($rawOldBA['acc_condition'] ?? ($baAttrs['condition'] ?? 'Neuf avec étiquette'));
+            $baAge      = (string) ($rawOldBA['age_min'] ?? ($baAttrs['age_min'] ?? ''));
+            $baCE       = isset($rawOldBA['ce']) ? ((string) $rawOldBA['ce'] === '1')
+                : (array_key_exists('ce', $baAttrs) ? !empty($baAttrs['ce']) : ($baCfg !== null && !empty($baCfg['ce'])));
+            $baSafe     = isset($rawOldBA['securite_enfant']) ? ((string) $rawOldBA['securite_enfant'] === '1')
+                : (array_key_exists('securite_enfant', $baAttrs) ? !empty($baAttrs['securite_enfant']) : true);
+            $baKnown    = array_values(array_merge(bebe_rayons(), bebe_toy_rayons(), bebe_puer_rayons(), bebe_soin_rayons(), bebe_vet_rayons()));
+            $baSpecs = [];
+            if (isset($rawOldBA['spec_label']) && is_array($rawOldBA['spec_label'])) {
+                foreach ($rawOldBA['spec_label'] as $i => $lb) { $baSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldBA['spec_value'][$i] ?? '')]; }
+            } elseif (is_array($baAttrs['specs'] ?? null)) {
+                foreach ($baAttrs['specs'] as $lb => $val) { $baSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+            }
+            $baAtoutsSel = isset($rawOldBA['atouts']) && is_array($rawOldBA['atouts'])
+                ? array_map('strval', $rawOldBA['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $baDis = $baActive ? '' : ' disabled';
+        ?>
+        <div data-bebe-autre
+             data-known="<?= e((string) json_encode($baKnown, JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(bebe_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('bebe.autre_size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-generic="<?= e(t('bebe.autre.generic')) ?>"
+             data-ce-note="1" hidden></div>
+
+        <!-- ===== Bébé & Enfant · Nouveau rayon (générique adaptatif) ===== -->
+        <div data-bebe-autre-root<?= $baActive ? '' : ' hidden' ?>>
+            <p class="hint" data-bebe-autre-hint><?= $baCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('bebe.autre.generic')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="bau-brand"><?= e(t('bebe.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="bau-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldBA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="marque, sans marque…"<?= $baDis ?>>
+                </div>
+                <div>
+                    <label for="bau-type"><?= e(t('cuisine.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="bau-type" name="product_type" data-pv="type" maxlength="60" value="<?= e($baType) ?>" placeholder="<?= e(t('bebe.autre.type_ph')) ?>"<?= $baDis ?>>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="bau-cond"><?= e(t('bebe.vet.f.condition')) ?></label>
+                    <select id="bau-cond" name="acc_condition"<?= $baDis ?>>
+                        <?php foreach (bebe_autre('conditions') as $c): ?><option value="<?= e($c) ?>" <?= $baCond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div>
+                    <label for="bau-age"><?= e(t('bebe.autre.f.age')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <select id="bau-age" name="age_min"<?= $baDis ?>>
+                        <option value="">—</option>
+                        <?php foreach (bebe_autre('age_opts') as $ag): ?><option value="<?= e($ag) ?>" <?= $baAge === $ag ? 'selected' : '' ?>><?= e($ag) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <label style="margin-top:10px"><?= e(t('autre.rayon_suggest')) ?></label>
+            <div class="chips-row" data-bebe-autre-rayon-chips>
+                <?php foreach (bebe_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-bebe-autre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+                <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+                <div class="axis-suggest" data-bebe-autre-spec-box>
+                    <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                    <div class="axis-suggest-chips" data-bebe-autre-spec-chips>
+                        <?php foreach (($baCfg['specs'] ?? bebe_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-bebe-autre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="spec-rows" data-bebe-autre-specs>
+                    <div class="spec-head"><span><?= e(t('autre.spec_label')) ?></span><span><?= e(t('autre.spec_value')) ?></span><span></span></div>
+                    <?php foreach ($baSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                        <div class="spec-row">
+                            <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>"<?= $baDis ?>>
+                            <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>"<?= $baDis ?>>
+                            <button type="button" class="variant-del" data-bebe-autre-spec-del aria-label="✕">✕</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" data-bebe-autre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+                <template id="bebe-autre-spec-template">
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-bebe-autre-spec-del aria-label="✕">✕</button>
+                    </div>
+                </template>
+
+                <div class="notice notice-warning" style="margin-top:14px"><p>🚸 <?= e(t('bebe.autre.en_note')) ?></p></div>
+                <div class="grid-2" style="margin-top:12px">
+                    <label class="check-row"><input type="checkbox" name="securite_enfant" value="1" data-bebe-autre-safe <?= $baSafe ? 'checked' : '' ?><?= $baDis ?>><span><strong><?= e(t('bebe.autre.f.safe')) ?></strong> — <?= e(t('bebe.autre.safe_hint')) ?></span></label>
+                    <label class="check-row"><input type="checkbox" name="ce" value="1" data-bebe-autre-ce <?= $baCE ? 'checked' : '' ?><?= $baDis ?>><span><strong><?= e(t('bebe.autre.f.ce')) ?></strong> — <?= e(t('bebe.autre.ce_hint')) ?></span></label>
+                </div>
+                <div class="notice notice-info" data-bebe-autre-ce-note<?= ($baCfg !== null && !empty($baCfg['ce'])) ? '' : ' hidden' ?>><p>⚖️ <?= e(t('bebe.autre.ce_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="bau-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="bau-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldBA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="BB-001"<?= $baDis ?>>
+                    </div>
+                    <div>
+                        <label for="bau-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="bau-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldBA['variant_axis'] ?? ($baAttrs['variant_axis'] ?? ($baCfg['axis'] ?? '')))) ?>" placeholder="Taille / Pointure / Couleur" data-bebe-autre-axis<?= $baDis ?>>
+                    </div>
+                </div>
+                <?php $baSizes = ($baCfg && !empty($baCfg['axis'])) ? (array) (config('bebe.autre_size_systems')[$baCfg['axis']] ?? []) : []; ?>
+                <label data-bebe-autre-size-label<?= $baSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-bebe-autre-size-chips<?= $baSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($baSizes as $sb): ?><button type="button" class="axis-chip" data-bebe-autre-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-bebe-autre-atouts>
+                    <?php $baAll = array_values(array_unique(array_merge(bebe_autre('atout_suggest'), $baAtoutsSel)));
+                    foreach ($baAll as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $baAtoutsSel, true) ? 'checked' : '' ?><?= $baDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="autre-atout-add">
+                    <input type="text" id="bau-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-bebe-autre-atout-input>
+                    <button type="button" class="btn btn-ghost btn-sm" data-bebe-autre-atout-add><?= e(t('autre.atout_add')) ?></button>
+                </div>
+            </details>
+        </div><!-- /bébé nouveau rayon -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

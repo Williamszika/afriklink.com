@@ -244,6 +244,18 @@ foreach ($realVariants as $rv) {
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && !str_starts_with((string) $aAttr['condition'], 'Neuf')) { $apTags[] = (string) $aAttr['condition']; }
+                } elseif ($pVertical === 'generic' && bebe_capable((string) ($boutique['category'] ?? '')) && (string) ($product['collection'] ?? '') !== '' && !bebe_any_rayon((string) ($product['collection'] ?? ''))) {
+                    // Nouveau rayon Bébé & Enfant (personnalisé) : caractéristiques libres + âge + CE + état.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['age_min'])) { $apTags[] = '👶 ' . (string) $aAttr['age_min']; }
+                    if (!empty($aAttr['specs']) && is_array($aAttr['specs'])) {
+                        foreach ($aAttr['specs'] as $sv) { if (is_scalar($sv) && trim((string) $sv) !== '') { $apTags[] = (string) $sv; } }
+                    }
+                    if (!empty($aAttr['ce'])) { $apTags[] = 'CE'; }
+                    if (!empty($aAttr['condition']) && !str_starts_with((string) $aAttr['condition'], 'Neuf')) { $apTags[] = (string) $aAttr['condition']; }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
