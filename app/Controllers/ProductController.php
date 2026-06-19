@@ -216,6 +216,8 @@ final class ProductController
                 $stock = (int) $stockRaw;
             }
         }
+        // Pièce unique (artisanat) : un seul exemplaire → stock forcé à 1.
+        if (arti_capable((string) ($boutique['category'] ?? '')) && input_string('piece_unique', '') === '1') { $stock = 1; }
 
         $descMax = (int) config('shop.product_desc_max', 3000);
         $description = input_string('description');
@@ -480,6 +482,22 @@ final class ProductController
                 $gar = beauty_clean(input_string('acc_garantie', ''), ['3 mois', '6 mois', '1 an', '2 ans']);
                 if ($gar !== '') { $ea['garantie'] = $gar; }
             }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (arti_capable((string) ($boutique['category'] ?? '')) && arti_is_rayon($collection)) {
+            // Artisanat adaptatif (Bijoux…) : type-driven specs + état + fait main / pièce
+            // unique + histoire de la pièce. Tout en JSON dans products.attributes.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(arti_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), arti_atouts($collection)));
+            $ea = arti_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $cond = beauty_clean(input_string('acc_condition', ''), arti_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            if (input_string('fait_main', '') === '1') { $ea['fait_main'] = true; }
+            if (input_string('piece_unique', '') === '1') { $ea['piece_unique'] = true; }
+            $hist = mb_substr(trim((string) input_string('histoire', '')), 0, 2000);
+            if ($hist !== '') { $ea['histoire'] = $hist; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

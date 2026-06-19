@@ -829,6 +829,115 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /auto nouveau rayon -->
         <?php endif; ?>
 
+        <?php if (arti_capable($boutiqueCat)):
+            $rawOldR   = $_SESSION['_old'] ?? [];
+            $artiAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $artiActive = arti_is_rayon($curCol);
+            $artiRayon  = $artiActive ? $curCol : (arti_rayons()[0] ?? 'Bijoux');
+            $artiType   = (string) ($rawOldR['product_type'] ?? ($product['product_type'] ?? ''));
+            $artiMeta   = arti_type_meta($artiRayon, $artiType);
+            $artiCond   = (string) ($rawOldR['acc_condition'] ?? ($artiAttrs['condition'] ?? 'Neuf'));
+            $artiFaitMain = isset($rawOldR['fait_main']) ? ((string) $rawOldR['fait_main'] === '1')
+                : (array_key_exists('fait_main', $artiAttrs) ? !empty($artiAttrs['fait_main']) : true);
+            $artiUnique = isset($rawOldR['piece_unique']) ? ((string) $rawOldR['piece_unique'] === '1') : !empty($artiAttrs['piece_unique']);
+            $artiHistoire = (string) ($rawOldR['histoire'] ?? ($artiAttrs['histoire'] ?? ''));
+            $artiAtoutsSel = isset($rawOldR['atouts']) && is_array($rawOldR['atouts'])
+                ? array_map('strval', $rawOldR['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $artiDis = $artiActive ? '' : ' disabled';
+        ?>
+        <div data-arti
+             data-rayons="<?= e((string) json_encode((array) config('artisanat.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('artisanat.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('arti.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Artisanat & Art adaptatif (Bijoux…) ===== -->
+        <div data-arti-root<?= $artiActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="arti-brand"><?= e(t('arti.f.artisan')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="arti-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldR['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('arti.artisan_ph')) ?>"<?= $artiDis ?>>
+                </div>
+                <div>
+                    <label for="arti-type"><?= e(t('cuisine.f.type')) ?> <span class="req">*</span></label>
+                    <select id="arti-type" name="product_type" data-pv="type" data-arti-type<?= $artiDis ?>>
+                        <option value=""><?= e(t('arti.f.type_any')) ?></option>
+                        <?php $artiGroups = arti_groups($artiRayon); ?>
+                        <?php if ($artiGroups !== []): foreach ($artiGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (arti_types($artiRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $artiType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (arti_types($artiRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $artiType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="arti-condition"><?= e(t('cuisine.f.condition')) ?></label>
+                    <select id="arti-condition" name="acc_condition"<?= $artiDis ?>>
+                        <?php foreach (arti_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $artiCond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-arti-hint><?= e($artiMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-arti-attrs>
+                    <?php if ($artiMeta): foreach ((array) ($artiMeta['fields'] ?? []) as $fk): $fd = arti_fields($artiRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($artiAttrs[$fk] ?? ''); ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $artiDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <label class="check-row"><input type="checkbox" name="fait_main" value="1" data-arti-faitmain <?= $artiFaitMain ? 'checked' : '' ?><?= $artiDis ?>><span><strong><?= e(t('arti.f.faitmain')) ?></strong> — <?= e(t('arti.faitmain_hint')) ?></span></label>
+                    <label class="check-row"><input type="checkbox" name="piece_unique" value="1" data-arti-unique <?= $artiUnique ? 'checked' : '' ?><?= $artiDis ?>><span><strong><?= e(t('arti.f.unique')) ?></strong> — <?= e(t('arti.unique_hint')) ?></span></label>
+                </div>
+                <div class="notice notice-info" data-arti-unique-note<?= $artiUnique ? '' : ' hidden' ?>><p>✨ <?= e(t('arti.unique_note')) ?></p></div>
+                <div class="notice notice-warning"><p>🛡️ <?= e(t('arti.cites_note')) ?></p></div>
+
+                <label for="arti-histoire" style="margin-top:14px"><?= e(t('arti.f.histoire')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <textarea id="arti-histoire" name="histoire" maxlength="2000" rows="3" placeholder="<?= e(t('arti.histoire_ph')) ?>"<?= $artiDis ?>><?= e($artiHistoire) ?></textarea>
+                <p class="hint"><?= e(t('arti.histoire_hint')) ?></p>
+
+                <div class="grid-2" style="margin-top:12px">
+                    <div>
+                        <label for="arti-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="arti-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldR['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="BIJ-001"<?= $artiDis ?>>
+                    </div>
+                    <div>
+                        <label for="arti-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="arti-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldR['variant_axis'] ?? ($artiAttrs['variant_axis'] ?? ($artiMeta['axis'] ?? '')))) ?>" placeholder="<?= e(t('arti.axis_ph')) ?>" data-arti-axis<?= $artiDis ?>>
+                    </div>
+                </div>
+                <?php $artiSizes = ($artiMeta && !empty($artiMeta['axis'])) ? (array) (config('artisanat.size_systems')[$artiMeta['axis']] ?? []) : []; ?>
+                <label data-arti-size-label<?= $artiSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-arti-size-chips<?= $artiSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($artiSizes as $sb): ?><button type="button" class="axis-chip" data-arti-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-arti-atouts>
+                    <?php foreach (arti_atouts($artiRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $artiAtoutsSel, true) ? 'checked' : '' ?><?= $artiDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /arti adaptatif -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];
