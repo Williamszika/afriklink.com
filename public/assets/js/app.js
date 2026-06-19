@@ -4932,6 +4932,9 @@ document.addEventListener('click', function (ev) {
     var foodWrap  = document.querySelector('[data-arti-food-wrap]');
     var foodTog   = document.querySelector('[data-arti-food-toggle]');
     var FOOD_USAGES = parse('data-food-usages'); FOOD_USAGES = (FOOD_USAGES && FOOD_USAGES.length) ? FOOD_USAGES : [];
+    var modePillWrap = document.querySelector('[data-arti-mode-pill-wrap]');
+    var modePill     = document.querySelector('[data-arti-mode-pill]');
+    var metreNote    = document.querySelector('[data-arti-metre-note]');
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -5012,6 +5015,15 @@ document.addEventListener('click', function (ev) {
         if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
         buildAttrs(); buildSizeChips();
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
+        // Mode de vente (textile) : pastille + note « au mètre ».
+        if (modePillWrap) { modePillWrap.hidden = !m; }
+        if (modePill) {
+            var mode = m ? (m.mode || '') : '';
+            modePill.textContent = mode === 'metre' ? (cfgEl.getAttribute('data-mode-metre') || '')
+                : (mode === 'confection' ? (cfgEl.getAttribute('data-mode-confection') || '') : '');
+            modePill.hidden = !mode;
+        }
+        if (metreNote) { metreNote.hidden = !(m && m.mode === 'metre'); }
     }
     function artiFill(list) {
         var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');

@@ -852,6 +852,8 @@ $fmtP = static function ($cents) use ($cur): string {
             $artiFoodUsages = (array) config('artisanat.food_usages', []);
             $artiFoodLikely = ($artiMeta !== null && !empty($artiMeta['food'])) || in_array((string) ($artiAttrs['usage'] ?? ''), $artiFoodUsages, true);
             $artiFoodSafe = isset($rawOldR['contact_alimentaire']) ? ((string) $rawOldR['contact_alimentaire'] === '1') : !empty($artiAttrs['contact_alimentaire']);
+            // Mode de vente (textile) : 'metre' (au mètre / coupon) ou 'confection' (pièce finie).
+            $artiMode = (string) ($artiMeta['mode'] ?? '');
             $artiAtoutsSel = isset($rawOldR['atouts']) && is_array($rawOldR['atouts'])
                 ? array_map('strval', $rawOldR['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
@@ -861,6 +863,7 @@ $fmtP = static function ($cents) use ($cur): string {
              data-rayons="<?= e((string) json_encode((array) config('artisanat.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-size-systems="<?= e((string) json_encode((array) config('artisanat.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-food-usages="<?= e((string) json_encode((array) config('artisanat.food_usages', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-mode-metre="<?= e(t('arti.mode_metre')) ?>" data-mode-confection="<?= e(t('arti.mode_confection')) ?>"
              data-any="<?= e(t('arti.f.type_any')) ?>"
              data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
 
@@ -897,6 +900,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
                 <div></div>
             </div>
+            <p data-arti-mode-pill-wrap<?= $artiMeta ? '' : ' hidden' ?> style="margin-top:12px"><span class="chip" data-arti-mode-pill><?= e($artiMode === 'metre' ? t('arti.mode_metre') : ($artiMode === 'confection' ? t('arti.mode_confection') : '')) ?></span></p>
 
             <details class="variants-box" open>
                 <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
@@ -912,6 +916,7 @@ $fmtP = static function ($cents) use ($cur): string {
                         </div>
                     <?php endforeach; endif; ?>
                 </div>
+                <div class="notice notice-info" data-arti-metre-note<?= $artiMode === 'metre' ? '' : ' hidden' ?>><p>✂️ <?= e(t('arti.metre_note')) ?></p></div>
 
                 <div class="grid-2" style="margin-top:14px">
                     <label class="check-row"><input type="checkbox" name="fait_main" value="1" data-arti-faitmain <?= $artiFaitMain ? 'checked' : '' ?><?= $artiDis ?>><span><strong><?= e(t('arti.f.faitmain')) ?></strong> — <?= e(t('arti.faitmain_hint')) ?></span></label>

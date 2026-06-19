@@ -204,6 +204,47 @@ return [
                 'Autre sculpture'                   => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
             ],
         ],
+
+        // 'mode' par type : 'metre' (tissu au mètre / coupon) ou 'confection' (pièce finie).
+        'Textile & wax' => [
+            'groups' => [
+                'metre'      => 'Tissu au mètre / coupon',
+                'confection' => 'Confectionné (pièce finie)',
+                'autre'      => 'Autre',
+            ],
+            'atouts' => ['Wax authentique', 'Fait main', 'Cousu main', 'Bazin riche', 'Grand teint', 'Tissé main', 'Pièce unique', 'Sur mesure possible', 'Commerce équitable'],
+            'fields' => [
+                'matiere'     => ['label' => 'Matière', 'opts' => ['Coton wax', 'Coton imprimé', 'Bazin (damassé)', 'Bogolan (coton)', 'Kente (coton/soie)', 'Lin', 'Soie', 'Velours', 'Mélange']],
+                'motif'       => ['label' => 'Motif / imprimé', 'opts' => ['Wax traditionnel', 'Géométrique', 'Floral', 'Symbolique (adinkra…)', 'Uni', 'Tie & dye', 'Brodé', 'Rayé']],
+                'origine'     => ['label' => 'Origine / tradition', 'opts' => ['Afrique de l’Ouest', 'Ghana (kente)', 'Mali (bogolan)', 'Sénégal (bazin)', 'Nigeria', 'Côte d’Ivoire', 'Non précisé']],
+                'laize'       => ['label' => 'Laize (largeur)', 'opts' => ['90 cm', '110 cm', '115 cm', '120 cm', '150 cm']],
+                'vente_par'   => ['label' => 'Vendu par', 'opts' => ['Au mètre', 'Coupon 2 m', 'Coupon 6 yards (~5,5 m)', 'Coupon 12 yards (~11 m)']],
+                'genre'       => ['label' => 'Pour', 'opts' => ['Femme', 'Homme', 'Mixte', 'Enfant', 'Unisexe']],
+                'coupe'       => ['label' => 'Coupe / style', 'opts' => ['Traditionnel', 'Moderne', 'Ample', 'Ajusté', 'Décontracté']],
+                'entretien'   => ['label' => 'Entretien', 'opts' => ['Lavage main', 'Lavage 30°', 'Nettoyage à sec', 'Grand teint', 'Déteint au 1er lavage']],
+                'taille_conf' => ['label' => 'Taille', 'opts' => ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Sur mesure', 'Taille unique']],
+            ],
+            'types' => [
+                // Tissu au mètre / coupon
+                'Wax / pagne (au coupon)'      => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par', 'entretien'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                'Bazin'                        => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par', 'entretien'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                'Bogolan (mud cloth)'          => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par', 'entretien'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                'Kente'                        => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                'Tissu tissé / Kita'           => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                'Batik / tie & dye'            => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par', 'entretien'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                'Tissu imprimé (au mètre)'     => ['group' => 'metre', 'fields' => ['matiere', 'motif', 'origine', 'laize', 'vente_par', 'entretien'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'metre'],
+                // Confectionné (pièce finie)
+                'Boubou / grand boubou'        => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine', 'genre', 'coupe', 'taille_conf', 'entretien'], 'axis' => 'Taille', 'color' => true, 'mode' => 'confection'],
+                'Robe / ensemble femme'        => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine', 'coupe', 'taille_conf', 'entretien'], 'axis' => 'Taille', 'color' => true, 'mode' => 'confection'],
+                'Chemise / tunique homme'      => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine', 'coupe', 'taille_conf', 'entretien'], 'axis' => 'Taille', 'color' => true, 'mode' => 'confection'],
+                'Foulard / écharpe / turban'   => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine', 'genre'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'confection'],
+                'Nappe / linge de maison'      => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine', 'entretien'], 'axis' => 'Taille', 'color' => true, 'mode' => 'confection'],
+                'Coussin / housse'             => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'confection'],
+                'Sac / accessoire en wax'      => ['group' => 'confection', 'fields' => ['matiere', 'motif', 'origine', 'genre'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'confection'],
+                // Autre
+                'Autre textile'                => ['group' => 'autre', 'fields' => ['matiere', 'motif', 'origine', 'genre', 'taille_conf'], 'axis' => 'Coloris', 'color' => true, 'mode' => 'confection'],
+            ],
+        ],
     ],
 
     // Remplissage rapide des déclinaisons selon l'axe. 'Taille' propose plusieurs jeux
@@ -213,9 +254,10 @@ return [
             ['label' => 'Tailles bague', 'list' => ['48', '50', '52', '54', '56', '58', '60', 'Réglable']],
             ['label' => 'Tailles objet', 'list' => ['Petit', 'Moyen', 'Grand', 'Très grand']],
             ['label' => 'Tailles ceinture', 'list' => ['85', '90', '95', '100', '105', '110', 'Réglable']],
-            ['label' => 'Tailles S–XL', 'list' => ['S', 'M', 'L', 'XL']],
+            ['label' => 'Tailles vêtement', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL']],
         ],
         'Pointure' => [['label' => 'Pointures', 'list' => ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45']]],
         'Couleur'  => [['label' => 'Couleurs', 'list' => ['Multicolore', 'Naturel', 'Bois', 'Terre cuite', 'Marron', 'Camel', 'Bordeaux', 'Ocre', 'Rouge', 'Noir', 'Blanc', 'Doré']]],
+        'Coloris'  => [['label' => 'Coloris', 'list' => ['Multicolore', 'Indigo', 'Rouge', 'Jaune', 'Vert', 'Orange', 'Bleu', 'Noir', 'Blanc', 'Ocre', 'Or', 'Rose']]],
     ],
 ];

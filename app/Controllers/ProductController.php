@@ -507,6 +507,9 @@ final class ProductController
             $artiFood = !empty(arti_type_meta($collection, $productType)['food'])
                 || in_array((string) ($ea['usage'] ?? ''), (array) config('artisanat.food_usages', []), true);
             if ($artiFood && input_string('contact_alimentaire', '') === '1') { $ea['contact_alimentaire'] = true; }
+            // Mode de vente (textile) : déterminé par le type (au mètre / à la pièce).
+            $saleMode = (string) (arti_type_meta($collection, $productType)['mode'] ?? '');
+            if ($saleMode !== '') { $ea['sale_mode'] = $saleMode; $ea['unit'] = ($saleMode === 'metre') ? 'mètre' : 'pièce'; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
