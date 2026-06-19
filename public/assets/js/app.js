@@ -5651,6 +5651,9 @@ document.addEventListener('click', function (ev) {
     var heavyNote = document.querySelector('[data-sport-heavy-note]');
     var weightNote= document.querySelector('[data-sport-weight-note]');
     var pairWrap  = document.querySelector('[data-sport-pair-wrap]');
+    var FLAG_NOTES = ['shelter', 'sleep', 'pack', 'fire', 'light', 'watersport', 'fishing'].map(function (k) {
+        return { k: k, el: document.querySelector('[data-sport-' + k + '-note]') };
+    });
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -5740,6 +5743,7 @@ document.addEventListener('click', function (ev) {
         show(elecNote, !!(m && m.elec));
         show(heavyNote, !!(m && m.heavy));
         show(weightNote, !!(m && m.weight));
+        FLAG_NOTES.forEach(function (n) { show(n.el, !!(m && m[n.k])); });
         // Vente à la paire : seulement pour les poids (anti-soumission fantôme).
         var weight = !!(m && m.weight);
         show(pairWrap, weight);

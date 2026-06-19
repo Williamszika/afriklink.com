@@ -1881,6 +1881,13 @@ $fmtP = static function ($cents) use ($cur): string {
             $spHeavy  = $spMeta !== null && !empty($spMeta['heavy']);
             $spWeight = $spMeta !== null && !empty($spMeta['weight']);
             $spPair   = isset($rawOldSp['par_paire']) ? ((string) $rawOldSp['par_paire'] === '1') : !empty($spAttrs['par_paire']);
+            $spShelter    = $spMeta !== null && !empty($spMeta['shelter']);
+            $spSleep      = $spMeta !== null && !empty($spMeta['sleep']);
+            $spPack       = $spMeta !== null && !empty($spMeta['pack']);
+            $spFire       = $spMeta !== null && !empty($spMeta['fire']);
+            $spLight      = $spMeta !== null && !empty($spMeta['light']);
+            $spWatersport = $spMeta !== null && !empty($spMeta['watersport']);
+            $spFishing    = $spMeta !== null && !empty($spMeta['fishing']);
             $spDefaults = (array) ($spMeta['defaults'] ?? []);
             $spDis = $spActive ? '' : ' disabled';
         ?>
@@ -1947,6 +1954,13 @@ $fmtP = static function ($cents) use ($cur): string {
                 <div class="notice notice-info" data-sport-elec-note<?= $spElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('sport.elec_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-heavy-note<?= $spHeavy ? '' : ' hidden' ?>><p>🧰 <?= e(t('sport.heavy_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-weight-note<?= $spWeight ? '' : ' hidden' ?>><p>🏋️ <?= e(t('sport.weight_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-shelter-note<?= $spShelter ? '' : ' hidden' ?>><p>⛺ <?= e(t('sport.shelter_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-sleep-note<?= $spSleep ? '' : ' hidden' ?>><p>🌡️ <?= e(t('sport.sleep_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-pack-note<?= $spPack ? '' : ' hidden' ?>><p>🎒 <?= e(t('sport.pack_note')) ?></p></div>
+                <div class="notice notice-warning" data-sport-fire-note<?= $spFire ? '' : ' hidden' ?>><p>🔥 <?= e(t('sport.fire_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-light-note<?= $spLight ? '' : ' hidden' ?>><p>🔦 <?= e(t('sport.light_note')) ?></p></div>
+                <div class="notice notice-warning" data-sport-watersport-note<?= $spWatersport ? '' : ' hidden' ?>><p>🦺 <?= e(t('sport.watersport_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-fishing-note<?= $spFishing ? '' : ' hidden' ?>><p>🎣 <?= e(t('sport.fishing_note')) ?></p></div>
 
                 <div class="grid-2" style="margin-top:12px">
                     <div>
