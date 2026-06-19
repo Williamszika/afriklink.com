@@ -409,6 +409,25 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
+            // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
+            // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(auto_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), auto_atouts($collection)));
+            $ea = auto_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $cond = beauty_clean(input_string('acc_condition', ''), auto_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            // Compatibilité véhicule : universel (flag) OU liste de véhicules compatibles.
+            if (input_string('universel', '') === '1') {
+                $ea['universel'] = true;
+            } else {
+                $compat = mb_substr(trim((string) input_string('compatibilite', '')), 0, 300);
+                if ($compat !== '') { $ea['compatibilite'] = $compat; }
+            }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));

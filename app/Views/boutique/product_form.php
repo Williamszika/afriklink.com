@@ -561,6 +561,111 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /alim nouveau rayon -->
         <?php endif; ?>
 
+        <?php if (auto_capable($boutiqueCat)):
+            $rawOldA   = $_SESSION['_old'] ?? [];
+            $autoAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $autoActive = auto_is_rayon($curCol);
+            $autoRayon  = $autoActive ? $curCol : (auto_rayons()[0] ?? 'Accessoires');
+            $autoType   = (string) ($rawOldA['product_type'] ?? ($product['product_type'] ?? ''));
+            $autoMeta   = auto_type_meta($autoRayon, $autoType);
+            $autoCond   = (string) ($rawOldA['acc_condition'] ?? ($autoAttrs['condition'] ?? 'Neuf'));
+            $autoElec   = $autoMeta !== null && !empty($autoMeta['elec']);
+            $autoUniversel = isset($rawOldA['universel'])
+                ? ((string) $rawOldA['universel'] === '1')
+                : (array_key_exists('universel', $autoAttrs) ? !empty($autoAttrs['universel']) : (($autoAttrs['compatibilite'] ?? '') === '' || ($autoAttrs['compatibilite'] ?? '') === 'Universel'));
+            $autoCompat = (string) ($rawOldA['compatibilite'] ?? ($autoAttrs['compatibilite'] ?? ''));
+            $autoAtoutsSel = isset($rawOldA['atouts']) && is_array($rawOldA['atouts'])
+                ? array_map('strval', $rawOldA['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $autoDis = $autoActive ? '' : ' disabled';
+        ?>
+        <div data-auto
+             data-rayons="<?= e((string) json_encode((array) config('auto.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('auto.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('auto.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Auto & pièces adaptatif (Accessoires…) ===== -->
+        <div data-auto-root<?= $autoActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="auto-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="auto-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('auto.brand_ph')) ?>"<?= $autoDis ?>>
+                </div>
+                <div>
+                    <label for="auto-type"><?= e(t('cuisine.f.type')) ?> <span class="req">*</span></label>
+                    <select id="auto-type" name="product_type" data-pv="type" data-auto-type<?= $autoDis ?>>
+                        <option value=""><?= e(t('auto.f.type_any')) ?></option>
+                        <?php foreach (auto_groups($autoRayon) as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (auto_types($autoRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $autoType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="auto-condition"><?= e(t('cuisine.f.condition')) ?></label>
+                    <select id="auto-condition" name="acc_condition"<?= $autoDis ?>>
+                        <?php foreach (auto_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $autoCond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+
+            <!-- Compatibilité véhicule (signature auto) -->
+            <label class="check-row" style="margin-top:14px"><input type="checkbox" name="universel" value="1" data-auto-universel <?= $autoUniversel ? 'checked' : '' ?><?= $autoDis ?>><span><strong><?= e(t('auto.f.universel')) ?></strong> — <?= e(t('auto.universel_hint')) ?></span></label>
+            <div data-auto-compat-box<?= $autoUniversel ? ' hidden' : '' ?> style="margin-top:10px">
+                <label for="auto-compat"><?= e(t('auto.f.compat')) ?></label>
+                <textarea id="auto-compat" name="compatibilite" rows="2" maxlength="300" placeholder="<?= e(t('auto.compat_ph')) ?>"<?= ($autoActive && !$autoUniversel) ? '' : ' disabled' ?>><?= e($autoCompat === 'Universel' ? '' : $autoCompat) ?></textarea>
+                <p class="hint"><?= e(t('auto.compat_hint')) ?></p>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-auto-hint><?= e($autoMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-auto-attrs>
+                    <?php if ($autoMeta): foreach ((array) ($autoMeta['fields'] ?? []) as $fk): $fd = auto_fields($autoRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($autoAttrs[$fk] ?? ''); ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $autoDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+                <div class="notice notice-warning" data-auto-elec-note<?= $autoElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('auto.elec_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:12px">
+                    <div>
+                        <label for="auto-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="auto-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="ACC-001"<?= $autoDis ?>>
+                    </div>
+                    <div>
+                        <label for="auto-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="auto-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldA['variant_axis'] ?? ($autoAttrs['variant_axis'] ?? ($autoMeta['axis'] ?? '')))) ?>" placeholder="<?= e(t('auto.axis_ph')) ?>" data-auto-axis<?= $autoDis ?>>
+                    </div>
+                </div>
+                <?php $autoSizes = ($autoMeta && !empty($autoMeta['axis'])) ? (array) (config('auto.size_systems')[$autoMeta['axis']] ?? []) : []; ?>
+                <label data-auto-size-label<?= $autoSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-auto-size-chips<?= $autoSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($autoSizes as $sb): ?><button type="button" class="axis-chip" data-auto-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-auto-atouts>
+                    <?php foreach (auto_atouts($autoRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $autoAtoutsSel, true) ? 'checked' : '' ?><?= $autoDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /auto adaptatif -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

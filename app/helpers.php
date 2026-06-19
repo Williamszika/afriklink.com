@@ -1159,6 +1159,67 @@ function alim_autre_cfg(?string $rayon): ?array
     return is_array($r) ? $r : null;
 }
 
+/* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
+
+/** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */
+function auto_shop_categories(): array { return (array) config('auto.shop_categories', ['auto']); }
+
+/** La boutique (catégorie) propose-t-elle le formulaire auto adaptatif ? */
+function auto_capable(?string $boutiqueCategory): bool { return in_array((string) $boutiqueCategory, auto_shop_categories(), true); }
+
+/** @return list<string> Libellés des rayons auto type-driven. */
+function auto_rayons(): array { return array_keys((array) config('auto.rayons', [])); }
+
+/** Ce rayon a-t-il un formulaire auto adaptatif ? */
+function auto_is_rayon(?string $rayon): bool { return isset(((array) config('auto.rayons', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon auto par clé. */
+function auto_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('auto.rayons.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function auto_fields(?string $rayon): array { return auto_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function auto_types(?string $rayon): array { return auto_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function auto_groups(?string $rayon): array { return auto_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function auto_atouts(?string $rayon): array { return auto_rayon($rayon, 'atouts'); }
+
+/** @return list<string> */
+function auto_conditions(): array { return (array) config('auto.conditions', []); }
+
+/** Métadonnées d'un type pour un rayon auto, ou null. */
+function auto_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = auto_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques d'un accessoire auto : champs du type validés.
+ * @return array<string,string>
+ */
+function auto_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = auto_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = auto_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 
 
 /** @return list<string> */

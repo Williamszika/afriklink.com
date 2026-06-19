@@ -169,6 +169,19 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
                         $apTags[] = t('alim.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
                     }
+                } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['condition', 'universel', 'compatibilite', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['universel'])) { $apTags[] = t('auto.universel_tag'); }
+                    elseif (!empty($aAttr['compatibilite'])) { $apTags[] = t('auto.compat_label') . ' : ' . (string) $aAttr['compatibilite']; }
                 } elseif ($pVertical === 'phone') {
                     // Fiche téléphone (legacy) OU rayon électronique « autre » : specs libres dans attributes.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
