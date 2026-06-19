@@ -1888,6 +1888,11 @@ $fmtP = static function ($cents) use ($cur): string {
             $spLight      = $spMeta !== null && !empty($spMeta['light']);
             $spWatersport = $spMeta !== null && !empty($spMeta['watersport']);
             $spFishing    = $spMeta !== null && !empty($spMeta['fishing']);
+            $spTeam       = $spMeta !== null && !empty($spMeta['team']);
+            $spSwim       = $spMeta !== null && !empty($spMeta['swim']);
+            $spHygiene    = $spMeta !== null && !empty($spMeta['hygiene']);
+            $spVersion    = (string) ($rawOldSp['version'] ?? ($spAttrs['version'] ?? ''));
+            $spPerso      = isset($rawOldSp['perso']) ? ((string) $rawOldSp['perso'] === '1') : !empty($spAttrs['personnalisation']);
             $spDefaults = (array) ($spMeta['defaults'] ?? []);
             $spDis = $spActive ? '' : ' disabled';
         ?>
@@ -1924,9 +1929,13 @@ $fmtP = static function ($cents) use ($cur): string {
             <div class="grid-2" style="margin-top:14px">
                 <div>
                     <label for="sport-cond"><?= e(t('sport.f.condition')) ?></label>
-                    <select id="sport-cond" name="acc_condition"<?= $spDis ?>>
+                    <select id="sport-cond" name="acc_condition" data-sport-cond<?= $spHygiene ? ' hidden disabled' : $spDis ?>>
                         <?php foreach (sport_conditions() as $cc): ?><option value="<?= e($cc) ?>" <?= $spCond === $cc ? 'selected' : '' ?>><?= e($cc) ?></option><?php endforeach; ?>
                     </select>
+                    <div data-sport-cond-fixed<?= $spHygiene ? '' : ' hidden' ?>>
+                        <div class="static-val"><?= e(t('sport.hygiene_cond')) ?></div>
+                        <span class="hint"><?= e(t('sport.hygiene_cond_hint')) ?></span>
+                    </div>
                 </div>
                 <div></div>
             </div>
@@ -1946,9 +1955,24 @@ $fmtP = static function ($cents) use ($cur): string {
                     <?php endforeach; endif; ?>
                 </div>
 
+                <div class="grid-2" data-sport-team-wrap<?= $spTeam ? '' : ' hidden' ?> style="margin-top:12px">
+                    <div>
+                        <label for="sport-version"><?= e(t('sport.f.version')) ?></label>
+                        <select id="sport-version" name="version" data-sport-version<?= $spTeam ? $spDis : ' disabled' ?>>
+                            <option value=""><?= e(t('sport.version_any')) ?></option>
+                            <?php foreach (sport_team_versions() as $vv): ?><option value="<?= e($vv) ?>" <?= $spVersion === $vv ? 'selected' : '' ?>><?= e($vv) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="check-row" style="margin-top:26px"><input type="checkbox" name="perso" value="1" data-sport-perso <?= $spPerso ? 'checked' : '' ?><?= $spTeam ? $spDis : ' disabled' ?>><span><strong><?= e(t('sport.f.perso')) ?></strong> — <?= e(t('sport.perso_hint')) ?></span></label>
+                    </div>
+                </div>
                 <div data-sport-pair-wrap<?= $spWeight ? '' : ' hidden' ?>>
                     <label class="check-row" style="margin-top:12px"><input type="checkbox" name="par_paire" value="1" data-sport-pair <?= $spPair ? 'checked' : '' ?><?= $spWeight ? $spDis : ' disabled' ?>><span><strong><?= e(t('sport.f.par_paire')) ?></strong> — <?= e(t('sport.par_paire_hint')) ?></span></label>
                 </div>
+                <div class="notice notice-info" data-sport-team-note<?= $spTeam ? '' : ' hidden' ?>><p>👕 <?= e(t('sport.team_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-swim-note<?= $spSwim ? '' : ' hidden' ?>><p>🏊 <?= e(t('sport.swim_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-hygiene-note<?= $spHygiene ? '' : ' hidden' ?>><p>🧼 <?= e(t('sport.hygiene_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-cleats-note<?= $spCleats ? '' : ' hidden' ?>><p>⚽ <?= e(t('sport.cleats_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-water-note<?= $spWater ? '' : ' hidden' ?>><p>🌊 <?= e(t('sport.water_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-elec-note<?= $spElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('sport.elec_note')) ?></p></div>

@@ -1533,6 +1533,12 @@ function sport_atouts(?string $rayon): array { return sport_rayon($rayon, 'atout
 /** @return list<string> */
 function sport_conditions(): array { return (array) config('sport.conditions', ['Neuf', 'Occasion']); }
 
+/** État figé des vêtements d'hygiène (maillot de bain, sous-vêtement). */
+function sport_hygiene_condition(): string { return (string) config('sport.hygiene_condition', 'Neuf (scellé)'); }
+
+/** @return list<string> Versions possibles d'un maillot d'équipe. */
+function sport_team_versions(): array { return (array) config('sport.team_versions', []); }
+
 /** Métadonnées d'un type pour un rayon sport, ou null. */
 function sport_type_meta(?string $rayon, ?string $type): ?array
 {
@@ -1555,6 +1561,12 @@ function sport_attr_clean(?string $rayon, ?string $type, array $attrs): array
         $val = trim((string) ($attrs[$key] ?? ''));
         if ($val === '' && isset(((array) ($meta['defaults'] ?? []))[$key])) { $val = (string) $meta['defaults'][$key]; }
         if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    // Défauts hors champs visibles (ex. brassière → public « Femme » non affiché).
+    foreach ((array) ($meta['defaults'] ?? []) as $key => $dv) {
+        if (isset($out[$key]) || !isset($defs[$key])) { continue; }
+        $dv = (string) $dv;
+        if ($dv !== '' && in_array($dv, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $dv; }
     }
     return $out;
 }

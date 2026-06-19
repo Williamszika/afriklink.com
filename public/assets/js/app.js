@@ -5651,7 +5651,10 @@ document.addEventListener('click', function (ev) {
     var heavyNote = document.querySelector('[data-sport-heavy-note]');
     var weightNote= document.querySelector('[data-sport-weight-note]');
     var pairWrap  = document.querySelector('[data-sport-pair-wrap]');
-    var FLAG_NOTES = ['shelter', 'sleep', 'pack', 'fire', 'light', 'watersport', 'fishing'].map(function (k) {
+    var teamWrap  = document.querySelector('[data-sport-team-wrap]');
+    var condSel   = document.querySelector('[data-sport-cond]');
+    var condFixed = document.querySelector('[data-sport-cond-fixed]');
+    var FLAG_NOTES = ['shelter', 'sleep', 'pack', 'fire', 'light', 'watersport', 'fishing', 'team', 'swim', 'hygiene'].map(function (k) {
         return { k: k, el: document.querySelector('[data-sport-' + k + '-note]') };
     });
     if (!root) { return; }
@@ -5748,6 +5751,14 @@ document.addEventListener('click', function (ev) {
         var weight = !!(m && m.weight);
         show(pairWrap, weight);
         if (pairWrap) { pairWrap.querySelectorAll('input').forEach(function (i) { i.disabled = !weight || !active(); }); }
+        // Maillot d'équipe : version + floquage (anti-soumission fantôme).
+        var team = !!(m && m.team);
+        show(teamWrap, team);
+        if (teamWrap) { teamWrap.querySelectorAll('input, select').forEach(function (i) { i.disabled = !team || !active(); }); }
+        // Hygiène (maillot de bain / sous-vêtement) : état figé « neuf scellé ».
+        var hyg = !!(m && m.hygiene);
+        show(condFixed, hyg);
+        if (condSel) { condSel.hidden = hyg; condSel.disabled = hyg || !active(); }
     }
     function onType() {
         var m = meta();

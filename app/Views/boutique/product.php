@@ -263,11 +263,12 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'variant_axis', 'elec', 'par_paire'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'variant_axis', 'elec', 'par_paire', 'personnalisation'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['par_paire'])) { $apTags[] = t('sport.f.par_paire'); }
-                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['personnalisation'])) { $apTags[] = t('sport.f.perso'); }
+                    if (!empty($aAttr['condition']) && !str_starts_with((string) $aAttr['condition'], 'Neuf')) { $apTags[] = (string) $aAttr['condition']; }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

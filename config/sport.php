@@ -15,7 +15,11 @@ declare(strict_types=1);
  */
 return [
     'shop_categories' => ['sport'],
-    'conditions'      => ['Neuf', 'Comme neuf', 'Très bon état', 'Bon état', 'Occasion'],
+    'conditions'      => ['Neuf avec étiquette', 'Neuf', 'Comme neuf', 'Très bon état', 'Bon état', 'Occasion'],
+    // Vêtements d'hygiène (maillot de bain, sous-vêtement) : état figé.
+    'hygiene_condition' => 'Neuf (scellé)',
+    // Maillots d'équipe : version (officiel / réplique…).
+    'team_versions'   => ['Officiel sous licence', 'Réplique', 'Supporter', 'Vintage / collector'],
 
     'rayons' => [
         'Chaussures' => [
@@ -134,6 +138,40 @@ return [
                 'Autre plein air'                  => ['group' => 'autre', 'fields' => ['usage', 'matiere', 'pliable', 'impermeable'], 'axis' => 'Couleur', 'color' => true],
             ],
         ],
+
+        'Vêtements' => [
+            'groups' => [
+                'hauts'     => 'Hauts',
+                'bas'       => 'Bas',
+                'equipe'    => 'Équipe & eau',
+                'technique' => 'Technique & accessoires',
+                'autre'     => 'Autre',
+            ],
+            'atouts' => ['Respirant', 'Anti-transpiration', 'Compression', 'Léger', 'Thermique', 'Anti-UV', 'Séchage rapide', 'Occasion testée'],
+            'fields' => [
+                'genre'   => ['label' => 'Public', 'opts' => ['Homme', 'Femme', 'Mixte', 'Junior', 'Enfant']],
+                'sport'   => ['label' => 'Sport', 'opts' => ['Multisport', 'Running', 'Fitness', 'Football', 'Basket', 'Tennis', 'Cyclisme', 'Natation', 'Yoga / Pilates', 'Randonnée']],
+                'matiere' => ['label' => 'Matière', 'opts' => ['Polyester technique', 'Coton', 'Élasthanne / Lycra', 'Mérinos', 'Mesh respirant', 'Softshell', 'Mixte']],
+                'techno'  => ['label' => 'Technologie', 'opts' => ['Respirant', 'Anti-transpiration', 'Compression', 'Thermique', 'Déperlant', 'Anti-UV', 'Sans']],
+                'coupe'   => ['label' => 'Coupe', 'opts' => ['Ajustée', 'Standard', 'Ample']],
+            ],
+            // types : group, fields, axis (Taille), color, + drapeaux team / swim / hygiene / fem.
+            'types' => [
+                'T-shirt / maillot technique'                  => ['group' => 'hauts', 'fields' => ['genre', 'sport', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true],
+                'Brassière de sport'                           => ['group' => 'hauts', 'fields' => ['sport', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true, 'fem' => true, 'defaults' => ['genre' => 'Femme']],
+                'Sweat / hoodie'                               => ['group' => 'hauts', 'fields' => ['genre', 'sport', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true],
+                'Veste / coupe-vent'                           => ['group' => 'hauts', 'fields' => ['genre', 'sport', 'matiere', 'techno'], 'axis' => 'Taille', 'color' => true],
+                'Short / cuissard'                             => ['group' => 'bas', 'fields' => ['genre', 'sport', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true],
+                'Legging / collant'                            => ['group' => 'bas', 'fields' => ['genre', 'sport', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true],
+                'Survêtement / jogging'                        => ['group' => 'bas', 'fields' => ['genre', 'sport', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true],
+                'Maillot d’équipe'                             => ['group' => 'equipe', 'fields' => ['genre', 'sport', 'matiere'], 'axis' => 'Taille', 'color' => true, 'team' => true],
+                'Maillot de bain / natation'                   => ['group' => 'equipe', 'fields' => ['genre', 'matiere', 'coupe'], 'axis' => 'Taille', 'color' => true, 'hygiene' => true, 'swim' => true],
+                'Sous-vêtement technique / thermique'          => ['group' => 'technique', 'fields' => ['genre', 'matiere', 'techno'], 'axis' => 'Taille', 'color' => true, 'hygiene' => true],
+                'Chaussettes de sport'                         => ['group' => 'technique', 'fields' => ['genre', 'sport', 'matiere'], 'axis' => 'Taille', 'color' => true],
+                'Accessoire textile (bandeau, manchon, gants)' => ['group' => 'technique', 'fields' => ['genre', 'sport', 'matiere'], 'axis' => 'Taille', 'color' => true],
+                'Autre vêtement de sport'                      => ['group' => 'autre', 'fields' => ['genre', 'sport', 'matiere', 'techno', 'coupe'], 'axis' => 'Taille', 'color' => true],
+            ],
+        ],
     ],
 
     // Remplissage rapide des déclinaisons (axe → groupes de valeurs).
@@ -145,7 +183,10 @@ return [
         'Poids'      => [['label' => 'Charges (kg)', 'list' => ['2 kg', '4 kg', '6 kg', '8 kg', '10 kg', '12 kg', '16 kg', '20 kg']]],
         'Résistance' => [['label' => 'Résistances', 'list' => ['Très light', 'Light', 'Medium', 'Heavy', 'X-Heavy']]],
         'Diamètre'   => [['label' => 'Diamètres', 'list' => ['55 cm', '65 cm', '75 cm']]],
-        'Taille'     => [['label' => 'Tailles', 'list' => ['S', 'M', 'L', 'XL']]],
+        'Taille'     => [
+            ['label' => 'Tailles', 'list' => ['XS', 'S', 'M', 'L', 'XL', 'XXL']],
+            ['label' => 'Tailles enfant', 'list' => ['4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans']],
+        ],
         'Places'     => [['label' => 'Places', 'list' => ['1 place', '2 places', '3-4 places', '4-6 places']]],
         'Volume'     => [['label' => 'Volumes', 'list' => ['20 L', '30 L', '40 L', '50 L', '60 L']]],
         'Contenance' => [['label' => 'Contenances', 'list' => ['10 L', '25 L', '40 L']]],

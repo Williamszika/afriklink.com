@@ -584,13 +584,24 @@ final class ProductController
             $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
             $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), sport_atouts($collection)));
             $ea = sport_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
-            $cond = beauty_clean(input_string('acc_condition', ''), sport_conditions());
-            if ($cond !== '') { $ea['condition'] = $cond; }
             $spMeta = sport_type_meta($collection, $productType);
+            // Hygiène (maillot de bain / sous-vêtement) : état figé, non contournable.
+            if ($spMeta !== null && !empty($spMeta['hygiene'])) {
+                $ea['condition'] = sport_hygiene_condition();
+            } else {
+                $cond = beauty_clean(input_string('acc_condition', ''), sport_conditions());
+                if ($cond !== '') { $ea['condition'] = $cond; }
+            }
             // Drapeau « électrique » déterminé par le TYPE (config), pas par le POST.
             if ($spMeta !== null && !empty($spMeta['elec'])) { $ea['elec'] = true; }
             // Vente par paire : seulement pertinent pour les poids (anti-injection).
             if ($spMeta !== null && !empty($spMeta['weight']) && input_string('par_paire', '') === '1') { $ea['par_paire'] = true; }
+            // Maillot d'équipe : version + floquage, seulement pour les types d'équipe.
+            if ($spMeta !== null && !empty($spMeta['team'])) {
+                $ver = beauty_clean(input_string('version', ''), sport_team_versions());
+                if ($ver !== '') { $ea['version'] = $ver; }
+                if (input_string('perso', '') === '1') { $ea['personnalisation'] = true; }
+            }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
