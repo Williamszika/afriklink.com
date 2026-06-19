@@ -1234,6 +1234,71 @@ function bebe_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/* ---------- Bébé & Enfant · JOUETS : moteur séparé, sécurité enfant ---------- */
+
+/** @return list<string> États acceptés pour un jouet. */
+function bebe_conditions(): array { return (array) config('bebe.conditions', ['Neuf', 'Comme neuf', 'Occasion']); }
+
+/** @return list<string> Tous les âges conseillés (jouets). */
+function bebe_toy_ages(): array { return (array) config('bebe.toy_ages', []); }
+
+/** @return list<string> Âges « moins de 36 mois » (interdiction de petites pièces). */
+function bebe_toy_ages_under3(): array { return (array) config('bebe.toy_ages_under3', []); }
+
+/** Un âge donné relève-t-il des moins de 36 mois ? */
+function bebe_toy_is_under3(?string $age): bool { return $age !== null && $age !== '' && in_array($age, bebe_toy_ages_under3(), true); }
+
+/** @return list<string> Libellés des rayons jouets type-driven. */
+function bebe_toy_rayons(): array { return array_keys((array) config('bebe.toys', [])); }
+
+/** Ce rayon a-t-il le formulaire jouet adaptatif ? */
+function bebe_toy_is_rayon(?string $rayon): bool { return isset(((array) config('bebe.toys', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon jouet par clé. */
+function bebe_toy_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('bebe.toys.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function bebe_toy_fields(?string $rayon): array { return bebe_toy_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function bebe_toy_types(?string $rayon): array { return bebe_toy_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function bebe_toy_groups(?string $rayon): array { return bebe_toy_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function bebe_toy_atouts(?string $rayon): array { return bebe_toy_rayon($rayon, 'atouts'); }
+
+/** Métadonnées d'un type pour un rayon jouet, ou null. */
+function bebe_toy_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = bebe_toy_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques « select » d'un jouet : champs du type validés.
+ * @return array<string,string>
+ */
+function bebe_toy_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = bebe_toy_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = bebe_toy_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        if (!isset($defs[$key])) { continue; }
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */

@@ -1262,6 +1262,138 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /bébé alimentation -->
         <?php endif; ?>
 
+        <?php if (bebe_capable($boutiqueCat)):
+            $rawOldT   = $_SESSION['_old'] ?? [];
+            $toyAttrs  = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $toyActive = bebe_toy_is_rayon($curCol);
+            $toyRayon  = $toyActive ? $curCol : (bebe_toy_rayons()[0] ?? 'Jouets');
+            $toyType   = (string) ($rawOldT['product_type'] ?? ($product['product_type'] ?? ''));
+            $toyMeta   = bebe_toy_type_meta($toyRayon, $toyType);
+            $toyCond   = (string) ($rawOldT['acc_condition'] ?? ($toyAttrs['condition'] ?? 'Neuf'));
+            $toyAge    = (string) ($rawOldT['age_min'] ?? ($toyAttrs['age_min'] ?? ''));
+            $toyAgeFix = $toyMeta !== null && !empty($toyMeta['age_fix']);
+            $toyAgeOpts = $toyAgeFix ? bebe_toy_ages_under3() : bebe_toy_ages();
+            $toyUnder3 = bebe_toy_is_under3($toyAge);
+            $toyCE     = isset($rawOldT['ce']) ? ((string) $rawOldT['ce'] === '1') : (array_key_exists('ce', $toyAttrs) ? !empty($toyAttrs['ce']) : false);
+            $toySmall  = isset($rawOldT['small_parts']) ? ((string) $rawOldT['small_parts'] === '1') : !empty($toyAttrs['small_parts']);
+            $toyPiles  = (string) ($toyAttrs['piles'] ?? '');
+            $toyAtoutsSel = isset($rawOldT['atouts']) && is_array($rawOldT['atouts'])
+                ? array_map('strval', $rawOldT['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $toyDis = $toyActive ? '' : ' disabled';
+            $toyShowCE    = !$toyCE;                  // note « CE obligatoire » si non coché
+            $toyConflict  = $toyUnder3 && $toySmall;  // incohérence âge / petites pièces
+            $toyShow3     = !$toyUnder3 && $toySmall;  // mention obligatoire 3 ans+
+            $toyShowPiles = $toyPiles !== '' && $toyPiles !== 'Sans pile';
+        ?>
+        <div data-bebe-toy
+             data-rayons="<?= e((string) json_encode((array) config('bebe.toys', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('bebe.toy_size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-ages="<?= e((string) json_encode(bebe_toy_ages(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-ages-under3="<?= e((string) json_encode(bebe_toy_ages_under3(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-age-default="Dès 6 mois"
+             data-any="<?= e(t('bebe.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Bébé & Enfant · Jouets (sécurité enfant) ===== -->
+        <div data-bebe-toy-root<?= $toyActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="toy-brand"><?= e(t('bebe.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="toy-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldT['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="ex. Lego, Vtech, sans marque…"<?= $toyDis ?>>
+                </div>
+                <div>
+                    <label for="toy-type"><?= e(t('bebe.f.type')) ?> <span class="req">*</span></label>
+                    <select id="toy-type" name="product_type" data-pv="type" data-bebe-toy-type<?= $toyDis ?>>
+                        <option value=""><?= e(t('bebe.f.type_any')) ?></option>
+                        <?php $toyGroups = bebe_toy_groups($toyRayon); ?>
+                        <?php if ($toyGroups !== []): foreach ($toyGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (bebe_toy_types($toyRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $toyType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (bebe_toy_types($toyRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $toyType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="toy-cond"><?= e(t('bebe.toy.f.condition')) ?></label>
+                    <select id="toy-cond" name="acc_condition"<?= $toyDis ?>>
+                        <?php foreach (bebe_conditions() as $cc): ?><option value="<?= e($cc) ?>" <?= $toyCond === $cc ? 'selected' : '' ?>><?= e($cc) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-bebe-toy-hint><?= e($toyMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+
+                <div class="grid-2">
+                    <div>
+                        <label for="toy-age"><?= e(t('bebe.toy.f.age')) ?> <span class="req">*</span></label>
+                        <select id="toy-age" name="age_min" data-bebe-toy-age<?= $toyDis ?>>
+                            <option value="">—</option>
+                            <?php foreach ($toyAgeOpts as $ag): ?><option value="<?= e($ag) ?>" <?= $toyAge === $ag ? 'selected' : '' ?>><?= e($ag) ?></option><?php endforeach; ?>
+                        </select>
+                        <span class="hint" data-bebe-toy-age-hint<?= $toyAgeFix ? '' : ' hidden' ?>><?= e(t('bebe.toy.age_under3_hint')) ?></span>
+                        <?php if (has_error('age_min')): ?><p class="field-error"><?= e(error('age_min')) ?></p><?php endif; ?>
+                    </div>
+                    <div></div>
+                </div>
+
+                <div class="attrs grid-2" data-bebe-toy-attrs>
+                    <?php if ($toyMeta): foreach ((array) ($toyMeta['fields'] ?? []) as $fk): $fd = bebe_toy_fields($toyRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($toyAttrs[$fk] ?? ''); ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]" data-bebe-toy-field="<?= e($fk) ?>"<?= $toyDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-bebe-toy-atouts>
+                    <?php foreach (bebe_toy_atouts($toyRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $toyAtoutsSel, true) ? 'checked' : '' ?><?= $toyDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+
+            <details class="variants-box" open>
+                <summary>🛡️ <?= e(t('bebe.toy.sec_safety')) ?></summary>
+                <div>
+                    <label class="check-row"><input type="checkbox" name="ce" value="1" data-bebe-toy-ce <?= $toyCE ? 'checked' : '' ?><?= $toyDis ?>><span><strong><?= e(t('bebe.toy.f.ce')) ?></strong> — <?= e(t('bebe.toy.ce_hint')) ?></span></label>
+                    <label class="check-row"><input type="checkbox" name="small_parts" value="1" data-bebe-toy-small <?= $toySmall ? 'checked' : '' ?><?= $toyDis ?>><span><strong><?= e(t('bebe.toy.f.small_parts')) ?></strong> — <?= e(t('bebe.toy.small_parts_hint')) ?></span></label>
+                </div>
+                <div class="notice notice-warning" data-bebe-toy-ce-note<?= $toyShowCE ? '' : ' hidden' ?>><p>⚖️ <?= e(t('bebe.toy.ce_note')) ?></p></div>
+                <div class="notice notice-warning" data-bebe-toy-u3-note<?= $toyUnder3 ? '' : ' hidden' ?>><p>🚸 <?= e(t('bebe.toy.under3_note')) ?> <span data-bebe-toy-conflict<?= $toyConflict ? '' : ' hidden' ?>><br><strong><?= e(t('bebe.toy.under3_conflict')) ?></strong></span></p></div>
+                <div class="notice notice-warning" data-bebe-toy-3-note<?= $toyShow3 ? '' : ' hidden' ?>><p>⚠️ <?= e(t('bebe.toy.parts3_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-toy-piles-note<?= $toyShowPiles ? '' : ' hidden' ?>><p>🔋 <?= e(t('bebe.toy.piles_note')) ?></p></div>
+                <?php if (has_error('small_parts')): ?><p class="field-error"><?= e(error('small_parts')) ?></p><?php endif; ?>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="toy-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="toy-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldT['variant_axis'] ?? ($toyAttrs['variant_axis'] ?? ($toyMeta['axis'] ?? 'Modèle')))) ?>" placeholder="Couleur / Modèle / Taille" data-bebe-toy-axis<?= $toyDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $toySizes = ($toyMeta && !empty($toyMeta['axis'])) ? (array) (config('bebe.toy_size_systems')[$toyMeta['axis']] ?? []) : []; ?>
+                <label data-bebe-toy-size-label<?= $toySizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-bebe-toy-size-chips<?= $toySizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($toySizes as $sb): ?><button type="button" class="axis-chip" data-bebe-toy-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /bébé jouets -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

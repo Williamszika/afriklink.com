@@ -71,4 +71,61 @@ return [
         'Recette' => [['label' => 'Conditionnements', 'list' => ['Unité', 'Lot de 2', 'Lot de 4', 'Lot de 6']]],
         'Parfum'  => [['label' => 'Conditionnements', 'list' => ['Unité', 'Lot de 2', 'Lot de 4', 'Lot de 6']]],
     ],
+
+    /* =================================================================
+     * JOUETS — moteur SÉPARÉ (sous la même catégorie boutique « bebe »),
+     * piloté par le TYPE. Garde-fous SÉCURITÉ ENFANT : marquage CE + EN71,
+     * âge minimum, cohérence âge ↔ petites pièces (jouet < 3 ans = AUCUNE
+     * petite pièce détachable, risque d'étouffement — EN71-1), piles bouton.
+     * ================================================================= */
+    'conditions'      => ['Neuf', 'Comme neuf', 'Occasion'],
+    'toy_ages'        => ['0–6 mois', 'Dès 6 mois', 'Dès 10 mois', 'Dès 1 an', 'Dès 18 mois', 'Dès 2 ans', 'Dès 3 ans', 'Dès 5 ans', 'Dès 8 ans', 'Dès 10 ans'],
+    // Tranche « moins de 36 mois » : déclenche l'interdiction de petites pièces.
+    'toy_ages_under3' => ['0–6 mois', 'Dès 6 mois', 'Dès 10 mois', 'Dès 1 an', 'Dès 18 mois', 'Dès 2 ans'],
+
+    'toys' => [
+        'Jouets' => [
+            'groups' => [
+                'eveil'        => 'Premier âge & éveil',
+                'construction' => 'Construction & logique',
+                'imagination'  => 'Imagination',
+                'electro'      => 'Électronique & créatif',
+                'pleinair'     => 'Plein air',
+                'autre'        => 'Autre',
+            ],
+            'atouts' => ['Bois certifié', 'Sans BPA', 'Lavable', 'Éveil / Montessori', 'Écologique', 'Fabriqué en UE', 'Premier âge', 'Occasion testée & complète'],
+            'fields' => [
+                'matiere'    => ['label' => 'Matière', 'opts' => ['Plastique', 'Bois', 'Peluche / textile', 'Métal', 'Carton', 'Mousse', 'Mixte']],
+                'genre'      => ['label' => 'Public', 'opts' => ['Mixte', 'Fille', 'Garçon', 'Bébé']],
+                'nb_joueurs' => ['label' => 'Nombre de joueurs', 'opts' => ['1', '1–2', '2–4', '2–6', '2+', '4+']],
+                'nb_pieces'  => ['label' => 'Nombre de pièces', 'opts' => ['< 50', '50–100', '100–300', '300–500', '500–1000', '> 1000']],
+                'piles'      => ['label' => 'Alimentation', 'opts' => ['Sans pile', 'Piles incluses', 'Piles non incluses', 'Rechargeable USB']],
+                'competence' => ['label' => 'Compétence développée', 'opts' => ['Motricité', 'Éveil sensoriel', 'Logique', 'Créativité', 'Langage', 'Social', 'Coordination']],
+                'dimension'  => ['label' => 'Taille', 'opts' => ['Petit', 'Moyen', 'Grand']],
+            ],
+            // types : group, fields(génériques), axis(Modèle/Couleur), color, age_fix(0–3 ans imposé).
+            'types' => [
+                'Peluche / doudou'                          => ['group' => 'eveil', 'fields' => ['matiere', 'dimension', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Jouet d’éveil (0–3 ans)'                   => ['group' => 'eveil', 'fields' => ['matiere', 'competence'], 'axis' => 'Couleur', 'color' => true, 'age_fix' => true],
+                'Hochet / anneau de dentition'              => ['group' => 'eveil', 'fields' => ['matiere'], 'axis' => 'Couleur', 'color' => true, 'age_fix' => true],
+                'Jeu de construction'                       => ['group' => 'construction', 'fields' => ['matiere', 'nb_pieces', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Puzzle'                                    => ['group' => 'construction', 'fields' => ['matiere', 'nb_pieces', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Jeu de société / cartes'                   => ['group' => 'construction', 'fields' => ['nb_joueurs', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Poupée / figurine'                         => ['group' => 'imagination', 'fields' => ['matiere', 'genre', 'dimension'], 'axis' => 'Modèle', 'color' => false],
+                'Voiture / véhicule jouet'                  => ['group' => 'imagination', 'fields' => ['matiere', 'piles', 'dimension'], 'axis' => 'Couleur', 'color' => true],
+                'Jouet d’imitation (dînette, déguisement)'  => ['group' => 'imagination', 'fields' => ['matiere', 'genre'], 'axis' => 'Modèle', 'color' => true],
+                'Jouet musical'                             => ['group' => 'electro', 'fields' => ['matiere', 'piles', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Jouet électronique / interactif'           => ['group' => 'electro', 'fields' => ['matiere', 'piles', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Jeu éducatif / créatif'                    => ['group' => 'electro', 'fields' => ['matiere', 'competence'], 'axis' => 'Modèle', 'color' => false],
+                'Jeu de plein air (vélo, ballon…)'          => ['group' => 'pleinair', 'fields' => ['matiere', 'dimension'], 'axis' => 'Couleur', 'color' => true],
+                'Autre jouet'                               => ['group' => 'autre', 'fields' => ['matiere', 'piles', 'competence'], 'axis' => 'Modèle', 'color' => true],
+            ],
+        ],
+    ],
+
+    // Remplissage rapide des déclinaisons jouet : couleurs (axe Couleur) ; Modèle = libre.
+    'toy_size_systems' => [
+        'Couleur' => [['label' => 'Couleurs', 'list' => ['Rouge', 'Bleu', 'Jaune', 'Vert', 'Rose', 'Orange', 'Violet', 'Bois', 'Multicolore', 'Blanc', 'Noir', 'Turquoise']]],
+        'Modèle'  => [],
+    ],
 ];

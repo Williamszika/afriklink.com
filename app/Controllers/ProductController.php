@@ -454,6 +454,40 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (bebe_capable((string) ($boutique['category'] ?? '')) && bebe_toy_is_rayon($collection)) {
+            // Bébé & Enfant · Jouets : type-driven specs + état, marquage CE/EN71, âge.
+            // GARDE-FOU sécurité : jouet < 36 mois + petites pièces = INCOHÉRENT (étouffement)
+            // → refus ; jouet 3+ avec petites pièces → mention « 3 ans+ » obligatoire.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(bebe_toy_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), bebe_toy_atouts($collection)));
+            $ea = bebe_toy_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $tMeta = bebe_toy_type_meta($collection, $productType);
+            // Âge OBLIGATOIRE, restreint à 0–3 ans si le type l'impose (anti-triche).
+            $ageOpts = ($tMeta !== null && !empty($tMeta['age_fix'])) ? bebe_toy_ages_under3() : bebe_toy_ages();
+            $age = beauty_clean(input_string('age_min', ''), $ageOpts);
+            if ($age === '') {
+                $errors['age_min'] = t('bebe.toy.age_required');
+            } else {
+                $ea['age_min'] = $age;
+            }
+            $cond = beauty_clean(input_string('acc_condition', ''), bebe_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            // Conformité CE / EN71 (liés). Petites pièces.
+            $ce = input_string('ce', '') === '1';
+            $ea['ce'] = $ce; $ea['en71'] = $ce;
+            $small = input_string('small_parts', '') === '1';
+            $under3 = bebe_toy_is_under3($age);
+            // GARDE-FOU bloquant : jouet pour les moins de 3 ans + petites pièces.
+            if ($under3 && $small) {
+                $errors['small_parts'] = t('bebe.toy.under3_conflict');
+            } elseif ($small) {
+                $ea['small_parts'] = true;
+                $ea['avertissement_3ans'] = true; // mention « ne convient pas aux moins de 36 mois »
+            }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.
