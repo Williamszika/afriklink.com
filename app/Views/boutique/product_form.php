@@ -587,10 +587,33 @@ $fmtP = static function ($cents) use ($cur): string {
             $autoProf    = (string) ($rawOldA['profondeur_mm'] ?? ($autoAttrs['profondeur_mm'] ?? ''));
             $autoMonte   = (string) ($rawOldA['monte'] ?? ($autoAttrs['monte'] ?? ''));
             $autoPneusEn = ($autoActive && $autoIsPneus) ? '' : ' disabled';
+            // « Nouveau rayon » Auto : rayon hors des rayons répertoriés.
+            $autoAutreActive = !$autoActive && $curCol !== '';
+            $autoAutreCfg    = auto_autre_cfg($curCol);
+            $autoAutreType   = (string) ($rawOldA['product_type'] ?? ($product['product_type'] ?? ''));
+            $autoAutreUniversel = isset($rawOldA['universel'])
+                ? ((string) $rawOldA['universel'] === '1')
+                : (array_key_exists('universel', $autoAttrs) ? !empty($autoAttrs['universel'])
+                    : ($autoAutreCfg !== null ? !empty($autoAutreCfg['uni']) : true));
+            $autoAutreCompat = (string) ($rawOldA['compatibilite'] ?? ($autoAttrs['compatibilite'] ?? ''));
+            $autoAutreOem    = (string) ($rawOldA['ref_oem'] ?? ($autoAttrs['ref_oem'] ?? ''));
+            $autoAutreElec   = isset($rawOldA['elec_on'])
+                ? ((string) $rawOldA['elec_on'] === '1')
+                : (!empty($autoAttrs['elec']) || ($autoAutreCfg !== null && !empty($autoAutreCfg['elec'])));
+            $autoAutreGar    = (string) ($rawOldA['acc_garantie'] ?? ($autoAttrs['garantie'] ?? ''));
+            $autoAutreSpecs = [];
+            if (isset($rawOldA['spec_label']) && is_array($rawOldA['spec_label'])) {
+                foreach ($rawOldA['spec_label'] as $i => $lb) { $autoAutreSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldA['spec_value'][$i] ?? '')]; }
+            } elseif (is_array($autoAttrs['specs'] ?? null)) {
+                foreach ($autoAttrs['specs'] as $lb => $val) { $autoAutreSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+            }
+            $autoAutreDis = $autoAutreActive ? '' : ' disabled';
         ?>
         <div data-auto
              data-rayons="<?= e((string) json_encode((array) config('auto.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-size-systems="<?= e((string) json_encode((array) config('auto.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(auto_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-autre-generic="<?= e(t('auto.autre_generic')) ?>"
              data-any="<?= e(t('auto.f.type_any')) ?>"
              data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
 
@@ -703,6 +726,107 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
             </details>
         </div><!-- /auto adaptatif -->
+
+        <!-- ===== Auto : NOUVEAU RAYON (adaptatif au slug) ===== -->
+        <div data-auto-autre-root<?= $autoAutreActive ? '' : ' hidden' ?>>
+            <p class="hint" data-auto-autre-hint><?= $autoAutreCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('auto.autre_generic')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="aua2-brand"><?= e(t('phone.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="aua2-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldA['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('auto.brand_ph')) ?>"<?= $autoAutreDis ?>>
+                </div>
+                <div>
+                    <label for="aua2-type"><?= e(t('cuisine.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="aua2-type" name="product_type" data-pv="type" maxlength="60" value="<?= e($autoAutreType) ?>" placeholder="<?= e(t('auto.autre_type_ph')) ?>"<?= $autoAutreDis ?>>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="aua2-condition"><?= e(t('cuisine.f.condition')) ?></label>
+                    <select id="aua2-condition" name="acc_condition"<?= $autoAutreDis ?>>
+                        <?php $aua2Cond = (string) ($rawOldA['acc_condition'] ?? ($autoAttrs['condition'] ?? 'Neuf')); foreach (auto_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $aua2Cond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+            <label style="margin-top:10px"><?= e(t('autre.rayon_suggest')) ?></label>
+            <div class="chips-row" data-auto-autre-rayon-chips>
+                <?php foreach (auto_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-auto-autre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+            </div>
+
+            <!-- compatibilité véhicule -->
+            <label class="check-row" style="margin-top:14px"><input type="checkbox" name="universel" value="1" data-auto-autre-universel <?= $autoAutreUniversel ? 'checked' : '' ?><?= $autoAutreDis ?>><span><strong><?= e(t('auto.f.universel')) ?></strong> — <?= e(t('auto.universel_hint')) ?></span></label>
+            <div data-auto-autre-compat-box<?= $autoAutreUniversel ? ' hidden' : '' ?> style="margin-top:10px">
+                <label for="aua2-compat"><?= e(t('auto.f.compat')) ?></label>
+                <textarea id="aua2-compat" name="compatibilite" rows="2" maxlength="300" placeholder="<?= e(t('auto.compat_ph')) ?>"<?= ($autoAutreActive && !$autoAutreUniversel) ? '' : ' disabled' ?>><?= e($autoAutreCompat === 'Universel' ? '' : $autoAutreCompat) ?></textarea>
+                <label for="aua2-oem" style="margin-top:10px"><?= e(t('auto.f.oem')) ?> <span class="muted">(<?= e(t('auto.oem_opt')) ?>)</span></label>
+                <input type="text" id="aua2-oem" name="ref_oem" class="mono" maxlength="60" value="<?= e($autoAutreOem) ?>" placeholder="<?= e(t('auto.oem_ph')) ?>"<?= ($autoAutreActive && !$autoAutreUniversel) ? '' : ' disabled' ?>>
+                <p class="hint">🔎 <?= e(t('auto.oem_note')) ?></p>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+                <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+                <div class="axis-suggest" data-auto-autre-spec-box>
+                    <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                    <div class="axis-suggest-chips" data-auto-autre-spec-chips>
+                        <?php foreach (($autoAutreCfg['specs'] ?? auto_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-auto-autre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="spec-rows" data-auto-autre-specs>
+                    <div class="spec-head"><span><?= e(t('autre.spec_label')) ?></span><span><?= e(t('autre.spec_value')) ?></span><span></span></div>
+                    <?php foreach ($autoAutreSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                        <div class="spec-row">
+                            <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>"<?= $autoAutreDis ?>>
+                            <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>"<?= $autoAutreDis ?>>
+                            <button type="button" class="variant-del" data-auto-autre-spec-del aria-label="✕">✕</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" data-auto-autre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+                <template id="auto-autre-spec-template">
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-auto-autre-spec-del aria-label="✕">✕</button>
+                    </div>
+                </template>
+
+                <label class="check-row" style="margin-top:14px"><input type="checkbox" name="elec_on" value="1" data-auto-autre-elec-toggle <?= $autoAutreElec ? 'checked' : '' ?><?= $autoAutreDis ?>><span><?= e(t('cuisine.autre_elec_q')) ?></span></label>
+                <div data-auto-autre-elec-box<?= $autoAutreElec ? '' : ' hidden' ?> style="margin-top:10px">
+                    <label for="aua2-garantie"><?= e(t('cuisine.f.warranty')) ?></label>
+                    <select id="aua2-garantie" name="acc_garantie"<?= ($autoAutreActive && $autoAutreElec) ? '' : ' disabled' ?>>
+                        <option value=""><?= e(t('cuisine.f.warranty_none')) ?></option>
+                        <?php foreach (['3 mois', '6 mois', '1 an', '2 ans'] as $g): ?><option value="<?= e($g) ?>" <?= $autoAutreGar === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="notice notice-warning" data-auto-autre-elec-warn<?= $autoAutreElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('cuisine.elec_warn')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="aua2-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="aua2-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldA['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="AUTO-001"<?= $autoAutreDis ?>>
+                    </div>
+                    <div>
+                        <label for="aua2-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="aua2-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldA['variant_axis'] ?? ($autoAttrs['variant_axis'] ?? ($autoAutreCfg['axis'] ?? '')))) ?>" placeholder="<?= e(t('auto.axis_ph')) ?>" data-auto-autre-axis<?= $autoAutreDis ?>>
+                    </div>
+                </div>
+                <div class="warn-box">ℹ️ <?= e((string) config('auto.autre.warn_text', '')) ?></div>
+
+                <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-auto-autre-atouts>
+                    <?php $aua2All = array_values(array_unique(array_merge(auto_autre('atout_suggest'), $autoAtoutsSel)));
+                    foreach ($aua2All as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $autoAtoutsSel, true) ? 'checked' : '' ?><?= $autoAutreDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="autre-atout-add">
+                    <input type="text" id="aua2-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-auto-autre-atout-input>
+                    <button type="button" class="btn btn-ghost btn-sm" data-auto-autre-atout-add><?= e(t('autre.atout_add')) ?></button>
+                </div>
+            </details>
+        </div><!-- /auto nouveau rayon -->
         <?php endif; ?>
 
         <?php if ($vertical === 'phone'): ?>

@@ -1244,6 +1244,21 @@ function auto_tyre_dimension(array $attrs): string
     return '';
 }
 
+/** Config « nouveau rayon » Auto (rayon_suggest, generic_specs, atout_suggest, warn_text, R). */
+function auto_autre(?string $key = null): array
+{
+    $cfg = (array) config('auto.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Config adaptative d'un rayon Auto « autre » par son libellé (slug) — ou null si inconnu. */
+function auto_autre_cfg(?string $rayon): ?array
+{
+    $r = (auto_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
 
 
 /** @return list<string> */

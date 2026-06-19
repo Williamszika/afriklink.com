@@ -276,4 +276,31 @@ return [
         'Lot'        => [['label' => 'Conditionnement', 'list' => ['À l’unité', 'Lot de 2', 'Lot de 4']], ['label' => 'Dimensions courantes', 'list' => ['195/65 R15', '205/55 R16', '215/60 R16', '225/45 R17', '235/45 R18']]],
         'Dimension'  => [['label' => 'Conditionnement', 'list' => ['À l’unité', 'Lot de 2', 'Lot de 4']]],
     ],
+
+    /**
+     * « Nouveau rayon » Auto : le vendeur crée un rayon hors des 5 répertoriés.
+     * Le formulaire s'adapte au SLUG du nom : si connu (R), il suggère des
+     * caractéristiques, la compatibilité par défaut (uni), le mode électrique et
+     * l'axe ; sinon, modèle générique + specs libres. Base auto conservée :
+     * compatibilité véhicule (universel / véhicules + réf OE/OEM). « & » devient
+     * un séparateur dans le slug (pas « et »).
+     */
+    'autre' => [
+        'rayon_suggest' => ['Jantes', 'Outils & équipement garage', 'Moto & 2 roues', 'Tuning & personnalisation', 'Remorque & attelage', 'GPS & électronique', 'Sécurité & caméras', 'Batteries & démarrage', 'Carrosserie & peinture', 'Utilitaire & transport'],
+        'generic_specs' => ['Type', 'Matière', 'Position', 'Dimensions', 'Alimentation', 'Norme', 'Garantie'],
+        'atout_suggest' => ['Origine constructeur (OE)', 'Équipementier', 'Universel', 'Garantie incluse', 'Neuf', 'Montage atelier conseillé', 'Marque premium', 'Forte rotation'],
+        'warn_text'     => 'Pièces et accessoires auto : précise la compatibilité véhicule (référence OE/OEM) et, pour un article électrique, le marquage CE et la garantie.',
+        'R' => [
+            'jantes'                   => ['specs' => ['Diamètre (pouces)', 'Entraxe / PCD', 'Déport (ET)', 'Alésage', 'Matière'], 'uni' => false, 'color' => true, 'elec' => false, 'axis' => 'Dimension'],
+            'outils-equipement-garage' => ['specs' => ['Type', 'Alimentation', 'Dimensions', 'Garantie'], 'uni' => true, 'color' => false, 'elec' => true, 'axis' => 'Modèle'],
+            'moto-2-roues'             => ['specs' => ['Type', 'Cylindrée compatible', 'Position'], 'uni' => false, 'color' => false, 'elec' => false, 'axis' => 'Modèle'],
+            'tuning-personnalisation'  => ['specs' => ['Type', 'Matière', 'Position'], 'uni' => false, 'color' => true, 'elec' => false, 'axis' => 'Modèle'],
+            'remorque-attelage'        => ['specs' => ['Type', 'Charge max', 'Norme'], 'uni' => false, 'color' => false, 'elec' => false, 'axis' => 'Modèle'],
+            'gps-electronique'         => ['specs' => ['Type', 'Alimentation', 'Connectivité', 'Garantie'], 'uni' => true, 'color' => false, 'elec' => true, 'axis' => 'Modèle'],
+            'securite-cameras'         => ['specs' => ['Type', 'Alimentation', 'Connectivité', 'Garantie'], 'uni' => true, 'color' => false, 'elec' => true, 'axis' => 'Modèle'],
+            'batteries-demarrage'      => ['specs' => ['Type', 'Capacité (Ah)', 'Technologie', 'Garantie'], 'uni' => false, 'color' => false, 'elec' => true, 'axis' => 'Référence'],
+            'carrosserie-peinture'     => ['specs' => ['Type', 'Matière', 'Position', 'Teinte'], 'uni' => false, 'color' => true, 'elec' => false, 'axis' => 'Position'],
+            'utilitaire-transport'     => ['specs' => ['Type', 'Charge max', 'Dimensions'], 'uni' => true, 'color' => false, 'elec' => false, 'axis' => 'Modèle'],
+        ],
+    ],
 ];

@@ -1757,6 +1757,8 @@ return [
     'auto.f.monte' => 'OE fitment / vehicles',
     'auto.monte_ph' => 'e.g. Golf VII, Clio IV, BMW OE fitment…',
     'auto.monte_hint' => 'The size is what matters; this field just helps the buyer.',
+    'auto.autre_generic' => 'Custom auto aisle: describe the product freely (characteristics, compatibility, variants).',
+    'auto.autre_type_ph' => 'e.g. Alloy wheel, Jack, Helmet…',
     'auto.universel_tag' => 'Universal',
     'auto.compat_label' => 'Compatibility',
     'auto.brand_ph' => 'e.g. Bosch, unbranded…',

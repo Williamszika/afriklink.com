@@ -186,6 +186,20 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['ref_oem'])) { $apTags[] = 'OEM ' . (string) $aAttr['ref_oem']; }
                     if (!empty($aAttr['universel'])) { $apTags[] = t('auto.universel_tag'); }
                     elseif (!empty($aAttr['compatibilite'])) { $apTags[] = t('auto.compat_label') . ' : ' . (string) $aAttr['compatibilite']; }
+                } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && (string) ($product['collection'] ?? '') !== '') {
+                    // Nouveau rayon Auto (hors des rayons répertoriés) : caractéristiques libres (specs) + état + compatibilité.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['specs']) && is_array($aAttr['specs'])) {
+                        foreach ($aAttr['specs'] as $sv) { if (is_scalar($sv) && trim((string) $sv) !== '') { $apTags[] = (string) $sv; } }
+                    }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['garantie'])) { $apTags[] = t('cuisine.f.warranty') . ' ' . (string) $aAttr['garantie']; }
+                    if (!empty($aAttr['ref_oem'])) { $apTags[] = 'OEM ' . (string) $aAttr['ref_oem']; }
+                    if (!empty($aAttr['universel'])) { $apTags[] = t('auto.universel_tag'); }
+                    elseif (!empty($aAttr['compatibilite'])) { $apTags[] = t('auto.compat_label') . ' : ' . (string) $aAttr['compatibilite']; }
                 } elseif ($pVertical === 'phone') {
                     // Fiche téléphone (legacy) OU rayon électronique « autre » : specs libres dans attributes.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

@@ -4635,9 +4635,26 @@ document.addEventListener('click', function (ev) {
     var dimVal       = document.querySelector('[data-auto-dim-val]');
     var occasionNote = document.querySelector('[data-auto-occasion-note]');
     var condSel      = document.querySelector('[data-auto-condition]');
-    if (!root) { return; }
+    // « Nouveau rayon » Auto : specs libres adaptées au slug du rayon saisi.
+    var AUTRE = parse('data-autre');
+    var collOther     = document.querySelector('[data-collection-other]');
+    var autreRoot     = document.querySelector('[data-auto-autre-root]');
+    var autreHint     = document.querySelector('[data-auto-autre-hint]');
+    var autreSpecsBox = document.querySelector('[data-auto-autre-specs]');
+    var autreSpecChips= document.querySelector('[data-auto-autre-spec-chips]');
+    var autreUniChk   = document.querySelector('[data-auto-autre-universel]');
+    var autreCompatBox= document.querySelector('[data-auto-autre-compat-box]');
+    var autreElecTog  = document.querySelector('[data-auto-autre-elec-toggle]');
+    var autreElecBox  = document.querySelector('[data-auto-autre-elec-box]');
+    var autreElecWarn = document.querySelector('[data-auto-autre-elec-warn]');
+    var autreAxisInp  = document.querySelector('[data-auto-autre-axis]');
+    if (!root && !autreRoot) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
+    function autreActive() { return !!(coll && coll.value !== '' && !RAYONS[coll.value]); }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreRayonName() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? String(coll.value || '').trim() : ''); }
+    function autreCfg() { return (AUTRE.R || {})[autreSlug(autreRayonName())] || null; }
     function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
     function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
 
@@ -4762,20 +4779,90 @@ document.addEventListener('click', function (ev) {
         var occ = condSel && condSel.value === 'Occasion';
         occasionNote.hidden = !(cfg().dimension && occ);
     }
-    function setEnabled() {
-        var on = active();
-        root.hidden = !on;
-        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
-        if (on) {
-            var isPneus = !!cfg().dimension;
-            // Mode pneu ↔ mode compatibilité : un seul bloc affiché/actif à la fois.
-            if (compatWrap) { compatWrap.hidden = isPneus; if (isPneus) { compatWrap.querySelectorAll('input, textarea').forEach(function (f) { f.disabled = true; }); } }
-            if (pneusWrap)  { pneusWrap.hidden = !isPneus; if (!isPneus) { pneusWrap.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; }); } }
-            if (!isPneus) { universelToggle(); }
-            updateDim(); occasionToggle();
+    // ----- « Nouveau rayon » Auto : adaptation au slug, specs libres, compat + élec -----
+    function autreUniverselToggle() {
+        var uni = !!(autreUniChk && autreUniChk.checked);
+        if (autreCompatBox) {
+            autreCompatBox.hidden = uni;
+            autreCompatBox.querySelectorAll('input, textarea').forEach(function (f) { f.disabled = uni || !autreActive(); });
         }
     }
-    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
+    function autreElecToggle() {
+        var on = !!(autreElecTog && autreElecTog.checked);
+        if (autreElecBox)  { autreElecBox.hidden = !on; autreElecBox.querySelectorAll('select, input').forEach(function (f) { f.disabled = !on || !autreActive(); }); }
+        if (autreElecWarn) { autreElecWarn.hidden = !on; }
+    }
+    function autreBuildSpecChips() {
+        if (!autreSpecChips) { return; }
+        var c = autreCfg();
+        var list = c ? (c.specs || []) : (AUTRE.generic_specs || []);
+        autreSpecChips.innerHTML = '';
+        list.forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-auto-autre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            autreSpecChips.appendChild(b);
+        });
+    }
+    function addAutreSpec(label) {
+        var tpl = document.getElementById('auto-autre-spec-template');
+        if (!tpl || !tpl.content || !autreSpecsBox) { return; }
+        autreSpecsBox.appendChild(tpl.content.cloneNode(true));
+        var row = autreSpecsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+    }
+    function pushAutreAtout() {
+        var inp = document.querySelector('[data-auto-autre-atout-input]');
+        var box = document.querySelector('[data-auto-autre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = '';
+    }
+    function adaptAutre() {
+        var c = autreCfg();
+        if (autreHint) {
+            var rn = autreRayonName();
+            autreHint.textContent = c ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', rn))
+                : (cfgEl.getAttribute('data-autre-generic') || autreHint.textContent);
+        }
+        autreBuildSpecChips();
+        if (c && autreAxisInp && !autreAxisInp.value.trim()) { autreAxisInp.value = c.axis || ''; }
+        // Défauts depuis le rayon connu, sauf si le vendeur a déjà réglé l'interrupteur.
+        if (c && autreUniChk && !autreUniChk.dataset.touched) { autreUniChk.checked = !!c.uni; autreUniverselToggle(); }
+        if (c && autreElecTog && !autreElecTog.dataset.touched) { autreElecTog.checked = !!c.elec; autreElecToggle(); }
+    }
+    function setEnabled() {
+        var known = active(), isAutre = autreActive();
+        if (root) {
+            root.hidden = !known;
+            root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !known; });
+            if (known) {
+                var isPneus = !!cfg().dimension;
+                // Mode pneu ↔ mode compatibilité : un seul bloc affiché/actif à la fois.
+                if (compatWrap) { compatWrap.hidden = isPneus; if (isPneus) { compatWrap.querySelectorAll('input, textarea').forEach(function (f) { f.disabled = true; }); } }
+                if (pneusWrap)  { pneusWrap.hidden = !isPneus; if (!isPneus) { pneusWrap.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; }); } }
+                if (!isPneus) { universelToggle(); }
+                updateDim(); occasionToggle();
+            }
+        }
+        if (autreRoot) {
+            autreRoot.hidden = !isAutre;
+            autreRoot.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !isAutre; });
+            if (isAutre) { autreUniverselToggle(); autreElecToggle(); }
+        }
+    }
+    function onColl() {
+        if (active()) { rebuildRayon(); }
+        else if (autreActive()) { adaptAutre(); }
+        setEnabled();
+    }
 
     if (coll)         { coll.addEventListener('change', onColl); }
     if (typeSel)      { typeSel.addEventListener('change', function () {
@@ -4789,11 +4876,31 @@ document.addEventListener('click', function (ev) {
     if (universelChk) { universelChk.addEventListener('change', function () { this.dataset.touched = '1'; universelToggle(); }); }
     if (attrsBox)     { attrsBox.addEventListener('change', updateDim); }
     if (condSel)      { condSel.addEventListener('change', occasionToggle); }
+    if (collOther)    { collOther.addEventListener('input', function () { if (autreActive()) { adaptAutre(); } }); }
+    if (autreUniChk)  { autreUniChk.addEventListener('change', function () { this.dataset.touched = '1'; autreUniverselToggle(); }); }
+    if (autreElecTog) { autreElecTog.addEventListener('change', function () { this.dataset.touched = '1'; autreElecToggle(); }); }
+    var autreAtoutInp = document.querySelector('[data-auto-autre-atout-input]');
+    if (autreAtoutInp) { autreAtoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAutreAtout(); } }); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-auto-fill]');
-        if (fill) { ev.preventDefault(); try { autoFill(JSON.parse(fill.getAttribute('data-auto-fill') || '[]')); } catch (e) {} }
+        if (fill) { ev.preventDefault(); try { autoFill(JSON.parse(fill.getAttribute('data-auto-fill') || '[]')); } catch (e) {} return; }
+        if (ev.target.closest('[data-auto-autre-spec-add]')) { ev.preventDefault(); addAutreSpec(''); return; }
+        if (ev.target.closest('[data-auto-autre-atout-add]')) { ev.preventDefault(); pushAutreAtout(); return; }
+        var sp = ev.target.closest('[data-auto-autre-spec]');
+        if (sp) { ev.preventDefault(); addAutreSpec(sp.getAttribute('data-val')); return; }
+        var ray = ev.target.closest('[data-auto-autre-rayon]');
+        if (ray) {
+            ev.preventDefault();
+            var rn = ray.getAttribute('data-auto-autre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-auto-autre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } }
     });
     if (active()) { onType(); }
+    else if (autreActive()) { adaptAutre(); }
     setEnabled();
 })();

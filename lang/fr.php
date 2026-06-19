@@ -1757,6 +1757,8 @@ return [
     'auto.f.monte' => 'Monte d’origine / véhicules',
     'auto.monte_ph' => 'ex. Golf VII, Clio IV, monte d’origine BMW…',
     'auto.monte_hint' => 'La dimension fait foi ; ce champ aide juste l’acheteur à se repérer.',
+    'auto.autre_generic' => 'Rayon auto personnalisé : décris librement le produit (caractéristiques, compatibilité, déclinaisons).',
+    'auto.autre_type_ph' => 'ex. Jante alu, Cric, Casque…',
     'auto.universel_tag' => 'Universel',
     'auto.compat_label' => 'Compatibilité',
     'auto.brand_ph' => 'ex. Bosch, sans marque…',
