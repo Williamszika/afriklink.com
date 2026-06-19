@@ -1946,6 +1946,7 @@ function product_spec_rows(array $product): array
     $skip = ['variant_axis', 'variant_axis2', 'sale_mode', 'unit', 'hex', 'nuance', 'notes', 'capteurs'];
 
     // 1) Champs « colonnes » clés du produit.
+    $add('Rayon', (string) ($product['collection'] ?? ''));
     $add('Marque', (string) ($product['brand'] ?? ''));
     $add('Modèle', (string) ($product['model'] ?? ''));
     $add('Gamme', (string) ($product['line'] ?? ''));

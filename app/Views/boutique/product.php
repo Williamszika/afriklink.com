@@ -71,7 +71,7 @@ $dotHtml = static function (array $hexes): string {
 };
 ?>
 <section class="listing-page">
-    <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
+    <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a><?php if (!empty($product['collection'])): ?> <span class="crumb-sep" aria-hidden="true">›</span> <span class="crumb-rayon"><?= e((string) $product['collection']) ?></span><?php endif; ?></p>
 
     <div class="listing-layout">
         <?php $fulls = array_map(static fn ($ph) => CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1400, 1050), $photos); ?>
@@ -124,7 +124,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     if (!empty($aAttr['compatibilite'])) { $apTags[] = (string) $aAttr['compatibilite']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['compatibilite', 'condition', 'garantie', 'variant_axis', 'capteurs'], true)) { continue; }
+                        if (in_array($ak, ['compatibilite', 'condition', 'garantie', 'variant_axis', 'variant_axis2','capteurs'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['capteurs']) && is_array($aAttr['capteurs'])) {
@@ -139,7 +139,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'garantie', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'garantie', 'variant_axis', 'variant_axis2'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
@@ -162,7 +162,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'variant_axis', 'alcoolise'], true)) { continue; }
+                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'variant_axis', 'variant_axis2','alcoolise'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['alcoolise'])) { $apTags[] = '🔞 18+'; }
@@ -191,7 +191,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     if (!empty($aAttr['age_min'])) { $apTags[] = '👶 ' . (string) $aAttr['age_min']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'regime', 'variant_axis', 'age_min', 'formula', 'formula_1er_age', 'complement'], true)) { continue; }
+                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'regime', 'variant_axis', 'variant_axis2','age_min', 'formula', 'formula_1er_age', 'complement'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['conservation']) && $aAttr['conservation'] !== 'Ambiante') { $apTags[] = (string) $aAttr['conservation']; }
@@ -209,7 +209,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     if (!empty($aAttr['age_min'])) { $apTags[] = '👶 ' . (string) $aAttr['age_min']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'age_min', 'ce', 'en71', 'small_parts', 'avertissement_3ans', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'age_min', 'ce', 'en71', 'small_parts', 'avertissement_3ans', 'variant_axis', 'variant_axis2'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
@@ -224,7 +224,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($aAttr['groupe'])) { $apTags[] = '👶 ' . (string) $aAttr['groupe']; }
                     elseif (!empty($aAttr['age'])) { $apTags[] = '👶 ' . (string) $aAttr['age']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'ce', 'elec', 'variant_axis', 'groupe', 'age'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'ce', 'elec', 'variant_axis', 'variant_axis2','groupe', 'age'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
@@ -239,7 +239,7 @@ $dotHtml = static function (array $hexes): string {
                     elseif (!empty($aAttr['spf'])) { $apTags[] = (string) $aAttr['spf']; }
                     elseif (!empty($aAttr['age'])) { $apTags[] = '👶 ' . (string) $aAttr['age']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'labels', 'peremption', 'cosmetique', 'medical', 'complement', 'variant_axis', 'taille_couche', 'spf', 'age'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'labels', 'peremption', 'cosmetique', 'medical', 'complement', 'variant_axis', 'variant_axis2','taille_couche', 'spf', 'age'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['labels']) && is_array($aAttr['labels'])) {
@@ -254,7 +254,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($aAttr['taille'])) { $apTags[] = '👶 ' . (string) $aAttr['taille']; }
                     if (!empty($aAttr['tog'])) { $apTags[] = (string) $aAttr['tog']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'securite_enfant', 'variant_axis', 'taille', 'tog'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'securite_enfant', 'variant_axis', 'variant_axis2','taille', 'tog'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && !str_starts_with((string) $aAttr['condition'], 'Neuf')) { $apTags[] = (string) $aAttr['condition']; }
@@ -277,7 +277,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'variant_axis', 'elec', 'par_paire', 'personnalisation', 'ce'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'variant_axis', 'variant_axis2','elec', 'par_paire', 'personnalisation', 'ce'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['par_paire'])) { $apTags[] = t('sport.f.par_paire'); }
@@ -303,7 +303,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     // Pneus : la dimension composée résume largeur/série/diamètre/charge/vitesse.
                     if (!empty($aAttr['dimension'])) { $apTags[] = (string) $aAttr['dimension']; }
-                    $autoExcl = ['condition', 'universel', 'compatibilite', 'ref_oem', 'variant_axis', 'dimension', 'largeur', 'serie', 'diametre', 'charge', 'vitesse', 'dot', 'profondeur_mm', 'monte'];
+                    $autoExcl = ['condition', 'universel', 'compatibilite', 'ref_oem', 'variant_axis', 'variant_axis2','dimension', 'largeur', 'serie', 'diametre', 'charge', 'vitesse', 'dot', 'profondeur_mm', 'monte'];
                     foreach ($aAttr as $ak => $av) {
                         if (in_array($ak, $autoExcl, true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
@@ -333,7 +333,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'fait_main', 'piece_unique', 'histoire', 'elec', 'garantie', 'contact_alimentaire', 'sale_mode', 'unit', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'fait_main', 'piece_unique', 'histoire', 'elec', 'garantie', 'contact_alimentaire', 'sale_mode', 'unit', 'variant_axis', 'variant_axis2'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (($aAttr['sale_mode'] ?? '') === 'metre') { $apTags[] = t('arti.mode_tag_metre'); }
@@ -436,7 +436,7 @@ $dotHtml = static function (array $hexes): string {
                     if (!empty($aAttr['genre'])) { $apTags[] = (string) $aAttr['genre']; }
                     if (!empty($aAttr['couleur'])) { $apTags[] = (string) $aAttr['couleur']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis', 'public'], true)) { continue; }
+                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis', 'variant_axis2','public'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && !in_array($aAttr['condition'], ['Neuf', 'Neuf avec étiquette'], true)) { $apTags[] = (string) $aAttr['condition']; }
@@ -451,7 +451,7 @@ $dotHtml = static function (array $hexes): string {
                     elseif (!empty($product['audience'])) { $apTags[] = t('apparel.aud.' . (string) $product['audience']); }
                     if (!empty($aAttr['couleur'])) { $apTags[] = (string) $aAttr['couleur']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['genre', 'couleur', 'condition', 'variant_axis', 'variant_axis2'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if ($aAttr === [] && !empty($product['garment_category'])) { $apTags[] = t('apparel.cat.' . (string) $product['garment_category']); }

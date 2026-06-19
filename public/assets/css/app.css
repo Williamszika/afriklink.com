@@ -1305,6 +1305,8 @@ input[type=color] { width:54px; height:38px; padding:3px; border:1.5px solid var
 .spec-row dt{margin:0;font-weight:600;color:var(--muted)}
 .spec-row dd{margin:0;font-weight:600}
 @media(max-width:520px){.spec-row{grid-template-columns:1fr;gap:1px}.spec-row dd{font-weight:700}}
+.crumb-sep{opacity:.5;margin:0 3px}
+.crumb-rayon{font-weight:600;color:var(--afk-foret,#1c3d32)}
 /* — Invitation à donner un avis après livraison — */
 .review-prompt{margin:14px 0;padding:16px;border:1.5px solid var(--afk-or,#d4a017);background:linear-gradient(180deg,#fffdf5,#fff);border-radius:14px;text-align:center}
 .review-prompt-title{margin:0 0 2px;font-weight:800;font-size:1.05rem}
