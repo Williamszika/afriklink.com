@@ -2523,6 +2523,17 @@ document.addEventListener('click', function (ev) {
     var sBox   = document.querySelector('[data-axis-suggest]');
     var sChips = document.querySelector('[data-axis-suggest-chips]');
     var sLabel = document.querySelector('[data-axis-suggest-label]');
+    // 2ᵉ axe nommable (couleur par défaut) : rend possible « double couleur » / « double capacité ».
+    var head2 = rows.querySelector('[data-axis2-label]');
+    var axis2Inp = document.querySelector('[data-variant-axis2]');
+    if (axis2Inp && head2) {
+        var bindAxis2 = function () {
+            var v = (axis2Inp.value || '').trim();
+            head2.textContent = v || head2.getAttribute('data-default') || head2.textContent;
+        };
+        axis2Inp.addEventListener('input', bindAxis2);
+        bindAxis2();
+    }
     var axes = {}, sizeMap = {};
     try { axes = JSON.parse(rows.getAttribute('data-axes') || '{}'); } catch (e) { axes = {}; }
     try { sizeMap = JSON.parse(rows.getAttribute('data-size-map') || '{}'); } catch (e) { sizeMap = {}; }

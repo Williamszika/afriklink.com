@@ -2103,6 +2103,11 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
 .variant-axis{margin:0 0 12px}
 .variant-pick-val{font-weight:500;color:var(--muted);margin-left:2px}
 .variant-unavailable{color:var(--danger);font-size:.85rem;font-weight:600;margin:6px 0 0}
+/* Pastille bicolore (double couleur) : deux teintes côte à côte */
+.chip-dot--split{border-color:rgba(0,0,0,.22)}
+/* Champ « nom du 2ᵉ axe » (éditeur de déclinaisons) */
+.axis2-field{display:block;margin:0 0 12px;font-size:.82rem;font-weight:600;color:var(--muted)}
+.axis2-field input{display:block;margin-top:5px;max-width:260px}
 .listing-apparel{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:.85rem;font-weight:600;margin:2px 0 0}
 /* Déclinaison (taille/couleur/longueur) dans le détail de commande & le reçu */
 .order-variant{display:inline-block;background:var(--brand-50);color:var(--brand);font-size:.8em;font-weight:700;padding:1px 8px;border-radius:6px;margin-left:4px;white-space:nowrap;vertical-align:middle}

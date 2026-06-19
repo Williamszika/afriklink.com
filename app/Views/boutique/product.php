@@ -59,6 +59,16 @@ foreach ($realVariants as $rv) {
         'base'  => $vBase,
     ];
 }
+// Rendu d'une pastille couleur : une teinte, ou deux côte à côte pour une valeur
+// bicolore (« Rouge/Noir »). Rien n'est affiché pour une capacité (« 256 Go »),
+// ce qui sépare visuellement un axe couleur d'un axe capacité.
+$dotHtml = static function (array $hexes): string {
+    if ($hexes === []) { return ''; }
+    if (count($hexes) >= 2) {
+        return '<span class="chip-dot chip-dot--split" style="background:linear-gradient(135deg,' . e($hexes[0]) . ' 0 50%,' . e($hexes[1]) . ' 50% 100%)"></span>';
+    }
+    return '<span class="chip-dot" style="background:' . e($hexes[0]) . '"></span>';
+};
 ?>
 <section class="listing-page">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a></p>
@@ -100,7 +110,11 @@ foreach ($realVariants as $rv) {
                     ? $pAxis['label']
                     : ($pVertical === 'phone' ? t('phone.f.storage') : t('variant.size'));
                 $apTags = [];
+                // Libellé du 2ᵉ axe : « Couleur » par défaut, ou le nom choisi par le
+                // vendeur (variant_axis2) — ex. « Capacité » pour une double capacité.
                 $pColorLabel = t('variant.color');
+                $pAxis2Attr = json_decode((string) ($product['attributes'] ?? ''), true);
+                if (is_array($pAxis2Attr) && !empty($pAxis2Attr['variant_axis2'])) { $pColorLabel = (string) $pAxis2Attr['variant_axis2']; }
                 $pOngColors = [];
                 if ($pVertical === 'phone' && elec_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Électronique adaptatif : type-driven (specs dans attributes) + axe de déclinaison libre.
@@ -480,8 +494,12 @@ foreach ($realVariants as $rv) {
                             <div class="variant-axis">
                                 <p class="variant-pick-label"><?= e($pSizeLabel) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
                                 <div class="variant-chips">
-                                    <?php foreach ($vSizes as $sz): $hx = $pVertical === 'beauty' ? ($vSizeHex[$sz] ?? beauty_hex_for($sz)) : null; $nz = $vSizeNuance[$sz] ?? ''; ?>
-                                        <label class="variant-chip<?= $hx ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?php if ($hx): ?><span class="chip-dot" style="background:<?= e($hx) ?>"></span><?php endif; ?><?= e($sz) ?><?php if ($nz !== ''): ?> <small class="chip-nuance"><?= e($nz) ?></small><?php endif; ?></span></label>
+                                    <?php foreach ($vSizes as $sz):
+                                        // Teinte stockée → teinte beauté (beauté seulement) → couleur déduite du nom.
+                                        $hxs = (isset($vSizeHex[$sz]) && $vSizeHex[$sz] !== '') ? [$vSizeHex[$sz]]
+                                             : ($pVertical === 'beauty' && ($bh = beauty_hex_for($sz)) !== null ? [$bh] : variant_color_hex($sz));
+                                        $nz = $vSizeNuance[$sz] ?? ''; ?>
+                                        <label class="variant-chip<?= $hxs !== [] ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_size" value="<?= e($sz) ?>"><span><?= $dotHtml($hxs) ?><?= e($sz) ?><?php if ($nz !== ''): ?> <small class="chip-nuance"><?= e($nz) ?></small><?php endif; ?></span></label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -490,8 +508,10 @@ foreach ($realVariants as $rv) {
                             <div class="variant-axis">
                                 <p class="variant-pick-label"><?= e($pColorLabel) ?> <span class="variant-pick-val" data-axis-val="color"></span></p>
                                 <div class="variant-chips">
-                                    <?php foreach ($vColors as $co): $chx = $vColorHex[$co] ?? ($pVertical === 'beauty' ? perruque_couleur_hex()[$co] ?? null : null); ?>
-                                        <label class="variant-chip<?= $chx ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_color" value="<?= e($co) ?>"><span><?php if ($chx): ?><span class="chip-dot" style="background:<?= e($chx) ?>"></span><?php endif; ?><?= e($co) ?></span></label>
+                                    <?php foreach ($vColors as $co):
+                                        $hxs = (isset($vColorHex[$co]) && $vColorHex[$co] !== '') ? [$vColorHex[$co]]
+                                             : ($pVertical === 'beauty' && ($ph = perruque_couleur_hex()[$co] ?? '') !== '' ? [$ph] : variant_color_hex($co)); ?>
+                                        <label class="variant-chip<?= $hxs !== [] ? ' variant-chip--tone' : '' ?>"><input type="radio" name="pick_color" value="<?= e($co) ?>"><span><?= $dotHtml($hxs) ?><?= e($co) ?></span></label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>

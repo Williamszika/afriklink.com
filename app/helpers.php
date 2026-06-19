@@ -1825,6 +1825,75 @@ function beauty_hex_for(?string $name): ?string
     return beauty_hex_map()[trim((string) $name)] ?? null;
 }
 
+/**
+ * Pastille(s) couleur pour une valeur de déclinaison libre (fiche acheteur) :
+ * mappe un nom de couleur courant (FR/EN) vers son hex. Gère les valeurs
+ * « bicolores » (« Rouge/Noir », « Bleu & Blanc », « Vert et Or ») en
+ * renvoyant jusqu'à deux teintes — d'où la prise en charge des produits à
+ * doubles couleurs. Renvoie [] si rien n'est reconnu : une valeur de capacité
+ * (« 256 Go », « 1 To ») ne reçoit donc aucune pastille, ce qui distingue
+ * naturellement un axe « couleur » d'un axe « capacité ».
+ *
+ * @return list<string> 0, 1 ou 2 codes hex (#RRGGBB)
+ */
+function variant_color_hex(?string $value): array
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return [];
+    }
+    static $map = null;
+    if ($map === null) {
+        $map = [
+            'noir' => '#1a1a1a', 'black' => '#1a1a1a',
+            'blanc' => '#f5f5f0', 'white' => '#f5f5f0', 'ivoire' => '#fffdf0', 'ivory' => '#fffdf0',
+            'crème' => '#fdf6e3', 'creme' => '#fdf6e3', 'cream' => '#fdf6e3', 'écru' => '#f3ead3', 'ecru' => '#f3ead3',
+            'gris' => '#9ca3af', 'gray' => '#9ca3af', 'grey' => '#9ca3af', 'anthracite' => '#383838',
+            'argent' => '#c0c0c0', 'silver' => '#c0c0c0',
+            'rouge' => '#dc2626', 'red' => '#dc2626', 'bordeaux' => '#7f1d1d', 'burgundy' => '#7f1d1d',
+            'corail' => '#ff6f61', 'coral' => '#ff6f61', 'saumon' => '#fa8072', 'salmon' => '#fa8072',
+            'bleu' => '#2563eb', 'blue' => '#2563eb', 'marine' => '#1e3a5f', 'navy' => '#1e3a5f',
+            'ciel' => '#7dd3fc', 'turquoise' => '#06b6d4', 'cyan' => '#06b6d4',
+            'vert' => '#16a34a', 'green' => '#16a34a', 'kaki' => '#78866b', 'khaki' => '#78866b',
+            'olive' => '#808000', 'menthe' => '#98d8c4', 'mint' => '#98d8c4',
+            'jaune' => '#facc15', 'yellow' => '#facc15', 'moutarde' => '#d4a017', 'mustard' => '#d4a017',
+            'or' => '#d4af37', 'gold' => '#d4af37', 'doré' => '#d4af37', 'dore' => '#d4af37',
+            'orange' => '#ea580c',
+            'rose' => '#ec4899', 'pink' => '#ec4899', 'fuchsia' => '#d946ef',
+            'violet' => '#7c3aed', 'purple' => '#7c3aed', 'mauve' => '#b57edc', 'lavande' => '#b57edc', 'lavender' => '#b57edc',
+            'prune' => '#701f53', 'plum' => '#701f53',
+            'marron' => '#92400e', 'brun' => '#92400e', 'brown' => '#92400e', 'chocolat' => '#5c4033', 'chocolate' => '#5c4033',
+            'camel' => '#c19a6b', 'taupe' => '#8b8589', 'beige' => '#e7d8b8', 'sable' => '#e0cda9', 'sand' => '#e0cda9',
+            'cognac' => '#9a463d', 'bronze' => '#cd7f32', 'cuivre' => '#b87333', 'copper' => '#b87333',
+        ];
+    }
+    $resolve = static function (string $s) use ($map): ?string {
+        $k = mb_strtolower(trim($s));
+        if ($k === '') {
+            return null;
+        }
+        if (isset($map[$k])) {
+            return $map[$k];
+        }
+        // « Bleu clair », « Vert foncé »… → on retombe sur la teinte de base (1er mot).
+        $first = preg_split('/\s+/', $k)[0] ?? '';
+        return ($first !== '' && isset($map[$first])) ? $map[$first] : null;
+    };
+    // Valeur bicolore : « A/B », « A & B », « A et B », « A · B ».
+    $parts = preg_split('#\s*(?:/|&|·|\bet\b)\s*#ui', $value, 3) ?: [$value];
+    $out = [];
+    foreach ($parts as $p) {
+        $h = $resolve((string) $p);
+        if ($h !== null && !in_array($h, $out, true)) {
+            $out[] = $h;
+        }
+        if (count($out) >= 2) {
+            break;
+        }
+    }
+    return $out;
+}
+
 /** Valide une valeur beauté contre une liste blanche ('' = non précisé). */
 function beauty_clean(?string $v, array $allowed): string
 {

@@ -3778,9 +3778,22 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /accessoires decl -->
         <?php endif; ?>
         <div<?= $isPhone ? $eSec('phone') : ($isApparel ? $aSec('basic') : '') ?>>
+        <?php
+        // Libellé du 2ᵉ axe (« Couleur » par défaut). Le renommer permet de gérer les
+        // produits à doubles couleurs (2ᵉ couleur) ou doubles capacités (ex. « Capacité »).
+        $vAxis2 = (string) ($rawOldSel['variant_axis2'] ?? '');
+        if ($vAxis2 === '' && !empty($product['attributes'])) {
+            $a2 = json_decode((string) $product['attributes'], true);
+            if (is_array($a2) && !empty($a2['variant_axis2'])) { $vAxis2 = (string) $a2['variant_axis2']; }
+        }
+        ?>
         <details class="variants-box" <?= $realVariants !== [] ? 'open' : '' ?>>
             <summary>🎚️ <?= e($varSection) ?></summary>
             <p class="hint"><?= e($varHint) ?></p>
+            <label class="axis2-field" for="variant-axis2"><?= e(t('variant.axis2_label')) ?>
+                <input type="text" id="variant-axis2" name="variant_axis2" maxlength="24" value="<?= e($vAxis2) ?>" placeholder="<?= e(t('variant.axis2_ph')) ?>" list="axis2-suggest" data-variant-axis2>
+            </label>
+            <datalist id="axis2-suggest"><?php foreach (['Couleur', 'Capacité', 'Contenance', 'Stockage', 'Matière', 'Parfum', 'Motif'] as $a2o): ?><option value="<?= e($a2o) ?>"></option><?php endforeach; ?></datalist>
             <div class="axis-suggest" data-axis-suggest<?= $sizeOpts === [] ? ' hidden' : '' ?>>
                 <span class="axis-suggest-label"><strong data-axis-suggest-label><?= e($sizeLabel) ?></strong> · <?= e(t('variant.suggest_hint')) ?></span>
                 <div class="axis-suggest-chips" data-axis-suggest-chips>
@@ -3794,7 +3807,7 @@ $fmtP = static function ($cents) use ($cur): string {
                  data-base-opts="<?= e((string) json_encode(array_values($baseOpts), JSON_UNESCAPED_UNICODE)) ?>">
                 <div class="variant-head">
                     <span data-axis-label><?= e($sizeLabel) ?></span>
-                    <span><?= e(t('variant.color')) ?></span>
+                    <span data-axis2-label data-default="<?= e(t('variant.color')) ?>"><?= $vAxis2 !== '' ? e($vAxis2) : e(t('variant.color')) ?></span>
                     <span><?= e(t('variant.stock')) ?></span>
                     <span><?= e(t('variant.price_opt')) ?></span>
                     <span></span>

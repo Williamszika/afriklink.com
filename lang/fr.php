@@ -1944,6 +1944,8 @@ return [
     'variant.color' => 'Couleur',
     'variant.size_ph' => 'ex. M',
     'variant.color_ph' => 'ex. Rouge',
+    'variant.axis2_label' => 'Nom du 2ᵉ axe',
+    'variant.axis2_ph' => 'Couleur, Capacité, Contenance…',
     'variant.price_opt' => 'Prix (option)',
     'variant.label_ph' => 'Ex. M / Rouge',
     'variant.sku_ph' => 'SKU / code-barres',

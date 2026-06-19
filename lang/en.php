@@ -1944,6 +1944,8 @@ return [
     'variant.color' => 'Colour',
     'variant.size_ph' => 'e.g. M',
     'variant.color_ph' => 'e.g. Red',
+    'variant.axis2_label' => '2nd axis name',
+    'variant.axis2_ph' => 'Colour, Capacity, Volume…',
     'variant.price_opt' => 'Price (opt.)',
     'variant.label_ph' => 'e.g. M / Red',
     'variant.sku_ph' => 'SKU / barcode',

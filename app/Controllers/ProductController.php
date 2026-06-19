@@ -1033,6 +1033,18 @@ final class ProductController
             }
         }
 
+        // 2ᵉ axe de déclinaison nommé (« Couleur » par défaut) : on l'injecte dans les
+        // attributes pour piloter le libellé côté acheteur — gère les produits à doubles
+        // couleurs ou doubles capacités. Ignoré pour l'éditeur beauté (var_name).
+        $axis2 = mb_substr(trim((string) input_string('variant_axis2', '')), 0, 24);
+        if ($axis2 !== '' && !isset($_POST['var_name'])) {
+            $aDec = ($attributes ?? null) !== null ? (json_decode((string) $attributes, true) ?: []) : [];
+            if (is_array($aDec)) {
+                $aDec['variant_axis2'] = $axis2;
+                $attributes = (string) json_encode($aDec, JSON_UNESCAPED_UNICODE);
+            }
+        }
+
         return [[
             'name' => $name, 'description' => $description, 'price_cents' => $priceCents,
             'promo_price_cents' => $promoCents, 'promo_until' => $promoUntil,
