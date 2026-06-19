@@ -602,6 +602,10 @@ final class ProductController
                 if ($ver !== '') { $ea['version'] = $ver; }
                 if (input_string('perso', '') === '1') { $ea['personnalisation'] = true; }
             }
+            // Conformité CE : seulement pour les protections / casques (où elle a un sens).
+            if ($spMeta !== null && (!empty($spMeta['protect']) || !empty($spMeta['helmet']))) {
+                $ea['ce'] = input_string('ce', '') === '1';
+            }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

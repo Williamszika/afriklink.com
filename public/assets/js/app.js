@@ -5654,7 +5654,8 @@ document.addEventListener('click', function (ev) {
     var teamWrap  = document.querySelector('[data-sport-team-wrap]');
     var condSel   = document.querySelector('[data-sport-cond]');
     var condFixed = document.querySelector('[data-sport-cond-fixed]');
-    var FLAG_NOTES = ['shelter', 'sleep', 'pack', 'fire', 'light', 'watersport', 'fishing', 'team', 'swim', 'hygiene'].map(function (k) {
+    var ceWrap    = document.querySelector('[data-sport-ce-wrap]');
+    var FLAG_NOTES = ['shelter', 'sleep', 'pack', 'fire', 'light', 'watersport', 'fishing', 'team', 'swim', 'hygiene', 'ball', 'racket', 'protect', 'helmet', 'punchbag'].map(function (k) {
         return { k: k, el: document.querySelector('[data-sport-' + k + '-note]') };
     });
     if (!root) { return; }
@@ -5759,6 +5760,10 @@ document.addEventListener('click', function (ev) {
         var hyg = !!(m && m.hygiene);
         show(condFixed, hyg);
         if (condSel) { condSel.hidden = hyg; condSel.disabled = hyg || !active(); }
+        // Conformité CE : seulement pour les protections / casques.
+        var ce = !!(m && (m.protect || m.helmet));
+        show(ceWrap, ce);
+        if (ceWrap) { ceWrap.querySelectorAll('input').forEach(function (i) { i.disabled = !ce || !active(); }); }
     }
     function onType() {
         var m = meta();

@@ -172,6 +172,44 @@ return [
                 'Autre vêtement de sport'                      => ['group' => 'autre', 'fields' => ['genre', 'sport', 'matiere', 'techno', 'coupe'], 'axis' => 'Taille', 'color' => true],
             ],
         ],
+
+        'Équipement' => [
+            'groups' => [
+                'ballons'    => 'Ballons & terrain',
+                'raquette'   => 'Raquette & balle',
+                'protection' => 'Protection & sécurité',
+                'combat'     => 'Combat & cible',
+                'training'   => 'Entraînement & accessoires',
+                'autre'      => 'Autre',
+            ],
+            'atouts' => ['Qualité club', 'Résistant', 'Léger', 'Norme officielle', 'Accessoires inclus', 'Bon rebond', 'Occasion testée', 'Compétition'],
+            'fields' => [
+                'sport'      => ['label' => 'Sport', 'opts' => ['Football', 'Basket', 'Volley', 'Handball', 'Rugby', 'Tennis', 'Badminton', 'Ping-pong', 'Boxe / arts martiaux', 'Vélo', 'Pétanque', 'Fléchettes', 'Multisport']],
+                'taille_obj' => ['label' => 'Taille / format', 'opts' => ['Taille 3', 'Taille 4', 'Taille 5', 'Taille 6', 'Taille 7', 'S', 'M', 'L', 'XL', 'Junior', 'Adulte', 'Standard']],
+                'matiere'    => ['label' => 'Matière', 'opts' => ['Cuir', 'Synthétique', 'Caoutchouc', 'Mousse', 'Plastique', 'Métal', 'Composite', 'Textile', 'Mixte']],
+                'niveau'     => ['label' => 'Niveau', 'opts' => ['Loisir', 'Initiation', 'Club / compétition', 'Pro']],
+                'usage'      => ['label' => 'Usage', 'opts' => ['Indoor', 'Outdoor', 'Tout terrain', 'Plage']],
+                'genre'      => ['label' => 'Public', 'opts' => ['Homme', 'Femme', 'Mixte', 'Junior', 'Enfant']],
+            ],
+            // types : group, fields, axis, color, + drapeaux ball/racket/protect/helmet/punchbag.
+            'types' => [
+                'Ballon'                              => ['group' => 'ballons', 'fields' => ['sport', 'taille_obj', 'matiere', 'usage'], 'axis' => 'Taille ballon', 'color' => true, 'ball' => true],
+                'Filet / but'                         => ['group' => 'ballons', 'fields' => ['sport', 'usage', 'matiere'], 'axis' => 'Modèle', 'color' => false],
+                'Raquette'                            => ['group' => 'raquette', 'fields' => ['sport', 'niveau', 'matiere'], 'axis' => 'Modèle', 'color' => true, 'racket' => true],
+                'Volants / balles'                    => ['group' => 'raquette', 'fields' => ['sport', 'niveau'], 'axis' => 'Modèle', 'color' => false],
+                'Protections (genouillères, tibias…)' => ['group' => 'protection', 'fields' => ['sport', 'taille_obj', 'matiere'], 'axis' => 'Taille', 'color' => true, 'protect' => true],
+                'Casque de sport'                     => ['group' => 'protection', 'fields' => ['sport', 'taille_obj', 'matiere'], 'axis' => 'Taille', 'color' => true, 'protect' => true, 'helmet' => true],
+                'Gants (gardien, boxe, vélo)'         => ['group' => 'protection', 'fields' => ['sport', 'taille_obj', 'matiere'], 'axis' => 'Taille', 'color' => true],
+                'Sac de frappe'                       => ['group' => 'combat', 'fields' => ['matiere', 'niveau'], 'axis' => 'Modèle', 'color' => false, 'punchbag' => true],
+                'Kimono / tenue arts martiaux'        => ['group' => 'combat', 'fields' => ['taille_obj', 'matiere', 'niveau'], 'axis' => 'Taille', 'color' => true],
+                'Fléchettes / cible'                  => ['group' => 'combat', 'fields' => ['matiere', 'niveau'], 'axis' => 'Modèle', 'color' => false],
+                'Pétanque / boules'                   => ['group' => 'combat', 'fields' => ['matiere', 'niveau'], 'axis' => 'Modèle', 'color' => false],
+                'Matériel d’entraînement'             => ['group' => 'training', 'fields' => ['sport', 'usage', 'matiere'], 'axis' => 'Modèle', 'color' => true],
+                'Sac de sport'                        => ['group' => 'training', 'fields' => ['genre', 'matiere', 'usage'], 'axis' => 'Couleur', 'color' => true],
+                'Gourde / hydratation'                => ['group' => 'training', 'fields' => ['matiere', 'usage'], 'axis' => 'Contenance boisson', 'color' => true],
+                'Autre équipement sportif'            => ['group' => 'autre', 'fields' => ['sport', 'niveau', 'matiere', 'usage'], 'axis' => 'Modèle', 'color' => true],
+            ],
+        ],
     ],
 
     // Remplissage rapide des déclinaisons (axe → groupes de valeurs).
@@ -190,6 +228,11 @@ return [
         'Places'     => [['label' => 'Places', 'list' => ['1 place', '2 places', '3-4 places', '4-6 places']]],
         'Volume'     => [['label' => 'Volumes', 'list' => ['20 L', '30 L', '40 L', '50 L', '60 L']]],
         'Contenance' => [['label' => 'Contenances', 'list' => ['10 L', '25 L', '40 L']]],
+        'Taille ballon' => [
+            ['label' => 'Tailles foot', 'list' => ['Taille 3', 'Taille 4', 'Taille 5']],
+            ['label' => 'Tailles basket', 'list' => ['Taille 5', 'Taille 6', 'Taille 7']],
+        ],
+        'Contenance boisson' => [['label' => 'Contenances', 'list' => ['500 ml', '750 ml', '1 L', '1,5 L']]],
         'Modèle'     => [],
         'Couleur'    => [],
     ],

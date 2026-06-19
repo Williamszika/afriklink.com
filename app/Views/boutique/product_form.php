@@ -1893,6 +1893,13 @@ $fmtP = static function ($cents) use ($cur): string {
             $spHygiene    = $spMeta !== null && !empty($spMeta['hygiene']);
             $spVersion    = (string) ($rawOldSp['version'] ?? ($spAttrs['version'] ?? ''));
             $spPerso      = isset($rawOldSp['perso']) ? ((string) $rawOldSp['perso'] === '1') : !empty($spAttrs['personnalisation']);
+            $spBall       = $spMeta !== null && !empty($spMeta['ball']);
+            $spRacket     = $spMeta !== null && !empty($spMeta['racket']);
+            $spProtect    = $spMeta !== null && !empty($spMeta['protect']);
+            $spHelmet     = $spMeta !== null && !empty($spMeta['helmet']);
+            $spPunchbag   = $spMeta !== null && !empty($spMeta['punchbag']);
+            $spCeWrap     = $spProtect || $spHelmet;
+            $spCe         = isset($rawOldSp['ce']) ? ((string) $rawOldSp['ce'] === '1') : !empty($spAttrs['ce']);
             $spDefaults = (array) ($spMeta['defaults'] ?? []);
             $spDis = $spActive ? '' : ' disabled';
         ?>
@@ -1970,9 +1977,17 @@ $fmtP = static function ($cents) use ($cur): string {
                 <div data-sport-pair-wrap<?= $spWeight ? '' : ' hidden' ?>>
                     <label class="check-row" style="margin-top:12px"><input type="checkbox" name="par_paire" value="1" data-sport-pair <?= $spPair ? 'checked' : '' ?><?= $spWeight ? $spDis : ' disabled' ?>><span><strong><?= e(t('sport.f.par_paire')) ?></strong> — <?= e(t('sport.par_paire_hint')) ?></span></label>
                 </div>
+                <div data-sport-ce-wrap<?= $spCeWrap ? '' : ' hidden' ?>>
+                    <label class="check-row" style="margin-top:12px"><input type="checkbox" name="ce" value="1" data-sport-ce <?= $spCe ? 'checked' : '' ?><?= $spCeWrap ? $spDis : ' disabled' ?>><span><strong><?= e(t('sport.f.ce')) ?></strong> — <?= e(t('sport.ce_hint')) ?></span></label>
+                </div>
                 <div class="notice notice-info" data-sport-team-note<?= $spTeam ? '' : ' hidden' ?>><p>👕 <?= e(t('sport.team_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-swim-note<?= $spSwim ? '' : ' hidden' ?>><p>🏊 <?= e(t('sport.swim_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-hygiene-note<?= $spHygiene ? '' : ' hidden' ?>><p>🧼 <?= e(t('sport.hygiene_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-ball-note<?= $spBall ? '' : ' hidden' ?>><p>⚽ <?= e(t('sport.ball_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-racket-note<?= $spRacket ? '' : ' hidden' ?>><p>🎾 <?= e(t('sport.racket_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-protect-note<?= $spProtect ? '' : ' hidden' ?>><p>🛡️ <?= e(t('sport.protect_note')) ?></p></div>
+                <div class="notice notice-warning" data-sport-helmet-note<?= $spHelmet ? '' : ' hidden' ?>><p>⛑️ <?= e(t('sport.helmet_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-punchbag-note<?= $spPunchbag ? '' : ' hidden' ?>><p>🥊 <?= e(t('sport.punchbag_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-cleats-note<?= $spCleats ? '' : ' hidden' ?>><p>⚽ <?= e(t('sport.cleats_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-water-note<?= $spWater ? '' : ' hidden' ?>><p>🌊 <?= e(t('sport.water_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-elec-note<?= $spElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('sport.elec_note')) ?></p></div>
