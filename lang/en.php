@@ -1767,7 +1767,7 @@ return [
     'arti.f.unique' => 'One-of-a-kind',
     'arti.unique_hint' => 'A single item.',
     'arti.unique_note' => 'One-of-a-kind: a single item available. Stock is set to 1 and variants are disabled.',
-    'arti.cites_note' => 'CITES reminder: materials from protected species (ivory, red coral, tortoiseshell, certain feathers, reptile skins) are regulated and often banned from sale or import. When in doubt, refrain.',
+    'arti.cites_note' => 'CITES reminder: materials from protected species (ivory, precious woods such as ebony or rosewood, coral, tortoiseshell, bone, horn, reptile skins, certain feathers) are regulated and often banned from sale or import. When in doubt, refrain.',
     'arti.sec.story' => 'Story of the piece',
     'arti.story_desc' => 'What gives an artisanal piece its value: its origin, its meaning, the hand that made it.',
     'arti.f.histoire' => 'Story / meaning',

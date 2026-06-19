@@ -14,7 +14,7 @@ declare(strict_types=1);
  */
 return [
     'shop_categories' => ['artisanat'],
-    'conditions'      => ['Neuf', 'Vintage', 'Occasion'],
+    'conditions'      => ['Neuf', 'Vintage', 'Ancien', 'Occasion'],
     // Poterie : valeurs d'« usage » qui déclenchent l'alerte contact alimentaire.
     'food_usages'     => ['Alimentaire (contact food)', 'Cuisson', 'Service de table'],
 
@@ -167,6 +167,41 @@ return [
                 'Carreau / azulejo décoratif'  => ['group' => 'decor', 'fields' => ['matiere', 'finition', 'origine'], 'axis' => 'Couleur', 'color' => true],
                 // Autre
                 'Autre poterie'                => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'usage', 'piece_dim'], 'axis' => 'Modèle', 'color' => true],
+            ],
+        ],
+
+        'Sculptures' => [
+            'groups' => [
+                'figures' => 'Figures',
+                'masques' => 'Masques & murs',
+                'rituel'  => 'Rituel',
+                'autre'   => 'Autre',
+            ],
+            'atouts' => ['Fait main', 'Pièce unique', 'Sculpté main', 'Bois d’ébène', 'Bronze cire perdue', 'Art tribal', 'Avec socle', 'Certificat d’authenticité', 'Soutien artisan local'],
+            'fields' => [
+                'matiere'   => ['label' => 'Matière', 'opts' => ['Bois (ébène)', 'Bois (iroko)', 'Bois (autre)', 'Bronze', 'Laiton', 'Pierre', 'Pierre à savon (stéatite)', 'Terre cuite', 'Ivoire végétal (tagua)', 'Os / corne', 'Métal recyclé', 'Résine']],
+                'technique' => ['label' => 'Technique', 'opts' => ['Sculpté à la main', 'Cire perdue (fonte bronze)', 'Taille directe', 'Patiné', 'Pyrogravure', 'Assemblage', 'Poli']],
+                'origine'   => ['label' => 'Origine / tradition', 'opts' => ['Dogon', 'Sénoufo', 'Baoulé', 'Ashanti', 'Fang', 'Makondé', 'Bambara', 'Yoruba', 'Afrique de l’Ouest', 'Afrique centrale', 'Non précisé']],
+                'style'     => ['label' => 'Style', 'opts' => ['Traditionnel', 'Rituel / cérémoniel', 'Contemporain', 'Animalier', 'Abstrait', 'Réaliste']],
+                'piece_dim' => ['label' => 'Taille', 'opts' => ['Petit (< 20 cm)', 'Moyen (20–50 cm)', 'Grand (50–100 cm)', 'Très grand (> 1 m)', 'Monumental']],
+                'finition'  => ['label' => 'Finition', 'opts' => ['Brut / naturel', 'Poli', 'Patiné', 'Ciré', 'Peint', 'Doré']],
+                'poids'     => ['label' => 'Poids', 'opts' => ['< 1 kg', '1–5 kg', '5–15 kg', '15–30 kg', '> 30 kg']],
+                'support'   => ['label' => 'Support / socle', 'opts' => ['Avec socle', 'Sans socle', 'Socle intégré', 'À suspendre (mural)']],
+            ],
+            'types' => [
+                // Figures
+                'Statue / statuette'                => ['group' => 'figures', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
+                'Buste'                             => ['group' => 'figures', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
+                'Sculpture animalière'              => ['group' => 'figures', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
+                'Figure abstraite / contemporaine'  => ['group' => 'figures', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
+                // Masques & murs
+                'Masque'                            => ['group' => 'masques', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
+                'Bas-relief / panneau'              => ['group' => 'masques', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => false],
+                'Totem / colonne'                   => ['group' => 'masques', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'poids'], 'axis' => 'Modèle', 'color' => false],
+                // Rituel
+                'Sculpture rituelle / fétiche'      => ['group' => 'rituel', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => false],
+                // Autre
+                'Autre sculpture'                   => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'origine', 'style', 'piece_dim', 'finition', 'support'], 'axis' => 'Modèle', 'color' => false],
             ],
         ],
     ],

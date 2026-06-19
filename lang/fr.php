@@ -1767,7 +1767,7 @@ return [
     'arti.f.unique' => 'Pièce unique',
     'arti.unique_hint' => 'Un seul exemplaire.',
     'arti.unique_note' => 'Pièce unique : un seul exemplaire disponible. Le stock est fixé à 1 et les déclinaisons sont désactivées.',
-    'arti.cites_note' => 'Rappel CITES : les matières issues d’espèces protégées (ivoire, corail rouge, écaille de tortue, certaines plumes, peaux de reptiles) sont réglementées et souvent interdites à la vente ou à l’import. En cas de doute, abstiens-toi.',
+    'arti.cites_note' => 'Rappel CITES : les matières issues d’espèces protégées (ivoire, bois précieux comme l’ébène ou le palissandre, corail, écaille de tortue, os, corne, peaux de reptiles, certaines plumes) sont réglementées et souvent interdites à la vente ou à l’import. En cas de doute, abstiens-toi.',
     'arti.sec.story' => 'Histoire de la pièce',
     'arti.story_desc' => 'Ce qui fait la valeur d’une pièce artisanale : son origine, son sens, la main qui l’a créée.',
     'arti.f.histoire' => 'Récit / signification',
