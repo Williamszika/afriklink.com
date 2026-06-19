@@ -4935,9 +4935,25 @@ document.addEventListener('click', function (ev) {
     var modePillWrap = document.querySelector('[data-arti-mode-pill-wrap]');
     var modePill     = document.querySelector('[data-arti-mode-pill]');
     var metreNote    = document.querySelector('[data-arti-metre-note]');
-    if (!root) { return; }
+    // « Nouveau rayon » Artisanat : specs libres adaptées au slug du rayon saisi.
+    var AUTRE = parse('data-autre');
+    var collOther      = document.querySelector('[data-collection-other]');
+    var autreRoot      = document.querySelector('[data-arti-autre-root]');
+    var autreHint      = document.querySelector('[data-arti-autre-hint]');
+    var autreSpecsBox  = document.querySelector('[data-arti-autre-specs]');
+    var autreSpecChips = document.querySelector('[data-arti-autre-spec-chips]');
+    var autreUniqueChk = document.querySelector('[data-arti-autre-unique]');
+    var autreUniqueNote= document.querySelector('[data-arti-autre-unique-note]');
+    var autreMetreChk  = document.querySelector('[data-arti-autre-metre]');
+    var autreModeWrap  = document.querySelector('[data-arti-autre-mode-pill-wrap]');
+    var autreAxisInp   = document.querySelector('[data-arti-autre-axis]');
+    if (!root && !autreRoot) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
+    function autreActive() { return !!(coll && coll.value !== '' && !RAYONS[coll.value]); }
+    function autreSlug(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'autre'; }
+    function autreRayonName() { return (coll && coll.value === '__other__') ? (collOther ? String(collOther.value || '').trim() : '') : (coll ? String(coll.value || '').trim() : ''); }
+    function autreCfg() { return (AUTRE.R || {})[autreSlug(autreRayonName())] || null; }
     function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
     function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
 
@@ -5057,10 +5073,81 @@ document.addEventListener('click', function (ev) {
             if (declBox) { declBox.style.opacity = ''; }
         }
     }
-    function uniqueToggle() {
-        var uni = !!(uniqueChk && uniqueChk.checked);
-        if (uniqueNote) { uniqueNote.hidden = !uni; }
-        setUniqueLock(uni && active());
+    // Verrou « pièce unique » unifié : pilote l'interrupteur du root actif (connu ou autre).
+    function syncUnique() {
+        var knownUni = !!(active() && uniqueChk && uniqueChk.checked);
+        var autreUni = !!(autreActive() && autreUniqueChk && autreUniqueChk.checked);
+        if (uniqueNote) { uniqueNote.hidden = !knownUni; }
+        if (autreUniqueNote) { autreUniqueNote.hidden = !autreUni; }
+        setUniqueLock(knownUni || autreUni);
+    }
+    // ----- « Nouveau rayon » Artisanat : adaptation au slug, specs libres, signatures -----
+    function autreMetreToggle() {
+        if (autreModeWrap) { autreModeWrap.hidden = !(autreMetreChk && autreMetreChk.checked); }
+    }
+    function autreBuildSpecChips() {
+        if (!autreSpecChips) { return; }
+        var c = autreCfg();
+        var list = c ? (c.specs || []) : (AUTRE.generic_specs || []);
+        autreSpecChips.innerHTML = '';
+        list.forEach(function (s) {
+            var b = document.createElement('button'); b.type = 'button'; b.className = 'axis-chip';
+            b.setAttribute('data-arti-autre-spec', ''); b.setAttribute('data-val', s); b.textContent = s;
+            autreSpecChips.appendChild(b);
+        });
+    }
+    function buildAutreSizeChips() {
+        var box = document.querySelector('[data-arti-autre-size-chips]');
+        var lab = document.querySelector('[data-arti-autre-size-label]');
+        if (!box) { return; }
+        var c = autreCfg();
+        var axis = (c && c.axis) ? c.axis : (autreAxisInp ? String(autreAxisInp.value || '').trim() : '');
+        var btns = (axis && SIZES[axis]) ? SIZES[axis] : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-arti-autre-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function addAutreSpec(label) {
+        var tpl = document.getElementById('arti-autre-spec-template');
+        if (!tpl || !tpl.content || !autreSpecsBox) { return; }
+        autreSpecsBox.appendChild(tpl.content.cloneNode(true));
+        var row = autreSpecsBox.lastElementChild;
+        if (row && label) { var l = row.querySelector('input[name="spec_label[]"]'); if (l) { l.value = label; } var v = row.querySelector('input[name="spec_value[]"]'); if (v) { v.focus(); } }
+    }
+    function pushAutreAtout() {
+        var inp = document.querySelector('[data-arti-autre-atout-input]');
+        var box = document.querySelector('[data-arti-autre-atouts]');
+        if (!inp || !box) { return; }
+        var v = String(inp.value || '').trim(); if (v === '') { return; }
+        var exists = false;
+        box.querySelectorAll('input[name="atouts[]"]').forEach(function (c) { if (c.value === v) { c.checked = true; exists = true; } });
+        if (!exists) {
+            var lab = document.createElement('label'); lab.className = 'chip-check';
+            var c = document.createElement('input'); c.type = 'checkbox'; c.name = 'atouts[]'; c.value = v; c.checked = true;
+            var sp = document.createElement('span'); sp.textContent = v;
+            lab.appendChild(c); lab.appendChild(sp); box.appendChild(lab);
+        }
+        inp.value = '';
+    }
+    function adaptAutre() {
+        var c = autreCfg();
+        if (autreHint) {
+            var rn = autreRayonName();
+            autreHint.textContent = c ? ((cfgEl.getAttribute('data-autre-adapted') || '%R%').replace('%R%', rn))
+                : (cfgEl.getAttribute('data-autre-generic') || autreHint.textContent);
+        }
+        autreBuildSpecChips(); buildAutreSizeChips();
+        if (c && autreAxisInp && !autreAxisInp.value.trim()) { autreAxisInp.value = c.axis || ''; }
+        // Défauts depuis le rayon connu, sauf si le vendeur a déjà réglé l'interrupteur.
+        if (c && autreUniqueChk && !autreUniqueChk.dataset.touched) { autreUniqueChk.checked = !!c.unique; }
+        if (c && autreMetreChk && !autreMetreChk.dataset.touched) { autreMetreChk.checked = (c.mode === 'metre'); }
+        autreMetreToggle(); syncUnique();
     }
     // Le rayon courant comporte-t-il un type électrique (ex. luminaire) ?
     function rayonHasElec() { var t = cfg().types || {}; return Object.keys(t).some(function (k) { return !!t[k].elec; }); }
@@ -5084,19 +5171,30 @@ document.addEventListener('click', function (ev) {
         if (elecWarn) { elecWarn.hidden = !on; }
     }
     function setEnabled() {
-        var on = active();
-        root.hidden = !on;
-        root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
-        if (on) {
-            uniqueToggle();
-            var hasElec = rayonHasElec();
-            // Le bloc « électrique » n'apparaît que si le rayon a des types électriques.
-            if (elecWrap) { elecWrap.hidden = !hasElec; if (!hasElec) { elecWrap.querySelectorAll('input, select').forEach(function (f) { f.disabled = true; }); } }
-            if (hasElec) { elecToggle(); }
-            foodToggle();
-        } else { setUniqueLock(false); }
+        var known = active(), isAutre = autreActive();
+        if (root) {
+            root.hidden = !known;
+            root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !known; });
+            if (known) {
+                var hasElec = rayonHasElec();
+                // Le bloc « électrique » n'apparaît que si le rayon a des types électriques.
+                if (elecWrap) { elecWrap.hidden = !hasElec; if (!hasElec) { elecWrap.querySelectorAll('input, select').forEach(function (f) { f.disabled = true; }); } }
+                if (hasElec) { elecToggle(); }
+                foodToggle();
+            }
+        }
+        if (autreRoot) {
+            autreRoot.hidden = !isAutre;
+            autreRoot.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !isAutre; });
+            if (isAutre) { autreMetreToggle(); }
+        }
+        syncUnique();
     }
-    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
+    function onColl() {
+        if (active()) { rebuildRayon(); }
+        else if (autreActive()) { adaptAutre(); }
+        setEnabled();
+    }
 
     if (coll)      { coll.addEventListener('change', onColl); }
     if (typeSel)   { typeSel.addEventListener('change', function () {
@@ -5106,14 +5204,36 @@ document.addEventListener('click', function (ev) {
         if (m && elecTog) { elecTog.checked = !!m.elec; elecToggle(); }
         setEnabled();
     }); }
-    if (uniqueChk) { uniqueChk.addEventListener('change', uniqueToggle); }
+    if (uniqueChk) { uniqueChk.addEventListener('change', function () { this.dataset.touched = '1'; syncUnique(); }); }
     if (elecTog)   { elecTog.addEventListener('change', elecToggle); }
     if (attrsBox)  { attrsBox.addEventListener('change', foodToggle); }
+    if (collOther) { collOther.addEventListener('input', function () { if (autreActive()) { adaptAutre(); } }); }
+    if (autreUniqueChk) { autreUniqueChk.addEventListener('change', function () { this.dataset.touched = '1'; syncUnique(); }); }
+    if (autreMetreChk)  { autreMetreChk.addEventListener('change', function () { this.dataset.touched = '1'; autreMetreToggle(); }); }
+    var autreAtoutInp = document.querySelector('[data-arti-autre-atout-input]');
+    if (autreAtoutInp) { autreAtoutInp.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); pushAutreAtout(); } }); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-arti-fill]');
-        if (fill) { ev.preventDefault(); try { artiFill(JSON.parse(fill.getAttribute('data-arti-fill') || '[]')); } catch (e) {} }
+        if (fill) { ev.preventDefault(); try { artiFill(JSON.parse(fill.getAttribute('data-arti-fill') || '[]')); } catch (e) {} return; }
+        var afill = ev.target.closest('[data-arti-autre-fill]');
+        if (afill) { ev.preventDefault(); try { artiFill(JSON.parse(afill.getAttribute('data-arti-autre-fill') || '[]')); } catch (e) {} return; }
+        if (ev.target.closest('[data-arti-autre-spec-add]')) { ev.preventDefault(); addAutreSpec(''); return; }
+        if (ev.target.closest('[data-arti-autre-atout-add]')) { ev.preventDefault(); pushAutreAtout(); return; }
+        var sp = ev.target.closest('[data-arti-autre-spec]');
+        if (sp) { ev.preventDefault(); addAutreSpec(sp.getAttribute('data-val')); return; }
+        var ray = ev.target.closest('[data-arti-autre-rayon]');
+        if (ray) {
+            ev.preventDefault();
+            var rn = ray.getAttribute('data-arti-autre-rayon');
+            if (coll) { coll.value = '__other__'; coll.dispatchEvent(new Event('change')); }
+            if (collOther) { collOther.hidden = false; collOther.value = rn; collOther.dispatchEvent(new Event('input')); }
+            return;
+        }
+        var sdel = ev.target.closest('[data-arti-autre-spec-del]');
+        if (sdel) { var srow = sdel.closest('.spec-row'); if (srow) { srow.remove(); } }
     });
     if (active()) { onType(); }
+    else if (autreActive()) { adaptAutre(); }
     setEnabled();
 })();

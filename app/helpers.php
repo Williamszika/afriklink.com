@@ -1320,6 +1320,21 @@ function arti_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/** Config « nouveau rayon » Artisanat (rayon_suggest, generic_specs, atout_suggest, R). */
+function arti_autre(?string $key = null): array
+{
+    $cfg = (array) config('artisanat.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Config adaptative d'un rayon Artisanat « autre » par son libellé (slug) — ou null si inconnu. */
+function arti_autre_cfg(?string $rayon): ?array
+{
+    $r = (arti_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
 
 
 /** @return list<string> */

@@ -12,9 +12,13 @@ $isBeauty  = $vertical === 'beauty';
 
 // Rayon courant : sur re-render d'erreur on relit les champs réellement postés
 // (collection_select / collection_other), sinon la valeur enregistrée du produit.
-$curRayonSel = old('collection_select');
+// NB : valeurs BRUTES (non échappées) — $curCol pilote la logique adaptative
+// (*_is_rayon / *_autre_cfg / beauty_slug). L'échappement se fait à l'affichage
+// (e($curCol), e(t(...))). Lire old() ici casserait les rayons contenant « & ».
+$rawOldSel   = $_SESSION['_old'] ?? [];
+$curRayonSel = is_string($rawOldSel['collection_select'] ?? null) ? (string) $rawOldSel['collection_select'] : '';
 $curCol = $curRayonSel === '__other__'
-    ? (string) old('collection_other')
+    ? (is_string($rawOldSel['collection_other'] ?? null) ? (string) $rawOldSel['collection_other'] : '')
     : ($curRayonSel !== '' ? $curRayonSel : (string) ($product['collection'] ?? ''));
 
 // Électronique : certains rayons (Accessoires, Audio & écouteurs…) basculent vers un
@@ -858,10 +862,30 @@ $fmtP = static function ($cents) use ($cur): string {
                 ? array_map('strval', $rawOldR['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
             $artiDis = $artiActive ? '' : ' disabled';
+            // « Nouveau rayon » Artisanat : rayon hors des rayons répertoriés.
+            $artiAutreActive = !$artiActive && $curCol !== '';
+            $artiAutreCfg    = arti_autre_cfg($curCol);
+            $artiAutreType   = (string) ($rawOldR['product_type'] ?? ($product['product_type'] ?? ''));
+            $artiAutreFaitMain = isset($rawOldR['fait_main']) ? ((string) $rawOldR['fait_main'] === '1')
+                : (array_key_exists('fait_main', $artiAttrs) ? !empty($artiAttrs['fait_main']) : true);
+            $artiAutreUnique = isset($rawOldR['piece_unique']) ? ((string) $rawOldR['piece_unique'] === '1')
+                : (array_key_exists('piece_unique', $artiAttrs) ? !empty($artiAttrs['piece_unique']) : ($artiAutreCfg !== null && !empty($artiAutreCfg['unique'])));
+            $artiAutreMetre = isset($rawOldR['metre_on']) ? ((string) $rawOldR['metre_on'] === '1')
+                : (($artiAttrs['sale_mode'] ?? '') === 'metre' || ($artiAutreCfg !== null && ($artiAutreCfg['mode'] ?? '') === 'metre'));
+            $artiAutreHistoire = (string) ($rawOldR['histoire'] ?? ($artiAttrs['histoire'] ?? ''));
+            $artiAutreSpecs = [];
+            if (isset($rawOldR['spec_label']) && is_array($rawOldR['spec_label'])) {
+                foreach ($rawOldR['spec_label'] as $i => $lb) { $artiAutreSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldR['spec_value'][$i] ?? '')]; }
+            } elseif (is_array($artiAttrs['specs'] ?? null)) {
+                foreach ($artiAttrs['specs'] as $lb => $val) { $artiAutreSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+            }
+            $artiAutreDis = $artiAutreActive ? '' : ' disabled';
         ?>
         <div data-arti
              data-rayons="<?= e((string) json_encode((array) config('artisanat.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-size-systems="<?= e((string) json_encode((array) config('artisanat.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(arti_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-autre-generic="<?= e(t('arti.autre_generic')) ?>"
              data-food-usages="<?= e((string) json_encode((array) config('artisanat.food_usages', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-mode-metre="<?= e(t('arti.mode_metre')) ?>" data-mode-confection="<?= e(t('arti.mode_confection')) ?>"
              data-any="<?= e(t('arti.f.type_any')) ?>"
@@ -973,6 +997,105 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
             </details>
         </div><!-- /arti adaptatif -->
+
+        <!-- ===== Artisanat : NOUVEAU RAYON (adaptatif au slug) ===== -->
+        <div data-arti-autre-root<?= $artiAutreActive ? '' : ' hidden' ?>>
+            <p class="hint" data-arti-autre-hint><?= $artiAutreCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('arti.autre_generic')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="aua3-brand"><?= e(t('arti.f.artisan')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="aua3-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldR['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('arti.artisan_ph')) ?>"<?= $artiAutreDis ?>>
+                </div>
+                <div>
+                    <label for="aua3-type"><?= e(t('cuisine.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="aua3-type" name="product_type" data-pv="type" maxlength="60" value="<?= e($artiAutreType) ?>" placeholder="<?= e(t('arti.autre_type_ph')) ?>"<?= $artiAutreDis ?>>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="aua3-condition"><?= e(t('cuisine.f.condition')) ?></label>
+                    <select id="aua3-condition" name="acc_condition"<?= $artiAutreDis ?>>
+                        <?php $aua3Cond = (string) ($rawOldR['acc_condition'] ?? ($artiAttrs['condition'] ?? 'Neuf')); foreach (arti_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $aua3Cond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+            <label style="margin-top:10px"><?= e(t('autre.rayon_suggest')) ?></label>
+            <div class="chips-row" data-arti-autre-rayon-chips>
+                <?php foreach (arti_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-arti-autre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+                <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+                <div class="axis-suggest" data-arti-autre-spec-box>
+                    <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                    <div class="axis-suggest-chips" data-arti-autre-spec-chips>
+                        <?php foreach (($artiAutreCfg['specs'] ?? arti_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-arti-autre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="spec-rows" data-arti-autre-specs>
+                    <div class="spec-head"><span><?= e(t('autre.spec_label')) ?></span><span><?= e(t('autre.spec_value')) ?></span><span></span></div>
+                    <?php foreach ($artiAutreSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                        <div class="spec-row">
+                            <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>"<?= $artiAutreDis ?>>
+                            <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>"<?= $artiAutreDis ?>>
+                            <button type="button" class="variant-del" data-arti-autre-spec-del aria-label="✕">✕</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" data-arti-autre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+                <template id="arti-autre-spec-template">
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-arti-autre-spec-del aria-label="✕">✕</button>
+                    </div>
+                </template>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <label class="check-row"><input type="checkbox" name="fait_main" value="1" data-arti-autre-faitmain <?= $artiAutreFaitMain ? 'checked' : '' ?><?= $artiAutreDis ?>><span><strong><?= e(t('arti.f.faitmain')) ?></strong> — <?= e(t('arti.faitmain_hint')) ?></span></label>
+                    <label class="check-row"><input type="checkbox" name="piece_unique" value="1" data-arti-autre-unique <?= $artiAutreUnique ? 'checked' : '' ?><?= $artiAutreDis ?>><span><strong><?= e(t('arti.f.unique')) ?></strong> — <?= e(t('arti.unique_hint')) ?></span></label>
+                </div>
+                <div class="notice notice-info" data-arti-autre-unique-note<?= $artiAutreUnique ? '' : ' hidden' ?>><p>✨ <?= e(t('arti.unique_note')) ?></p></div>
+
+                <label class="check-row" style="margin-top:14px"><input type="checkbox" name="metre_on" value="1" data-arti-autre-metre <?= $artiAutreMetre ? 'checked' : '' ?><?= $artiAutreDis ?>><span><?= e(t('arti.metre_q')) ?></span></label>
+                <p data-arti-autre-mode-pill-wrap<?= $artiAutreMetre ? '' : ' hidden' ?> style="margin-top:8px"><span class="chip" data-arti-autre-mode-pill><?= e(t('arti.mode_metre')) ?></span></p>
+
+                <div class="notice notice-warning"><p>🛡️ <?= e(t('arti.cites_note')) ?></p></div>
+
+                <label for="aua3-histoire" style="margin-top:14px"><?= e(t('arti.f.histoire')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <textarea id="aua3-histoire" name="histoire" maxlength="2000" rows="3" placeholder="<?= e(t('arti.histoire_ph')) ?>"<?= $artiAutreDis ?>><?= e($artiAutreHistoire) ?></textarea>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="aua3-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="aua3-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldR['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="ART-001"<?= $artiAutreDis ?>>
+                    </div>
+                    <div>
+                        <label for="aua3-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="aua3-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldR['variant_axis'] ?? ($artiAttrs['variant_axis'] ?? ($artiAutreCfg['axis'] ?? '')))) ?>" placeholder="<?= e(t('arti.axis_ph')) ?>" data-arti-autre-axis<?= $artiAutreDis ?>>
+                    </div>
+                </div>
+                <?php $aua3Sizes = ($artiAutreCfg && !empty($artiAutreCfg['axis'])) ? (array) (config('artisanat.size_systems')[$artiAutreCfg['axis']] ?? []) : []; ?>
+                <label data-arti-autre-size-label<?= $aua3Sizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-arti-autre-size-chips<?= $aua3Sizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($aua3Sizes as $sb): ?><button type="button" class="axis-chip" data-arti-autre-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-arti-autre-atouts>
+                    <?php $aua3All = array_values(array_unique(array_merge(arti_autre('atout_suggest'), $artiAtoutsSel)));
+                    foreach ($aua3All as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $artiAtoutsSel, true) ? 'checked' : '' ?><?= $artiAutreDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="autre-atout-add">
+                    <input type="text" id="aua3-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-arti-autre-atout-input>
+                    <button type="button" class="btn btn-ghost btn-sm" data-arti-autre-atout-add><?= e(t('autre.atout_add')) ?></button>
+                </div>
+            </details>
+        </div><!-- /arti nouveau rayon -->
         <?php endif; ?>
 
         <?php if ($vertical === 'phone'): ?>

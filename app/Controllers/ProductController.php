@@ -513,6 +513,39 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (arti_capable((string) ($boutique['category'] ?? '')) && $collection !== '' && !arti_is_rayon($collection)) {
+            // NOUVEAU RAYON Artisanat (hors des rayons répertoriés) : type & caractéristiques
+            // libres, état, fait main / pièce unique, histoire, vente au mètre, atouts libres.
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $specs = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($specs[$lb])) { $specs[$lb] = $vv; }
+                if (count($specs) >= 20) { break; }
+            }
+            $ea = [];
+            if ($specs !== []) { $ea['specs'] = $specs; }
+            $cond = beauty_clean(input_string('acc_condition', ''), arti_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            if (input_string('fait_main', '') === '1') { $ea['fait_main'] = true; }
+            if (input_string('piece_unique', '') === '1') { $ea['piece_unique'] = true; }
+            $hist = mb_substr(trim((string) input_string('histoire', '')), 0, 2000);
+            if ($hist !== '') { $ea['histoire'] = $hist; }
+            if (input_string('metre_on', '') === '1') { $ea['sale_mode'] = 'metre'; $ea['unit'] = 'mètre'; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));

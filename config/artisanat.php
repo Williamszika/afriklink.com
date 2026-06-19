@@ -260,4 +260,30 @@ return [
         'Couleur'  => [['label' => 'Couleurs', 'list' => ['Multicolore', 'Naturel', 'Bois', 'Terre cuite', 'Marron', 'Camel', 'Bordeaux', 'Ocre', 'Rouge', 'Noir', 'Blanc', 'Doré']]],
         'Coloris'  => [['label' => 'Coloris', 'list' => ['Multicolore', 'Indigo', 'Rouge', 'Jaune', 'Vert', 'Orange', 'Bleu', 'Noir', 'Blanc', 'Ocre', 'Or', 'Rose']]],
     ],
+
+    /**
+     * « Nouveau rayon » Artisanat : le vendeur crée un rayon hors des 6 répertoriés.
+     * Le formulaire s'adapte au SLUG du nom : si connu (R), il suggère des specs, un
+     * axe, la couleur, la pièce unique et le mode « au mètre » ; sinon, modèle générique
+     * + specs libres. Base artisanat conservée (fait main, pièce unique, histoire, CITES).
+     * « & » devient un séparateur dans le slug (pas « et »).
+     */
+    'autre' => [
+        'rayon_suggest' => ['Peinture & art mural', 'Instruments de musique', 'Vannerie & paniers', 'Calebasses', 'Masques', 'Art de la table', 'Mobilier artisanal', 'Savons & cosmétiques naturels', 'Jouets & jeux', 'Mode & accessoires', 'Textile au mètre'],
+        'generic_specs' => ['Matière', 'Technique', 'Origine / tradition', 'Style', 'Dimensions', 'Finition', 'Usage'],
+        'atout_suggest' => ['Fait main', 'Pièce unique', 'Matériaux naturels', 'Commerce équitable', 'Soutien artisan local', 'Sur mesure possible', 'Wax authentique', 'Upcyclé / recyclé'],
+        'R' => [
+            'peinture-art-mural'          => ['specs' => ['Technique', 'Support', 'Style', 'Dimensions', 'Encadrement'], 'axis' => 'Modèle', 'color' => false, 'unique' => true, 'mode' => 'piece'],
+            'instruments-de-musique'      => ['specs' => ['Type d’instrument', 'Matière', 'Origine', 'Accordage'], 'axis' => 'Modèle', 'color' => false, 'unique' => false, 'mode' => 'piece'],
+            'vannerie-paniers'            => ['specs' => ['Matière', 'Technique', 'Origine', 'Taille'], 'axis' => 'Couleur', 'color' => true, 'unique' => false, 'mode' => 'piece'],
+            'calebasses'                  => ['specs' => ['Technique', 'Origine', 'Taille', 'Finition'], 'axis' => 'Modèle', 'color' => false, 'unique' => false, 'mode' => 'piece'],
+            'masques'                     => ['specs' => ['Matière', 'Origine', 'Style', 'Taille'], 'axis' => 'Modèle', 'color' => false, 'unique' => true, 'mode' => 'piece'],
+            'art-de-la-table'             => ['specs' => ['Matière', 'Technique', 'Origine', 'Usage'], 'axis' => 'Couleur', 'color' => true, 'unique' => false, 'mode' => 'piece'],
+            'mobilier-artisanal'          => ['specs' => ['Matière', 'Technique', 'Origine', 'Dimensions'], 'axis' => 'Modèle', 'color' => false, 'unique' => false, 'mode' => 'piece'],
+            'savons-cosmetiques-naturels' => ['specs' => ['Type', 'Ingrédients', 'Poids', 'Origine'], 'axis' => 'Parfum', 'color' => false, 'unique' => false, 'mode' => 'piece'],
+            'jouets-jeux'                 => ['specs' => ['Matière', 'Origine', 'Âge conseillé'], 'axis' => 'Couleur', 'color' => true, 'unique' => false, 'mode' => 'piece'],
+            'mode-accessoires'            => ['specs' => ['Matière', 'Origine', 'Taille', 'Genre'], 'axis' => 'Couleur', 'color' => true, 'unique' => false, 'mode' => 'piece'],
+            'textile-au-metre'            => ['specs' => ['Matière', 'Motif', 'Origine', 'Laize'], 'axis' => 'Coloris', 'color' => true, 'unique' => false, 'mode' => 'metre'],
+        ],
+    ],
 ];
