@@ -1394,6 +1394,118 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /bébé jouets -->
         <?php endif; ?>
 
+        <?php if (bebe_capable($boutiqueCat)):
+            $rawOldP   = $_SESSION['_old'] ?? [];
+            $puerAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $puerActive = bebe_puer_is_rayon($curCol);
+            $puerRayon  = $puerActive ? $curCol : (bebe_puer_rayons()[0] ?? 'Puériculture');
+            $puerType   = (string) ($rawOldP['product_type'] ?? ($product['product_type'] ?? ''));
+            $puerMeta   = bebe_puer_type_meta($puerRayon, $puerType);
+            $puerCond   = (string) ($rawOldP['acc_condition'] ?? ($puerAttrs['condition'] ?? 'Neuf'));
+            $puerCE     = isset($rawOldP['ce']) ? ((string) $rawOldP['ce'] === '1') : (array_key_exists('ce', $puerAttrs) ? !empty($puerAttrs['ce']) : false);
+            $puerAtoutsSel = isset($rawOldP['atouts']) && is_array($rawOldP['atouts'])
+                ? array_map('strval', $rawOldP['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $puerDis = $puerActive ? '' : ' disabled';
+            $puerOccasion = in_array($puerCond, ['Occasion', 'Reconditionné'], true);
+            $puerCarseat = $puerMeta !== null && !empty($puerMeta['carseat']);
+            $puerBed     = $puerMeta !== null && !empty($puerMeta['bed']);
+            $puerChair   = $puerMeta !== null && !empty($puerMeta['chair']);
+            $puerElec    = $puerMeta !== null && !empty($puerMeta['elec']);
+            $puerBottle  = $puerMeta !== null && !empty($puerMeta['bottle']);
+            $puerCsDef   = (array) config('bebe.puer_carseat_defaults', []);
+        ?>
+        <div data-bebe-puer
+             data-rayons="<?= e((string) json_encode((array) config('bebe.puer', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('bebe.puer_size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-carseat-defaults="<?= e((string) json_encode($puerCsDef, JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('bebe.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Bébé & Enfant · Puériculture (sécurité) ===== -->
+        <div data-bebe-puer-root<?= $puerActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="puer-brand"><?= e(t('bebe.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="puer-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldP['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="ex. Bébé Confort, Chicco, Philips Avent…"<?= $puerDis ?>>
+                </div>
+                <div>
+                    <label for="puer-type"><?= e(t('bebe.f.type')) ?> <span class="req">*</span></label>
+                    <select id="puer-type" name="product_type" data-pv="type" data-bebe-puer-type<?= $puerDis ?>>
+                        <option value=""><?= e(t('bebe.f.type_any')) ?></option>
+                        <?php $puerGroups = bebe_puer_groups($puerRayon); ?>
+                        <?php if ($puerGroups !== []): foreach ($puerGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (bebe_puer_types($puerRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $puerType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (bebe_puer_types($puerRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $puerType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="puer-cond"><?= e(t('bebe.puer.f.condition')) ?></label>
+                    <select id="puer-cond" name="acc_condition" data-bebe-puer-cond<?= $puerDis ?>>
+                        <?php foreach (bebe_puer_conditions() as $cc): ?><option value="<?= e($cc) ?>" <?= $puerCond === $cc ? 'selected' : '' ?>><?= e($cc) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-bebe-puer-hint><?= e($puerMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-bebe-puer-attrs>
+                    <?php if ($puerMeta): foreach ((array) ($puerMeta['fields'] ?? []) as $fk): $fd = bebe_puer_fields($puerRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($puerAttrs[$fk] ?? ''); if ($fv === '' && $puerCarseat && isset($puerCsDef[$fk])) { $fv = (string) $puerCsDef[$fk]; } ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $puerDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-bebe-puer-atouts>
+                    <?php foreach (bebe_puer_atouts($puerRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $puerAtoutsSel, true) ? 'checked' : '' ?><?= $puerDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+
+            <details class="variants-box" open>
+                <summary>🛡️ <?= e(t('bebe.puer.sec_safety')) ?></summary>
+                <label class="check-row"><input type="checkbox" name="ce" value="1" data-bebe-puer-ce <?= $puerCE ? 'checked' : '' ?><?= $puerDis ?>><span><strong><?= e(t('bebe.puer.f.ce')) ?></strong> — <?= e(t('bebe.puer.ce_hint')) ?></span></label>
+                <div class="notice notice-warning" data-bebe-puer-ce-note<?= $puerCE ? ' hidden' : '' ?>><p>⚖️ <?= e(t('bebe.puer.ce_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-puer-carseat-note<?= $puerCarseat ? '' : ' hidden' ?>><p>🚗 <?= e(t('bebe.puer.carseat_note')) ?></p></div>
+                <div class="notice notice-warning" data-bebe-puer-carseat-occ-note<?= ($puerCarseat && $puerOccasion) ? '' : ' hidden' ?>><p>🚨 <?= e(t('bebe.puer.carseat_occasion_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-puer-bed-note<?= $puerBed ? '' : ' hidden' ?>><p>🛏️ <?= e(t('bebe.puer.bed_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-puer-chair-note<?= $puerChair ? '' : ' hidden' ?>><p>🪑 <?= e(t('bebe.puer.chair_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-puer-elec-note<?= $puerElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('bebe.puer.elec_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-puer-bottle-note<?= $puerBottle ? '' : ' hidden' ?>><p>🍼 <?= e(t('bebe.puer.bottle_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="puer-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="puer-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldP['variant_axis'] ?? ($puerAttrs['variant_axis'] ?? ($puerMeta['axis'] ?? 'Couleur')))) ?>" placeholder="Couleur / Modèle / Taille" data-bebe-puer-axis<?= $puerDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $puerSizes = ($puerMeta && !empty($puerMeta['axis'])) ? (array) (config('bebe.puer_size_systems')[$puerMeta['axis']] ?? []) : []; ?>
+                <label data-bebe-puer-size-label<?= $puerSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-bebe-puer-size-chips<?= $puerSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($puerSizes as $sb): ?><button type="button" class="axis-chip" data-bebe-puer-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /bébé puériculture -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

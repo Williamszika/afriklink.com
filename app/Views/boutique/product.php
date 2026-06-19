@@ -201,6 +201,20 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                     if (!empty($aAttr['ce'])) { $apTags[] = 'CE / EN71'; }
                     if (!empty($aAttr['avertissement_3ans'])) { $apTags[] = t('bebe.toy.tag_3ans'); }
+                } elseif ($pVertical === 'generic' && bebe_capable((string) ($boutique['category'] ?? '')) && bebe_puer_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Bébé & Enfant · Puériculture : type, norme, groupe/âge, matière, CE, état.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['groupe'])) { $apTags[] = '👶 ' . (string) $aAttr['groupe']; }
+                    elseif (!empty($aAttr['age'])) { $apTags[] = '👶 ' . (string) $aAttr['age']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['condition', 'ce', 'elec', 'variant_axis', 'groupe', 'age'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['ce'])) { $apTags[] = 'CE'; }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

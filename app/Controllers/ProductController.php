@@ -488,6 +488,23 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (bebe_capable((string) ($boutique['category'] ?? '')) && bebe_puer_is_rayon($collection)) {
+            // Bébé & Enfant · Puériculture : type-driven specs + état (dont reconditionné),
+            // conformité CE/norme, et drapeaux sécurité (siège-auto / lit / chaise / élec /
+            // biberon) déterminés par le TYPE pour piloter les rappels côté fiche.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(bebe_puer_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), bebe_puer_atouts($collection)));
+            $ea = bebe_puer_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $pMeta = bebe_puer_type_meta($collection, $productType);
+            $cond = beauty_clean(input_string('acc_condition', ''), bebe_puer_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $ea['ce'] = input_string('ce', '') === '1';
+            // Drapeau « appareil électrique » déterminé par le TYPE (config), pas par le POST.
+            if ($pMeta !== null && !empty($pMeta['elec'])) { $ea['elec'] = true; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

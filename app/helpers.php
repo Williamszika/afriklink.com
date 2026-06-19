@@ -1299,6 +1299,62 @@ function bebe_toy_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/* ---------- Bébé & Enfant · PUÉRICULTURE : moteur séparé, sécurité ---------- */
+
+/** @return list<string> États acceptés pour un article de puériculture (dont reconditionné). */
+function bebe_puer_conditions(): array { return (array) config('bebe.puer_conditions', ['Neuf', 'Comme neuf', 'Reconditionné', 'Occasion']); }
+
+/** @return list<string> Libellés des rayons puériculture type-driven. */
+function bebe_puer_rayons(): array { return array_keys((array) config('bebe.puer', [])); }
+
+/** Ce rayon a-t-il le formulaire puériculture adaptatif ? */
+function bebe_puer_is_rayon(?string $rayon): bool { return isset(((array) config('bebe.puer', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon puériculture par clé. */
+function bebe_puer_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('bebe.puer.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function bebe_puer_fields(?string $rayon): array { return bebe_puer_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function bebe_puer_types(?string $rayon): array { return bebe_puer_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function bebe_puer_groups(?string $rayon): array { return bebe_puer_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function bebe_puer_atouts(?string $rayon): array { return bebe_puer_rayon($rayon, 'atouts'); }
+
+/** Métadonnées d'un type pour un rayon puériculture, ou null. */
+function bebe_puer_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = bebe_puer_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques « select » d'un article de puériculture.
+ * @return array<string,string>
+ */
+function bebe_puer_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = bebe_puer_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = bebe_puer_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        if (!isset($defs[$key])) { continue; }
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */

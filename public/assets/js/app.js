@@ -4994,6 +4994,178 @@ document.addEventListener('click', function (ev) {
     setEnabled();
 })();
 
+/* ---- Bébé & Enfant : rayon « Puériculture » adaptatif au TYPE.
+   Le TYPE pilote les caractéristiques (groupe, norme, ISOFIX, matière, piles…),
+   l'axe et le remplissage couleur. Garde-fous SÉCURITÉ par produit : conformité
+   CE/norme (note si absente) ; siège-auto (note R129/ISOFIX/dos-route + alerte
+   OCCASION) ; lit (EN716) ; chaise haute (EN14988) ; électrique (CE/garantie) ;
+   biberon (sans BPA). Valeurs par défaut siège-auto (norme/sens). CSP-safe. ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-bebe-puer]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var RAYONS = parse('data-rayons');
+    var SIZES  = parse('data-size-systems');
+    var CARSEAT_DEF = parse('data-carseat-defaults');
+    var coll      = document.querySelector('[data-collection-select]');
+    var root      = document.querySelector('[data-bebe-puer-root]');
+    var typeSel   = document.querySelector('[data-bebe-puer-type]');
+    var condSel   = document.querySelector('[data-bebe-puer-cond]');
+    var attrsBox  = document.querySelector('[data-bebe-puer-attrs]');
+    var atoutsBox = document.querySelector('[data-bebe-puer-atouts]');
+    var hint      = document.querySelector('[data-bebe-puer-hint]');
+    var axisInp   = document.querySelector('[data-bebe-puer-axis]');
+    var ceChk     = document.querySelector('[data-bebe-puer-ce]');
+    var ceNote    = document.querySelector('[data-bebe-puer-ce-note]');
+    var csNote    = document.querySelector('[data-bebe-puer-carseat-note]');
+    var csOccNote = document.querySelector('[data-bebe-puer-carseat-occ-note]');
+    var bedNote   = document.querySelector('[data-bebe-puer-bed-note]');
+    var chairNote = document.querySelector('[data-bebe-puer-chair-note]');
+    var elecNote  = document.querySelector('[data-bebe-puer-elec-note]');
+    var bottleNote= document.querySelector('[data-bebe-puer-bottle-note]');
+    if (!root) { return; }
+
+    function active() { return !!(coll && RAYONS[coll.value]); }
+    function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
+    function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+    function show(el, on) { if (el) { el.hidden = !on; } }
+    function isOccasion() { var v = condSel ? String(condSel.value || '') : ''; return v === 'Occasion' || v === 'Reconditionné'; }
+
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var fields = cfg().fields || {};
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        attrsBox.innerHTML = '';
+        var m = meta(); if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = fields[key]; if (!def) { return; }
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
+        // Valeurs par défaut siège-auto (norme R129 / dos à la route) si non renseignées.
+        if (m.carseat) {
+            Object.keys(CARSEAT_DEF).forEach(function (k) {
+                var s = attrsBox.querySelector('select[name="attr[' + k + ']"]');
+                if (s && (s.value === '' || !prev[k])) {
+                    if (Array.prototype.some.call(s.options, function (o) { return o.value === CARSEAT_DEF[k]; })) { s.value = CARSEAT_DEF[k]; }
+                }
+            });
+        }
+    }
+    function rebuildRayon() {
+        var c = cfg();
+        if (typeSel) {
+            var cur = typeSel.value, types = c.types || {}, groups = c.groups || {};
+            typeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = cfgEl.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
+            function addOpt(parent, tn) { var op = document.createElement('option'); op.value = tn; op.textContent = tn; if (tn === cur) { op.selected = true; } parent.appendChild(op); }
+            if (Object.keys(groups).length) {
+                Object.keys(groups).forEach(function (gk) {
+                    var og = document.createElement('optgroup'); og.label = groups[gk];
+                    Object.keys(types).forEach(function (tn) { if ((types[tn].group || '') === gk) { addOpt(og, tn); } });
+                    typeSel.appendChild(og);
+                });
+            } else {
+                Object.keys(types).forEach(function (tn) { addOpt(typeSel, tn); });
+            }
+            if (typeSel.value !== cur) { typeSel.value = ''; }
+        }
+        if (atoutsBox) {
+            var prevAt = {};
+            atoutsBox.querySelectorAll('input:checked').forEach(function (i) { prevAt[i.value] = true; });
+            atoutsBox.innerHTML = '';
+            (c.atouts || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'atouts[]'; inp.value = v;
+                if (prevAt[v]) { inp.checked = true; }
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
+            });
+        }
+        onType();
+    }
+    function buildSizeChips() {
+        var box = document.querySelector('[data-bebe-puer-size-chips]');
+        var lab = document.querySelector('[data-bebe-puer-size-label]');
+        if (!box) { return; }
+        var m = meta();
+        var btns = (m && m.axis && SIZES[m.axis]) ? SIZES[m.axis] : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-bebe-puer-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function safetyToggle() {
+        var m = meta();
+        if (ceNote) { ceNote.hidden = !!(ceChk && ceChk.checked); }
+        var carseat = !!(m && m.carseat);
+        show(csNote, carseat);
+        show(csOccNote, carseat && isOccasion());
+        show(bedNote, !!(m && m.bed));
+        show(chairNote, !!(m && m.chair));
+        show(elecNote, !!(m && m.elec));
+        show(bottleNote, !!(m && m.bottle));
+    }
+    function onType() {
+        var m = meta();
+        if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+        buildAttrs(); buildSizeChips(); safetyToggle();
+        if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
+    }
+    function puerFill(list) {
+        var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');
+        var tpl = document.getElementById('variant-template');
+        if (!rowsBox || !tpl || !tpl.content) { return; }
+        var have = {};
+        rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value || '').trim().toLowerCase()] = true; });
+        (list || []).forEach(function (sz) {
+            var key = String(sz).trim().toLowerCase();
+            if (key === '' || have[key]) { return; }
+            rowsBox.appendChild(tpl.content.cloneNode(true));
+            var row = rowsBox.lastElementChild;
+            var inp = row && row.querySelector('input[name="var_size[]"]');
+            if (inp) { inp.value = sz; }
+            have[key] = true;
+        });
+        var det = rowsBox.closest('details'); if (det) { det.open = true; }
+    }
+    function setEnabled() {
+        var known = active();
+        if (root) {
+            root.hidden = !known;
+            root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !known; });
+        }
+    }
+    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
+
+    if (coll)     { coll.addEventListener('change', onColl); }
+    if (typeSel)  { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    if (condSel)  { condSel.addEventListener('change', safetyToggle); }
+    if (ceChk)    { ceChk.addEventListener('change', safetyToggle); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-bebe-puer-fill]');
+        if (fill) { ev.preventDefault(); try { puerFill(JSON.parse(fill.getAttribute('data-bebe-puer-fill') || '[]')); } catch (e) {} }
+    });
+    if (active()) { onType(); }
+    setEnabled();
+})();
+
 /* ---- Auto & pièces : rayons adaptatifs au type (Accessoires…).
    Le TYPE pilote les caractéristiques, l'axe (Couleur / Taille / Modèle / Parfum),
    le mode électrique (note CE). Bloc COMPATIBILITÉ VÉHICULE : universel → masque la
