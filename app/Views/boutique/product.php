@@ -175,8 +175,11 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    // Pneus : la dimension composée résume largeur/série/diamètre/charge/vitesse.
+                    if (!empty($aAttr['dimension'])) { $apTags[] = (string) $aAttr['dimension']; }
+                    $autoExcl = ['condition', 'universel', 'compatibilite', 'ref_oem', 'variant_axis', 'dimension', 'largeur', 'serie', 'diametre', 'charge', 'vitesse', 'dot', 'profondeur_mm', 'monte'];
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'universel', 'compatibilite', 'ref_oem', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, $autoExcl, true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }

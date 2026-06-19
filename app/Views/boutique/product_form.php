@@ -580,6 +580,13 @@ $fmtP = static function ($cents) use ($cur): string {
                 ? array_map('strval', $rawOldA['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
             $autoDis = $autoActive ? '' : ' disabled';
+            // Mode PNEU : la compatibilité est la dimension composée (pas d'interrupteur universel).
+            $autoIsPneus = auto_rayon_is_dimension($autoRayon);
+            $autoDimVal  = auto_tyre_dimension(is_array($autoAttrs) ? $autoAttrs : []);
+            $autoDot     = (string) ($rawOldA['dot'] ?? ($autoAttrs['dot'] ?? ''));
+            $autoProf    = (string) ($rawOldA['profondeur_mm'] ?? ($autoAttrs['profondeur_mm'] ?? ''));
+            $autoMonte   = (string) ($rawOldA['monte'] ?? ($autoAttrs['monte'] ?? ''));
+            $autoPneusEn = ($autoActive && $autoIsPneus) ? '' : ' disabled';
         ?>
         <div data-auto
              data-rayons="<?= e((string) json_encode((array) config('auto.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
@@ -598,35 +605,40 @@ $fmtP = static function ($cents) use ($cur): string {
                     <label for="auto-type"><?= e(t('cuisine.f.type')) ?> <span class="req">*</span></label>
                     <select id="auto-type" name="product_type" data-pv="type" data-auto-type<?= $autoDis ?>>
                         <option value=""><?= e(t('auto.f.type_any')) ?></option>
-                        <?php foreach (auto_groups($autoRayon) as $gk => $glabel): ?>
+                        <?php $autoGroups = auto_groups($autoRayon); ?>
+                        <?php if ($autoGroups !== []): foreach ($autoGroups as $gk => $glabel): ?>
                             <optgroup label="<?= e($glabel) ?>">
                                 <?php foreach (auto_types($autoRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
                                     <option value="<?= e($tname) ?>" <?= $autoType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
                                 <?php endforeach; ?>
                             </optgroup>
-                        <?php endforeach; ?>
+                        <?php endforeach; else: foreach (auto_types($autoRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $autoType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
                     </select>
                 </div>
             </div>
             <div class="grid-2" style="margin-top:14px">
                 <div>
                     <label for="auto-condition"><?= e(t('cuisine.f.condition')) ?></label>
-                    <select id="auto-condition" name="acc_condition"<?= $autoDis ?>>
+                    <select id="auto-condition" name="acc_condition" data-auto-condition<?= $autoDis ?>>
                         <?php foreach (auto_conditions() as $c): ?><option value="<?= e($c) ?>" <?= $autoCond === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
                     </select>
                 </div>
                 <div></div>
             </div>
 
-            <!-- Compatibilité véhicule (signature auto) -->
-            <label class="check-row" style="margin-top:14px"><input type="checkbox" name="universel" value="1" data-auto-universel <?= $autoUniversel ? 'checked' : '' ?><?= $autoDis ?>><span><strong><?= e(t('auto.f.universel')) ?></strong> — <?= e(t('auto.universel_hint')) ?></span></label>
-            <div data-auto-compat-box<?= $autoUniversel ? ' hidden' : '' ?> style="margin-top:10px">
-                <label for="auto-compat"><?= e(t('auto.f.compat')) ?></label>
-                <textarea id="auto-compat" name="compatibilite" rows="2" maxlength="300" placeholder="<?= e(t('auto.compat_ph')) ?>"<?= ($autoActive && !$autoUniversel) ? '' : ' disabled' ?>><?= e($autoCompat === 'Universel' ? '' : $autoCompat) ?></textarea>
-                <p class="hint"><?= e(t('auto.compat_hint')) ?></p>
-                <label for="auto-oem" style="margin-top:10px"><?= e(t('auto.f.oem')) ?> <span class="muted">(<?= e(t('auto.oem_opt')) ?>)</span></label>
-                <input type="text" id="auto-oem" name="ref_oem" class="mono" maxlength="60" value="<?= e($autoOemRef) ?>" placeholder="<?= e(t('auto.oem_ph')) ?>"<?= ($autoActive && !$autoUniversel) ? '' : ' disabled' ?>>
-                <p class="hint">🔎 <?= e(t('auto.oem_note')) ?></p>
+            <!-- Compatibilité véhicule (signature auto) — masquée en mode pneu (la dimension fait foi) -->
+            <div data-auto-compat-wrap<?= $autoIsPneus ? ' hidden' : '' ?>>
+                <label class="check-row" style="margin-top:14px"><input type="checkbox" name="universel" value="1" data-auto-universel <?= $autoUniversel ? 'checked' : '' ?><?= ($autoActive && !$autoIsPneus) ? '' : ' disabled' ?>><span><strong><?= e(t('auto.f.universel')) ?></strong> — <?= e(t('auto.universel_hint')) ?></span></label>
+                <div data-auto-compat-box<?= $autoUniversel ? ' hidden' : '' ?> style="margin-top:10px">
+                    <label for="auto-compat"><?= e(t('auto.f.compat')) ?></label>
+                    <textarea id="auto-compat" name="compatibilite" rows="2" maxlength="300" placeholder="<?= e(t('auto.compat_ph')) ?>"<?= ($autoActive && !$autoIsPneus && !$autoUniversel) ? '' : ' disabled' ?>><?= e($autoCompat === 'Universel' ? '' : $autoCompat) ?></textarea>
+                    <p class="hint"><?= e(t('auto.compat_hint')) ?></p>
+                    <label for="auto-oem" style="margin-top:10px"><?= e(t('auto.f.oem')) ?> <span class="muted">(<?= e(t('auto.oem_opt')) ?>)</span></label>
+                    <input type="text" id="auto-oem" name="ref_oem" class="mono" maxlength="60" value="<?= e($autoOemRef) ?>" placeholder="<?= e(t('auto.oem_ph')) ?>"<?= ($autoActive && !$autoIsPneus && !$autoUniversel) ? '' : ' disabled' ?>>
+                    <p class="hint">🔎 <?= e(t('auto.oem_note')) ?></p>
+                </div>
             </div>
 
             <details class="variants-box" open>
@@ -645,6 +657,27 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
                 <div class="notice notice-warning" data-auto-elec-note<?= $autoElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('auto.elec_note')) ?></p></div>
                 <div class="notice notice-warning" data-auto-oil-note<?= $autoOil ? '' : ' hidden' ?>><p>🛢️ <?= e(t('auto.oil_note')) ?></p></div>
+
+                <!-- Mode PNEU : dimension composée + DOT / gomme / monte (toujours rendu, affiché selon le rayon) -->
+                <div data-auto-pneus-wrap<?= $autoIsPneus ? '' : ' hidden' ?>>
+                    <div class="notice notice-info" data-auto-dim><p><strong><?= e(t('auto.dim_label')) ?> :</strong> <span class="mono" data-auto-dim-val data-empty="<?= e(t('auto.dim_empty')) ?>"><?= e($autoDimVal !== '' ? $autoDimVal : t('auto.dim_empty')) ?></span></p></div>
+                    <div class="grid-2" style="margin-top:12px">
+                        <div>
+                            <label for="auto-dot"><?= e(t('auto.f.dot')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                            <input type="text" id="auto-dot" name="dot" class="mono" maxlength="20" value="<?= e($autoDot) ?>" placeholder="<?= e(t('auto.dot_ph')) ?>"<?= $autoPneusEn ?>>
+                        </div>
+                        <div>
+                            <label for="auto-prof"><?= e(t('auto.f.profondeur')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                            <input type="number" id="auto-prof" name="profondeur_mm" min="0" step="0.5" max="30" value="<?= e($autoProf) ?>" placeholder="6.5"<?= $autoPneusEn ?>>
+                        </div>
+                    </div>
+                    <div class="notice notice-warning" data-auto-occasion-note<?= ($autoIsPneus && $autoCond === 'Occasion') ? '' : ' hidden' ?>><p>⚠️ <?= e(t('auto.tyre_used_note')) ?></p></div>
+                    <div style="margin-top:12px">
+                        <label for="auto-monte"><?= e(t('auto.f.monte')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                        <input type="text" id="auto-monte" name="monte" maxlength="120" value="<?= e($autoMonte) ?>" placeholder="<?= e(t('auto.monte_ph')) ?>"<?= $autoPneusEn ?>>
+                        <p class="hint"><?= e(t('auto.monte_hint')) ?></p>
+                    </div>
+                </div>
 
                 <div class="grid-2" style="margin-top:12px">
                     <div>

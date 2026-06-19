@@ -4630,6 +4630,11 @@ document.addEventListener('click', function (ev) {
     var axisInp   = document.querySelector('[data-auto-axis]');
     var universelChk = document.querySelector('[data-auto-universel]');
     var compatBox    = document.querySelector('[data-auto-compat-box]');
+    var compatWrap   = document.querySelector('[data-auto-compat-wrap]');
+    var pneusWrap    = document.querySelector('[data-auto-pneus-wrap]');
+    var dimVal       = document.querySelector('[data-auto-dim-val]');
+    var occasionNote = document.querySelector('[data-auto-occasion-note]');
+    var condSel      = document.querySelector('[data-auto-condition]');
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -4710,7 +4715,7 @@ document.addEventListener('click', function (ev) {
         if (elecNote) { elecNote.hidden = !(m && m.elec); }
         if (oilNote)  { oilNote.hidden = !(m && m.oil); }
         if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
-        buildAttrs(); buildSizeChips();
+        buildAttrs(); buildSizeChips(); updateDim();
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
     }
     function autoFill(list) {
@@ -4738,11 +4743,37 @@ document.addEventListener('click', function (ev) {
             compatBox.querySelectorAll('input, textarea').forEach(function (f) { f.disabled = uni || !active(); });
         }
     }
+    // Mode pneu : la dimension composée (largeur/série/diamètre [+ charge/vitesse]) tient lieu de compatibilité.
+    function tyreDim() {
+        var a = {};
+        if (attrsBox) { attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { a[k] = s.value; } }); }
+        var l = a.largeur || '', se = a.serie || '', d = a.diametre || '', c = a.charge || '', v = a.vitesse || '';
+        if (l && se && d) { var dim = l + '/' + se + ' R' + d; if (c) { dim += ' ' + c; } if (v) { dim += String(v).split(' ')[0]; } return dim; }
+        if (d && !l) { return 'R' + d; }
+        return '';
+    }
+    function updateDim() {
+        if (!dimVal || !cfg().dimension) { return; }
+        var dim = tyreDim();
+        dimVal.textContent = dim || (dimVal.getAttribute('data-empty') || '');
+    }
+    function occasionToggle() {
+        if (!occasionNote) { return; }
+        var occ = condSel && condSel.value === 'Occasion';
+        occasionNote.hidden = !(cfg().dimension && occ);
+    }
     function setEnabled() {
         var on = active();
         root.hidden = !on;
         root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
-        if (on) { universelToggle(); }
+        if (on) {
+            var isPneus = !!cfg().dimension;
+            // Mode pneu ↔ mode compatibilité : un seul bloc affiché/actif à la fois.
+            if (compatWrap) { compatWrap.hidden = isPneus; if (isPneus) { compatWrap.querySelectorAll('input, textarea').forEach(function (f) { f.disabled = true; }); } }
+            if (pneusWrap)  { pneusWrap.hidden = !isPneus; if (!isPneus) { pneusWrap.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = true; }); } }
+            if (!isPneus) { universelToggle(); }
+            updateDim(); occasionToggle();
+        }
     }
     function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
 
@@ -4756,6 +4787,8 @@ document.addEventListener('click', function (ev) {
         setEnabled();
     }); }
     if (universelChk) { universelChk.addEventListener('change', function () { this.dataset.touched = '1'; universelToggle(); }); }
+    if (attrsBox)     { attrsBox.addEventListener('change', updateDim); }
+    if (condSel)      { condSel.addEventListener('change', occasionToggle); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-auto-fill]');

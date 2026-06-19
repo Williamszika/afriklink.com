@@ -234,14 +234,46 @@ return [
                 'Autre pièce détachée'                 => ['group' => 'autre', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
             ],
         ],
+
+        // 'dimension' => true : mode PNEU. La compatibilité n'est pas un interrupteur
+        // « universel » mais la DIMENSION normalisée, composée à partir des champs
+        // (largeur/série/diamètre/charge/vitesse) → ex. 205/55 R16 91V. Liste de types
+        // à plat (sans optgroups). Pas de bloc compatibilité véhicule.
+        'Pneus' => [
+            'dimension' => true,
+            'groups' => [],
+            'atouts' => ['Neuf', 'Pneu premium', 'Bon marché', 'Faible bruit', 'Basse consommation', 'Adhérence pluie A/B', 'Lot de 4 dispo', 'Pose possible'],
+            'fields' => [
+                'saison'   => ['label' => 'Saison', 'opts' => ['Été', 'Hiver', '4 saisons']],
+                'largeur'  => ['label' => 'Largeur (mm)', 'opts' => ['135', '145', '155', '165', '175', '185', '195', '205', '215', '225', '235', '245', '255', '265', '275', '285', '295', '305']],
+                'serie'    => ['label' => 'Hauteur / série (%)', 'opts' => ['30', '35', '40', '45', '50', '55', '60', '65', '70', '75', '80', '82']],
+                'diametre' => ['label' => 'Diamètre (pouces)', 'opts' => ['10', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22']],
+                'charge'   => ['label' => 'Indice de charge', 'opts' => ['75', '82', '84', '87', '88', '91', '94', '95', '98', '100', '102', '104', '107', '109', '110', '113', '116', '121']],
+                'vitesse'  => ['label' => 'Indice de vitesse', 'opts' => ['Q (160)', 'R (170)', 'S (180)', 'T (190)', 'H (210)', 'V (240)', 'W (270)', 'Y (300)']],
+                'runflat'  => ['label' => 'Type', 'opts' => ['Standard', 'Run-flat (RFT)', 'Renforcé (XL)']],
+                'usage'    => ['label' => 'Usage moto', 'opts' => ['Route', 'Sport', 'Trail', 'Cross', 'Scooter']],
+            ],
+            'types' => [
+                'Pneu tourisme'             => ['fields' => ['saison', 'largeur', 'serie', 'diametre', 'charge', 'vitesse', 'runflat'], 'axis' => 'Lot'],
+                'Pneu SUV / 4x4'            => ['fields' => ['saison', 'largeur', 'serie', 'diametre', 'charge', 'vitesse', 'runflat'], 'axis' => 'Lot'],
+                'Pneu utilitaire (C)'       => ['fields' => ['saison', 'largeur', 'serie', 'diametre', 'charge', 'vitesse'], 'axis' => 'Lot'],
+                'Pneu moto / scooter'       => ['fields' => ['usage', 'largeur', 'serie', 'diametre', 'charge', 'vitesse'], 'axis' => 'Lot'],
+                'Pneu agricole / quad'      => ['fields' => ['largeur', 'diametre', 'charge'], 'axis' => 'Lot'],
+                'Chambre à air'             => ['fields' => ['diametre'], 'axis' => 'Dimension'],
+                'Valve / accessoire pneu'   => ['fields' => [], 'axis' => 'Modèle'],
+                'Autre (pneu / accessoire)' => ['fields' => ['saison', 'diametre'], 'axis' => 'Dimension'],
+            ],
+        ],
     ],
 
-    // Remplissage rapide des déclinaisons selon l'axe (Taille / Couleur / Contenance / Longueur / Position).
+    // Remplissage rapide des déclinaisons selon l'axe.
     'size_systems' => [
         'Taille'     => [['label' => 'Tailles', 'list' => ['Universel', 'S', 'M', 'L', 'XL']]],
         'Couleur'    => [['label' => 'Couleurs', 'list' => ['Noir', 'Gris', 'Beige', 'Marron', 'Rouge', 'Bleu', 'Blanc', 'Argent']]],
         'Contenance' => [['label' => 'Contenances', 'list' => ['250 ml', '500 ml', '1 L', '2 L', '4 L', '5 L', '20 L']]],
         'Longueur'   => [['label' => 'Longueurs balai', 'list' => ['350 mm', '400 mm', '450 mm', '500 mm', '550 mm', '600 mm', '650 mm']]],
         'Position'   => [['label' => 'Positions', 'list' => ['Avant', 'Arrière', 'Avant gauche', 'Avant droit', 'Arrière gauche', 'Arrière droit']]],
+        'Lot'        => [['label' => 'Conditionnement', 'list' => ['À l’unité', 'Lot de 2', 'Lot de 4']], ['label' => 'Dimensions courantes', 'list' => ['195/65 R15', '205/55 R16', '215/60 R16', '225/45 R17', '235/45 R18']]],
+        'Dimension'  => [['label' => 'Conditionnement', 'list' => ['À l’unité', 'Lot de 2', 'Lot de 4']]],
     ],
 ];

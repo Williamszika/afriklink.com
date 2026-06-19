@@ -418,8 +418,19 @@ final class ProductController
             $ea = auto_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
             $cond = beauty_clean(input_string('acc_condition', ''), auto_conditions());
             if ($cond !== '') { $ea['condition'] = $cond; }
-            // Compatibilité véhicule : universel (flag) OU liste de véhicules + réf. d'origine (OE/OEM).
-            if (input_string('universel', '') === '1') {
+            if (auto_rayon_is_dimension($collection)) {
+                // Pneus : la compatibilité EST la dimension, composée côté serveur depuis les specs
+                // validées (anti-triche). + DOT, profondeur de gomme, monte d'origine.
+                $dim = auto_tyre_dimension($ea);
+                if ($dim !== '') { $ea['dimension'] = $dim; }
+                $dotV = mb_substr(trim((string) input_string('dot', '')), 0, 20);
+                if ($dotV !== '') { $ea['dot'] = $dotV; }
+                $prof = preg_replace('/[^0-9.,]/', '', (string) input_string('profondeur_mm', ''));
+                if ($prof !== null && $prof !== '') { $ea['profondeur_mm'] = min(30.0, max(0.0, (float) str_replace(',', '.', $prof))); }
+                $monteV = mb_substr(trim((string) input_string('monte', '')), 0, 120);
+                if ($monteV !== '') { $ea['monte'] = $monteV; }
+            } elseif (input_string('universel', '') === '1') {
+                // Compatibilité véhicule : universel (flag) OU liste de véhicules + réf. d'origine (OE/OEM).
                 $ea['universel'] = true;
             } else {
                 $compat = mb_substr(trim((string) input_string('compatibilite', '')), 0, 300);

@@ -1220,6 +1220,30 @@ function auto_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/** Le rayon est-il en mode « dimension » (pneus : compatibilité = dimension composée) ? */
+function auto_rayon_is_dimension(?string $rayon): bool { return !empty(auto_rayon($rayon)['dimension']); }
+
+/**
+ * Compose la dimension normalisée d'un pneu à partir des caractéristiques validées
+ * (largeur/série/diamètre [+ charge + indice de vitesse]) — ex. « 205/55 R16 91V ».
+ */
+function auto_tyre_dimension(array $attrs): string
+{
+    $l = trim((string) ($attrs['largeur'] ?? ''));
+    $s = trim((string) ($attrs['serie'] ?? ''));
+    $d = trim((string) ($attrs['diametre'] ?? ''));
+    $c = trim((string) ($attrs['charge'] ?? ''));
+    $v = trim((string) ($attrs['vitesse'] ?? ''));
+    if ($l !== '' && $s !== '' && $d !== '') {
+        $dim = $l . '/' . $s . ' R' . $d;
+        if ($c !== '') { $dim .= ' ' . $c; }
+        if ($v !== '') { $dim .= explode(' ', $v)[0]; } // « V (240) » → « V »
+        return $dim;
+    }
+    if ($d !== '' && $l === '') { return 'R' . $d; }
+    return '';
+}
+
 
 
 /** @return list<string> */
