@@ -5,13 +5,16 @@ declare(strict_types=1);
  * Jeu de DÉMONSTRATION : 50 boutiques publiées (Europe + Côte d'Ivoire), avec
  * leurs produits, réparties sur plusieurs vendeurs — dont certains possèdent
  * PLUSIEURS boutiques (le code multi-boutique existe déjà : Boutique::allForUser
- * + /vendeur/boutique-active). À lancer en local UNIQUEMENT :
+ * + /vendeur/boutique-active).
  *
- *   php database/seed_demo.php --force
+ *   php database/seed_demo.php --force            # local/staging
+ *   php database/seed_demo.php --force --prod     # PRODUCTION (confirmation explicite)
+ *   php database/seed_demo.php --purge            # retire TOUTE la démo (réversible)
+ *   php database/seed_demo.php --purge --prod     # retire la démo en PRODUCTION
  *
  * Idempotent : purge d'abord les données de démo précédentes (vendeurs
- * @afriklink.demo et leurs boutiques/produits), puis réinsère. Ne JAMAIS lancer
- * en production.
+ * @afriklink.demo et leurs boutiques/produits), puis réinsère. En production, la
+ * démo est VISIBLE PUBLIQUEMENT : à retirer (--purge) avant un vrai lancement.
  */
 
 require __DIR__ . '/../app/bootstrap.php';
@@ -20,12 +23,16 @@ use App\Models\Boutique;
 use App\Models\Product;
 use App\Models\User;
 
-if (!in_array('--force', $argv, true)) {
-    fwrite(STDERR, "Refus : ajoutez --force (jeu de démo, à n'exécuter qu'en local).\n");
+$purge     = in_array('--purge', $argv, true);
+$allowProd = in_array('--prod', $argv, true);
+$isProd    = ($_ENV['APP_ENV'] ?? 'production') === 'production';
+
+if (!$purge && !in_array('--force', $argv, true)) {
+    fwrite(STDERR, "Refus : ajoutez --force (semer) ou --purge (retirer la démo).\n");
     exit(1);
 }
-if (($_ENV['APP_ENV'] ?? 'production') === 'production') {
-    fwrite(STDERR, "Refus : APP_ENV=production. Le seeder de démo est réservé au local.\n");
+if ($isProd && !$allowProd) {
+    fwrite(STDERR, "Refus : APP_ENV=production. Ajoutez --prod pour confirmer EXPLICITEMENT (la démo sera visible par vos visiteurs ; retirable avec --purge).\n");
     exit(1);
 }
 
@@ -43,6 +50,11 @@ if ($demoIds !== []) {
         $pdo->exec("DELETE FROM boutiques WHERE id IN ($binp)");
     }
     $pdo->exec("DELETE FROM users WHERE id IN ($in)");
+    fwrite(STDOUT, "  " . count($demoIds) . " vendeur(s) de démo et leurs boutiques/produits supprimés.\n");
+}
+if ($purge) {
+    fwrite(STDOUT, "✅ Démo retirée. Votre site ne contient plus de boutiques de démonstration.\n");
+    exit(0);
 }
 
 /* ----- Vendeurs : 14 comptes pro ; la 1ʳᵉ poignée possède plusieurs boutiques ----- */
