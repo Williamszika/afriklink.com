@@ -570,6 +570,7 @@ $fmtP = static function ($cents) use ($cur): string {
             $autoMeta   = auto_type_meta($autoRayon, $autoType);
             $autoCond   = (string) ($rawOldA['acc_condition'] ?? ($autoAttrs['condition'] ?? 'Neuf'));
             $autoElec   = $autoMeta !== null && !empty($autoMeta['elec']);
+            $autoOil    = $autoMeta !== null && !empty($autoMeta['oil']);
             $autoUniversel = isset($rawOldA['universel'])
                 ? ((string) $rawOldA['universel'] === '1')
                 : (array_key_exists('universel', $autoAttrs) ? !empty($autoAttrs['universel']) : (($autoAttrs['compatibilite'] ?? '') === '' || ($autoAttrs['compatibilite'] ?? '') === 'Universel'));
@@ -639,6 +640,7 @@ $fmtP = static function ($cents) use ($cur): string {
                     <?php endforeach; endif; ?>
                 </div>
                 <div class="notice notice-warning" data-auto-elec-note<?= $autoElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('auto.elec_note')) ?></p></div>
+                <div class="notice notice-warning" data-auto-oil-note<?= $autoOil ? '' : ' hidden' ?>><p>🛢️ <?= e(t('auto.oil_note')) ?></p></div>
 
                 <div class="grid-2" style="margin-top:12px">
                     <div>

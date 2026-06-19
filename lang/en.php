@@ -1743,6 +1743,7 @@ return [
     'auto.compat_ph' => 'e.g. Toyota Corolla 2015-2020, Peugeot 208, VW Golf VII… (makes, models, years)',
     'auto.compat_hint' => 'List compatible makes / models / years to avoid returns.',
     'auto.elec_note' => 'Electric accessory (12 V / USB): state the voltage and warranty. CE marking and the manual are mandatory when importing into the EU.',
+    'auto.oil_note' => 'Lubricant / fluid: state the viscosity and the approvals required by the manufacturer (ACEA, API, OEM specs). A non-compliant product can damage the engine.',
     'auto.universel_tag' => 'Universal',
     'auto.compat_label' => 'Compatibility',
     'auto.brand_ph' => 'e.g. Bosch, unbranded…',

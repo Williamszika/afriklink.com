@@ -4625,6 +4625,7 @@ document.addEventListener('click', function (ev) {
     var attrsBox  = document.querySelector('[data-auto-attrs]');
     var atoutsBox = document.querySelector('[data-auto-atouts]');
     var elecNote  = document.querySelector('[data-auto-elec-note]');
+    var oilNote   = document.querySelector('[data-auto-oil-note]');
     var hint      = document.querySelector('[data-auto-hint]');
     var axisInp   = document.querySelector('[data-auto-axis]');
     var universelChk = document.querySelector('[data-auto-universel]');
@@ -4707,6 +4708,7 @@ document.addEventListener('click', function (ev) {
     function onType() {
         var m = meta();
         if (elecNote) { elecNote.hidden = !(m && m.elec); }
+        if (oilNote)  { oilNote.hidden = !(m && m.oil); }
         if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
         buildAttrs(); buildSizeChips();
         if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
@@ -4744,8 +4746,15 @@ document.addEventListener('click', function (ev) {
     function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
 
     if (coll)         { coll.addEventListener('change', onColl); }
-    if (typeSel)      { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
-    if (universelChk) { universelChk.addEventListener('change', universelToggle); }
+    if (typeSel)      { typeSel.addEventListener('change', function () {
+        onType();
+        // Compatibilité par défaut selon le type (pièce spécifique → non universel),
+        // sauf si le vendeur a déjà réglé l'interrupteur lui-même.
+        var m = meta();
+        if (m && universelChk && !universelChk.dataset.touched) { universelChk.checked = !m.specific; universelToggle(); }
+        setEnabled();
+    }); }
+    if (universelChk) { universelChk.addEventListener('change', function () { this.dataset.touched = '1'; universelToggle(); }); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-auto-fill]');

@@ -107,11 +107,66 @@ return [
                 'Autre matériel audio'               => ['group' => 'autre', 'fields' => ['connectivite', 'puissance', 'garantie'], 'axis' => 'Modèle', 'color' => false, 'elec' => true],
             ],
         ],
+
+        'Entretien' => [
+            'groups' => [
+                'liquides'   => 'Lubrifiants & liquides',
+                'filtration' => 'Filtration',
+                'allumage'   => 'Allumage & électrique',
+                'visibilite' => 'Visibilité & nettoyage',
+                'autre'      => 'Autre',
+            ],
+            'atouts' => ['100 % synthèse', 'Longue durée', 'Référence OEM', 'Compatible plusieurs modèles', 'Garantie incluse', 'Marque premium', 'Économie de carburant', 'Lot avantageux'],
+            'fields' => [
+                'viscosite'       => ['label' => 'Viscosité', 'opts' => ['0W-20', '0W-30', '5W-30', '5W-40', '10W-40', '15W-40', '75W-90', '80W-90', 'Autre']],
+                'norme_huile'     => ['label' => 'Norme / homologation', 'opts' => ['ACEA', 'API', 'VW 504/507', 'MB-Approval', 'dexos', 'BMW LL', 'Autre']],
+                'contenance'      => ['label' => 'Contenance', 'opts' => ['250 ml', '500 ml', '1 L', '2 L', '4 L', '5 L', '20 L']],
+                'dot'             => ['label' => 'Type / DOT', 'opts' => ['DOT 3', 'DOT 4', 'DOT 5.1', 'LHM', 'Autre']],
+                'filtre_type'     => ['label' => 'Type de filtre', 'opts' => ['Huile', 'Air moteur', 'Habitacle', 'Carburant', 'Habitacle charbon actif']],
+                'batterie_cap'    => ['label' => 'Capacité', 'opts' => ['40 Ah', '45 Ah', '60 Ah', '70 Ah', '80 Ah', '100 Ah', '> 100 Ah']],
+                'batterie_tech'   => ['label' => 'Technologie', 'opts' => ['Plomb / liquide', 'AGM', 'EFB', 'Gel', 'Lithium']],
+                'ampoule_type'    => ['label' => 'Type d’ampoule', 'opts' => ['H1', 'H4', 'H7', 'H11', 'LED', 'Xénon / HID', 'W5W', 'P21W']],
+                'bougie_type'     => ['label' => 'Type', 'opts' => ['Nickel', 'Platine', 'Iridium', 'Préchauffage']],
+                'conditionnement' => ['label' => 'Conditionnement', 'opts' => ['Unité', 'Bidon', 'Spray / aérosol', 'Lot / pack', 'Coffret']],
+                'garantie'        => ['label' => 'Garantie', 'opts' => ['Aucune', '3 mois', '6 mois', '1 an', '2 ans']],
+                'norme'           => ['label' => 'Norme', 'opts' => ['CE', 'ECE', 'CE + ECE', 'Aucune / non précisée']],
+            ],
+            // 'oil' => rappel viscosité/homologations ; 'specific' => pièce liée à un véhicule
+            // précis (la compatibilité passe par défaut sur « non universel »).
+            'types' => [
+                // Lubrifiants & liquides
+                'Huile moteur'                     => ['group' => 'liquides', 'fields' => ['viscosite', 'norme_huile', 'contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false, 'oil' => true],
+                'Liquide de frein'                 => ['group' => 'liquides', 'fields' => ['dot', 'contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false, 'oil' => true],
+                'Liquide de refroidissement'       => ['group' => 'liquides', 'fields' => ['contenance', 'conditionnement', 'norme_huile'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                'Liquide de direction assistée'    => ['group' => 'liquides', 'fields' => ['contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                'Liquide lave-glace'               => ['group' => 'liquides', 'fields' => ['contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                'Additif carburant / huile'        => ['group' => 'liquides', 'fields' => ['contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                'Graisse / lubrifiant'             => ['group' => 'liquides', 'fields' => ['contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                // Filtration (pièces propres au véhicule → 'specific')
+                'Filtre à huile'                   => ['group' => 'filtration', 'fields' => ['filtre_type', 'conditionnement'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Filtre à air'                     => ['group' => 'filtration', 'fields' => ['filtre_type', 'conditionnement'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Filtre habitacle'                 => ['group' => 'filtration', 'fields' => ['filtre_type', 'conditionnement'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Filtre à carburant'               => ['group' => 'filtration', 'fields' => ['filtre_type', 'conditionnement'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                // Allumage & électrique
+                'Bougie d’allumage'                => ['group' => 'allumage', 'fields' => ['bougie_type', 'conditionnement'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Bougie de préchauffage'           => ['group' => 'allumage', 'fields' => ['bougie_type', 'conditionnement'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Batterie'                         => ['group' => 'allumage', 'fields' => ['batterie_cap', 'batterie_tech', 'garantie', 'norme'], 'axis' => 'Modèle', 'color' => false, 'elec' => true, 'specific' => true],
+                'Ampoule / éclairage'              => ['group' => 'allumage', 'fields' => ['ampoule_type', 'conditionnement', 'norme'], 'axis' => 'Type', 'color' => false, 'elec' => true, 'specific' => true],
+                // Visibilité & nettoyage
+                'Balai d’essuie-glace'             => ['group' => 'visibilite', 'fields' => ['conditionnement'], 'axis' => 'Longueur', 'color' => false, 'elec' => false, 'specific' => true],
+                'Produit de nettoyage / lustrage'  => ['group' => 'visibilite', 'fields' => ['contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                'Cire / polish'                    => ['group' => 'visibilite', 'fields' => ['contenance', 'conditionnement'], 'axis' => 'Contenance', 'color' => false, 'elec' => false],
+                // Autre
+                'Autre produit d’entretien'        => ['group' => 'autre', 'fields' => ['contenance', 'conditionnement', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false],
+            ],
+        ],
     ],
 
-    // Remplissage rapide des déclinaisons selon l'axe (Taille / Couleur).
+    // Remplissage rapide des déclinaisons selon l'axe (Taille / Couleur / Contenance / Longueur).
     'size_systems' => [
-        'Taille'  => [['label' => 'Tailles', 'list' => ['Universel', 'S', 'M', 'L', 'XL']]],
-        'Couleur' => [['label' => 'Couleurs', 'list' => ['Noir', 'Gris', 'Beige', 'Marron', 'Rouge', 'Bleu', 'Blanc', 'Argent']]],
+        'Taille'     => [['label' => 'Tailles', 'list' => ['Universel', 'S', 'M', 'L', 'XL']]],
+        'Couleur'    => [['label' => 'Couleurs', 'list' => ['Noir', 'Gris', 'Beige', 'Marron', 'Rouge', 'Bleu', 'Blanc', 'Argent']]],
+        'Contenance' => [['label' => 'Contenances', 'list' => ['250 ml', '500 ml', '1 L', '2 L', '4 L', '5 L', '20 L']]],
+        'Longueur'   => [['label' => 'Longueurs balai', 'list' => ['350 mm', '400 mm', '450 mm', '500 mm', '550 mm', '600 mm', '650 mm']]],
     ],
 ];
