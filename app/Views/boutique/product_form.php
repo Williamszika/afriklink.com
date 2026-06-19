@@ -844,6 +844,10 @@ $fmtP = static function ($cents) use ($cur): string {
             $artiElec = isset($rawOldR['elec_on']) ? ((string) $rawOldR['elec_on'] === '1')
                 : (!empty($artiAttrs['elec']) || ($artiMeta !== null && !empty($artiMeta['elec'])));
             $artiGar = (string) ($rawOldR['acc_garantie'] ?? ($artiAttrs['garantie'] ?? ''));
+            // Le bloc « électrique » n'apparaît que pour les rayons ayant des types électriques (ex. luminaires).
+            $artiRayonElec = false;
+            foreach (arti_types($artiRayon) as $artiTm) { if (!empty($artiTm['elec'])) { $artiRayonElec = true; break; } }
+            $artiElecEn = ($artiActive && $artiRayonElec) ? '' : ' disabled';
             $artiAtoutsSel = isset($rawOldR['atouts']) && is_array($rawOldR['atouts'])
                 ? array_map('strval', $rawOldR['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
@@ -910,16 +914,18 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
                 <div class="notice notice-info" data-arti-unique-note<?= $artiUnique ? '' : ' hidden' ?>><p>✨ <?= e(t('arti.unique_note')) ?></p></div>
 
-                <!-- Objet électrique (luminaires) → garantie + rappel CE -->
-                <label class="check-row" style="margin-top:14px"><input type="checkbox" name="elec_on" value="1" data-arti-elec-toggle <?= $artiElec ? 'checked' : '' ?><?= $artiDis ?>><span><?= e(t('arti.elec_q')) ?></span></label>
-                <div data-arti-elec-box<?= $artiElec ? '' : ' hidden' ?> style="margin-top:10px">
-                    <label for="arti-garantie"><?= e(t('cuisine.f.warranty')) ?></label>
-                    <select id="arti-garantie" name="acc_garantie"<?= ($artiActive && $artiElec) ? '' : ' disabled' ?>>
-                        <option value=""><?= e(t('cuisine.f.warranty_none')) ?></option>
-                        <?php foreach (['3 mois', '6 mois', '1 an', '2 ans'] as $g): ?><option value="<?= e($g) ?>" <?= $artiGar === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
-                    </select>
+                <!-- Objet électrique (luminaires) → garantie + rappel CE. Visible seulement si le rayon a des types électriques. -->
+                <div data-arti-elec-wrap<?= ($artiActive && $artiRayonElec) ? '' : ' hidden' ?>>
+                    <label class="check-row" style="margin-top:14px"><input type="checkbox" name="elec_on" value="1" data-arti-elec-toggle <?= $artiElec ? 'checked' : '' ?><?= $artiElecEn ?>><span><?= e(t('arti.elec_q')) ?></span></label>
+                    <div data-arti-elec-box<?= ($artiElec && $artiRayonElec) ? '' : ' hidden' ?> style="margin-top:10px">
+                        <label for="arti-garantie"><?= e(t('cuisine.f.warranty')) ?></label>
+                        <select id="arti-garantie" name="acc_garantie"<?= ($artiActive && $artiRayonElec && $artiElec) ? '' : ' disabled' ?>>
+                            <option value=""><?= e(t('cuisine.f.warranty_none')) ?></option>
+                            <?php foreach (['3 mois', '6 mois', '1 an', '2 ans'] as $g): ?><option value="<?= e($g) ?>" <?= $artiGar === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="notice notice-warning" data-arti-elec-warn<?= ($artiElec && $artiRayonElec) ? '' : ' hidden' ?>><p>⚡ <?= e(t('cuisine.elec_warn')) ?></p></div>
                 </div>
-                <div class="notice notice-warning" data-arti-elec-warn<?= $artiElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('cuisine.elec_warn')) ?></p></div>
 
                 <div class="notice notice-warning"><p>🛡️ <?= e(t('arti.cites_note')) ?></p></div>
 

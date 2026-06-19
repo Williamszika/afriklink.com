@@ -4928,6 +4928,7 @@ document.addEventListener('click', function (ev) {
     var elecTog   = document.querySelector('[data-arti-elec-toggle]');
     var elecBox   = document.querySelector('[data-arti-elec-box]');
     var elecWarn  = document.querySelector('[data-arti-elec-warn]');
+    var elecWrap  = document.querySelector('[data-arti-elec-wrap]');
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -5046,6 +5047,8 @@ document.addEventListener('click', function (ev) {
         if (uniqueNote) { uniqueNote.hidden = !uni; }
         setUniqueLock(uni && active());
     }
+    // Le rayon courant comporte-t-il un type électrique (ex. luminaire) ?
+    function rayonHasElec() { var t = cfg().types || {}; return Object.keys(t).some(function (k) { return !!t[k].elec; }); }
     // Objet électrique (luminaire) : affiche garantie + rappel CE.
     function elecToggle() {
         var on = !!(elecTog && elecTog.checked);
@@ -5056,7 +5059,13 @@ document.addEventListener('click', function (ev) {
         var on = active();
         root.hidden = !on;
         root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
-        if (on) { uniqueToggle(); elecToggle(); } else { setUniqueLock(false); }
+        if (on) {
+            uniqueToggle();
+            var hasElec = rayonHasElec();
+            // Le bloc « électrique » n'apparaît que si le rayon a des types électriques.
+            if (elecWrap) { elecWrap.hidden = !hasElec; if (!hasElec) { elecWrap.querySelectorAll('input, select').forEach(function (f) { f.disabled = true; }); } }
+            if (hasElec) { elecToggle(); }
+        } else { setUniqueLock(false); }
     }
     function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
 

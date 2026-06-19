@@ -89,15 +89,56 @@ return [
                 'Autre objet déco'               => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'usage'], 'axis' => 'Modèle', 'color' => true, 'elec' => false],
             ],
         ],
+
+        'Maroquinerie' => [
+            'groups' => [
+                'sacs'   => 'Sacs',
+                'petite' => 'Petite maroquinerie',
+                'autres' => 'Autres pièces',
+                'autre'  => 'Autre',
+            ],
+            'atouts' => ['Fait main', 'Cuir véritable', 'Tannage végétal', 'Pièce unique', 'Cousu main', 'Commerce équitable', 'Soutien artisan local', 'Wax authentique'],
+            'fields' => [
+                'matiere'      => ['label' => 'Cuir / matière', 'opts' => ['Cuir de vachette', 'Cuir de chèvre', 'Cuir de mouton', 'Cuir tanné végétal', 'Cuir pleine fleur', 'Daim / nubuck', 'Wax + cuir', 'Cuir recyclé', 'Simili / vegan']],
+                'tannage'      => ['label' => 'Tannage', 'opts' => ['Végétal', 'Traditionnel (artisanal)', 'Minéral', 'Non précisé']],
+                'technique'    => ['label' => 'Technique', 'opts' => ['Cousu main', 'Cousu sellier', 'Tressé', 'Repoussé / gravé', 'Teinture artisanale', 'Assemblage wax']],
+                'origine'      => ['label' => 'Origine / tradition', 'opts' => ['Afrique de l’Ouest', 'Maroc', 'Touareg', 'Peul', 'Sahel', 'Afrique de l’Est', 'Non précisé']],
+                'genre'        => ['label' => 'Pour', 'opts' => ['Femme', 'Homme', 'Mixte', 'Enfant']],
+                'couleur_cuir' => ['label' => 'Couleur dominante', 'opts' => ['Naturel / fauve', 'Marron', 'Noir', 'Camel', 'Bordeaux', 'Tan', 'Wax multicolore']],
+                'fermeture'    => ['label' => 'Fermeture', 'opts' => ['Zip', 'Rabat / boucle', 'Cordon', 'Aimant', 'Bouton-pression', 'Sans fermeture']],
+                'doublure'     => ['label' => 'Doublure', 'opts' => ['Wax / tissu', 'Cuir', 'Coton', 'Non doublé']],
+            ],
+            'types' => [
+                // Sacs
+                'Sac à main'                   => ['group' => 'sacs', 'fields' => ['matiere', 'tannage', 'technique', 'origine', 'genre', 'couleur_cuir', 'fermeture', 'doublure'], 'axis' => 'Couleur', 'color' => true],
+                'Sacoche / besace'             => ['group' => 'sacs', 'fields' => ['matiere', 'tannage', 'technique', 'origine', 'genre', 'couleur_cuir', 'fermeture', 'doublure'], 'axis' => 'Couleur', 'color' => true],
+                'Pochette / clutch'            => ['group' => 'sacs', 'fields' => ['matiere', 'technique', 'origine', 'genre', 'couleur_cuir', 'fermeture'], 'axis' => 'Couleur', 'color' => true],
+                'Cabas / panier cuir'          => ['group' => 'sacs', 'fields' => ['matiere', 'technique', 'origine', 'couleur_cuir'], 'axis' => 'Couleur', 'color' => true],
+                'Sac à dos'                    => ['group' => 'sacs', 'fields' => ['matiere', 'tannage', 'technique', 'origine', 'genre', 'couleur_cuir', 'fermeture', 'doublure'], 'axis' => 'Couleur', 'color' => true],
+                // Petite maroquinerie
+                'Portefeuille / porte-cartes'  => ['group' => 'petite', 'fields' => ['matiere', 'tannage', 'technique', 'origine', 'genre', 'couleur_cuir'], 'axis' => 'Couleur', 'color' => true],
+                'Trousse / étui'               => ['group' => 'petite', 'fields' => ['matiere', 'technique', 'origine', 'couleur_cuir', 'fermeture'], 'axis' => 'Couleur', 'color' => true],
+                'Ceinture'                     => ['group' => 'petite', 'fields' => ['matiere', 'tannage', 'technique', 'origine', 'genre', 'couleur_cuir'], 'axis' => 'Taille', 'color' => true],
+                'Bracelet en cuir'             => ['group' => 'petite', 'fields' => ['matiere', 'technique', 'origine', 'genre', 'couleur_cuir'], 'axis' => 'Taille', 'color' => true],
+                // Autres pièces
+                'Sandales / chaussures cuir'   => ['group' => 'autres', 'fields' => ['matiere', 'technique', 'origine', 'genre', 'couleur_cuir'], 'axis' => 'Pointure', 'color' => true],
+                'Pouf (peau)'                  => ['group' => 'autres', 'fields' => ['matiere', 'technique', 'origine', 'couleur_cuir'], 'axis' => 'Couleur', 'color' => true],
+                // Autre
+                'Autre maroquinerie'           => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'origine', 'genre', 'couleur_cuir'], 'axis' => 'Modèle', 'color' => true],
+            ],
+        ],
     ],
 
-    // Remplissage rapide des déclinaisons selon l'axe. 'Taille' propose deux jeux
-    // (bagues / objets) pour couvrir Bijoux et Décoration sans conflit.
+    // Remplissage rapide des déclinaisons selon l'axe. 'Taille' propose plusieurs jeux
+    // (bagues / objets / ceintures / vêtement) pour couvrir tous les rayons sans conflit.
     'size_systems' => [
-        'Taille'  => [
+        'Taille'   => [
             ['label' => 'Tailles bague', 'list' => ['48', '50', '52', '54', '56', '58', '60', 'Réglable']],
             ['label' => 'Tailles objet', 'list' => ['Petit', 'Moyen', 'Grand', 'Très grand']],
+            ['label' => 'Tailles ceinture', 'list' => ['85', '90', '95', '100', '105', '110', 'Réglable']],
+            ['label' => 'Tailles S–XL', 'list' => ['S', 'M', 'L', 'XL']],
         ],
-        'Couleur' => [['label' => 'Couleurs', 'list' => ['Multicolore', 'Naturel', 'Bois', 'Terre cuite', 'Ocre', 'Rouge', 'Vert', 'Bleu', 'Noir', 'Blanc', 'Doré', 'Bronze']]],
+        'Pointure' => [['label' => 'Pointures', 'list' => ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45']]],
+        'Couleur'  => [['label' => 'Couleurs', 'list' => ['Multicolore', 'Naturel', 'Bois', 'Terre cuite', 'Marron', 'Camel', 'Bordeaux', 'Ocre', 'Rouge', 'Noir', 'Blanc', 'Doré']]],
     ],
 ];
