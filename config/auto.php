@@ -15,7 +15,7 @@ declare(strict_types=1);
  */
 return [
     'shop_categories' => ['auto'],
-    'conditions'      => ['Neuf', 'Comme neuf', 'Reconditionné', 'Occasion'],
+    'conditions'      => ['Neuf', 'Comme neuf', 'Reconditionné', 'Échange standard', 'Occasion'],
 
     'rayons' => [
         'Accessoires' => [
@@ -160,13 +160,88 @@ return [
                 'Autre produit d’entretien'        => ['group' => 'autre', 'fields' => ['contenance', 'conditionnement', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false],
             ],
         ],
+
+        'Pièces détachées' => [
+            'groups' => [
+                'moteur'         => 'Moteur',
+                'freinage'       => 'Freinage',
+                'transmission'   => 'Transmission & embrayage',
+                'suspension'     => 'Suspension & direction',
+                'echappement'    => 'Échappement',
+                'refroidissement' => 'Refroidissement',
+                'electrique'     => 'Électrique & démarrage',
+                'carrosserie'    => 'Carrosserie & optique',
+                'autre'          => 'Autre',
+            ],
+            'atouts' => ['Origine constructeur (OE)', 'Équipementier', 'Référence OEM fournie', 'Échange standard', 'Garantie incluse', 'Neuf sous emballage', 'Montage atelier conseillé', 'Forte rotation'],
+            'fields' => [
+                'position' => ['label' => 'Position', 'opts' => ['Avant', 'Arrière', 'Avant gauche', 'Avant droit', 'Arrière gauche', 'Arrière droit', 'Gauche', 'Droit', 'Indifférent']],
+                'matiere'  => ['label' => 'Matière', 'opts' => ['Acier', 'Fonte', 'Aluminium', 'Composite / céramique', 'Plastique', 'Caoutchouc', 'Inox']],
+                'norme'    => ['label' => 'Qualité / origine', 'opts' => ['Origine constructeur (OE)', 'Équipementier (OEM)', 'Adaptable / aftermarket', 'Reconditionné']],
+                'garantie' => ['label' => 'Garantie', 'opts' => ['Aucune', '3 mois', '6 mois', '1 an', '2 ans']],
+            ],
+            // 'specific' => true sur toutes les pièces : la compatibilité passe par défaut
+            // sur « non universel » (une pièce détachée est propre à un véhicule).
+            'types' => [
+                // Moteur
+                'Pièces moteur (bloc, piston…)'        => ['group' => 'moteur', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Joint de culasse'                     => ['group' => 'moteur', 'fields' => ['norme', 'matiere'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Pompe à eau'                          => ['group' => 'moteur', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Pompe à huile'                        => ['group' => 'moteur', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Turbo'                                => ['group' => 'moteur', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Injecteur'                            => ['group' => 'moteur', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Kit / courroie de distribution'       => ['group' => 'moteur', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Courroie accessoire'                  => ['group' => 'moteur', 'fields' => ['norme'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                // Freinage
+                'Plaquettes de frein'                  => ['group' => 'freinage', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Disques de frein'                     => ['group' => 'freinage', 'fields' => ['position', 'matiere', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Étrier de frein'                      => ['group' => 'freinage', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Maître-cylindre'                      => ['group' => 'freinage', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Flexible / durite de frein'           => ['group' => 'freinage', 'fields' => ['position', 'norme'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Tambour / mâchoires'                  => ['group' => 'freinage', 'fields' => ['position', 'norme'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                // Transmission & embrayage
+                'Kit d’embrayage'                      => ['group' => 'transmission', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Volant moteur'                        => ['group' => 'transmission', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Cardan / transmission'                => ['group' => 'transmission', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                // Suspension & direction
+                'Amortisseur'                          => ['group' => 'suspension', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Ressort de suspension'                => ['group' => 'suspension', 'fields' => ['position', 'norme'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Rotule / biellette'                   => ['group' => 'suspension', 'fields' => ['position', 'norme'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Triangle / bras de suspension'        => ['group' => 'suspension', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Crémaillère de direction'             => ['group' => 'suspension', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Roulement de roue'                    => ['group' => 'suspension', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                // Échappement
+                'Ligne / silencieux d’échappement'     => ['group' => 'echappement', 'fields' => ['matiere', 'norme'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Catalyseur'                           => ['group' => 'echappement', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Sonde lambda'                         => ['group' => 'echappement', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Filtre à particules (FAP)'            => ['group' => 'echappement', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                // Refroidissement
+                'Radiateur'                            => ['group' => 'refroidissement', 'fields' => ['matiere', 'norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Thermostat'                           => ['group' => 'refroidissement', 'fields' => ['norme'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Durite / ventilateur'                 => ['group' => 'refroidissement', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                // Électrique & démarrage
+                'Alternateur'                          => ['group' => 'electrique', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Démarreur'                            => ['group' => 'electrique', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Bobine d’allumage'                    => ['group' => 'electrique', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                'Capteur / sonde'                      => ['group' => 'electrique', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+                // Carrosserie & optique
+                'Aile / pare-chocs'                    => ['group' => 'carrosserie', 'fields' => ['position', 'matiere', 'norme'], 'axis' => 'Position', 'color' => true, 'elec' => false, 'specific' => true],
+                'Rétroviseur'                          => ['group' => 'carrosserie', 'fields' => ['position', 'norme'], 'axis' => 'Position', 'color' => true, 'elec' => false, 'specific' => true],
+                'Phare / feu'                          => ['group' => 'carrosserie', 'fields' => ['position', 'norme', 'garantie'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                'Capot / élément de carrosserie'       => ['group' => 'carrosserie', 'fields' => ['position', 'matiere', 'norme'], 'axis' => 'Position', 'color' => true, 'elec' => false, 'specific' => true],
+                'Vitre / lunette'                      => ['group' => 'carrosserie', 'fields' => ['position', 'norme'], 'axis' => 'Position', 'color' => false, 'elec' => false, 'specific' => true],
+                // Autre
+                'Autre pièce détachée'                 => ['group' => 'autre', 'fields' => ['norme', 'garantie'], 'axis' => 'Référence', 'color' => false, 'elec' => false, 'specific' => true],
+            ],
+        ],
     ],
 
-    // Remplissage rapide des déclinaisons selon l'axe (Taille / Couleur / Contenance / Longueur).
+    // Remplissage rapide des déclinaisons selon l'axe (Taille / Couleur / Contenance / Longueur / Position).
     'size_systems' => [
         'Taille'     => [['label' => 'Tailles', 'list' => ['Universel', 'S', 'M', 'L', 'XL']]],
         'Couleur'    => [['label' => 'Couleurs', 'list' => ['Noir', 'Gris', 'Beige', 'Marron', 'Rouge', 'Bleu', 'Blanc', 'Argent']]],
         'Contenance' => [['label' => 'Contenances', 'list' => ['250 ml', '500 ml', '1 L', '2 L', '4 L', '5 L', '20 L']]],
         'Longueur'   => [['label' => 'Longueurs balai', 'list' => ['350 mm', '400 mm', '450 mm', '500 mm', '550 mm', '600 mm', '650 mm']]],
+        'Position'   => [['label' => 'Positions', 'list' => ['Avant', 'Arrière', 'Avant gauche', 'Avant droit', 'Arrière gauche', 'Arrière droit']]],
     ],
 ];

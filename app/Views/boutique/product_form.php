@@ -575,6 +575,7 @@ $fmtP = static function ($cents) use ($cur): string {
                 ? ((string) $rawOldA['universel'] === '1')
                 : (array_key_exists('universel', $autoAttrs) ? !empty($autoAttrs['universel']) : (($autoAttrs['compatibilite'] ?? '') === '' || ($autoAttrs['compatibilite'] ?? '') === 'Universel'));
             $autoCompat = (string) ($rawOldA['compatibilite'] ?? ($autoAttrs['compatibilite'] ?? ''));
+            $autoOemRef = (string) ($rawOldA['ref_oem'] ?? ($autoAttrs['ref_oem'] ?? ''));
             $autoAtoutsSel = isset($rawOldA['atouts']) && is_array($rawOldA['atouts'])
                 ? array_map('strval', $rawOldA['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
@@ -623,6 +624,9 @@ $fmtP = static function ($cents) use ($cur): string {
                 <label for="auto-compat"><?= e(t('auto.f.compat')) ?></label>
                 <textarea id="auto-compat" name="compatibilite" rows="2" maxlength="300" placeholder="<?= e(t('auto.compat_ph')) ?>"<?= ($autoActive && !$autoUniversel) ? '' : ' disabled' ?>><?= e($autoCompat === 'Universel' ? '' : $autoCompat) ?></textarea>
                 <p class="hint"><?= e(t('auto.compat_hint')) ?></p>
+                <label for="auto-oem" style="margin-top:10px"><?= e(t('auto.f.oem')) ?> <span class="muted">(<?= e(t('auto.oem_opt')) ?>)</span></label>
+                <input type="text" id="auto-oem" name="ref_oem" class="mono" maxlength="60" value="<?= e($autoOemRef) ?>" placeholder="<?= e(t('auto.oem_ph')) ?>"<?= ($autoActive && !$autoUniversel) ? '' : ' disabled' ?>>
+                <p class="hint">🔎 <?= e(t('auto.oem_note')) ?></p>
             </div>
 
             <details class="variants-box" open>

@@ -418,12 +418,14 @@ final class ProductController
             $ea = auto_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
             $cond = beauty_clean(input_string('acc_condition', ''), auto_conditions());
             if ($cond !== '') { $ea['condition'] = $cond; }
-            // Compatibilité véhicule : universel (flag) OU liste de véhicules compatibles.
+            // Compatibilité véhicule : universel (flag) OU liste de véhicules + réf. d'origine (OE/OEM).
             if (input_string('universel', '') === '1') {
                 $ea['universel'] = true;
             } else {
                 $compat = mb_substr(trim((string) input_string('compatibilite', '')), 0, 300);
                 if ($compat !== '') { $ea['compatibilite'] = $compat; }
+                $oem = mb_substr(trim((string) input_string('ref_oem', '')), 0, 60);
+                if ($oem !== '') { $ea['ref_oem'] = $oem; }
             }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }

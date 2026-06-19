@@ -4730,12 +4730,13 @@ document.addEventListener('click', function (ev) {
         });
         var det = rowsBox.closest('details'); if (det) { det.open = true; }
     }
-    // Compatibilité véhicule : universel → masque + désactive la liste de véhicules.
+    // Compatibilité véhicule : universel → masque + désactive les champs véhicules / réf. OEM.
     function universelToggle() {
         var uni = !!(universelChk && universelChk.checked);
-        if (compatBox) { compatBox.hidden = uni; }
-        var ta = compatBox ? compatBox.querySelector('textarea') : null;
-        if (ta) { ta.disabled = uni || !active(); }
+        if (compatBox) {
+            compatBox.hidden = uni;
+            compatBox.querySelectorAll('input, textarea').forEach(function (f) { f.disabled = uni || !active(); });
+        }
     }
     function setEnabled() {
         var on = active();

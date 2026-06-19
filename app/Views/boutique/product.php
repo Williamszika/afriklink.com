@@ -176,10 +176,11 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'universel', 'compatibilite', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'universel', 'compatibilite', 'ref_oem', 'variant_axis'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
+                    if (!empty($aAttr['ref_oem'])) { $apTags[] = 'OEM ' . (string) $aAttr['ref_oem']; }
                     if (!empty($aAttr['universel'])) { $apTags[] = t('auto.universel_tag'); }
                     elseif (!empty($aAttr['compatibilite'])) { $apTags[] = t('auto.compat_label') . ' : ' . (string) $aAttr['compatibilite']; }
                 } elseif ($pVertical === 'phone') {
