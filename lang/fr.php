@@ -1796,6 +1796,13 @@ return [
     'bebe.soin.medical_note' => 'Dispositif / soin médical : marquage CE médical, notice et date de péremption obligatoires. Aucune allégation thérapeutique non justifiée.',
     'bebe.soin.supplement_note' => 'Complément / vitamine bébé : à utiliser sur avis d’un professionnel de santé. Respecte la dose journalière et la mention d’avertissement, sans allégation thérapeutique.',
     'bebe.soin.diaper_note' => 'Couches : indique la taille (par poids) et le conditionnement (pack / nombre). Produit neuf scellé.',
+    // Bébé & Enfant — Vêtements bébé (sécurité textile)
+    'bebe.vet.f.condition' => 'État',
+    'bebe.vet.sec_safety' => 'Sécurité & confort',
+    'bebe.vet.f.safe' => 'Conforme sécurité enfant',
+    'bebe.vet.safe_hint' => 'Sans cordon au cou, pressions / boutons solidement fixés.',
+    'bebe.vet.en14682_note' => 'Sécurité textile enfant (EN14682) : aucun cordon ni lien autour du cou (risque de strangulation). Les boutons, pressions et petits éléments doivent être solidement cousus (risque d’étouffement chez les tout-petits).',
+    'bebe.vet.sleep_note' => 'Gigoteuse / turbulette : indique l’indice TOG (épaisseur thermique) — 0,5 TOG l’été, 2,5–3 TOG l’hiver. Choisis la taille au plus juste (encolure et emmanchures ajustées) et n’ajoute jamais de couverture libre dans le lit.',
     'auto.f.type_any' => '— Choisir un type —',
     'auto.sec.compat' => 'Compatibilité véhicule',
     'auto.compat_desc' => 'Indique si l’accessoire est universel ou compatible avec des véhicules précis.',

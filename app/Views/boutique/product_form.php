@@ -1632,6 +1632,108 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /bébé soins -->
         <?php endif; ?>
 
+        <?php if (bebe_capable($boutiqueCat)):
+            $rawOldV  = $_SESSION['_old'] ?? [];
+            $vetAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $vetActive = bebe_vet_is_rayon($curCol);
+            $vetRayon  = $vetActive ? $curCol : (bebe_vet_rayons()[0] ?? 'Vêtements bébé');
+            $vetType   = (string) ($rawOldV['product_type'] ?? ($product['product_type'] ?? ''));
+            $vetMeta   = bebe_vet_type_meta($vetRayon, $vetType);
+            $vetCond   = (string) ($rawOldV['acc_condition'] ?? ($vetAttrs['condition'] ?? 'Neuf avec étiquette'));
+            $vetSafe   = isset($rawOldV['securite_enfant']) ? ((string) $rawOldV['securite_enfant'] === '1')
+                : (array_key_exists('securite_enfant', $vetAttrs) ? !empty($vetAttrs['securite_enfant']) : true);
+            $vetSleep  = $vetMeta !== null && !empty($vetMeta['sleep']);
+            $vetDefaults = (array) ($vetMeta['defaults'] ?? []);
+            $vetAtoutsSel = isset($rawOldV['atouts']) && is_array($rawOldV['atouts'])
+                ? array_map('strval', $rawOldV['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $vetDis = $vetActive ? '' : ' disabled';
+        ?>
+        <div data-bebe-vet
+             data-rayons="<?= e((string) json_encode((array) config('bebe.vet', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('bebe.vet_size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('bebe.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Bébé & Enfant · Vêtements bébé (sécurité textile) ===== -->
+        <div data-bebe-vet-root<?= $vetActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="vet-brand"><?= e(t('bebe.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="vet-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldV['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="ex. Petit Bateau, sans marque…"<?= $vetDis ?>>
+                </div>
+                <div>
+                    <label for="vet-type"><?= e(t('bebe.f.type')) ?> <span class="req">*</span></label>
+                    <select id="vet-type" name="product_type" data-pv="type" data-bebe-vet-type<?= $vetDis ?>>
+                        <option value=""><?= e(t('bebe.f.type_any')) ?></option>
+                        <?php $vetGroups = bebe_vet_groups($vetRayon); ?>
+                        <?php if ($vetGroups !== []): foreach ($vetGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (bebe_vet_types($vetRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $vetType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (bebe_vet_types($vetRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $vetType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="vet-cond"><?= e(t('bebe.vet.f.condition')) ?></label>
+                    <select id="vet-cond" name="acc_condition"<?= $vetDis ?>>
+                        <?php foreach (bebe_vet_conditions() as $cc): ?><option value="<?= e($cc) ?>" <?= $vetCond === $cc ? 'selected' : '' ?>><?= e($cc) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-bebe-vet-hint><?= e($vetMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-bebe-vet-attrs>
+                    <?php if ($vetMeta): foreach ((array) ($vetMeta['fields'] ?? []) as $fk): $fd = bebe_vet_fields($vetRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($vetAttrs[$fk] ?? ''); if ($fv === '' && isset($vetDefaults[$fk])) { $fv = (string) $vetDefaults[$fk]; } ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $vetDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-bebe-vet-atouts>
+                    <?php foreach (bebe_vet_atouts($vetRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $vetAtoutsSel, true) ? 'checked' : '' ?><?= $vetDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+
+            <details class="variants-box" open>
+                <summary>🛡️ <?= e(t('bebe.vet.sec_safety')) ?></summary>
+                <label class="check-row"><input type="checkbox" name="securite_enfant" value="1" data-bebe-vet-safe <?= $vetSafe ? 'checked' : '' ?><?= $vetDis ?>><span><strong><?= e(t('bebe.vet.f.safe')) ?></strong> — <?= e(t('bebe.vet.safe_hint')) ?></span></label>
+                <div class="notice notice-warning" data-bebe-vet-en-note<?= $vetMeta ? '' : ' hidden' ?>><p>🧷 <?= e(t('bebe.vet.en14682_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-vet-sleep-note<?= $vetSleep ? '' : ' hidden' ?>><p>🌙 <?= e(t('bebe.vet.sleep_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="vet-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="vet-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldV['variant_axis'] ?? ($vetAttrs['variant_axis'] ?? ($vetMeta['axis'] ?? 'Taille')))) ?>" placeholder="Taille / Couleur / Lot" data-bebe-vet-axis<?= $vetDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $vetSizes = ($vetMeta && !empty($vetMeta['axis'])) ? (array) (config('bebe.vet_size_systems')[$vetMeta['axis']] ?? []) : []; ?>
+                <label data-bebe-vet-size-label<?= $vetSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-bebe-vet-size-chips<?= $vetSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($vetSizes as $sb): ?><button type="button" class="axis-chip" data-bebe-vet-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /bébé vêtements -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

@@ -231,6 +231,19 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['labels']) && is_array($aAttr['labels'])) {
                         foreach ($aAttr['labels'] as $lb) { if (is_scalar($lb) && trim((string) $lb) !== '') { $apTags[] = (string) $lb; } }
                     }
+                } elseif ($pVertical === 'generic' && bebe_capable((string) ($boutique['category'] ?? '')) && bebe_vet_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Bébé & Enfant · Vêtements bébé : type, taille (âge), TOG, matière, état.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['taille'])) { $apTags[] = '👶 ' . (string) $aAttr['taille']; }
+                    if (!empty($aAttr['tog'])) { $apTags[] = (string) $aAttr['tog']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['condition', 'securite_enfant', 'variant_axis', 'taille', 'tog'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && !str_starts_with((string) $aAttr['condition'], 'Neuf')) { $apTags[] = (string) $aAttr['condition']; }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

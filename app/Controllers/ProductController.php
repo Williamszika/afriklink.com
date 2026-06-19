@@ -529,6 +529,20 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (bebe_capable((string) ($boutique['category'] ?? '')) && bebe_vet_is_rayon($collection)) {
+            // Bébé & Enfant · Vêtements bébé : type-driven specs (taille/âge, matière…) +
+            // état (seconde main courante), confirmation sécurité textile (rappel EN14682).
+            // Les valeurs par défaut du type (ex. gigoteuse → TOG) sont appliquées au nettoyage.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(bebe_vet_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), bebe_vet_atouts($collection)));
+            $ea = bebe_vet_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $cond = beauty_clean(input_string('acc_condition', ''), bebe_vet_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $ea['securite_enfant'] = input_string('securite_enfant', '') === '1';
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

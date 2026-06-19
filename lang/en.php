@@ -1796,6 +1796,13 @@ return [
     'bebe.soin.medical_note' => 'Medical device / care: medical CE marking, instructions and expiry date are mandatory. No unjustified therapeutic claim.',
     'bebe.soin.supplement_note' => 'Baby supplement / vitamin: use on the advice of a health professional. Respect the daily dose and the warning statement, with no therapeutic claim.',
     'bebe.soin.diaper_note' => 'Diapers: state the size (by weight) and the pack (count). New sealed product.',
+    // Baby & Child — Baby clothing (textile safety)
+    'bebe.vet.f.condition' => 'Condition',
+    'bebe.vet.sec_safety' => 'Safety & comfort',
+    'bebe.vet.f.safe' => 'Child-safety compliant',
+    'bebe.vet.safe_hint' => 'No cord at the neck, press studs / buttons firmly attached.',
+    'bebe.vet.en14682_note' => 'Child textile safety (EN14682): no cord or tie around the neck (strangulation hazard). Buttons, press studs and small parts must be firmly sewn (choking hazard for infants).',
+    'bebe.vet.sleep_note' => 'Sleeping bag: state the TOG rating (thermal thickness) — 0.5 TOG in summer, 2.5–3 TOG in winter. Pick the closest size (snug neck and armholes) and never add a loose blanket in the cot.',
     'auto.f.type_any' => '— Choose a type —',
     'auto.sec.compat' => 'Vehicle compatibility',
     'auto.compat_desc' => 'State whether the accessory is universal or fits specific vehicles.',

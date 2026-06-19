@@ -1414,6 +1414,64 @@ function bebe_soin_attr_clean(?string $rayon, ?string $type, array $attrs): arra
     return $out;
 }
 
+/* ---------- Bébé & Enfant · VÊTEMENTS BÉBÉ : moteur séparé, sécurité textile ---------- */
+
+/** @return list<string> États acceptés (seconde main courante). */
+function bebe_vet_conditions(): array { return (array) config('bebe.vet_conditions', ['Neuf avec étiquette', 'Comme neuf', 'Très bon état', 'Bon état']); }
+
+/** @return list<string> Libellés des rayons vêtements bébé type-driven. */
+function bebe_vet_rayons(): array { return array_keys((array) config('bebe.vet', [])); }
+
+/** Ce rayon a-t-il le formulaire vêtements bébé adaptatif ? */
+function bebe_vet_is_rayon(?string $rayon): bool { return isset(((array) config('bebe.vet', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon vêtements bébé par clé. */
+function bebe_vet_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('bebe.vet.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function bebe_vet_fields(?string $rayon): array { return bebe_vet_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function bebe_vet_types(?string $rayon): array { return bebe_vet_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function bebe_vet_groups(?string $rayon): array { return bebe_vet_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function bebe_vet_atouts(?string $rayon): array { return bebe_vet_rayon($rayon, 'atouts'); }
+
+/** Métadonnées d'un type pour un rayon vêtements bébé, ou null. */
+function bebe_vet_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = bebe_vet_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques « select » d'un vêtement bébé : champs du type validés.
+ * Applique au passage les valeurs par défaut du type ('defaults') si absentes.
+ * @return array<string,string>
+ */
+function bebe_vet_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = bebe_vet_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = bebe_vet_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        if (!isset($defs[$key])) { continue; }
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val === '' && isset(((array) ($meta['defaults'] ?? []))[$key])) { $val = (string) $meta['defaults'][$key]; }
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */

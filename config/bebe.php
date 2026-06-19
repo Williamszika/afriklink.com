@@ -253,4 +253,54 @@ return [
         'Contenance' => [['label' => 'Contenances', 'list' => ['100 ml', '200 ml', '400 ml', 'Lot / pack']]],
         'Modèle'     => [],
     ],
+
+    /* =================================================================
+     * VÊTEMENTS BÉBÉ — moteur SÉPARÉ (catégorie boutique « bebe »), piloté
+     * par le TYPE. Tailles par âge/mois. Garde-fous sécurité textile enfant :
+     * rappel EN14682 (aucun cordon au cou, pressions/petites pièces solidement
+     * fixées) ; gigoteuse → indice TOG. Seconde main courante → plusieurs états.
+     * Drapeau : sleep (gigoteuse). Défauts par type via 'defaults'.
+     * ================================================================= */
+    'vet_conditions' => ['Neuf avec étiquette', 'Neuf sans étiquette', 'Comme neuf', 'Très bon état', 'Bon état'],
+
+    'vet' => [
+        'Vêtements bébé' => [
+            'groups' => [
+                'quotidien'   => 'Le quotidien',
+                'habille'     => 'Habillé & saison',
+                'accessoires' => 'Accessoires & bain',
+                'autre'       => 'Autre',
+            ],
+            'atouts' => ['Coton bio', 'GOTS / OEKO-TEX', 'Sans étiquette grattante', 'Pressions à l’entrejambe', 'Évolutif', 'Occasion testée', 'Lot multi-tailles', 'Made in UE'],
+            'fields' => [
+                'taille'    => ['label' => 'Taille (âge)', 'opts' => ['Prématuré', 'Naissance (50 cm)', '1 mois (54 cm)', '3 mois (60 cm)', '6 mois (67 cm)', '9 mois (71 cm)', '12 mois (74 cm)', '18 mois (81 cm)', '24 mois / 2 ans (86 cm)', '3 ans (94 cm)']],
+                'genre'     => ['label' => 'Public', 'opts' => ['Mixte', 'Fille', 'Garçon']],
+                'matiere'   => ['label' => 'Matière', 'opts' => ['Coton', 'Coton bio', 'Coton bio GOTS', 'Velours', 'Laine', 'Polaire', 'Lin', 'Maille', 'Éponge', 'Mélange']],
+                'saison'    => ['label' => 'Saison', 'opts' => ['Toutes saisons', 'Printemps/Été', 'Automne/Hiver', 'Été', 'Hiver']],
+                'fermeture' => ['label' => 'Fermeture', 'opts' => ['Pressions', 'Boutons', 'Zip', 'Élastique', 'Scratch', 'Sans']],
+                'tog'       => ['label' => 'Indice TOG', 'opts' => ['0,5 TOG (été)', '1 TOG', '2 TOG', '2,5 TOG', '3 TOG (hiver)']],
+            ],
+            // types : group, fields, axis (Taille/Couleur), color, + sleep / defaults.
+            'types' => [
+                'Body / bodysuit'                   => ['group' => 'quotidien', 'fields' => ['taille', 'genre', 'matiere', 'saison', 'fermeture'], 'axis' => 'Taille', 'color' => true],
+                'Pyjama / dors-bien'                => ['group' => 'quotidien', 'fields' => ['taille', 'genre', 'matiere', 'saison', 'fermeture'], 'axis' => 'Taille', 'color' => true],
+                'T-shirt / haut'                    => ['group' => 'quotidien', 'fields' => ['taille', 'genre', 'matiere', 'saison'], 'axis' => 'Taille', 'color' => true],
+                'Pantalon / legging'                => ['group' => 'quotidien', 'fields' => ['taille', 'genre', 'matiere', 'saison'], 'axis' => 'Taille', 'color' => true],
+                'Ensemble / combinaison'            => ['group' => 'quotidien', 'fields' => ['taille', 'genre', 'matiere', 'saison', 'fermeture'], 'axis' => 'Taille', 'color' => true],
+                'Robe / jupe'                       => ['group' => 'habille', 'fields' => ['taille', 'genre', 'matiere', 'saison'], 'axis' => 'Taille', 'color' => true, 'defaults' => ['genre' => 'Fille']],
+                'Manteau / veste'                   => ['group' => 'habille', 'fields' => ['taille', 'genre', 'matiere', 'saison', 'fermeture'], 'axis' => 'Taille', 'color' => true],
+                'Gigoteuse / turbulette'            => ['group' => 'habille', 'fields' => ['taille', 'tog', 'matiere', 'saison'], 'axis' => 'Taille', 'color' => true, 'sleep' => true, 'defaults' => ['tog' => '2,5 TOG']],
+                'Bonnet / accessoire'               => ['group' => 'accessoires', 'fields' => ['taille', 'genre', 'matiere', 'saison'], 'axis' => 'Couleur', 'color' => true],
+                'Chaussettes / collants'            => ['group' => 'accessoires', 'fields' => ['taille', 'genre', 'matiere'], 'axis' => 'Couleur', 'color' => true],
+                'Sortie de bain / cape'             => ['group' => 'accessoires', 'fields' => ['taille', 'matiere'], 'axis' => 'Couleur', 'color' => true],
+                'Maillot de bain / couche de bain'  => ['group' => 'accessoires', 'fields' => ['taille', 'genre', 'matiere'], 'axis' => 'Couleur', 'color' => true],
+                'Autre vêtement bébé'               => ['group' => 'autre', 'fields' => ['taille', 'genre', 'matiere', 'saison'], 'axis' => 'Taille', 'color' => true],
+            ],
+        ],
+    ],
+
+    'vet_size_systems' => [
+        'Taille'  => [['label' => 'Tailles', 'list' => ['Naissance', '3 mois', '6 mois', '9 mois', '12 mois', '18 mois', '24 mois']]],
+        'Couleur' => [['label' => 'Couleurs', 'list' => ['Blanc', 'Écru', 'Bleu ciel', 'Rose poudré', 'Vert sauge', 'Jaune', 'Gris', 'Beige', 'Moutarde', 'Terracotta', 'Marine', 'Multicolore']]],
+    ],
 ];
