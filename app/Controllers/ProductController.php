@@ -586,6 +586,11 @@ final class ProductController
             $ea = sport_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
             $cond = beauty_clean(input_string('acc_condition', ''), sport_conditions());
             if ($cond !== '') { $ea['condition'] = $cond; }
+            $spMeta = sport_type_meta($collection, $productType);
+            // Drapeau « électrique » déterminé par le TYPE (config), pas par le POST.
+            if ($spMeta !== null && !empty($spMeta['elec'])) { $ea['elec'] = true; }
+            // Vente par paire : seulement pertinent pour les poids (anti-injection).
+            if ($spMeta !== null && !empty($spMeta['weight']) && input_string('par_paire', '') === '1') { $ea['par_paire'] = true; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

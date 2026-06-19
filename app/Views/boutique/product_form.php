@@ -1877,6 +1877,10 @@ $fmtP = static function ($cents) use ($cur): string {
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
             $spCleats = $spMeta !== null && !empty($spMeta['cleats']);
             $spWater  = $spMeta !== null && !empty($spMeta['water']);
+            $spElec   = $spMeta !== null && !empty($spMeta['elec']);
+            $spHeavy  = $spMeta !== null && !empty($spMeta['heavy']);
+            $spWeight = $spMeta !== null && !empty($spMeta['weight']);
+            $spPair   = isset($rawOldSp['par_paire']) ? ((string) $rawOldSp['par_paire'] === '1') : !empty($spAttrs['par_paire']);
             $spDefaults = (array) ($spMeta['defaults'] ?? []);
             $spDis = $spActive ? '' : ' disabled';
         ?>
@@ -1935,8 +1939,14 @@ $fmtP = static function ($cents) use ($cur): string {
                     <?php endforeach; endif; ?>
                 </div>
 
+                <div data-sport-pair-wrap<?= $spWeight ? '' : ' hidden' ?>>
+                    <label class="check-row" style="margin-top:12px"><input type="checkbox" name="par_paire" value="1" data-sport-pair <?= $spPair ? 'checked' : '' ?><?= $spWeight ? $spDis : ' disabled' ?>><span><strong><?= e(t('sport.f.par_paire')) ?></strong> — <?= e(t('sport.par_paire_hint')) ?></span></label>
+                </div>
                 <div class="notice notice-info" data-sport-cleats-note<?= $spCleats ? '' : ' hidden' ?>><p>⚽ <?= e(t('sport.cleats_note')) ?></p></div>
                 <div class="notice notice-info" data-sport-water-note<?= $spWater ? '' : ' hidden' ?>><p>🌊 <?= e(t('sport.water_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-elec-note<?= $spElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('sport.elec_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-heavy-note<?= $spHeavy ? '' : ' hidden' ?>><p>🧰 <?= e(t('sport.heavy_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-weight-note<?= $spWeight ? '' : ' hidden' ?>><p>🏋️ <?= e(t('sport.weight_note')) ?></p></div>
 
                 <div class="grid-2" style="margin-top:12px">
                     <div>

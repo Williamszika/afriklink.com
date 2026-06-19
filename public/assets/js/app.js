@@ -5647,6 +5647,10 @@ document.addEventListener('click', function (ev) {
     var axisInp   = document.querySelector('[data-sport-axis]');
     var cleatsNote= document.querySelector('[data-sport-cleats-note]');
     var waterNote = document.querySelector('[data-sport-water-note]');
+    var elecNote  = document.querySelector('[data-sport-elec-note]');
+    var heavyNote = document.querySelector('[data-sport-heavy-note]');
+    var weightNote= document.querySelector('[data-sport-weight-note]');
+    var pairWrap  = document.querySelector('[data-sport-pair-wrap]');
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -5733,6 +5737,13 @@ document.addEventListener('click', function (ev) {
         var m = meta();
         show(cleatsNote, !!(m && m.cleats));
         show(waterNote, !!(m && m.water));
+        show(elecNote, !!(m && m.elec));
+        show(heavyNote, !!(m && m.heavy));
+        show(weightNote, !!(m && m.weight));
+        // Vente à la paire : seulement pour les poids (anti-soumission fantôme).
+        var weight = !!(m && m.weight);
+        show(pairWrap, weight);
+        if (pairWrap) { pairWrap.querySelectorAll('input').forEach(function (i) { i.disabled = !weight || !active(); }); }
     }
     function onType() {
         var m = meta();
@@ -5763,6 +5774,7 @@ document.addEventListener('click', function (ev) {
             root.hidden = !known;
             root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !known; });
         }
+        if (known) { notesToggle(); } // réapplique l'état du toggle « par paire » (masqué = désactivé)
     }
     function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
 
