@@ -505,6 +505,30 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (bebe_capable((string) ($boutique['category'] ?? '')) && bebe_soin_is_rayon($collection)) {
+            // Bébé & Enfant · Soins : type-driven specs + labels, péremption. HYGIÈNE →
+            // état figé « neuf scellé ». Drapeaux cosmétique/médical/complément (par le TYPE)
+            // pilotent les rappels (UE 1223/2009, CE médical, avis santé).
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(bebe_soin_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), bebe_soin_atouts($collection)));
+            $ea = bebe_soin_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $sMeta = bebe_soin_type_meta($collection, $productType);
+            $ea['condition'] = bebe_soin_condition(); // figé (hygiène) — pas de choix vendeur
+            // Labels : seulement si le type les expose (anti-injection).
+            if ($sMeta !== null && in_array('labels', (array) ($sMeta['fields'] ?? []), true)) {
+                $lbl = keep_in_list((array) ($_POST['labels'] ?? []), bebe_soin_labels());
+                if ($lbl !== []) { $ea['labels'] = $lbl; }
+            }
+            $perRaw = trim((string) input_string('peremption', ''));
+            if ($perRaw !== '' && strtotime($perRaw) !== false) { $ea['peremption'] = date('Y-m-d', (int) strtotime($perRaw)); }
+            // Drapeaux réglementaires déterminés par le TYPE (config), pas par le POST.
+            if ($sMeta !== null && !empty($sMeta['cosmetic']))   { $ea['cosmetique'] = true; }
+            if ($sMeta !== null && !empty($sMeta['medical']))    { $ea['medical'] = true; }
+            if ($sMeta !== null && !empty($sMeta['supplement'])) { $ea['complement'] = true; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

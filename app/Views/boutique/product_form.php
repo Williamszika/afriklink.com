@@ -1506,6 +1506,132 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /bébé puériculture -->
         <?php endif; ?>
 
+        <?php if (bebe_capable($boutiqueCat)):
+            $rawOldS   = $_SESSION['_old'] ?? [];
+            $soinAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $soinActive = bebe_soin_is_rayon($curCol);
+            $soinRayon  = $soinActive ? $curCol : (bebe_soin_rayons()[0] ?? 'Soins');
+            $soinType   = (string) ($rawOldS['product_type'] ?? ($product['product_type'] ?? ''));
+            $soinMeta   = bebe_soin_type_meta($soinRayon, $soinType);
+            $soinPerem  = (string) ($rawOldS['peremption'] ?? ($soinAttrs['peremption'] ?? ''));
+            $soinLabelsSel = isset($rawOldS['labels']) && is_array($rawOldS['labels'])
+                ? array_map('strval', $rawOldS['labels'])
+                : array_map('strval', (array) ($soinAttrs['labels'] ?? []));
+            $soinAtoutsSel = isset($rawOldS['atouts']) && is_array($rawOldS['atouts'])
+                ? array_map('strval', $rawOldS['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $soinFields = (array) ($soinMeta['fields'] ?? []);
+            $soinShowLabels = in_array('labels', $soinFields, true);
+            $soinCosm = $soinMeta !== null && !empty($soinMeta['cosmetic']);
+            $soinSun  = $soinMeta !== null && !empty($soinMeta['sun']);
+            $soinMed  = $soinMeta !== null && !empty($soinMeta['medical']);
+            $soinSup  = $soinMeta !== null && !empty($soinMeta['supplement']);
+            $soinDia  = $soinMeta !== null && !empty($soinMeta['diaper']);
+            $soinShowPerem = $soinCosm || $soinMed || $soinSup;
+            $soinSunDef = (string) config('bebe.soin_sun_default', 'SPF 50+');
+            $soinDis  = $soinActive ? '' : ' disabled';
+        ?>
+        <div data-bebe-soin
+             data-rayons="<?= e((string) json_encode((array) config('bebe.soin', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('bebe.soin_size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-sun-default="<?= e($soinSunDef) ?>"
+             data-any="<?= e(t('bebe.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Bébé & Enfant · Soins (hygiène / santé) ===== -->
+        <div data-bebe-soin-root<?= $soinActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="soin-brand"><?= e(t('bebe.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="soin-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldS['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="ex. Mustela, Pampers, marque locale…"<?= $soinDis ?>>
+                </div>
+                <div>
+                    <label for="soin-type"><?= e(t('bebe.f.type')) ?> <span class="req">*</span></label>
+                    <select id="soin-type" name="product_type" data-pv="type" data-bebe-soin-type<?= $soinDis ?>>
+                        <option value=""><?= e(t('bebe.f.type_any')) ?></option>
+                        <?php $soinGroups = bebe_soin_groups($soinRayon); ?>
+                        <?php if ($soinGroups !== []): foreach ($soinGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (bebe_soin_types($soinRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $soinType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (bebe_soin_types($soinRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $soinType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label><?= e(t('bebe.soin.f.condition')) ?></label>
+                    <div class="static-val"><?= e(t('bebe.soin.condition_fixed')) ?></div>
+                    <span class="hint"><?= e(t('bebe.soin.condition_hint')) ?></span>
+                </div>
+                <div></div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-bebe-soin-hint><?= e($soinMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-bebe-soin-attrs>
+                    <?php if ($soinMeta): foreach ($soinFields as $fk): $fd = bebe_soin_fields($soinRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($soinAttrs[$fk] ?? ''); if ($fv === '' && $soinSun && $fk === 'spf') { $fv = $soinSunDef; } ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $soinDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <div data-bebe-soin-labels-wrap<?= $soinShowLabels ? '' : ' hidden' ?>>
+                    <label style="margin-top:12px"><?= e(t('bebe.soin.f.labels')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <div class="chip-checks" data-bebe-soin-labels>
+                        <?php foreach (bebe_soin_labels() as $lb): ?>
+                            <label class="chip-check"><input type="checkbox" name="labels[]" value="<?= e($lb) ?>" <?= in_array($lb, $soinLabelsSel, true) ? 'checked' : '' ?><?= $soinShowLabels ? $soinDis : ' disabled' ?>><span><?= e($lb) ?></span></label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-bebe-soin-atouts>
+                    <?php foreach (bebe_soin_atouts($soinRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $soinAtoutsSel, true) ? 'checked' : '' ?><?= $soinDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+
+            <details class="variants-box" open>
+                <summary>🛡️ <?= e(t('bebe.soin.sec_safety')) ?></summary>
+                <div data-bebe-soin-perem-wrap<?= $soinShowPerem ? '' : ' hidden' ?>>
+                    <label for="soin-perem"><?= e(t('bebe.soin.f.peremption')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="date" id="soin-perem" name="peremption" value="<?= e($soinPerem) ?>"<?= $soinShowPerem ? $soinDis : ' disabled' ?>>
+                    <span class="hint"><?= e(t('bebe.soin.peremption_hint')) ?></span>
+                </div>
+                <div class="notice notice-info" data-bebe-soin-cosmetic-note<?= $soinCosm ? '' : ' hidden' ?>><p>🧴 <?= e(t('bebe.soin.cosmetic_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-soin-sun-note<?= $soinSun ? '' : ' hidden' ?>><p>☀️ <?= e(t('bebe.soin.sun_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-soin-medical-note<?= $soinMed ? '' : ' hidden' ?>><p>⚕️ <?= e(t('bebe.soin.medical_note')) ?></p></div>
+                <div class="notice notice-warning" data-bebe-soin-supplement-note<?= $soinSup ? '' : ' hidden' ?>><p>⚖️ <?= e(t('bebe.soin.supplement_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-soin-diaper-note<?= $soinDia ? '' : ' hidden' ?>><p>👶 <?= e(t('bebe.soin.diaper_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="soin-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="soin-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldS['variant_axis'] ?? ($soinAttrs['variant_axis'] ?? ($soinMeta['axis'] ?? 'Contenance')))) ?>" placeholder="Taille / Contenance / Lot" data-bebe-soin-axis<?= $soinDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $soinSizes = ($soinMeta && !empty($soinMeta['axis'])) ? (array) (config('bebe.soin_size_systems')[$soinMeta['axis']] ?? []) : []; ?>
+                <label data-bebe-soin-size-label<?= $soinSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-bebe-soin-size-chips<?= $soinSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($soinSizes as $sb): ?><button type="button" class="axis-chip" data-bebe-soin-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /bébé soins -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

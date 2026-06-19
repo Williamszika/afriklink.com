@@ -192,4 +192,65 @@ return [
         'Couleur' => [['label' => 'Couleurs', 'list' => ['Gris', 'Noir', 'Beige', 'Bleu', 'Rose', 'Vert', 'Rouge', 'Blanc', 'Bois', 'Jaune', 'Turquoise', 'Taupe']]],
         'Modèle'  => [],
     ],
+
+    /* =================================================================
+     * SOINS — moteur SÉPARÉ (catégorie boutique « bebe »), piloté par le
+     * TYPE. HYGIÈNE : produits NEUFS SCELLÉS uniquement (état figé).
+     * Garde-fous selon le type : cosmétique bébé (Règlement UE 1223/2009,
+     * INCI, PAO) ; solaire (SPF + rappel soleil < 6 mois) ; dispositif
+     * médical (CE médical) ; complément / vitamine (avis santé) ; couche
+     * (taille par poids). Drapeaux : cosmetic / sun / medical / supplement / diaper.
+     * ================================================================= */
+    'soin_condition' => 'Neuf (scellé)',
+    'soin_labels'    => ['Bio', 'Hypoallergénique', 'Sans parfum', 'Testé sous contrôle dermatologique', 'Sans paraben', 'Vegan', 'Naturel', 'Fabriqué en UE'],
+
+    'soin' => [
+        'Soins' => [
+            'groups' => [
+                'change'     => 'Change & hygiène',
+                'bain'       => 'Bain & corps',
+                'specifique' => 'Soin spécifique',
+                'autre'      => 'Autre',
+            ],
+            'atouts' => ['Bio', 'Hypoallergénique', 'Sans parfum', 'Peau sensible', 'Économique (pack)', 'Marque reconnue', 'Naturel', 'Made in UE'],
+            // Champs « select » génériques. 'labels' (multi) est géré à part (chips).
+            'fields' => [
+                'age'           => ['label' => 'Âge conseillé', 'opts' => ['Dès la naissance', 'Dès 0 mois', 'Dès 3 mois', 'Dès 6 mois', 'Dès 1 an', 'Dès 3 ans', 'Tout âge']],
+                'taille_couche' => ['label' => 'Taille (couche)', 'opts' => ['T0 (< 2,5 kg)', 'T1 (2–5 kg)', 'T2 (3–6 kg)', 'T3 (4–9 kg)', 'T4 (7–18 kg)', 'T5 (11–25 kg)', 'T6 (> 16 kg)', 'Culotte (P/M/G)']],
+                'contenance'    => ['label' => 'Contenance / quantité', 'opts' => ['Échantillon', '50 ml', '100 ml', '200 ml', '400 ml', '500 ml', 'Lot / pack', 'Mega pack']],
+                'peau'          => ['label' => 'Type de peau', 'opts' => ['Normale', 'Sèche', 'Sensible', 'Atopique', 'À tendance eczéma', 'Mixte']],
+                'spf'           => ['label' => 'Indice SPF', 'opts' => ['SPF 30', 'SPF 50', 'SPF 50+']],
+                'forme'         => ['label' => 'Forme', 'opts' => ['Crème', 'Lait', 'Gel', 'Huile', 'Mousse', 'Liquide', 'Lingette', 'Pain solide', 'Spray']],
+            ],
+            // types : group, fields (dont 'labels' marqueur des chips), axis, + drapeaux.
+            'types' => [
+                'Couches / couches lavables'           => ['group' => 'change', 'fields' => ['taille_couche', 'contenance'], 'axis' => 'Taille', 'diaper' => true],
+                'Lingettes'                            => ['group' => 'change', 'fields' => ['contenance', 'peau', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Crème pour le change'                 => ['group' => 'change', 'fields' => ['age', 'contenance', 'peau', 'forme', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Liniment'                             => ['group' => 'change', 'fields' => ['contenance', 'peau', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Coton / carrés'                       => ['group' => 'change', 'fields' => ['contenance', 'labels'], 'axis' => 'Contenance'],
+                'Gel lavant / shampooing bébé'         => ['group' => 'bain', 'fields' => ['age', 'contenance', 'peau', 'forme', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Savon / pain dermatologique'          => ['group' => 'bain', 'fields' => ['contenance', 'peau', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Crème hydratante / lait corps'        => ['group' => 'bain', 'fields' => ['age', 'contenance', 'peau', 'forme', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Huile de massage'                     => ['group' => 'bain', 'fields' => ['contenance', 'peau', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Eau nettoyante / micellaire'          => ['group' => 'bain', 'fields' => ['contenance', 'peau', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+                'Crème solaire bébé/enfant'            => ['group' => 'specifique', 'fields' => ['age', 'spf', 'contenance', 'peau', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true, 'sun' => true],
+                'Sérum physiologique / soin nez'       => ['group' => 'specifique', 'fields' => ['contenance'], 'axis' => 'Contenance', 'medical' => true],
+                'Soin dentaire (dentifrice, brosse)'   => ['group' => 'specifique', 'fields' => ['age', 'contenance', 'labels'], 'axis' => 'Contenance'],
+                'Thermomètre'                          => ['group' => 'specifique', 'fields' => ['age'], 'axis' => 'Modèle', 'medical' => true],
+                'Trousse de soin / pharmacie'          => ['group' => 'specifique', 'fields' => ['age'], 'axis' => 'Modèle'],
+                'Complément / vitamine bébé'           => ['group' => 'specifique', 'fields' => ['age', 'contenance'], 'axis' => 'Contenance', 'supplement' => true],
+                'Autre soin bébé/enfant'               => ['group' => 'autre', 'fields' => ['age', 'contenance', 'peau', 'forme', 'labels'], 'axis' => 'Contenance', 'cosmetic' => true],
+            ],
+        ],
+    ],
+
+    // Valeur SPF par défaut appliquée au choix d'un type solaire.
+    'soin_sun_default' => 'SPF 50+',
+
+    'soin_size_systems' => [
+        'Taille'     => [['label' => 'Tailles couche', 'list' => ['T1', 'T2', 'T3', 'T4', 'T5', 'T6']]],
+        'Contenance' => [['label' => 'Contenances', 'list' => ['100 ml', '200 ml', '400 ml', 'Lot / pack']]],
+        'Modèle'     => [],
+    ],
 ];

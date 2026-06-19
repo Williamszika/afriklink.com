@@ -215,6 +215,22 @@ foreach ($realVariants as $rv) {
                     }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                     if (!empty($aAttr['ce'])) { $apTags[] = 'CE'; }
+                } elseif ($pVertical === 'generic' && bebe_capable((string) ($boutique['category'] ?? '')) && bebe_soin_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Bébé & Enfant · Soins : type, taille couche / SPF / âge, contenance, labels.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['taille_couche'])) { $apTags[] = (string) $aAttr['taille_couche']; }
+                    elseif (!empty($aAttr['spf'])) { $apTags[] = (string) $aAttr['spf']; }
+                    elseif (!empty($aAttr['age'])) { $apTags[] = '👶 ' . (string) $aAttr['age']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['condition', 'labels', 'peremption', 'cosmetique', 'medical', 'complement', 'variant_axis', 'taille_couche', 'spf', 'age'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['labels']) && is_array($aAttr['labels'])) {
+                        foreach ($aAttr['labels'] as $lb) { if (is_scalar($lb) && trim((string) $lb) !== '') { $apTags[] = (string) $lb; } }
+                    }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

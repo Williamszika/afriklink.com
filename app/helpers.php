@@ -1355,6 +1355,65 @@ function bebe_puer_attr_clean(?string $rayon, ?string $type, array $attrs): arra
     return $out;
 }
 
+/* ---------- Bébé & Enfant · SOINS : moteur séparé, hygiène/santé ---------- */
+
+/** État figé des produits de soin (hygiène : neuf scellé uniquement). */
+function bebe_soin_condition(): string { return (string) config('bebe.soin_condition', 'Neuf (scellé)'); }
+
+/** @return list<string> Labels / mentions proposés (multi). */
+function bebe_soin_labels(): array { return (array) config('bebe.soin_labels', []); }
+
+/** @return list<string> Libellés des rayons soins type-driven. */
+function bebe_soin_rayons(): array { return array_keys((array) config('bebe.soin', [])); }
+
+/** Ce rayon a-t-il le formulaire soins adaptatif ? */
+function bebe_soin_is_rayon(?string $rayon): bool { return isset(((array) config('bebe.soin', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon soins par clé. */
+function bebe_soin_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('bebe.soin.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function bebe_soin_fields(?string $rayon): array { return bebe_soin_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function bebe_soin_types(?string $rayon): array { return bebe_soin_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function bebe_soin_groups(?string $rayon): array { return bebe_soin_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function bebe_soin_atouts(?string $rayon): array { return bebe_soin_rayon($rayon, 'atouts'); }
+
+/** Métadonnées d'un type pour un rayon soins, ou null. */
+function bebe_soin_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = bebe_soin_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques « select » d'un produit de soin (labels gérés à part).
+ * @return array<string,string>
+ */
+function bebe_soin_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = bebe_soin_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = bebe_soin_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        if (!isset($defs[$key])) { continue; } // 'labels' n'a pas de définition → géré en chips
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */
