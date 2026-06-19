@@ -1144,6 +1144,21 @@ function alim_attr_clean(?string $rayon, ?string $type, array $attrs): array
     return $out;
 }
 
+/** Config « nouveau rayon » Alimentation (rayon_suggest, generic_specs, atout_suggest, warn_text, R). */
+function alim_autre(?string $key = null): array
+{
+    $cfg = (array) config('alimentation.autre', []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** Config adaptative d'un rayon Alimentation « autre » par son libellé (slug) — ou null si inconnu. */
+function alim_autre_cfg(?string $rayon): ?array
+{
+    $r = (alim_autre('R'))[beauty_slug($rayon)] ?? null;
+    return is_array($r) ? $r : null;
+}
+
 
 
 /** @return list<string> */

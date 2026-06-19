@@ -156,6 +156,19 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
                         $apTags[] = t('alim.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
                     }
+                } elseif ($pVertical === 'generic' && alim_capable((string) ($boutique['category'] ?? '')) && (string) ($product['collection'] ?? '') !== '') {
+                    // Nouveau rayon Alimentation (hors des rayons répertoriés) : caractéristiques libres (specs) + conservation / allergènes.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['specs']) && is_array($aAttr['specs'])) {
+                        foreach ($aAttr['specs'] as $sv) { if (is_scalar($sv) && trim((string) $sv) !== '') { $apTags[] = (string) $sv; } }
+                    }
+                    if (!empty($aAttr['conservation']) && $aAttr['conservation'] !== 'Ambiante / sèche') { $apTags[] = (string) $aAttr['conservation']; }
+                    if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
+                        $apTags[] = t('alim.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
+                    }
                 } elseif ($pVertical === 'phone') {
                     // Fiche téléphone (legacy) OU rayon électronique « autre » : specs libres dans attributes.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

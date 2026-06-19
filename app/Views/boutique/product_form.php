@@ -329,10 +329,28 @@ $fmtP = static function ($cents) use ($cur): string {
             $alimCold = $alimConserv !== '' && $alimConserv !== 'Ambiante / sèche';
             $alimAlc  = $alimMeta !== null && !empty($alimMeta['alcool']);
             $alimDis = $alimActive ? '' : ' disabled';
+            // « Nouveau rayon » Alimentation : rayon hors des rayons répertoriés.
+            $alimAutreActive = !$alimActive && $curCol !== '';
+            $alimAutreCfg    = alim_autre_cfg($curCol);
+            $alimAutreType   = (string) ($rawOldF['product_type'] ?? ($product['product_type'] ?? ''));
+            $alimAutreConserv = (string) ($rawOldF['conservation'] ?? ($alimAttrs['conservation'] ?? ($alimAutreCfg['conserv'] ?? 'Ambiante / sèche')));
+            $alimAutreDlc     = (string) ($rawOldF['dlc_type'] ?? ($alimAttrs['dlc_type'] ?? ''));
+            $alimAutreDate    = (string) ($rawOldF['date_limite'] ?? ($alimAttrs['date_limite'] ?? ''));
+            $alimAutreCold = $alimAutreConserv !== '' && $alimAutreConserv !== 'Ambiante / sèche';
+            $alimAutreBaby = ($alimAutreCfg !== null && !empty($alimAutreCfg['baby'])) || preg_match('/b[ée]b[ée]|nourrisson/iu', $curCol) === 1;
+            $alimAutreSpecs = [];
+            if (isset($rawOldF['spec_label']) && is_array($rawOldF['spec_label'])) {
+                foreach ($rawOldF['spec_label'] as $i => $lb) { $alimAutreSpecs[] = ['label' => (string) $lb, 'value' => (string) ($rawOldF['spec_value'][$i] ?? '')]; }
+            } elseif (is_array($alimAttrs['specs'] ?? null)) {
+                foreach ($alimAttrs['specs'] as $lb => $val) { $alimAutreSpecs[] = ['label' => (string) $lb, 'value' => (string) $val]; }
+            }
+            $alimAutreDis = $alimAutreActive ? '' : ' disabled';
         ?>
         <div data-alim
              data-rayons="<?= e((string) json_encode((array) config('alimentation.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-size-systems="<?= e((string) json_encode((array) config('alimentation.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre="<?= e((string) json_encode(alim_autre(), JSON_UNESCAPED_UNICODE)) ?>"
+             data-autre-adapted="<?= e(t('autre.adapted', ['rayon' => '%R%'])) ?>" data-autre-generic="<?= e(t('alim.autre_generic')) ?>"
              data-any="<?= e(t('alim.f.type_any')) ?>" data-ambient="Ambiante / sèche"
              data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
 
@@ -432,6 +450,115 @@ $fmtP = static function ($cents) use ($cur): string {
                 </div>
             </details>
         </div><!-- /alim adaptatif -->
+
+        <!-- ===== Alimentation : NOUVEAU RAYON (adaptatif au slug) ===== -->
+        <div data-alim-autre-root<?= $alimAutreActive ? '' : ' hidden' ?>>
+            <p class="hint" data-alim-autre-hint><?= $alimAutreCfg ? e(t('autre.adapted', ['rayon' => $curCol])) : e(t('alim.autre_generic')) ?></p>
+            <div class="grid-2">
+                <div>
+                    <label for="aua-brand"><?= e(t('alim.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="aua-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldF['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('alim.brand_ph')) ?>"<?= $alimAutreDis ?>>
+                </div>
+                <div>
+                    <label for="aua-type"><?= e(t('alim.f.type')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="aua-type" name="product_type" data-pv="type" maxlength="60" value="<?= e($alimAutreType) ?>" placeholder="<?= e(t('alim.autre_type_ph')) ?>"<?= $alimAutreDis ?>>
+                </div>
+            </div>
+            <label style="margin-top:10px"><?= e(t('autre.rayon_suggest')) ?></label>
+            <div class="chips-row" data-alim-autre-rayon-chips>
+                <?php foreach (alim_autre('rayon_suggest') as $rs): ?><button type="button" class="axis-chip" data-alim-autre-rayon="<?= e($rs) ?>"><?= e($rs) ?></button><?php endforeach; ?>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>🧩 <?= e(t('beauty.sec.specs')) ?></summary>
+                <p class="hint"><?= e(t('autre.specs_hint')) ?></p>
+                <div class="axis-suggest" data-alim-autre-spec-box>
+                    <span class="axis-suggest-label"><?= e(t('autre.spec_suggest')) ?></span>
+                    <div class="axis-suggest-chips" data-alim-autre-spec-chips>
+                        <?php foreach (($alimAutreCfg['specs'] ?? alim_autre('generic_specs')) as $sp): ?><button type="button" class="axis-chip" data-alim-autre-spec data-val="<?= e($sp) ?>"><?= e($sp) ?></button><?php endforeach; ?>
+                    </div>
+                </div>
+                <div class="spec-rows" data-alim-autre-specs>
+                    <div class="spec-head"><span><?= e(t('autre.spec_label')) ?></span><span><?= e(t('autre.spec_value')) ?></span><span></span></div>
+                    <?php foreach ($alimAutreSpecs as $sp): if (trim($sp['label']) === '' && trim($sp['value']) === '') { continue; } ?>
+                        <div class="spec-row">
+                            <input type="text" name="spec_label[]" value="<?= e($sp['label']) ?>" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>"<?= $alimAutreDis ?>>
+                            <input type="text" name="spec_value[]" value="<?= e($sp['value']) ?>" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>"<?= $alimAutreDis ?>>
+                            <button type="button" class="variant-del" data-alim-autre-spec-del aria-label="✕">✕</button>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" class="btn btn-ghost btn-sm" data-alim-autre-spec-add>+ <?= e(t('autre.spec_add')) ?></button>
+                <template id="alim-autre-spec-template">
+                    <div class="spec-row">
+                        <input type="text" name="spec_label[]" maxlength="40" placeholder="<?= e(t('autre.spec_label_ph')) ?>">
+                        <input type="text" name="spec_value[]" maxlength="80" placeholder="<?= e(t('autre.spec_value_ph')) ?>">
+                        <button type="button" class="variant-del" data-alim-autre-spec-del aria-label="✕">✕</button>
+                    </div>
+                </template>
+
+                <div class="grid-2" style="margin-top:14px">
+                    <div>
+                        <label for="aua-conserv"><?= e(t('alim.f.conservation')) ?></label>
+                        <select id="aua-conserv" name="conservation" data-alim-autre-conserv<?= $alimAutreDis ?>>
+                            <?php foreach (alim_conservations() as $cs): ?><option value="<?= e($cs) ?>" <?= $alimAutreConserv === $cs ? 'selected' : '' ?>><?= e($cs) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="aua-dlc"><?= e(t('alim.f.dlc_type')) ?></label>
+                        <select id="aua-dlc" name="dlc_type" data-alim-autre-dlc<?= $alimAutreDis ?>>
+                            <option value=""><?= e(t('alim.f.dlc_none')) ?></option>
+                            <?php foreach (alim_dlc_types() as $d): ?><option value="<?= e($d) ?>" <?= $alimAutreDlc === $d ? 'selected' : '' ?>><?= e($d) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label for="aua-date"><?= e(t('alim.f.date_limite')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                        <input type="date" id="aua-date" name="date_limite" value="<?= e($alimAutreDate) ?>"<?= $alimAutreDis ?>>
+                    </div>
+                    <div>
+                        <label for="aua-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="aua-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldF['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="ALIM-001"<?= $alimAutreDis ?>>
+                    </div>
+                </div>
+                <div class="notice notice-info" data-alim-autre-cold-note<?= $alimAutreCold ? '' : ' hidden' ?>><p>❄️ <?= e(t('alim.cold_note')) ?></p></div>
+                <div class="notice notice-warning" data-alim-autre-baby-note<?= $alimAutreBaby ? '' : ' hidden' ?>><p>👶 <?= e(t('alim.baby_note')) ?></p></div>
+
+                <label style="margin-top:12px"><?= e(t('alim.f.allergenes')) ?> <span class="muted">(<?= e(t('alim.f.allergenes_opt')) ?>)</span></label>
+                <div class="chip-checks" data-alim-autre-allergenes>
+                    <?php foreach (alim_allergenes() as $al): ?>
+                        <label class="chip-check chip-check--health"><input type="checkbox" name="allergenes[]" value="<?= e($al) ?>" <?= in_array($al, $alimAllergSel, true) ? 'checked' : '' ?><?= $alimAutreDis ?>><span><?= e($al) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="grid-2" style="margin-top:12px">
+                    <div>
+                        <label for="aua-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="aua-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldF['variant_axis'] ?? ($alimAttrs['variant_axis'] ?? ($alimAutreCfg['axis'] ?? 'Poids')))) ?>" placeholder="<?= e(t('alim.axis_ph')) ?>" data-alim-autre-axis<?= $alimAutreDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $auaSizes = ($alimAutreCfg && !empty($alimAutreCfg['axis'])) ? (array) (config('alimentation.size_systems')[$alimAutreCfg['axis']] ?? []) : []; ?>
+                <label data-alim-autre-size-label<?= $auaSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-alim-autre-size-chips<?= $auaSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($auaSizes as $sb): ?><button type="button" class="axis-chip" data-alim-autre-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+                <div class="warn-box">ℹ️ <?= e((string) config('alimentation.autre.warn_text', '')) ?></div>
+
+                <label style="margin-top:14px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-alim-autre-atouts>
+                    <?php $auaAll = array_values(array_unique(array_merge(alim_autre('atout_suggest'), $alimAtoutsSel)));
+                    foreach ($auaAll as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $alimAtoutsSel, true) ? 'checked' : '' ?><?= $alimAutreDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+                <div class="autre-atout-add">
+                    <input type="text" id="aua-atout-new" maxlength="40" placeholder="<?= e(t('autre.atout_add_ph')) ?>" data-alim-autre-atout-input>
+                    <button type="button" class="btn btn-ghost btn-sm" data-alim-autre-atout-add><?= e(t('autre.atout_add')) ?></button>
+                </div>
+            </details>
+        </div><!-- /alim nouveau rayon -->
         <?php endif; ?>
 
         <?php if ($vertical === 'phone'): ?>

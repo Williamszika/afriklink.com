@@ -373,6 +373,42 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (alim_capable((string) ($boutique['category'] ?? '')) && $collection !== '' && !alim_is_rayon($collection)) {
+            // NOUVEAU RAYON Alimentation (hors des rayons répertoriés) : type & caractéristiques
+            // libres, conservation, DLC/DDM + date, allergènes, atouts libres. Tout en JSON.
+            $productType = mb_substr(trim((string) input_string('product_type', '')), 0, 60);
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            // Atouts libres (suggérés + personnalisés), max 20.
+            $atKeep = [];
+            foreach ((array) ($_POST['atouts'] ?? []) as $a) {
+                $a = mb_substr(trim((string) $a), 0, 40);
+                if ($a !== '' && !in_array($a, $atKeep, true)) { $atKeep[] = $a; }
+                if (count($atKeep) >= 20) { break; }
+            }
+            $atouts = implode(', ', $atKeep);
+            // Caractéristiques libres (libellé → valeur), max 20.
+            $labels = (array) ($_POST['spec_label'] ?? []);
+            $vals   = (array) ($_POST['spec_value'] ?? []);
+            $specs = [];
+            foreach ($labels as $i => $lb) {
+                $lb = mb_substr(trim((string) $lb), 0, 40);
+                $vv = mb_substr(trim((string) ($vals[$i] ?? '')), 0, 80);
+                if ($lb !== '' && $vv !== '' && !isset($specs[$lb])) { $specs[$lb] = $vv; }
+                if (count($specs) >= 20) { break; }
+            }
+            $ea = [];
+            if ($specs !== []) { $ea['specs'] = $specs; }
+            $cons = beauty_clean(input_string('conservation', ''), alim_conservations());
+            if ($cons !== '') { $ea['conservation'] = $cons; }
+            $dlc = beauty_clean(input_string('dlc_type', ''), alim_dlc_types());
+            if ($dlc !== '') { $ea['dlc_type'] = $dlc; }
+            $dlRaw = trim((string) input_string('date_limite', ''));
+            if ($dlRaw !== '' && strtotime($dlRaw) !== false) { $ea['date_limite'] = date('Y-m-d', (int) strtotime($dlRaw)); }
+            $allerg = keep_in_list((array) ($_POST['allergenes'] ?? []), alim_allergenes());
+            if ($allerg !== []) { $ea['allergenes'] = $allerg; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif ($collection === 'Ongles') {
             // Faux ongles : tout dans attributes (JSON) ; déclinaisons = forme × longueur.
             $productType = beauty_clean(input_string('product_type', ''), beauty_ongles('product_types'));

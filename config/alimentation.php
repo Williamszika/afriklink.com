@@ -254,4 +254,33 @@ return [
         'Poids'      => [['label' => 'Poids', 'list' => ['100 g', '250 g', '500 g', '1 kg', '2 kg', '5 kg']]],
         'Contenance' => [['label' => 'Contenances', 'list' => ['25 cl', '33 cl', '50 cl', '75 cl', '1 L', '2 L']]],
     ],
+
+    /**
+     * « Nouveau rayon » Alimentation : le vendeur crée un rayon hors des 5
+     * répertoriés. Le formulaire s'adapte au SLUG du nom : si connu (R), il
+     * suggère des caractéristiques, une conservation et un axe par défaut ;
+     * sinon, modèle générique + specs libres. La base alimentaire est conservée
+     * (conservation, DLC/DDM + date, allergènes). 'baby' => true déclenche le
+     * rappel « réglementation aliments pour nourrissons ». L'axe (Poids /
+     * Contenance) réutilise 'size_systems' pour le remplissage rapide de tailles.
+     */
+    'autre' => [
+        'rayon_suggest' => ['Surgelés', 'Crèmerie & oeufs', 'Petit-déjeuner', 'Cuisine du monde', 'Alimentation bébé', 'Sans gluten & régimes', 'Vrac', 'Apéritif & traiteur', 'Boulangerie & viennoiserie', 'Alimentation animale'],
+        'generic_specs' => ['Type', 'Origine', 'Conditionnement', 'Préparation', 'Variété', 'Teneur en sucre', 'Niveau épicé'],
+        'atout_suggest' => ['Bio', 'Halal', 'Vegan', 'Sans gluten', 'Commerce équitable', 'Local / circuit court', 'Sans additifs', 'Fait maison'],
+        'warn_text'     => 'Produits alimentaires : indique les ingrédients, la liste des allergènes et les conditions de conservation. Pour les produits frais ou surgelés, respecte la chaîne du froid et précise les modalités de livraison dans la description.',
+        // Clés = slug (beauty_slug) du nom de rayon. « & » devient un séparateur (pas « et »).
+        'R' => [
+            'surgeles'                 => ['specs' => ['Type', 'Origine', 'Conditionnement', 'Préparation'], 'conserv' => 'Surgelé / congelé', 'axis' => 'Poids'],
+            'cremerie-oeufs'           => ['specs' => ['Type', 'Type de lait', 'Origine', 'Conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+            'petit-dejeuner'           => ['specs' => ['Type', 'Teneur en sucre', 'Origine', 'Conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            'cuisine-du-monde'         => ['specs' => ['Type', 'Origine', 'Préparation', 'Niveau épicé'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            'alimentation-bebe'        => ['specs' => ['Type', 'Âge', 'Texture', 'Label'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids', 'baby' => true],
+            'sans-gluten-regimes'      => ['specs' => ['Type', 'Régime', 'Conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            'vrac'                     => ['specs' => ['Type', 'Origine', 'Conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            'aperitif-traiteur'        => ['specs' => ['Type', 'Préparation', 'Conditionnement'], 'conserv' => 'Au frais (réfrigéré)', 'axis' => 'Poids'],
+            'boulangerie-viennoiserie' => ['specs' => ['Type', 'Conservation', 'Conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+            'alimentation-animale'     => ['specs' => ['Type d’animal', 'Type', 'Conditionnement'], 'conserv' => 'Ambiante / sèche', 'axis' => 'Poids'],
+        ],
+    ],
 ];
