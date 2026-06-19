@@ -44,11 +44,60 @@ return [
                 'Autre bijou'                 => ['fields' => ['matiere', 'technique', 'origine', 'genre'], 'axis' => 'Modèle', 'color' => true],
             ],
         ],
+
+        'Décoration' => [
+            'groups' => [
+                'vannerie'  => 'Vannerie & fibres',
+                'poterie'   => 'Poterie & céramique',
+                'sculpture' => 'Sculpture & objets',
+                'murs'      => 'Murs & textiles',
+                'lumiere'   => 'Lumière & table',
+                'autre'     => 'Autre',
+            ],
+            'atouts' => ['Fait main', 'Pièce unique', 'Commerce équitable', 'Matériaux naturels', 'Soutien artisan local', 'Décor ethnique', 'Personnalisable', 'Upcyclé / recyclé'],
+            'fields' => [
+                'matiere'   => ['label' => 'Matière', 'opts' => ['Bois', 'Bronze / laiton', 'Terre cuite / céramique', 'Raphia', 'Sisal / paille', 'Calebasse', 'Pierre', 'Wax / tissu', 'Bogolan', 'Cuir', 'Métal recyclé', 'Perles', 'Verre']],
+                'technique' => ['label' => 'Technique', 'opts' => ['Sculpté', 'Tissé / vannerie', 'Tourné (poterie)', 'Peint à la main', 'Cire perdue (fonte)', 'Pyrogravure', 'Assemblage', 'Teinture']],
+                'origine'   => ['label' => 'Origine / tradition', 'opts' => ['Afrique de l’Ouest', 'Afrique centrale', 'Afrique de l’Est', 'Touareg', 'Dogon', 'Sénoufo', 'Ashanti', 'Zoulou', 'Non précisé']],
+                'style'     => ['label' => 'Style', 'opts' => ['Traditionnel', 'Contemporain', 'Ethnique', 'Bohème', 'Minimaliste']],
+                'piece_dim' => ['label' => 'Taille', 'opts' => ['Petit (< 20 cm)', 'Moyen (20–50 cm)', 'Grand (50–100 cm)', 'Très grand (> 1 m)', 'Sur mesure']],
+                'usage'     => ['label' => 'Pièce / usage', 'opts' => ['Salon', 'Chambre', 'Cuisine / table', 'Entrée', 'Bureau', 'Extérieur', 'Mural']],
+                'finition'  => ['label' => 'Finition', 'opts' => ['Brut / naturel', 'Poli', 'Verni', 'Patiné', 'Peint', 'Ciré']],
+            ],
+            'types' => [
+                // Vannerie & fibres
+                'Panier / corbeille'             => ['group' => 'vannerie', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'usage'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                'Set de table / dessous de plat' => ['group' => 'vannerie', 'fields' => ['matiere', 'technique', 'origine', 'usage'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                'Tapis / natte'                  => ['group' => 'vannerie', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim'], 'axis' => 'Taille', 'color' => true, 'elec' => false],
+                // Poterie & céramique
+                'Poterie / céramique'            => ['group' => 'poterie', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                'Vase'                           => ['group' => 'poterie', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                'Calebasse décorée'              => ['group' => 'poterie', 'fields' => ['technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => true, 'elec' => false],
+                // Sculpture & objets
+                'Sculpture / statuette'          => ['group' => 'sculpture', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                'Masque décoratif'               => ['group' => 'sculpture', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                'Objet en bronze'                => ['group' => 'sculpture', 'fields' => ['technique', 'origine', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                // Murs & textiles
+                'Tableau / peinture'             => ['group' => 'murs', 'fields' => ['technique', 'origine', 'style', 'piece_dim'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                'Tenture / textile mural'        => ['group' => 'murs', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                'Miroir décoré'                  => ['group' => 'murs', 'fields' => ['matiere', 'origine', 'piece_dim', 'finition'], 'axis' => 'Modèle', 'color' => false, 'elec' => false],
+                'Cadre'                          => ['group' => 'murs', 'fields' => ['matiere', 'origine', 'piece_dim', 'finition'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                // Lumière & table
+                'Bougeoir / photophore'          => ['group' => 'lumiere', 'fields' => ['matiere', 'technique', 'origine', 'finition'], 'axis' => 'Couleur', 'color' => true, 'elec' => false],
+                'Luminaire / lampe artisanale'   => ['group' => 'lumiere', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim'], 'axis' => 'Modèle', 'color' => true, 'elec' => true],
+                // Autre
+                'Autre objet déco'               => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'origine', 'piece_dim', 'usage'], 'axis' => 'Modèle', 'color' => true, 'elec' => false],
+            ],
+        ],
     ],
 
-    // Remplissage rapide des déclinaisons selon l'axe (Taille bague / Couleur).
+    // Remplissage rapide des déclinaisons selon l'axe. 'Taille' propose deux jeux
+    // (bagues / objets) pour couvrir Bijoux et Décoration sans conflit.
     'size_systems' => [
-        'Taille'  => [['label' => 'Tailles bague', 'list' => ['48', '50', '52', '54', '56', '58', '60', 'Réglable']]],
-        'Couleur' => [['label' => 'Couleurs', 'list' => ['Multicolore', 'Rouge', 'Jaune', 'Vert', 'Bleu', 'Turquoise', 'Noir', 'Blanc', 'Ocre', 'Doré', 'Argenté', 'Ambre']]],
+        'Taille'  => [
+            ['label' => 'Tailles bague', 'list' => ['48', '50', '52', '54', '56', '58', '60', 'Réglable']],
+            ['label' => 'Tailles objet', 'list' => ['Petit', 'Moyen', 'Grand', 'Très grand']],
+        ],
+        'Couleur' => [['label' => 'Couleurs', 'list' => ['Multicolore', 'Naturel', 'Bois', 'Terre cuite', 'Ocre', 'Rouge', 'Vert', 'Bleu', 'Noir', 'Blanc', 'Doré', 'Bronze']]],
     ],
 ];

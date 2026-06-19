@@ -498,6 +498,11 @@ final class ProductController
             if (input_string('piece_unique', '') === '1') { $ea['piece_unique'] = true; }
             $hist = mb_substr(trim((string) input_string('histoire', '')), 0, 2000);
             if ($hist !== '') { $ea['histoire'] = $hist; }
+            if (input_string('elec_on', '') === '1') {
+                $ea['elec'] = true;
+                $gar = beauty_clean(input_string('acc_garantie', ''), ['3 mois', '6 mois', '1 an', '2 ans']);
+                if ($gar !== '') { $ea['garantie'] = $gar; }
+            }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

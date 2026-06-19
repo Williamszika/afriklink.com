@@ -1774,6 +1774,7 @@ return [
     'arti.histoire_ph' => 'Region and tradition of origin, symbolism of the motifs or colours, craft and time to make, the artisan’s journey…',
     'arti.histoire_hint' => 'A good story clearly boosts the appeal of an artisanal piece.',
     'arti.axis_ph' => 'Colour / Size / Model',
+    'arti.elec_q' => 'Electric item (lamp)? (adds warranty + CE reminder)',
     'auto.universel_tag' => 'Universal',
     'auto.compat_label' => 'Compatibility',
     'auto.brand_ph' => 'e.g. Bosch, unbranded…',

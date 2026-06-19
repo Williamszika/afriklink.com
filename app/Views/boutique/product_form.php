@@ -841,6 +841,9 @@ $fmtP = static function ($cents) use ($cur): string {
                 : (array_key_exists('fait_main', $artiAttrs) ? !empty($artiAttrs['fait_main']) : true);
             $artiUnique = isset($rawOldR['piece_unique']) ? ((string) $rawOldR['piece_unique'] === '1') : !empty($artiAttrs['piece_unique']);
             $artiHistoire = (string) ($rawOldR['histoire'] ?? ($artiAttrs['histoire'] ?? ''));
+            $artiElec = isset($rawOldR['elec_on']) ? ((string) $rawOldR['elec_on'] === '1')
+                : (!empty($artiAttrs['elec']) || ($artiMeta !== null && !empty($artiMeta['elec'])));
+            $artiGar = (string) ($rawOldR['acc_garantie'] ?? ($artiAttrs['garantie'] ?? ''));
             $artiAtoutsSel = isset($rawOldR['atouts']) && is_array($rawOldR['atouts'])
                 ? array_map('strval', $rawOldR['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
@@ -906,6 +909,18 @@ $fmtP = static function ($cents) use ($cur): string {
                     <label class="check-row"><input type="checkbox" name="piece_unique" value="1" data-arti-unique <?= $artiUnique ? 'checked' : '' ?><?= $artiDis ?>><span><strong><?= e(t('arti.f.unique')) ?></strong> — <?= e(t('arti.unique_hint')) ?></span></label>
                 </div>
                 <div class="notice notice-info" data-arti-unique-note<?= $artiUnique ? '' : ' hidden' ?>><p>✨ <?= e(t('arti.unique_note')) ?></p></div>
+
+                <!-- Objet électrique (luminaires) → garantie + rappel CE -->
+                <label class="check-row" style="margin-top:14px"><input type="checkbox" name="elec_on" value="1" data-arti-elec-toggle <?= $artiElec ? 'checked' : '' ?><?= $artiDis ?>><span><?= e(t('arti.elec_q')) ?></span></label>
+                <div data-arti-elec-box<?= $artiElec ? '' : ' hidden' ?> style="margin-top:10px">
+                    <label for="arti-garantie"><?= e(t('cuisine.f.warranty')) ?></label>
+                    <select id="arti-garantie" name="acc_garantie"<?= ($artiActive && $artiElec) ? '' : ' disabled' ?>>
+                        <option value=""><?= e(t('cuisine.f.warranty_none')) ?></option>
+                        <?php foreach (['3 mois', '6 mois', '1 an', '2 ans'] as $g): ?><option value="<?= e($g) ?>" <?= $artiGar === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="notice notice-warning" data-arti-elec-warn<?= $artiElec ? '' : ' hidden' ?>><p>⚡ <?= e(t('cuisine.elec_warn')) ?></p></div>
+
                 <div class="notice notice-warning"><p>🛡️ <?= e(t('arti.cites_note')) ?></p></div>
 
                 <label for="arti-histoire" style="margin-top:14px"><?= e(t('arti.f.histoire')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>

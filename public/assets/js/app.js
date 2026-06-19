@@ -4925,6 +4925,9 @@ document.addEventListener('click', function (ev) {
     var axisInp   = document.querySelector('[data-arti-axis]');
     var uniqueChk = document.querySelector('[data-arti-unique]');
     var uniqueNote= document.querySelector('[data-arti-unique-note]');
+    var elecTog   = document.querySelector('[data-arti-elec-toggle]');
+    var elecBox   = document.querySelector('[data-arti-elec-box]');
+    var elecWarn  = document.querySelector('[data-arti-elec-warn]');
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -5043,17 +5046,30 @@ document.addEventListener('click', function (ev) {
         if (uniqueNote) { uniqueNote.hidden = !uni; }
         setUniqueLock(uni && active());
     }
+    // Objet électrique (luminaire) : affiche garantie + rappel CE.
+    function elecToggle() {
+        var on = !!(elecTog && elecTog.checked);
+        if (elecBox)  { elecBox.hidden = !on; elecBox.querySelectorAll('select, input').forEach(function (f) { f.disabled = !on || !active(); }); }
+        if (elecWarn) { elecWarn.hidden = !on; }
+    }
     function setEnabled() {
         var on = active();
         root.hidden = !on;
         root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !on; });
-        if (on) { uniqueToggle(); } else { setUniqueLock(false); }
+        if (on) { uniqueToggle(); elecToggle(); } else { setUniqueLock(false); }
     }
     function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
 
     if (coll)      { coll.addEventListener('change', onColl); }
-    if (typeSel)   { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    if (typeSel)   { typeSel.addEventListener('change', function () {
+        onType();
+        // Mode électrique par défaut selon le type (luminaire) au changement manuel.
+        var m = meta();
+        if (m && elecTog) { elecTog.checked = !!m.elec; elecToggle(); }
+        setEnabled();
+    }); }
     if (uniqueChk) { uniqueChk.addEventListener('change', uniqueToggle); }
+    if (elecTog)   { elecTog.addEventListener('change', elecToggle); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-arti-fill]');

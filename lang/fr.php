@@ -1774,6 +1774,7 @@ return [
     'arti.histoire_ph' => 'Région et tradition d’origine, symbolique des motifs ou des couleurs, savoir-faire et temps de fabrication, parcours de l’artisan…',
     'arti.histoire_hint' => 'Une belle histoire augmente nettement l’attrait d’une pièce artisanale.',
     'arti.axis_ph' => 'Couleur / Taille / Modèle',
+    'arti.elec_q' => 'Objet électrique (luminaire) ? (ajoute garantie + rappel CE)',
     'auto.universel_tag' => 'Universel',
     'auto.compat_label' => 'Compatibilité',
     'auto.brand_ph' => 'ex. Bosch, sans marque…',
