@@ -514,9 +514,17 @@ final class BoutiqueController
         $affLink    = ($viewerId > 0 && !$isOwner && ($boutique['status'] ?? '') === 'published' && $affProduct['enabled'] && $affProduct['bps'] > 0)
             ? url('/r/' . \App\Models\Affiliate::codeFor($viewerId) . '?to=' . rawurlencode('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id']))
             : null;
+        // Avis : seuls les clients ayant REÇU le produit (commande livrée) peuvent
+        // déposer un avis, une seule fois. Pilote le formulaire + le dépôt de photos.
+        $cu = current_user() ?? [];
+        $canReview = $viewerId > 0 && Order::hasDeliveredPurchase((int) $product['id'], $viewerId, (string) ($cu['email'] ?? ''), (string) ($cu['phone'] ?? ''));
+        $hasReviewed = $viewerId > 0 && Review::hasReviewed((int) $product['id'], $viewerId);
         view('boutique/product', [
             'boutique' => $boutique,
             'product'  => $product,
+            'can_review'   => $canReview,
+            'has_reviewed' => $hasReviewed,
+            'media_ready'  => CloudinaryService::configured(),
             'variants' => \App\Models\ProductVariant::forProduct((int) $product['id']),
             'photos'   => $photos,
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
@@ -619,34 +627,49 @@ final class BoutiqueController
             abort(404);
         }
         $back = '/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'];
+        // GARDE-FOU : on ne peut donner un avis que si l'on a REÇU le produit
+        // (commande livrée), et une seule fois. Vérité serveur, non contournable.
+        $viewer   = current_user() ?? [];
+        $viewerId = (int) ($viewer['id'] ?? 0);
+        if (!Order::hasDeliveredPurchase((int) $product['id'], $viewerId, (string) ($viewer['email'] ?? ''), (string) ($viewer['phone'] ?? ''))) {
+            flash('error', t('review.must_receive'));
+            redirect($back . '#avis');
+        }
+        if (Review::hasReviewed((int) $product['id'], $viewerId)) {
+            flash('error', t('review.already'));
+            redirect($back . '#avis');
+        }
         $rating = (int) input_string('rating', '0');
         $name = trim((string) input_string('author_name', ''));
+        if ($name === '') { $name = trim((string) ($viewer['name'] ?? '')); }
         $comment = trim((string) input_string('comment', ''));
         if ($rating < 1 || $rating > 5 || mb_strlen($name) < 2) {
             flash('error', t('review.invalid'));
             keep_old($_POST);
             redirect($back . '#avis');
         }
-        // « Achat vérifié » : l'auteur fournit (optionnellement) l'e-mail ou le téléphone
-        // utilisé pour une commande. Si une commande non annulée de ce produit existe à ce
-        // contact, l'avis reçoit le badge de confiance.
-        $contact = trim((string) input_string('purchase_contact', ''));
-        $isEmail = $contact !== '' && filter_var($contact, FILTER_VALIDATE_EMAIL) !== false;
-        $verified = $contact !== '' && Order::hasPurchase(
-            (int) $product['id'],
-            $isEmail ? $contact : null,
-            $isEmail ? null : $contact
-        );
+        // Photos jointes (façon Shein) : identifiants Cloudinary du JS, chacun re-vérifié
+        // côté serveur (l'image existe bien) ; max 6, doublons écartés.
+        $rawPhotos = json_decode((string) ($_POST['review_photos_json'] ?? '[]'), true);
+        $photoIds  = is_array($rawPhotos) ? array_values(array_unique(array_filter($rawPhotos, 'is_string'))) : [];
+        $photos = [];
+        foreach (array_slice($photoIds, 0, 6) as $cpid) {
+            if (CloudinaryService::verifyAsset('image', $cpid) !== null) {
+                $photos[] = $cpid;
+            }
+        }
+        // Avis issu d'une commande livrée → « achat vérifié » d'office.
         Review::create([
             'boutique_id' => (int) $boutique['id'],
             'product_id'  => (int) $product['id'],
-            'user_id'     => current_user_id(),
+            'user_id'     => $viewerId,
             'author_name' => $name,
             'rating'      => $rating,
             'comment'     => $comment !== '' ? $comment : null,
-            'verified'    => $verified,
+            'photos'      => $photos,
+            'verified'    => true,
         ]);
-        AuditLog::record((int) ($boutique['user_id']), 'review.posted', 'product', (int) $product['id'], ['rating' => $rating, 'verified' => $verified ? 1 : 0], $request->ipBinary());
+        AuditLog::record((int) ($boutique['user_id']), 'review.posted', 'product', (int) $product['id'], ['rating' => $rating, 'photos' => count($photos)], $request->ipBinary());
         \App\Models\Notification::push((int) $boutique['user_id'], 'review', t('notif.review'), $name . ' · ' . $rating . '★', $back);
         flash('success', t('review.thanks'));
         redirect($back . '#avis');
@@ -1249,9 +1272,26 @@ final class BoutiqueController
         // Le règlement en ligne est proposé tant qu'il reste un montant dû et non payé
         // (le client peut payer à la caisse, ou plus tard depuis ce lien).
         $payReady = $dueCents > 0 && $payStatus !== 'paid';
+        $items = Order::items((int) $order['id']);
+        // Après livraison : on invite l'acheteur à laisser un avis + photo sur chaque
+        // article reçu. On résout l'identifiant public des produits pour les liens.
+        $productPids = [];
+        if ($status === 'delivered') {
+            $ids = array_values(array_filter(array_map(static fn (array $it): int => (int) ($it['product_id'] ?? 0), $items)));
+            if ($ids !== []) {
+                try {
+                    $in = implode(',', array_fill(0, count($ids), '?'));
+                    $st = db()->prepare("SELECT id, public_id FROM products WHERE id IN ($in)");
+                    $st->execute($ids);
+                    foreach ($st->fetchAll() ?: [] as $r) { $productPids[(int) $r['id']] = (string) $r['public_id']; }
+                } catch (\Throwable) {
+                }
+            }
+        }
         view('boutique/order_confirmation', [
             'order'        => $order,
-            'items'        => Order::items((int) $order['id']),
+            'items'        => $items,
+            'product_pids' => $productPids,
             'boutique'     => $boutique,
             'seller_phone' => $sellerPhone,
             'term'         => (string) ($order['payment_term'] ?? ''),

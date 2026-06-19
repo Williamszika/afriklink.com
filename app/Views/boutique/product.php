@@ -596,6 +596,22 @@ $dotHtml = static function (array $hexes): string {
         </div>
     <?php endif; ?>
 
+    <?php
+    // Toutes les informations saisies au formulaire, en une fiche « caractéristiques »
+    // libellé → valeur (rien ne reste caché). La beauté garde son encart dédié ci-dessous.
+    $specRows = $pVertical === 'beauty' ? [] : product_spec_rows($product);
+    ?>
+    <?php if ($specRows !== []): ?>
+        <div class="panel">
+            <h2 class="panel-title"><?= icon('list', ['size' => 18]) ?> <?= e(t('product.specs_title')) ?></h2>
+            <dl class="spec-sheet">
+                <?php foreach ($specRows as $sr): ?>
+                    <div class="spec-row"><dt><?= e($sr['label']) ?></dt><dd><?= e($sr['value']) ?></dd></div>
+                <?php endforeach; ?>
+            </dl>
+        </div>
+    <?php endif; ?>
+
     <?php if ($pVertical === 'beauty' && (!empty($product['ingredients']) || !empty($product['expiry_date']) || !empty($product['ean']))): ?>
         <div class="panel">
             <details class="variants-box"<?= !empty($product['ingredients']) ? ' open' : '' ?>>
@@ -653,35 +669,66 @@ $dotHtml = static function (array $hexes): string {
                             <?php endif; ?>
                         </div>
                         <?php if (!empty($rv['comment'])): ?><p class="review-comment"><?= nl2br(e((string) $rv['comment'])) ?></p><?php endif; ?>
+                        <?php
+                        $rvPhotos = [];
+                        if (!empty($rv['photos'])) { $dec = json_decode((string) $rv['photos'], true); if (is_array($dec)) { $rvPhotos = array_values(array_filter($dec, 'is_string')); } }
+                        ?>
+                        <?php if ($rvPhotos !== []): ?>
+                            <div class="review-photos" data-review-photos="<?= e((string) json_encode(array_map(static fn ($p): string => CloudinaryService::imageUrl((string) $p, 1280, 1280), $rvPhotos), JSON_UNESCAPED_SLASHES)) ?>">
+                                <?php foreach ($rvPhotos as $idx => $rp): ?>
+                                    <button type="button" class="review-photo" data-review-photo data-index="<?= (int) $idx ?>" aria-label="<?= e(t('product.zoom')) ?>"><img src="<?= e(CloudinaryService::imageUrl((string) $rp, 220, 220)) ?>" alt="" loading="lazy" width="74" height="74"></button>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($rv['reply'])): ?>
+                            <div class="review-reply"><span class="review-reply-tag"><?= icon('chat', ['size' => 13]) ?> <?= e(t('review.seller_reply')) ?></span> <?= nl2br(e((string) $rv['reply'])) ?></div>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
 
-        <?php if ($published && (int) (current_user_id() ?? 0) === 0): ?>
-            <p class="review-login-cta"><?= icon('lock', ['size' => 16]) ?> <a href="<?= e(url('/login')) ?>"><?= e(t('review.login_to_post')) ?></a></p>
-        <?php endif; ?>
-        <?php if ($published && (int) (current_user_id() ?? 0) > 0): ?>
-            <details class="review-form-box" <?= has_error('review') ? 'open' : '' ?>>
-                <summary><?= icon('pencil', ['size' => 16]) ?> <?= e(t('review.cta')) ?></summary>
-                <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/avis')) ?>" class="review-form">
-                    <?= csrf_field() ?>
-                    <div class="star-input" role="radiogroup" aria-label="<?= e(t('review.title')) ?>">
-                        <?php for ($s = 5; $s >= 1; $s--): ?>
-                            <input type="radio" id="star<?= $s ?>" name="rating" value="<?= $s ?>" <?= $s === 5 ? 'checked' : '' ?>>
-                            <label for="star<?= $s ?>" title="<?= $s ?>/5">★</label>
-                        <?php endfor; ?>
-                    </div>
-                    <label for="rv-name"><?= e(t('order.f.client')) ?></label>
-                    <input type="text" id="rv-name" name="author_name" maxlength="80" required value="<?= old('author_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
-                    <label for="rv-contact"><?= e(t('review.verify_label')) ?></label>
-                    <input type="text" id="rv-contact" name="purchase_contact" maxlength="120" value="<?= old('purchase_contact') ?>" placeholder="<?= e(t('review.verify_ph')) ?>">
-                    <p class="form-hint muted">✓ <?= e(t('review.verify_hint')) ?></p>
-                    <label for="rv-comment"><?= e(t('review.comment')) ?></label>
-                    <textarea id="rv-comment" name="comment" maxlength="1000" rows="3" placeholder="<?= e(t('review.comment_ph')) ?>"><?= old('comment') ?></textarea>
-                    <button type="submit" class="btn btn-primary"><?= e(t('review.submit')) ?></button>
-                </form>
-            </details>
+        <?php if ($published): ?>
+            <?php if ((int) (current_user_id() ?? 0) === 0): ?>
+                <p class="review-login-cta"><?= icon('lock', ['size' => 16]) ?> <a href="<?= e(url('/login')) ?>"><?= e(t('review.login_to_post')) ?></a></p>
+            <?php elseif (!empty($has_reviewed)): ?>
+                <p class="notice notice-ok review-gate">✓ <?= e(t('review.thanks_posted')) ?></p>
+            <?php elseif (empty($can_review)): ?>
+                <p class="notice notice-info review-gate"><?= icon('truck', ['size' => 16]) ?> <?= e(t('review.gate_notice')) ?></p>
+            <?php else: ?>
+                <?php $rvCu = current_user() ?? []; $rvName = trim((string) ($rvCu['name'] ?? '')); ?>
+                <details class="review-form-box" <?= has_error('review') ? 'open' : '' ?> open>
+                    <summary><?= icon('pencil', ['size' => 16]) ?> <?= e(t('review.cta')) ?></summary>
+                    <p class="review-invite">📸 <?= e(t('review.invite_photo')) ?></p>
+                    <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $product['public_id'] . '/avis')) ?>" class="review-form" data-review-form>
+                        <?= csrf_field() ?>
+                        <div class="star-input" role="radiogroup" aria-label="<?= e(t('review.title')) ?>">
+                            <?php for ($s = 5; $s >= 1; $s--): ?>
+                                <input type="radio" id="star<?= $s ?>" name="rating" value="<?= $s ?>" <?= $s === 5 ? 'checked' : '' ?>>
+                                <label for="star<?= $s ?>" title="<?= $s ?>/5">★</label>
+                            <?php endfor; ?>
+                        </div>
+                        <label for="rv-name"><?= e(t('order.f.client')) ?></label>
+                        <input type="text" id="rv-name" name="author_name" maxlength="80" required value="<?= $rvName !== '' ? e($rvName) : old('author_name') ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
+                        <label for="rv-comment"><?= e(t('review.comment')) ?></label>
+                        <textarea id="rv-comment" name="comment" maxlength="1000" rows="3" placeholder="<?= e(t('review.comment_ph')) ?>"><?= old('comment') ?></textarea>
+                        <?php if (!empty($media_ready)): ?>
+                            <label><?= e(t('review.photo_label')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                            <div class="review-uploader" data-review-uploader data-max="6">
+                                <input type="hidden" name="review_photos_json" data-review-photos-json value="[]">
+                                <div class="review-up-previews" data-review-previews></div>
+                                <label class="review-up-add" data-review-add>
+                                    <input type="file" accept="image/*" multiple data-review-file hidden>
+                                    <span>＋ <?= e(t('review.add_photos')) ?></span>
+                                </label>
+                                <p class="review-up-status" data-review-status hidden></p>
+                                <p class="review-up-error form-error" data-review-error hidden></p>
+                            </div>
+                        <?php endif; ?>
+                        <button type="submit" class="btn btn-primary" data-review-submit><?= e(t('review.submit')) ?></button>
+                    </form>
+                </details>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 

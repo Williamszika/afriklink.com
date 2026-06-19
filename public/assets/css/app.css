@@ -1280,6 +1280,36 @@ input[type=color] { width:54px; height:38px; padding:3px; border:1.5px solid var
 .lightbox-nav { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.15); border:0; color:#fff; font-size:2.6rem; line-height:1; width:52px; height:72px; cursor:pointer; border-radius:8px; }
 .lightbox-prev { left:14px; } .lightbox-next { right:14px; }
 .lightbox-nav:hover, .lightbox-close:hover { color:#f5b301; }
+/* — Avis avec photos (façon Shein) — */
+.review-photos{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.review-photo{padding:0;border:0;background:none;cursor:zoom-in;border-radius:8px;overflow:hidden;line-height:0}
+.review-photo img{width:74px;height:74px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+.review-photo:hover img{opacity:.9}
+.review-reply{margin:8px 0 2px;padding:8px 12px;background:var(--afk-cream,#f7f3ea);border-left:3px solid var(--afk-foret,#1c3d32);border-radius:0 8px 8px 0;font-size:.9rem}
+.review-reply-tag{display:inline-flex;align-items:center;gap:4px;font-weight:700;color:var(--afk-foret,#1c3d32);margin-right:4px}
+.review-gate{margin-top:10px}
+.review-invite{margin:6px 0 4px;font-weight:600;color:var(--afk-foret,#1c3d32)}
+.notice-ok{background:#e6f6ea;border:1px solid #b7e2c3;color:#0a6b24}
+.review-uploader{margin:4px 0 2px}
+.review-up-previews{display:flex;flex-wrap:wrap;gap:8px}
+.review-prev{position:relative;width:74px;height:74px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.review-prev img{width:100%;height:100%;object-fit:cover;display:block}
+.review-prev-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:.7rem;line-height:20px;text-align:center;cursor:pointer;padding:0}
+.review-up-add{display:inline-flex;align-items:center;justify-content:center;gap:4px;width:74px;height:74px;margin-top:8px;border:1.5px dashed var(--afk-ligne-fort,#c9bfa9);border-radius:8px;color:var(--muted);font-weight:600;font-size:.78rem;cursor:pointer;text-align:center}
+.review-up-add:hover{border-color:var(--afk-foret,#1c3d32);color:var(--afk-foret,#1c3d32)}
+.review-up-status{margin:6px 0 0;font-size:.82rem;color:var(--muted)}
+/* — Fiche caractéristiques : toutes les informations du formulaire — */
+.spec-sheet{margin:2px 0 0;display:grid;gap:0}
+.spec-row{display:grid;grid-template-columns:minmax(120px,38%) 1fr;gap:10px;padding:9px 2px;border-top:1px solid var(--border)}
+.spec-row:first-child{border-top:0}
+.spec-row dt{margin:0;font-weight:600;color:var(--muted)}
+.spec-row dd{margin:0;font-weight:600}
+@media(max-width:520px){.spec-row{grid-template-columns:1fr;gap:1px}.spec-row dd{font-weight:700}}
+/* — Invitation à donner un avis après livraison — */
+.review-prompt{margin:14px 0;padding:16px;border:1.5px solid var(--afk-or,#d4a017);background:linear-gradient(180deg,#fffdf5,#fff);border-radius:14px;text-align:center}
+.review-prompt-title{margin:0 0 2px;font-weight:800;font-size:1.05rem}
+.review-prompt-sub{margin:0 0 10px;color:var(--muted);font-size:.9rem}
+.review-prompt-items{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 /* Alerte retour en stock */
 .stock-alert { margin:8px 0; padding:12px; background:#fff8ec; border:1px solid #f5d9a0; border-radius:10px; }
 .stock-alert-cta { margin:0 0 8px; font-weight:600; font-size:.9rem; }

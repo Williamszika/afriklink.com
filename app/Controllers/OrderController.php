@@ -184,6 +184,21 @@ final class OrderController
                 } catch (\Throwable) {
                     // notification best-effort
                 }
+                // Livraison : on incite l'acheteur (s'il a un compte) à partager un
+                // avis accompagné d'une photo, depuis sa page de commande.
+                if ($action === 'deliver' && (int) ($order['user_id'] ?? 0) > 0) {
+                    try {
+                        \App\Models\Notification::push(
+                            (int) $order['user_id'],
+                            'review_invite',
+                            t('notif.review_invite_title'),
+                            t('notif.review_invite_body', ['shop' => $shopName]),
+                            $clientUrl
+                        );
+                    } catch (\Throwable) {
+                        // best-effort
+                    }
+                }
             }
         }
         $back = whitelist((string) input_string('retour', 'a_traiter'), array_keys(self::FILTERS), 'a_traiter');

@@ -531,6 +531,47 @@ final class Order
     }
 
     /**
+     * Le client a-t-il REÇU ce produit ? (commande LIVRÉE le contenant). Sert à
+     * n'autoriser l'avis qu'après livraison. On reconnaît le client par son compte
+     * (user_id) OU par le contact (e-mail / téléphone) porté par la commande.
+     */
+    public static function hasDeliveredPurchase(int $productId, ?int $userId, ?string $email = null, ?string $phone = null): bool
+    {
+        $conds = [];
+        $args  = ['p' => $productId];
+        if ($userId !== null && $userId > 0) {
+            $conds[] = 'o.user_id = :u';
+            $args['u'] = $userId;
+        }
+        $email = trim((string) $email);
+        $phone = trim((string) $phone);
+        if ($email !== '') {
+            $conds[] = 'o.client_email = :e';
+            $args['e'] = $email;
+        }
+        if ($phone !== '') {
+            $conds[] = 'o.client_phone = :ph';
+            $args['ph'] = $phone;
+        }
+        if ($conds === []) {
+            return false;
+        }
+        try {
+            $stmt = db()->prepare(
+                "SELECT 1 FROM order_items oi
+                   JOIN orders o ON o.id = oi.order_id
+                  WHERE oi.product_id = :p AND o.status = 'delivered'
+                    AND (" . implode(' OR ', $conds) . ")
+                  LIMIT 1"
+            );
+            $stmt->execute($args);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Unités vendues par produit sur les $days derniers jours (commandes non
      * annulées) — base de la prévision de stock / réassort.
      * @param list<int> $productIds

@@ -34,6 +34,8 @@ final class Review
             'verified' => 'ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0 AFTER comment',
             'reply'    => 'ADD COLUMN reply VARCHAR(1000) NULL AFTER status',
             'reply_at' => 'ADD COLUMN reply_at DATETIME NULL AFTER reply',
+            // Photos jointes à l'avis (identifiants Cloudinary, JSON) — façon Shein.
+            'photos'   => 'ADD COLUMN photos VARCHAR(1000) NULL AFTER comment',
         ];
         foreach ($cols as $col => $ddl) {
             try {
@@ -98,20 +100,52 @@ final class Review
     {
         self::ensureTable();
         $pid = uuid();
-        db()->prepare(
-            'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, verified, status)
-             VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, :verified, \'approved\')'
-        )->execute([
-            'pid' => $pid,
-            'bid' => $d['boutique_id'],
-            'prod' => $d['product_id'] ?? null,
-            'uid' => $d['user_id'] ?? null,
-            'name' => mb_substr((string) $d['author_name'], 0, 80),
-            'rating' => max(1, min(5, (int) $d['rating'])),
-            'comment' => $d['comment'] !== null && $d['comment'] !== '' ? mb_substr((string) $d['comment'], 0, 1000) : null,
-            'verified' => !empty($d['verified']) ? 1 : 0,
-        ]);
+        // Photos (identifiants Cloudinary déjà vérifiés par le contrôleur) → JSON, max 6.
+        $photos = array_values(array_filter(array_map(static fn ($p): string => trim((string) $p), (array) ($d['photos'] ?? []))));
+        $photos = array_slice($photos, 0, 6);
+        $photosJson = $photos !== [] ? (string) json_encode($photos, JSON_UNESCAPED_SLASHES) : null;
+        try {
+            $stmt = db()->prepare(
+                'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, photos, verified, status)
+                 VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, :photos, :verified, \'approved\')'
+            );
+            $stmt->execute([
+                'pid' => $pid, 'bid' => $d['boutique_id'], 'prod' => $d['product_id'] ?? null,
+                'uid' => $d['user_id'] ?? null, 'name' => mb_substr((string) $d['author_name'], 0, 80),
+                'rating' => max(1, min(5, (int) $d['rating'])),
+                'comment' => $d['comment'] !== null && $d['comment'] !== '' ? mb_substr((string) $d['comment'], 0, 1000) : null,
+                'photos' => $photosJson,
+                'verified' => !empty($d['verified']) ? 1 : 0,
+            ]);
+        } catch (\Throwable) {
+            // Repli si la colonne « photos » n'est pas encore provisionnée en prod.
+            db()->prepare(
+                'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, verified, status)
+                 VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, :verified, \'approved\')'
+            )->execute([
+                'pid' => $pid, 'bid' => $d['boutique_id'], 'prod' => $d['product_id'] ?? null,
+                'uid' => $d['user_id'] ?? null, 'name' => mb_substr((string) $d['author_name'], 0, 80),
+                'rating' => max(1, min(5, (int) $d['rating'])),
+                'comment' => $d['comment'] !== null && $d['comment'] !== '' ? mb_substr((string) $d['comment'], 0, 1000) : null,
+                'verified' => !empty($d['verified']) ? 1 : 0,
+            ]);
+        }
         return $pid;
+    }
+
+    /** Cet utilisateur a-t-il déjà laissé un avis sur ce produit ? (1 avis / produit) */
+    public static function hasReviewed(int $productId, int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+        try {
+            $stmt = db()->prepare('SELECT 1 FROM reviews WHERE product_id = :p AND user_id = :u LIMIT 1');
+            $stmt->execute(['p' => $productId, 'u' => $userId]);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     /** @return list<array> avis publiés d'un produit (récents d'abord) */

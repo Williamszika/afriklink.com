@@ -49,6 +49,23 @@ $waText = rawurlencode(
         </div>
     <?php endif; ?>
 
+    <?php
+    // Après livraison : on invite l'acheteur à laisser un avis accompagné d'une photo
+    // sur chaque article reçu (lien direct vers le formulaire d'avis du produit).
+    $productPids = $product_pids ?? [];
+    ?>
+    <?php if ($status === 'delivered' && $boutique && ($boutique['status'] ?? '') === 'published' && $productPids !== []): ?>
+        <div class="review-prompt">
+            <p class="review-prompt-title">📸 <?= e(t('order.review_prompt_title')) ?></p>
+            <p class="review-prompt-sub"><?= e(t('order.review_prompt_sub')) ?></p>
+            <div class="review-prompt-items">
+                <?php $rpDone = []; foreach ($items as $it): $rpPid = $productPids[(int) ($it['product_id'] ?? 0)] ?? ''; if ($rpPid === '' || isset($rpDone[$rpPid])) { continue; } $rpDone[$rpPid] = true; ?>
+                    <a class="btn btn-primary btn-sm" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $rpPid . '#avis')) ?>">★ <?= e(t('order.review_cta')) ?> · <?= e(order_item_name($it)) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <ul class="cart-lines confirm-lines">
         <?php foreach ($items as $it): ?>
             <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e(order_item_name($it)) ?><?php if (!empty($it['variant_label'])): ?> <span class="order-variant"><?= e((string) $it['variant_label']) ?></span><?php endif; ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>

@@ -6613,3 +6613,114 @@ document.addEventListener('click', function (ev) {
     else if (autreActive()) { adaptAutre(); }
     setEnabled();
 })();
+
+/* ---- Avis : téléversement de photos (façon Shein) — envoi direct → Cloudinary ---- */
+(function () {
+    var box = document.querySelector('[data-review-uploader]');
+    if (!box) { return; }
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    var hidden = box.querySelector('[data-review-photos-json]');
+    var previews = box.querySelector('[data-review-previews]');
+    var fileInput = box.querySelector('[data-review-file]');
+    var statusEl = box.querySelector('[data-review-status]');
+    var errEl = box.querySelector('[data-review-error]');
+    var addBtn = box.querySelector('[data-review-add]');
+    var form = box.closest('form');
+    var submit = form ? form.querySelector('[data-review-submit]') : null;
+    var MAX = parseInt(box.getAttribute('data-max'), 10) || 6;
+    var photos = [];   // {publicId, url}
+    var pending = 0;
+
+    function sync() {
+        if (hidden) { hidden.value = JSON.stringify(photos.map(function (p) { return p.publicId; })); }
+        if (submit) { submit.disabled = pending > 0; }
+        if (statusEl) { statusEl.hidden = pending === 0; if (pending > 0) { statusEl.textContent = statusEl.getAttribute('data-msg') || 'Envoi en cours…'; } }
+        if (addBtn) { addBtn.style.display = photos.length >= MAX ? 'none' : ''; }
+    }
+    function setErr(m) { if (errEl) { errEl.textContent = m || ''; errEl.hidden = !m; } }
+    function sign() {
+        var b = new FormData();
+        b.append('resource_type', 'image');
+        return fetch('/api/media/sign', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: b })
+            .then(function (r) { if (!r.ok) { throw new Error('sign'); } return r.json(); });
+    }
+    function shrink(file) {
+        if (file.size < 600 * 1024 || typeof window.createImageBitmap !== 'function') { return Promise.resolve(file); }
+        return createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
+            var s = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+            if (s === 1) { return file; }
+            var c = document.createElement('canvas');
+            c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s);
+            c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+            return new Promise(function (res) {
+                c.toBlob(function (bl) { res(bl && bl.size < file.size ? new File([bl], 'p.jpg', { type: 'image/jpeg' }) : file); }, 'image/jpeg', 0.85);
+            });
+        }).catch(function () { return file; });
+    }
+    function upload(file, params) {
+        var fd = new FormData();
+        fd.append('file', file); fd.append('api_key', params.api_key); fd.append('timestamp', params.timestamp);
+        fd.append('folder', params.folder); fd.append('signature', params.signature);
+        return fetch('https://api.cloudinary.com/v1_1/' + encodeURIComponent(params.cloud_name) + '/' + params.resource_type + '/upload', { method: 'POST', body: fd })
+            .then(function (r) { if (!r.ok) { throw new Error('up'); } return r.json(); });
+    }
+    function addPreview(publicId, url) {
+        var w = document.createElement('div'); w.className = 'review-prev';
+        var img = document.createElement('img'); img.src = url; img.alt = '';
+        var del = document.createElement('button'); del.type = 'button'; del.className = 'review-prev-del'; del.setAttribute('aria-label', '✕'); del.textContent = '✕';
+        del.addEventListener('click', function () { photos = photos.filter(function (p) { return p.publicId !== publicId; }); w.remove(); sync(); });
+        w.appendChild(img); w.appendChild(del); previews.appendChild(w);
+    }
+    function handle(files) {
+        setErr('');
+        Array.prototype.filter.call(files || [], function (f) { return f && f.type.indexOf('image/') === 0; }).forEach(function (file) {
+            if (photos.length + pending >= MAX) { return; }
+            pending++; sync();
+            shrink(file).then(function (f) { return sign().then(function (p) { return upload(f, p); }); })
+                .then(function (res) {
+                    if (res && res.public_id) { photos.push({ publicId: res.public_id, url: res.secure_url || '' }); addPreview(res.public_id, res.secure_url || ''); }
+                    pending--; sync();
+                })
+                .catch(function () { pending--; setErr(box.getAttribute('data-err') || 'Échec de l’envoi d’une photo.'); sync(); });
+        });
+        if (fileInput) { fileInput.value = ''; }
+    }
+    if (fileInput) { fileInput.addEventListener('change', function () { handle(fileInput.files); }); }
+    sync();
+})();
+
+/* ---- Avis : agrandissement des photos déposées par les clients ---- */
+(function () {
+    if (!document.querySelector('[data-review-photos]')) { return; }
+    var ov, imgEl, list = [], cur = 0;
+    function show(i) { cur = ((i % list.length) + list.length) % list.length; if (imgEl) { imgEl.src = list[cur]; } }
+    function close() { if (ov) { ov.classList.remove('is-open'); document.body.style.overflow = ''; } }
+    function ensure() {
+        if (ov) { return; }
+        ov = document.createElement('div'); ov.className = 'lightbox';
+        ov.innerHTML = '<button class="lightbox-close" type="button" aria-label="Fermer">×</button>'
+            + '<button class="lightbox-nav lightbox-prev" type="button" aria-label="Précédent">‹</button>'
+            + '<img class="lightbox-img" alt="">'
+            + '<button class="lightbox-nav lightbox-next" type="button" aria-label="Suivant">›</button>';
+        document.body.appendChild(ov); imgEl = ov.querySelector('.lightbox-img');
+        ov.addEventListener('click', function (e) {
+            var t = e.target;
+            if (t === ov || t.classList.contains('lightbox-close')) { close(); }
+            else if (t.classList.contains('lightbox-next')) { show(cur + 1); }
+            else if (t.classList.contains('lightbox-prev')) { show(cur - 1); }
+        });
+    }
+    document.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('[data-review-photo]') : null;
+        if (!btn) { return; }
+        var grp = btn.closest('[data-review-photos]'); if (!grp) { return; }
+        try { list = JSON.parse(grp.getAttribute('data-review-photos') || '[]'); } catch (x) { list = []; }
+        if (!list.length) { return; }
+        ensure(); show(parseInt(btn.getAttribute('data-index'), 10) || 0);
+        ov.classList.add('is-open'); document.body.style.overflow = 'hidden';
+    });
+    document.addEventListener('keydown', function (e) {
+        if (!ov || !ov.classList.contains('is-open')) { return; }
+        if (e.key === 'Escape') { close(); } else if (e.key === 'ArrowRight') { show(cur + 1); } else if (e.key === 'ArrowLeft') { show(cur - 1); }
+    });
+})();

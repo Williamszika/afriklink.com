@@ -1894,6 +1894,105 @@ function variant_color_hex(?string $value): array
     return $out;
 }
 
+/**
+ * Fiche acheteur : aplatit TOUTES les informations saisies au formulaire en une
+ * liste « libellé → valeur », pour qu'aucun renseignement ne reste caché. On
+ * réunit les caractéristiques adaptatives (attributes JSON, y compris les specs
+ * libres libellé→valeur) et les champs clés du produit. Les clés internes et les
+ * valeurs vides sont écartées ; les listes sont jointes ; les booléens → « Oui ».
+ *
+ * @return list<array{label:string,value:string}>
+ */
+function product_spec_rows(array $product): array
+{
+    $rows = [];
+    $seen = [];
+    $add = static function (string $label, $value) use (&$rows, &$seen): void {
+        if (is_array($value)) {
+            $value = implode(', ', array_filter(array_map(static fn ($v): string => trim((string) $v), $value), static fn ($v): bool => $v !== ''));
+        }
+        $label = trim($label);
+        $value = trim((string) $value);
+        if ($label === '' || $value === '') {
+            return;
+        }
+        $k = mb_strtolower($label);
+        if (isset($seen[$k])) {
+            return;
+        }
+        $seen[$k] = true;
+        $rows[] = ['label' => $label, 'value' => $value];
+    };
+
+    // Libellés FR des clés d'attributs les plus courantes (repli : clé « humanisée »).
+    static $labels = [
+        'condition' => 'État', 'garantie' => 'Garantie', 'couleur' => 'Couleur', 'genre' => 'Genre',
+        'public' => 'Public', 'matiere' => 'Matière', 'matière' => 'Matière', 'dimension' => 'Dimensions',
+        'dimensions' => 'Dimensions', 'compatibilite' => 'Compatibilité', 'conservation' => 'Conservation',
+        'allergenes' => 'Allergènes', 'regime' => 'Régime', 'age_min' => 'Âge minimum', 'age' => 'Âge',
+        'taille' => 'Taille', 'taille_couche' => 'Taille (couche)', 'spf' => 'Indice SPF', 'tog' => 'Indice TOG',
+        'groupe' => 'Groupe / âge', 'labels' => 'Labels', 'terrain' => 'Terrain', 'volume' => 'Volume',
+        'contenance' => 'Contenance', 'saveur' => 'Saveur', 'peremption' => 'Date limite', 'origine' => 'Origine',
+        'histoire' => 'Histoire', 'ref_oem' => 'Référence OEM', 'norme' => 'Norme', 'amorti' => 'Amorti',
+        'resistance' => 'Résistance', 'puissance' => 'Puissance', 'autonomie' => 'Autonomie', 'capacite' => 'Capacité',
+        'ce' => 'Conforme CE', 'en71' => 'Norme EN71', 'fait_main' => 'Fait main', 'piece_unique' => 'Pièce unique',
+        'par_paire' => 'Vendu par paire', 'personnalisation' => 'Personnalisable', 'universel' => 'Montage universel',
+        'alcoolise' => 'Alcoolisé', 'contact_alimentaire' => 'Contact alimentaire', 'small_parts' => 'Petites pièces',
+        'avertissement_3ans' => 'Déconseillé < 3 ans', 'securite_enfant' => 'Sécurité enfant',
+    ];
+    $boolKeys = ['ce', 'en71', 'fait_main', 'piece_unique', 'par_paire', 'personnalisation', 'universel',
+        'alcoolise', 'contact_alimentaire', 'small_parts', 'avertissement_3ans', 'securite_enfant'];
+    // Clés purement techniques (déjà servies ailleurs comme libellés d'axe / non pertinentes).
+    $skip = ['variant_axis', 'variant_axis2', 'sale_mode', 'unit', 'hex', 'nuance', 'notes', 'capteurs'];
+
+    // 1) Champs « colonnes » clés du produit.
+    $add('Marque', (string) ($product['brand'] ?? ''));
+    $add('Modèle', (string) ($product['model'] ?? ''));
+    $add('Gamme', (string) ($product['line'] ?? ''));
+    $add('Type', (string) ($product['product_type'] ?? ''));
+
+    // 2) Caractéristiques adaptatives (attributes JSON).
+    $attr = json_decode((string) ($product['attributes'] ?? ''), true);
+    if (is_array($attr)) {
+        foreach ($attr as $key => $val) {
+            if (in_array($key, $skip, true)) {
+                continue;
+            }
+            // specs : caractéristiques libres (libellé → valeur) saisies par le vendeur.
+            if ($key === 'specs' && is_array($val)) {
+                foreach ($val as $sk => $sv) {
+                    if (is_string($sk)) {
+                        $add(ucfirst($sk), $sv);
+                    } else {
+                        $add('Caractéristique', $sv);
+                    }
+                }
+                continue;
+            }
+            $label = $labels[$key] ?? ucfirst(str_replace('_', ' ', (string) $key));
+            if (in_array($key, $boolKeys, true)) {
+                if (!empty($val)) {
+                    $add($label, 'Oui');
+                }
+                continue;
+            }
+            $add($label, $val);
+        }
+    }
+
+    // 3) Quelques colonnes complémentaires si renseignées.
+    if (((float) ($product['volume'] ?? 0)) > 0) {
+        $add('Volume', rtrim(rtrim(number_format((float) $product['volume'], 2, '.', ''), '0'), '.') . ' ' . (string) ($product['volume_unit'] ?: 'ml'));
+    }
+    $add('PAO', $product['pao'] ?? '');
+    $add('EAN', $product['ean'] ?? '');
+    $add('SKU', $product['sku'] ?? '');
+    if (!empty($product['expiry_date'])) {
+        $add('Date de péremption', date('d/m/Y', (int) strtotime((string) $product['expiry_date'])));
+    }
+    return $rows;
+}
+
 /** Valide une valeur beauté contre une liste blanche ('' = non précisé). */
 function beauty_clean(?string $v, array $allowed): string
 {
