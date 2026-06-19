@@ -256,6 +256,17 @@ foreach ($realVariants as $rv) {
                     }
                     if (!empty($aAttr['ce'])) { $apTags[] = 'CE'; }
                     if (!empty($aAttr['condition']) && !str_starts_with((string) $aAttr['condition'], 'Neuf')) { $apTags[] = (string) $aAttr['condition']; }
+                } elseif ($pVertical === 'generic' && sport_capable((string) ($boutique['category'] ?? '')) && sport_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Sport & loisirs adaptatif (Chaussures…) : type, public, terrain, amorti, état.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['condition', 'variant_axis'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];

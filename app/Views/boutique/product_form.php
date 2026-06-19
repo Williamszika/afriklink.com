@@ -1864,6 +1864,106 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /bébé nouveau rayon -->
         <?php endif; ?>
 
+        <?php if (sport_capable($boutiqueCat)):
+            $rawOldSp = $_SESSION['_old'] ?? [];
+            $spAttrs  = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $spActive = sport_is_rayon($curCol);
+            $spRayon  = $spActive ? $curCol : (sport_rayons()[0] ?? 'Chaussures');
+            $spType   = (string) ($rawOldSp['product_type'] ?? ($product['product_type'] ?? ''));
+            $spMeta   = sport_type_meta($spRayon, $spType);
+            $spCond   = (string) ($rawOldSp['acc_condition'] ?? ($spAttrs['condition'] ?? 'Neuf'));
+            $spAtoutsSel = isset($rawOldSp['atouts']) && is_array($rawOldSp['atouts'])
+                ? array_map('strval', $rawOldSp['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $spCleats = $spMeta !== null && !empty($spMeta['cleats']);
+            $spWater  = $spMeta !== null && !empty($spMeta['water']);
+            $spDefaults = (array) ($spMeta['defaults'] ?? []);
+            $spDis = $spActive ? '' : ' disabled';
+        ?>
+        <div data-sport
+             data-rayons="<?= e((string) json_encode((array) config('sport.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('sport.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('sport.f.type_any')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Sport & loisirs adaptatif (Chaussures…) ===== -->
+        <div data-sport-root<?= $spActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="sport-brand"><?= e(t('sport.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="sport-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldSp['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('sport.brand_ph')) ?>"<?= $spDis ?>>
+                </div>
+                <div>
+                    <label for="sport-type"><?= e(t('sport.f.type')) ?> <span class="req">*</span></label>
+                    <select id="sport-type" name="product_type" data-pv="type" data-sport-type<?= $spDis ?>>
+                        <option value=""><?= e(t('sport.f.type_any')) ?></option>
+                        <?php $spGroups = sport_groups($spRayon); ?>
+                        <?php if ($spGroups !== []): foreach ($spGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (sport_types($spRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $spType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (sport_types($spRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $spType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="grid-2" style="margin-top:14px">
+                <div>
+                    <label for="sport-cond"><?= e(t('sport.f.condition')) ?></label>
+                    <select id="sport-cond" name="acc_condition"<?= $spDis ?>>
+                        <?php foreach (sport_conditions() as $cc): ?><option value="<?= e($cc) ?>" <?= $spCond === $cc ? 'selected' : '' ?>><?= e($cc) ?></option><?php endforeach; ?>
+                    </select>
+                </div>
+                <div></div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-sport-hint><?= e($spMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+                <div class="attrs grid-2" data-sport-attrs>
+                    <?php if ($spMeta): foreach ((array) ($spMeta['fields'] ?? []) as $fk): $fd = sport_fields($spRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($spAttrs[$fk] ?? ''); if ($fv === '' && isset($spDefaults[$fk])) { $fv = (string) $spDefaults[$fk]; } ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $spDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <div class="notice notice-info" data-sport-cleats-note<?= $spCleats ? '' : ' hidden' ?>><p>⚽ <?= e(t('sport.cleats_note')) ?></p></div>
+                <div class="notice notice-info" data-sport-water-note<?= $spWater ? '' : ' hidden' ?>><p>🌊 <?= e(t('sport.water_note')) ?></p></div>
+
+                <div class="grid-2" style="margin-top:12px">
+                    <div>
+                        <label for="sport-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="sport-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldSp['variant_axis'] ?? ($spAttrs['variant_axis'] ?? ($spMeta['axis'] ?? 'Pointure')))) ?>" placeholder="<?= e(t('sport.axis_ph')) ?>" data-sport-axis<?= $spDis ?>>
+                    </div>
+                    <div>
+                        <label for="sport-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="sport-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldSp['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="SPT-001"<?= $spDis ?>>
+                    </div>
+                </div>
+                <?php $spSizes = ($spMeta && !empty($spMeta['axis'])) ? (array) (config('sport.size_systems')[$spMeta['axis']] ?? []) : []; ?>
+                <label data-sport-size-label<?= $spSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-sport-size-chips<?= $spSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($spSizes as $sb): ?><button type="button" class="axis-chip" data-sport-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-sport-atouts>
+                    <?php foreach (sport_atouts($spRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $spAtoutsSel, true) ? 'checked' : '' ?><?= $spDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /sport adaptatif -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];

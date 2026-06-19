@@ -576,6 +576,19 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (sport_capable((string) ($boutique['category'] ?? '')) && sport_is_rayon($collection)) {
+            // Sport & loisirs adaptatif (Chaussures…) : type-driven specs (public, terrain,
+            // amorti…) + état. Valeurs par défaut du type (ex. crampons → terrain ferme)
+            // appliquées au nettoyage. Déclinaison pointure. Tout en JSON.
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(sport_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), sport_atouts($collection)));
+            $ea = sport_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $cond = beauty_clean(input_string('acc_condition', ''), sport_conditions());
+            if ($cond !== '') { $ea['condition'] = $cond; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

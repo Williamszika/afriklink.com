@@ -1496,6 +1496,69 @@ function bebe_autre_cfg(?string $rayon): ?array
     return is_array($r) ? $r : null;
 }
 
+/* ---------- Sport & loisirs : rayons adaptatifs au type (Chaussures…) ---------- */
+
+/** @return list<string> Catégories de boutique proposant les rayons sport adaptatifs. */
+function sport_shop_categories(): array { return (array) config('sport.shop_categories', ['sport']); }
+
+/** La boutique (catégorie) propose-t-elle le formulaire sport adaptatif ? */
+function sport_capable(?string $boutiqueCategory): bool { return in_array((string) $boutiqueCategory, sport_shop_categories(), true); }
+
+/** @return list<string> Libellés des rayons sport type-driven. */
+function sport_rayons(): array { return array_keys((array) config('sport.rayons', [])); }
+
+/** Ce rayon a-t-il un formulaire sport adaptatif ? */
+function sport_is_rayon(?string $rayon): bool { return isset(((array) config('sport.rayons', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon sport par clé. */
+function sport_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('sport.rayons.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function sport_fields(?string $rayon): array { return sport_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function sport_types(?string $rayon): array { return sport_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function sport_groups(?string $rayon): array { return sport_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function sport_atouts(?string $rayon): array { return sport_rayon($rayon, 'atouts'); }
+
+/** @return list<string> */
+function sport_conditions(): array { return (array) config('sport.conditions', ['Neuf', 'Occasion']); }
+
+/** Métadonnées d'un type pour un rayon sport, ou null. */
+function sport_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = sport_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques d'un produit sport : champs du type validés.
+ * Applique au passage les valeurs par défaut du type ('defaults') si absentes.
+ * @return array<string,string>
+ */
+function sport_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = sport_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = sport_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val === '' && isset(((array) ($meta['defaults'] ?? []))[$key])) { $val = (string) $meta['defaults'][$key]; }
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */
