@@ -12,6 +12,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AddressController;
 use App\Controllers\NewsletterController;
+use App\Controllers\AdminDemoController;
 use App\Controllers\AdminKycController;
 use App\Controllers\AdminMailController;
 use App\Controllers\AnnouncementController;
@@ -183,6 +184,10 @@ return [
     // Diagnostic e-mail (staff) : configuration effective + envoi d'un test.
     ['GET',  '/admin/email',       [AdminMailController::class, 'index'],    ['staff']],
     ['POST', '/admin/email/test',  [AdminMailController::class, 'sendTest'],  ['staff', 'csrf', 'throttle:mailtest,10,3600']],
+
+    ['GET',  '/admin/demo',        [AdminDemoController::class, 'index'],  ['staff']],
+    ['POST', '/admin/demo/seed',   [AdminDemoController::class, 'seed'],   ['staff', 'csrf', 'throttle:demo,10,3600']],
+    ['POST', '/admin/demo/purge',  [AdminDemoController::class, 'purge'],  ['staff', 'csrf', 'throttle:demo,10,3600']],
     ['GET',  '/vendeur/reglages',  [SellerController::class, 'settings'],     ['auth']],
     ['POST', '/vendeur/reglages',  [SellerController::class, 'updateSettings'], ['auth', 'csrf', 'throttle:profile,30,3600']],
     ['GET',  '/vendeur/profil',    [SellerProfileController::class, 'edit'],   ['auth']],
