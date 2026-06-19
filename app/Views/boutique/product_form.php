@@ -1098,6 +1098,170 @@ $fmtP = static function ($cents) use ($cur): string {
         </div><!-- /arti nouveau rayon -->
         <?php endif; ?>
 
+        <?php if (bebe_capable($boutiqueCat)):
+            $rawOldB   = $_SESSION['_old'] ?? [];
+            $bebeAttrs = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+            $bebeActive = bebe_is_rayon($curCol);
+            $bebeRayon  = $bebeActive ? $curCol : (bebe_rayons()[0] ?? 'Alimentation');
+            $bebeType   = (string) ($rawOldB['product_type'] ?? ($product['product_type'] ?? ''));
+            $bebeMeta   = bebe_type_meta($bebeRayon, $bebeType);
+            $bebeAgeFix = (string) ($bebeMeta['age_fix'] ?? '');
+            $bebeAge    = $bebeAgeFix !== '' ? $bebeAgeFix : (string) ($rawOldB['age_min'] ?? ($bebeAttrs['age_min'] ?? ''));
+            $bebeConserv = (string) ($rawOldB['conservation'] ?? ($bebeAttrs['conservation'] ?? ($bebeMeta['conserv'] ?? 'Ambiante')));
+            $bebeDlc     = (string) ($rawOldB['dlc_type'] ?? ($bebeAttrs['dlc_type'] ?? ''));
+            $bebeDate    = (string) ($rawOldB['date_limite'] ?? ($bebeAttrs['date_limite'] ?? ''));
+            $bebeAtoutsSel = isset($rawOldB['atouts']) && is_array($rawOldB['atouts'])
+                ? array_map('strval', $rawOldB['atouts'])
+                : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
+            $bebeAllergSel = isset($rawOldB['allergenes']) && is_array($rawOldB['allergenes'])
+                ? array_map('strval', $rawOldB['allergenes'])
+                : array_map('strval', (array) ($bebeAttrs['allergenes'] ?? []));
+            $bebeRegimeSel = isset($rawOldB['regime']) && is_array($rawOldB['regime'])
+                ? array_map('strval', $rawOldB['regime'])
+                : array_map('strval', (array) ($bebeAttrs['regime'] ?? []));
+            $bebeFields    = (array) ($bebeMeta['fields'] ?? []);
+            $bebeShowAllerg = in_array('allerg', $bebeFields, true);
+            $bebeShowRegime = in_array('regime', $bebeFields, true);
+            $bebeCold = $bebeConserv !== '' && $bebeConserv !== 'Ambiante';
+            $bebeF1   = $bebeMeta !== null && !empty($bebeMeta['formula1']);
+            $bebeForm = $bebeMeta !== null && !empty($bebeMeta['formula']) && !$bebeF1;
+            $bebeCompl = $bebeMeta !== null && !empty($bebeMeta['complement']);
+            $bebeDis  = $bebeActive ? '' : ' disabled';
+        ?>
+        <div data-bebe
+             data-rayons="<?= e((string) json_encode((array) config('bebe.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-size-systems="<?= e((string) json_encode((array) config('bebe.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-any="<?= e(t('bebe.f.type_any')) ?>" data-ambient="Ambiante"
+             data-promo-lock="<?= e(t('bebe.promo_lock')) ?>"
+             data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
+
+        <!-- ===== Bébé & Enfant · Alimentation (réglementé) ===== -->
+        <div data-bebe-root<?= $bebeActive ? '' : ' hidden' ?>>
+            <div class="grid-2">
+                <div>
+                    <label for="bebe-brand"><?= e(t('bebe.f.brand')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <input type="text" id="bebe-brand" name="brand" data-pv="brand" maxlength="60" value="<?= e((string) ($rawOldB['brand'] ?? ($product['brand'] ?? ''))) ?>" placeholder="<?= e(t('bebe.brand_ph')) ?>"<?= $bebeDis ?>>
+                </div>
+                <div>
+                    <label for="bebe-type"><?= e(t('bebe.f.type')) ?> <span class="req">*</span></label>
+                    <select id="bebe-type" name="product_type" data-pv="type" data-bebe-type<?= $bebeDis ?>>
+                        <option value=""><?= e(t('bebe.f.type_any')) ?></option>
+                        <?php $bebeGroups = bebe_groups($bebeRayon); ?>
+                        <?php if ($bebeGroups !== []): foreach ($bebeGroups as $gk => $glabel): ?>
+                            <optgroup label="<?= e($glabel) ?>">
+                                <?php foreach (bebe_types($bebeRayon) as $tname => $tm): if (($tm['group'] ?? '') !== $gk) { continue; } ?>
+                                    <option value="<?= e($tname) ?>" <?= $bebeType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; else: foreach (bebe_types($bebeRayon) as $tname => $tm): ?>
+                            <option value="<?= e($tname) ?>" <?= $bebeType === $tname ? 'selected' : '' ?>><?= e($tname) ?></option>
+                        <?php endforeach; endif; ?>
+                    </select>
+                </div>
+            </div>
+
+            <details class="variants-box" open>
+                <summary>⚙️ <?= e(t('cuisine.sec.specs')) ?></summary>
+                <p class="hint" data-bebe-hint><?= e($bebeMeta ? t('cuisine.specs_hint') : t('cuisine.specs_pick')) ?></p>
+
+                <div class="grid-2">
+                    <div>
+                        <label for="bebe-age"><?= e(t('bebe.f.age')) ?> <span class="req">*</span></label>
+                        <div class="static-val" data-bebe-age-fix<?= $bebeAgeFix === '' ? ' hidden' : '' ?>><?= e($bebeAgeFix) ?></div>
+                        <select id="bebe-age" name="age_min" data-bebe-age<?= $bebeAgeFix !== '' ? ' hidden' : '' ?><?= $bebeDis ?>>
+                            <option value="">—</option>
+                            <?php foreach (bebe_ages() as $ag): ?><option value="<?= e($ag) ?>" <?= $bebeAge === $ag ? 'selected' : '' ?>><?= e($ag) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div></div>
+                </div>
+
+                <div class="attrs grid-2" data-bebe-attrs>
+                    <?php if ($bebeMeta): foreach ($bebeFields as $fk): $fd = bebe_fields($bebeRayon)[$fk] ?? null; if (!$fd) { continue; } $fv = (string) ($bebeAttrs[$fk] ?? ''); ?>
+                        <div>
+                            <label><?= e((string) $fd['label']) ?></label>
+                            <select name="attr[<?= e($fk) ?>]"<?= $bebeDis ?>>
+                                <option value="">—</option>
+                                <?php foreach ((array) $fd['opts'] as $o): ?><option value="<?= e((string) $o) ?>" <?= $fv === (string) $o ? 'selected' : '' ?>><?= e((string) $o) ?></option><?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; endif; ?>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label for="bebe-conserv"><?= e(t('bebe.f.conservation')) ?></label>
+                        <select id="bebe-conserv" name="conservation" data-bebe-conserv<?= $bebeDis ?>>
+                            <?php foreach (bebe_conservations() as $cs): ?><option value="<?= e($cs) ?>" <?= $bebeConserv === $cs ? 'selected' : '' ?>><?= e($cs) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bebe-dlc"><?= e(t('bebe.f.dlc_type')) ?></label>
+                        <select id="bebe-dlc" name="dlc_type" data-bebe-dlc<?= $bebeDis ?>>
+                            <?php foreach (bebe_dlc_types() as $d): ?><option value="<?= e($d) ?>" <?= $bebeDlc === $d ? 'selected' : '' ?>><?= e($d) ?></option><?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label for="bebe-date"><?= e(t('bebe.f.date_limite')) ?> <span class="req">*</span></label>
+                        <input type="date" id="bebe-date" name="date_limite" value="<?= e($bebeDate) ?>"<?= $bebeDis ?>>
+                        <?php if (has_error('date_limite')): ?><p class="field-error"><?= e(error('date_limite')) ?></p><?php endif; ?>
+                    </div>
+                    <div>
+                        <label for="bebe-sku"><?= e(t('beauty.f.sku')) ?></label>
+                        <input type="text" id="bebe-sku" name="sku" class="mono" maxlength="40" value="<?= e((string) ($rawOldB['sku'] ?? ($product['sku'] ?? ''))) ?>" placeholder="BB-001"<?= $bebeDis ?>>
+                    </div>
+                </div>
+                <div class="notice notice-info" data-bebe-cold-note<?= $bebeCold ? '' : ' hidden' ?>><p>❄️ <?= e(t('bebe.cold_note')) ?></p></div>
+
+                <div class="notice notice-warning" data-bebe-note-formula1<?= $bebeF1 ? '' : ' hidden' ?>><p>🔒 <?= e(t('bebe.formula1_note')) ?></p></div>
+                <div class="notice notice-warning" data-bebe-note-formula<?= $bebeForm ? '' : ' hidden' ?>><p>⚖️ <?= e(t('bebe.formula_note')) ?></p></div>
+                <div class="notice notice-warning" data-bebe-note-complement<?= $bebeCompl ? '' : ' hidden' ?>><p>⚖️ <?= e(t('bebe.complement_note')) ?></p></div>
+                <div class="notice notice-info" data-bebe-note-baby<?= $bebeMeta ? '' : ' hidden' ?>><p>🍼 <?= e(t('bebe.baby_note')) ?></p></div>
+
+                <div data-bebe-allerg-wrap<?= $bebeShowAllerg ? '' : ' hidden' ?>>
+                    <label style="margin-top:12px"><?= e(t('bebe.f.allergenes')) ?> <span class="muted">(<?= e(t('bebe.f.allergenes_opt')) ?>)</span></label>
+                    <div class="chip-checks" data-bebe-allergenes>
+                        <?php foreach (bebe_allergenes() as $al): ?>
+                            <label class="chip-check chip-check--health"><input type="checkbox" name="allergenes[]" value="<?= e($al) ?>" <?= in_array($al, $bebeAllergSel, true) ? 'checked' : '' ?><?= $bebeShowAllerg ? $bebeDis : ' disabled' ?>><span><?= e($al) ?></span></label>
+                        <?php endforeach; ?>
+                    </div>
+                    <span class="hint"><?= e(t('bebe.allergenes_hint')) ?></span>
+                </div>
+
+                <div data-bebe-regime-wrap<?= $bebeShowRegime ? '' : ' hidden' ?>>
+                    <label style="margin-top:12px"><?= e(t('bebe.f.regime')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                    <div class="chip-checks" data-bebe-regime>
+                        <?php foreach (bebe_regimes() as $rg): ?>
+                            <label class="chip-check"><input type="checkbox" name="regime[]" value="<?= e($rg) ?>" <?= in_array($rg, $bebeRegimeSel, true) ? 'checked' : '' ?><?= $bebeShowRegime ? $bebeDis : ' disabled' ?>><span><?= e($rg) ?></span></label>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top:12px">
+                    <div>
+                        <label for="bebe-axis"><?= e(t('autre.axis')) ?></label>
+                        <input type="text" id="bebe-axis" name="variant_axis" maxlength="24" value="<?= e((string) ($rawOldB['variant_axis'] ?? ($bebeAttrs['variant_axis'] ?? ($bebeMeta['axis'] ?? 'Lot')))) ?>" placeholder="<?= e(t('bebe.axis_ph')) ?>" data-bebe-axis<?= $bebeDis ?>>
+                    </div>
+                    <div></div>
+                </div>
+                <?php $bebeSizes = ($bebeMeta && !empty($bebeMeta['axis'])) ? (array) (config('bebe.size_systems')[$bebeMeta['axis']] ?? []) : []; ?>
+                <label data-bebe-size-label<?= $bebeSizes === [] ? ' hidden' : '' ?>><?= e(t('cuisine.autre_sizes')) ?></label>
+                <div class="chips-row" data-bebe-size-chips<?= $bebeSizes === [] ? ' hidden' : '' ?>>
+                    <?php foreach ($bebeSizes as $sb): ?><button type="button" class="axis-chip" data-bebe-fill="<?= e((string) json_encode($sb['list'] ?? [], JSON_UNESCAPED_UNICODE)) ?>">+ <?= e((string) ($sb['label'] ?? '')) ?></button><?php endforeach; ?>
+                </div>
+
+                <label style="margin-top:12px"><?= e(t('beauty.f.atouts')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <div class="chip-checks" data-bebe-atouts>
+                    <?php foreach (bebe_atouts($bebeRayon) as $a): ?>
+                        <label class="chip-check"><input type="checkbox" name="atouts[]" value="<?= e($a) ?>" <?= in_array($a, $bebeAtoutsSel, true) ? 'checked' : '' ?><?= $bebeDis ?>><span><?= e($a) ?></span></label>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+        </div><!-- /bébé alimentation -->
+        <?php endif; ?>
+
         <?php if ($vertical === 'phone'): ?>
         <?php
         $rawOldE  = $_SESSION['_old'] ?? [];
@@ -2336,10 +2500,11 @@ $fmtP = static function ($cents) use ($cur): string {
             </div>
         </div>
 
-        <details class="variants-box promo-box" <?= ($isEdit && (int) ($product['promo_price_cents'] ?? 0) > 0) || has_error('promo_price') ? 'open' : '' ?>>
+        <details class="variants-box promo-box" data-promo-box <?= ($isEdit && (int) ($product['promo_price_cents'] ?? 0) > 0) || has_error('promo_price') ? 'open' : '' ?>>
             <summary>🏷️ <?= e(t('product.f.promo_section')) ?></summary>
             <p class="hint"><?= e(t('product.f.promo_hint')) ?></p>
-            <div class="grid-2">
+            <div class="notice notice-warning" data-promo-lock-note hidden><p>🔒 <span data-promo-lock-text></span></p></div>
+            <div class="grid-2" data-promo-fields>
                 <div>
                     <label for="p-promo"><?= e(t('product.f.promo_price', ['cur' => $cur])) ?></label>
                     <input type="text" id="p-promo" name="promo_price" inputmode="decimal" value="<?= old('promo_price') ?: ($isEdit ? e($fmtP($product['promo_price_cents'] ?? null)) : '') ?>" placeholder="<?= e(t('product.f.promo_price_ph')) ?>" data-pv="promo">

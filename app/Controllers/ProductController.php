@@ -411,6 +411,49 @@ final class ProductController
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
+        } elseif (bebe_capable((string) ($boutique['category'] ?? '')) && bebe_is_rayon($collection)) {
+            // Bébé & Enfant · Alimentation : type-driven specs + âge mini, conservation,
+            // DLC/DDM (date OBLIGATOIRE), allergènes (14 UE), régime. Garde-fous : préparation
+            // pour nourrissons 0–6 mois → PROMOTION SUPPRIMÉE (UE 2016/127 / Code OMS).
+            $productType = beauty_clean(input_string('product_type', ''), array_keys(bebe_types($collection)));
+            $line = ''; $volume = null; $volumeUnit = 'ml'; $pao = '';
+            $atouts = implode(', ', keep_in_list((array) ($_POST['atouts'] ?? []), bebe_atouts($collection)));
+            $ea = bebe_attr_clean($collection, $productType, (array) ($_POST['attr'] ?? []));
+            $bMeta = bebe_type_meta($collection, $productType);
+            // Âge : imposé par le type si défini (anti-triche), sinon choix validé du vendeur.
+            $ageFix = (string) ($bMeta['age_fix'] ?? '');
+            $age = $ageFix !== '' ? $ageFix : beauty_clean(input_string('age_min', ''), bebe_ages());
+            if ($age !== '') { $ea['age_min'] = $age; }
+            $cons = beauty_clean(input_string('conservation', ''), bebe_conservations());
+            if ($cons !== '') { $ea['conservation'] = $cons; }
+            $dlc = beauty_clean(input_string('dlc_type', ''), bebe_dlc_types());
+            if ($dlc !== '') { $ea['dlc_type'] = $dlc; }
+            // Date limite OBLIGATOIRE sur l'alimentaire bébé.
+            $dlRaw = trim((string) input_string('date_limite', ''));
+            if ($dlRaw === '' || strtotime($dlRaw) === false) {
+                $errors['date_limite'] = t('bebe.date_required');
+            } else {
+                $ea['date_limite'] = date('Y-m-d', (int) strtotime($dlRaw));
+            }
+            // Allergènes / régime : seulement si le type les expose (anti-injection).
+            $bFields = (array) ($bMeta['fields'] ?? []);
+            if (in_array('allerg', $bFields, true)) {
+                $allerg = keep_in_list((array) ($_POST['allergenes'] ?? []), bebe_allergenes());
+                if ($allerg !== []) { $ea['allergenes'] = $allerg; }
+            }
+            if (in_array('regime', $bFields, true)) {
+                $reg = keep_in_list((array) ($_POST['regime'] ?? []), bebe_regimes());
+                if ($reg !== []) { $ea['regime'] = $reg; }
+            }
+            // Drapeaux réglementaires (déterminés par le TYPE, pas par le POST).
+            if ($bMeta !== null && !empty($bMeta['formula']))    { $ea['formula'] = true; }
+            if ($bMeta !== null && !empty($bMeta['formula1']))   { $ea['formula_1er_age'] = true; }
+            if ($bMeta !== null && !empty($bMeta['complement'])) { $ea['complement'] = true; }
+            // GARDE-FOU : préparation pour nourrissons 0–6 mois → aucune promotion possible.
+            if ($bMeta !== null && !empty($bMeta['formula1'])) { $promoCents = null; $promoUntil = null; }
+            $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
+            if ($axis !== '') { $ea['variant_axis'] = $axis; }
+            $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;
         } elseif (auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon($collection)) {
             // Auto & pièces adaptatif (Accessoires…) : type-driven specs (dont garantie),
             // état, et compatibilité véhicule (universel / véhicules). Tout en JSON.

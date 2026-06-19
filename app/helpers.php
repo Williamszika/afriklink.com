@@ -1159,6 +1159,81 @@ function alim_autre_cfg(?string $rayon): ?array
     return is_array($r) ? $r : null;
 }
 
+/* ---------- Bébé & Enfant : rayons adaptatifs au type (Alimentation…) ---------- */
+
+/** @return list<string> Catégories de boutique proposant les rayons bébé adaptatifs. */
+function bebe_shop_categories(): array { return (array) config('bebe.shop_categories', ['bebe']); }
+
+/** La boutique (catégorie) propose-t-elle le formulaire bébé/enfant adaptatif ? */
+function bebe_capable(?string $boutiqueCategory): bool { return in_array((string) $boutiqueCategory, bebe_shop_categories(), true); }
+
+/** @return list<string> Libellés des rayons bébé type-driven. */
+function bebe_rayons(): array { return array_keys((array) config('bebe.rayons', [])); }
+
+/** Ce rayon a-t-il un formulaire bébé adaptatif ? */
+function bebe_is_rayon(?string $rayon): bool { return isset(((array) config('bebe.rayons', []))[(string) $rayon]); }
+
+/** Sous-config d'un rayon bébé par clé. */
+function bebe_rayon(?string $rayon, ?string $key = null): array
+{
+    $cfg = (array) config('bebe.rayons.' . (string) $rayon, []);
+    if ($key === null) { return $cfg; }
+    return (array) ($cfg[$key] ?? []);
+}
+
+/** @return array<string,array{label:string,opts:list<string>}> */
+function bebe_fields(?string $rayon): array { return bebe_rayon($rayon, 'fields'); }
+
+/** @return array<string,array> */
+function bebe_types(?string $rayon): array { return bebe_rayon($rayon, 'types'); }
+
+/** @return array<string,string> */
+function bebe_groups(?string $rayon): array { return bebe_rayon($rayon, 'groups'); }
+
+/** @return list<string> */
+function bebe_atouts(?string $rayon): array { return bebe_rayon($rayon, 'atouts'); }
+
+/** @return list<string> */
+function bebe_conservations(): array { return (array) config('bebe.conservations', []); }
+
+/** @return list<string> */
+function bebe_dlc_types(): array { return (array) config('bebe.dlc_types', []); }
+
+/** @return list<string> */
+function bebe_allergenes(): array { return (array) config('bebe.allergenes', []); }
+
+/** @return list<string> */
+function bebe_regimes(): array { return (array) config('bebe.regimes', []); }
+
+/** @return list<string> */
+function bebe_ages(): array { return (array) config('bebe.ages', []); }
+
+/** Métadonnées d'un type pour un rayon bébé, ou null. */
+function bebe_type_meta(?string $rayon, ?string $type): ?array
+{
+    $t = bebe_types($rayon)[(string) $type] ?? null;
+    return is_array($t) ? $t : null;
+}
+
+/**
+ * Nettoie les caractéristiques « select » d'un produit bébé : champs du type validés
+ * (texture / conditionnement). Conservation, allergènes, régime et âge sont gérés à part.
+ * @return array<string,string>
+ */
+function bebe_attr_clean(?string $rayon, ?string $type, array $attrs): array
+{
+    $meta = bebe_type_meta($rayon, $type);
+    if ($meta === null) { return []; }
+    $defs = bebe_fields($rayon);
+    $out = [];
+    foreach ((array) ($meta['fields'] ?? []) as $key) {
+        if (!isset($defs[$key])) { continue; } // seuls texture / portion ont une définition
+        $val = trim((string) ($attrs[$key] ?? ''));
+        if ($val !== '' && in_array($val, (array) ($defs[$key]['opts'] ?? []), true)) { $out[$key] = $val; }
+    }
+    return $out;
+}
+
 /* ---------- Auto & pièces : rayons adaptatifs au type (Accessoires…) ---------- */
 
 /** @return list<string> Catégories de boutique proposant les rayons auto adaptatifs. */

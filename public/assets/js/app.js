@@ -4608,6 +4608,211 @@ document.addEventListener('click', function (ev) {
     setEnabled();
 })();
 
+/* ---- Bébé & Enfant : rayon « Alimentation » adaptatif au TYPE.
+   Le TYPE pilote les caractéristiques (texture / conditionnement), l'âge minimum
+   (souvent imposé), la conservation + DLC par défaut, les allergènes / régime, et
+   les GARDE-FOUS réglementaires : préparation pour nourrissons 0–6 mois → promotion
+   VERROUILLÉE + note de conformité ; laits infantiles & compléments → notes dédiées ;
+   chaîne du froid. CSP-safe (zéro inline). ---- */
+(function () {
+    var cfgEl = document.querySelector('[data-bebe]');
+    var form  = document.getElementById('product-form');
+    if (!cfgEl || !form) { return; }
+    function parse(a) { try { return JSON.parse(cfgEl.getAttribute(a) || 'null') || {}; } catch (e) { return {}; } }
+    var RAYONS  = parse('data-rayons');
+    var SIZES   = parse('data-size-systems');
+    var AMBIENT = cfgEl.getAttribute('data-ambient') || 'Ambiante';
+    var coll      = document.querySelector('[data-collection-select]');
+    var root      = document.querySelector('[data-bebe-root]');
+    var typeSel   = document.querySelector('[data-bebe-type]');
+    var attrsBox  = document.querySelector('[data-bebe-attrs]');
+    var atoutsBox = document.querySelector('[data-bebe-atouts]');
+    var conservSel= document.querySelector('[data-bebe-conserv]');
+    var coldNote  = document.querySelector('[data-bebe-cold-note]');
+    var dlcSel    = document.querySelector('[data-bebe-dlc]');
+    var hint      = document.querySelector('[data-bebe-hint]');
+    var axisInp   = document.querySelector('[data-bebe-axis]');
+    var ageFix    = document.querySelector('[data-bebe-age-fix]');
+    var ageSel    = document.querySelector('[data-bebe-age]');
+    var allergWrap= document.querySelector('[data-bebe-allerg-wrap]');
+    var regimeWrap= document.querySelector('[data-bebe-regime-wrap]');
+    var noteF1    = document.querySelector('[data-bebe-note-formula1]');
+    var noteForm  = document.querySelector('[data-bebe-note-formula]');
+    var noteCompl = document.querySelector('[data-bebe-note-complement]');
+    var noteBaby  = document.querySelector('[data-bebe-note-baby]');
+    // Section promotion PARTAGÉE : verrou réglementaire (préparation 0–6 mois).
+    var promoBox      = document.querySelector('[data-promo-box]');
+    var promoFields   = document.querySelector('[data-promo-fields]');
+    var promoLockNote = document.querySelector('[data-promo-lock-note]');
+    var promoLockText = document.querySelector('[data-promo-lock-text]');
+    if (!root) { return; }
+
+    function active() { return !!(coll && RAYONS[coll.value]); }
+    function cfg() { return (coll && RAYONS[coll.value]) ? RAYONS[coll.value] : {}; }
+    function meta() { var t = cfg().types || {}; return (typeSel && t[typeSel.value]) ? t[typeSel.value] : null; }
+    function show(el, on) { if (el) { el.hidden = !on; } }
+    function fieldsOf(m) { return (m && m.fields) ? m.fields : []; }
+
+    function buildAttrs() {
+        if (!attrsBox) { return; }
+        var fields = cfg().fields || {};
+        var prev = {};
+        attrsBox.querySelectorAll('select').forEach(function (s) { var k = (s.name.match(/attr\[(.+)\]/) || [])[1]; if (k) { prev[k] = s.value; } });
+        attrsBox.innerHTML = '';
+        var m = meta(); if (!m) { return; }
+        (m.fields || []).forEach(function (key) {
+            var def = fields[key]; if (!def) { return; } // seuls texture / portion ont une définition
+            var wrap = document.createElement('div');
+            var lab = document.createElement('label'); lab.textContent = def.label; wrap.appendChild(lab);
+            var sel = document.createElement('select'); sel.name = 'attr[' + key + ']';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = '—'; sel.appendChild(o0);
+            (def.opts || []).forEach(function (o) {
+                var op = document.createElement('option'); op.value = o; op.textContent = o;
+                if (prev[key] === o) { op.selected = true; }
+                sel.appendChild(op);
+            });
+            wrap.appendChild(sel); attrsBox.appendChild(wrap);
+        });
+    }
+    function rebuildRayon() {
+        var c = cfg();
+        if (typeSel) {
+            var cur = typeSel.value, types = c.types || {}, groups = c.groups || {};
+            typeSel.innerHTML = '';
+            var o0 = document.createElement('option'); o0.value = ''; o0.textContent = cfgEl.getAttribute('data-any') || '—'; typeSel.appendChild(o0);
+            function addOpt(parent, tn) { var op = document.createElement('option'); op.value = tn; op.textContent = tn; if (tn === cur) { op.selected = true; } parent.appendChild(op); }
+            if (Object.keys(groups).length) {
+                Object.keys(groups).forEach(function (gk) {
+                    var og = document.createElement('optgroup'); og.label = groups[gk];
+                    Object.keys(types).forEach(function (tn) { if ((types[tn].group || '') === gk) { addOpt(og, tn); } });
+                    typeSel.appendChild(og);
+                });
+            } else {
+                Object.keys(types).forEach(function (tn) { addOpt(typeSel, tn); });
+            }
+            if (typeSel.value !== cur) { typeSel.value = ''; }
+        }
+        if (atoutsBox) {
+            var prevAt = {};
+            atoutsBox.querySelectorAll('input:checked').forEach(function (i) { prevAt[i.value] = true; });
+            atoutsBox.innerHTML = '';
+            (c.atouts || []).forEach(function (v) {
+                var lab = document.createElement('label'); lab.className = 'chip-check';
+                var inp = document.createElement('input'); inp.type = 'checkbox'; inp.name = 'atouts[]'; inp.value = v;
+                if (prevAt[v]) { inp.checked = true; }
+                var sp = document.createElement('span'); sp.textContent = v;
+                lab.appendChild(inp); lab.appendChild(sp); atoutsBox.appendChild(lab);
+            });
+        }
+        onType();
+    }
+    function buildSizeChips() {
+        var box = document.querySelector('[data-bebe-size-chips]');
+        var lab = document.querySelector('[data-bebe-size-label]');
+        if (!box) { return; }
+        var m = meta();
+        var btns = (m && m.axis && SIZES[m.axis]) ? SIZES[m.axis] : [];
+        box.innerHTML = '';
+        box.hidden = btns.length === 0;
+        if (lab) { lab.hidden = btns.length === 0; }
+        btns.forEach(function (b) {
+            var el = document.createElement('button'); el.type = 'button'; el.className = 'axis-chip';
+            el.setAttribute('data-bebe-fill', JSON.stringify(b.list || []));
+            el.textContent = '+ ' + (b.label || '');
+            box.appendChild(el);
+        });
+    }
+    function coldToggle() {
+        if (!coldNote) { return; }
+        var v = conservSel ? String(conservSel.value || '') : '';
+        coldNote.hidden = !(v !== '' && v !== AMBIENT);
+    }
+    function ageToggle() {
+        var m = meta();
+        var fix = (m && m.age_fix) ? String(m.age_fix) : '';
+        if (ageFix) { ageFix.hidden = (fix === ''); ageFix.textContent = fix; }
+        if (ageSel) { ageSel.hidden = (fix !== ''); ageSel.disabled = (fix !== '') || !active(); }
+    }
+    function toggleBox(wrap, on) {
+        if (!wrap) { return; }
+        wrap.querySelectorAll('input').forEach(function (i) { i.disabled = !on || !active(); });
+    }
+    function promoLock(lock) {
+        if (!promoBox) { return; }
+        var doLock = !!lock && active();
+        if (promoFields) {
+            promoFields.querySelectorAll('input').forEach(function (i) { i.disabled = doLock; if (doLock) { i.value = ''; } });
+        }
+        if (promoLockText) { promoLockText.textContent = cfgEl.getAttribute('data-promo-lock') || ''; }
+        if (promoLockNote) { promoLockNote.hidden = !doLock; }
+        if (doLock && promoBox.open) { promoBox.open = false; }
+    }
+    function notesToggle() {
+        var m = meta();
+        var f1 = !!(m && m.formula1);
+        show(noteF1, f1);
+        show(noteForm, !!(m && m.formula) && !f1);
+        show(noteCompl, !!(m && m.complement));
+        show(noteBaby, !!m);
+        var f = fieldsOf(m);
+        show(allergWrap, f.indexOf('allerg') > -1);
+        show(regimeWrap, f.indexOf('regime') > -1);
+        toggleBox(allergWrap, f.indexOf('allerg') > -1);
+        toggleBox(regimeWrap, f.indexOf('regime') > -1);
+        promoLock(f1);
+    }
+    function onType() {
+        var m = meta();
+        if (m && conservSel && !conservSel.dataset.touched && m.conserv) { conservSel.value = m.conserv; }
+        if (m && axisInp && !axisInp.value.trim()) { axisInp.value = m.axis || ''; }
+        if (m && dlcSel && !dlcSel.dataset.touched && m.conserv) {
+            var dopts = Array.prototype.map.call(dlcSel.options, function (o) { return o.value; }).filter(function (v) { return v !== ''; });
+            dlcSel.value = (m.conserv !== AMBIENT) ? (dopts[0] || '') : (dopts[1] || dopts[0] || '');
+        }
+        buildAttrs(); buildSizeChips(); coldToggle(); ageToggle(); notesToggle();
+        if (hint) { hint.textContent = m ? (cfgEl.getAttribute('data-hint-specs') || hint.textContent) : (cfgEl.getAttribute('data-hint-pick') || hint.textContent); }
+    }
+    function bebeFill(list) {
+        var rowsBox = document.getElementById('variant-rows') || document.querySelector('[data-variant-rows]');
+        var tpl = document.getElementById('variant-template');
+        if (!rowsBox || !tpl || !tpl.content) { return; }
+        var have = {};
+        rowsBox.querySelectorAll('input[name="var_size[]"]').forEach(function (i) { have[String(i.value || '').trim().toLowerCase()] = true; });
+        (list || []).forEach(function (sz) {
+            var key = String(sz).trim().toLowerCase();
+            if (key === '' || have[key]) { return; }
+            rowsBox.appendChild(tpl.content.cloneNode(true));
+            var row = rowsBox.lastElementChild;
+            var inp = row && row.querySelector('input[name="var_size[]"]');
+            if (inp) { inp.value = sz; }
+            have[key] = true;
+        });
+        var det = rowsBox.closest('details'); if (det) { det.open = true; }
+    }
+    function setEnabled() {
+        var known = active();
+        if (root) {
+            root.hidden = !known;
+            root.querySelectorAll('input, select, textarea').forEach(function (f) { f.disabled = !known; });
+        }
+        // Réapplique les états dérivés après (ré)activation, sinon relâche le verrou promo.
+        if (known) { ageToggle(); notesToggle(); } else { promoLock(false); }
+    }
+    function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
+
+    if (coll)      { coll.addEventListener('change', onColl); }
+    if (typeSel)   { typeSel.addEventListener('change', function () { onType(); setEnabled(); }); }
+    if (conservSel){ conservSel.addEventListener('change', function () { this.dataset.touched = '1'; coldToggle(); }); }
+    if (dlcSel)    { dlcSel.addEventListener('change', function () { this.dataset.touched = '1'; }); }
+    document.addEventListener('click', function (ev) {
+        if (!ev.target || !ev.target.closest) { return; }
+        var fill = ev.target.closest('[data-bebe-fill]');
+        if (fill) { ev.preventDefault(); try { bebeFill(JSON.parse(fill.getAttribute('data-bebe-fill') || '[]')); } catch (e) {} }
+    });
+    if (active()) { onType(); }
+    setEnabled();
+})();
+
 /* ---- Auto & pièces : rayons adaptatifs au type (Accessoires…).
    Le TYPE pilote les caractéristiques, l'axe (Couleur / Taille / Modèle / Parfum),
    le mode électrique (note CE). Bloc COMPATIBILITÉ VÉHICULE : universel → masque la

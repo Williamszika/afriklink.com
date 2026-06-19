@@ -169,6 +169,24 @@ foreach ($realVariants as $rv) {
                     if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
                         $apTags[] = t('alim.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
                     }
+                } elseif ($pVertical === 'generic' && bebe_capable((string) ($boutique['category'] ?? '')) && bebe_is_rayon((string) ($product['collection'] ?? ''))) {
+                    // Bébé & Enfant · Alimentation : âge, type, conservation, allergènes, régime.
+                    $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
+                    if (!empty($aAttr['variant_axis'])) { $pSizeLabel = (string) $aAttr['variant_axis']; }
+                    if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
+                    if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
+                    if (!empty($aAttr['age_min'])) { $apTags[] = '👶 ' . (string) $aAttr['age_min']; }
+                    foreach ($aAttr as $ak => $av) {
+                        if (in_array($ak, ['conservation', 'dlc_type', 'date_limite', 'allergenes', 'regime', 'variant_axis', 'age_min', 'formula', 'formula_1er_age', 'complement'], true)) { continue; }
+                        if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
+                    }
+                    if (!empty($aAttr['conservation']) && $aAttr['conservation'] !== 'Ambiante') { $apTags[] = (string) $aAttr['conservation']; }
+                    if (!empty($aAttr['regime']) && is_array($aAttr['regime'])) {
+                        foreach ($aAttr['regime'] as $rg) { if (is_scalar($rg) && trim((string) $rg) !== '') { $apTags[] = (string) $rg; } }
+                    }
+                    if (!empty($aAttr['allergenes']) && is_array($aAttr['allergenes'])) {
+                        $apTags[] = t('bebe.f.allergenes') . ' : ' . implode(', ', array_map('strval', $aAttr['allergenes']));
+                    }
                 } elseif ($pVertical === 'generic' && auto_capable((string) ($boutique['category'] ?? '')) && auto_is_rayon((string) ($product['collection'] ?? ''))) {
                     // Auto & pièces adaptatif (Accessoires…) : specs (type) + état + compatibilité véhicule.
                     $aAttr = json_decode((string) ($product['attributes'] ?? ''), true) ?: [];
