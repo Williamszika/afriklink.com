@@ -4929,6 +4929,9 @@ document.addEventListener('click', function (ev) {
     var elecBox   = document.querySelector('[data-arti-elec-box]');
     var elecWarn  = document.querySelector('[data-arti-elec-warn]');
     var elecWrap  = document.querySelector('[data-arti-elec-wrap]');
+    var foodWrap  = document.querySelector('[data-arti-food-wrap]');
+    var foodTog   = document.querySelector('[data-arti-food-toggle]');
+    var FOOD_USAGES = parse('data-food-usages'); FOOD_USAGES = (FOOD_USAGES && FOOD_USAGES.length) ? FOOD_USAGES : [];
     if (!root) { return; }
 
     function active() { return !!(coll && RAYONS[coll.value]); }
@@ -5049,6 +5052,19 @@ document.addEventListener('click', function (ev) {
     }
     // Le rayon courant comporte-t-il un type électrique (ex. luminaire) ?
     function rayonHasElec() { var t = cfg().types || {}; return Object.keys(t).some(function (k) { return !!t[k].elec; }); }
+    // Contact alimentaire (poterie) : type alimentaire OU champ « usage » alimentaire.
+    function foodLikely() {
+        var m = meta(); if (!m) { return false; }
+        if (m.food) { return true; }
+        var us = attrsBox && attrsBox.querySelector('select[name="attr[usage]"]');
+        return !!(us && FOOD_USAGES.indexOf(us.value) > -1);
+    }
+    function foodToggle() {
+        if (!foodWrap) { return; }
+        var likely = active() && foodLikely();
+        foodWrap.hidden = !likely;
+        if (foodTog) { foodTog.disabled = !likely; if (!likely) { foodTog.checked = false; } }
+    }
     // Objet électrique (luminaire) : affiche garantie + rappel CE.
     function elecToggle() {
         var on = !!(elecTog && elecTog.checked);
@@ -5065,6 +5081,7 @@ document.addEventListener('click', function (ev) {
             // Le bloc « électrique » n'apparaît que si le rayon a des types électriques.
             if (elecWrap) { elecWrap.hidden = !hasElec; if (!hasElec) { elecWrap.querySelectorAll('input, select').forEach(function (f) { f.disabled = true; }); } }
             if (hasElec) { elecToggle(); }
+            foodToggle();
         } else { setUniqueLock(false); }
     }
     function onColl() { if (active()) { rebuildRayon(); } setEnabled(); }
@@ -5079,6 +5096,7 @@ document.addEventListener('click', function (ev) {
     }); }
     if (uniqueChk) { uniqueChk.addEventListener('change', uniqueToggle); }
     if (elecTog)   { elecTog.addEventListener('change', elecToggle); }
+    if (attrsBox)  { attrsBox.addEventListener('change', foodToggle); }
     document.addEventListener('click', function (ev) {
         if (!ev.target || !ev.target.closest) { return; }
         var fill = ev.target.closest('[data-arti-fill]');

@@ -848,6 +848,10 @@ $fmtP = static function ($cents) use ($cur): string {
             $artiRayonElec = false;
             foreach (arti_types($artiRayon) as $artiTm) { if (!empty($artiTm['elec'])) { $artiRayonElec = true; break; } }
             $artiElecEn = ($artiActive && $artiRayonElec) ? '' : ' disabled';
+            // Contact alimentaire (poterie) : alerte si le type est alimentaire OU l'usage l'est.
+            $artiFoodUsages = (array) config('artisanat.food_usages', []);
+            $artiFoodLikely = ($artiMeta !== null && !empty($artiMeta['food'])) || in_array((string) ($artiAttrs['usage'] ?? ''), $artiFoodUsages, true);
+            $artiFoodSafe = isset($rawOldR['contact_alimentaire']) ? ((string) $rawOldR['contact_alimentaire'] === '1') : !empty($artiAttrs['contact_alimentaire']);
             $artiAtoutsSel = isset($rawOldR['atouts']) && is_array($rawOldR['atouts'])
                 ? array_map('strval', $rawOldR['atouts'])
                 : array_values(array_filter(array_map('trim', explode(',', (string) ($product['atouts'] ?? '')))));
@@ -856,6 +860,7 @@ $fmtP = static function ($cents) use ($cur): string {
         <div data-arti
              data-rayons="<?= e((string) json_encode((array) config('artisanat.rayons', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-size-systems="<?= e((string) json_encode((array) config('artisanat.size_systems', []), JSON_UNESCAPED_UNICODE)) ?>"
+             data-food-usages="<?= e((string) json_encode((array) config('artisanat.food_usages', []), JSON_UNESCAPED_UNICODE)) ?>"
              data-any="<?= e(t('arti.f.type_any')) ?>"
              data-hint-specs="<?= e(t('cuisine.specs_hint')) ?>" data-hint-pick="<?= e(t('cuisine.specs_pick')) ?>" hidden></div>
 
@@ -925,6 +930,12 @@ $fmtP = static function ($cents) use ($cur): string {
                         </select>
                     </div>
                     <div class="notice notice-warning" data-arti-elec-warn<?= ($artiElec && $artiRayonElec) ? '' : ' hidden' ?>><p>⚡ <?= e(t('cuisine.elec_warn')) ?></p></div>
+                </div>
+
+                <!-- Contact alimentaire (poterie) : visible si le type ou l'usage est alimentaire -->
+                <div data-arti-food-wrap<?= ($artiActive && $artiFoodLikely) ? '' : ' hidden' ?>>
+                    <label class="check-row" style="margin-top:14px"><input type="checkbox" name="contact_alimentaire" value="1" data-arti-food-toggle <?= $artiFoodSafe ? 'checked' : '' ?><?= ($artiActive && $artiFoodLikely) ? '' : ' disabled' ?>><span><?= e(t('arti.food_q')) ?></span></label>
+                    <div class="notice notice-warning"><p>🍽️ <?= e(t('arti.food_note')) ?></p></div>
                 </div>
 
                 <div class="notice notice-warning"><p>🛡️ <?= e(t('arti.cites_note')) ?></p></div>

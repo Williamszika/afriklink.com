@@ -503,6 +503,10 @@ final class ProductController
                 $gar = beauty_clean(input_string('acc_garantie', ''), ['3 mois', '6 mois', '1 an', '2 ans']);
                 if ($gar !== '') { $ea['garantie'] = $gar; }
             }
+            // Contact alimentaire : seulement si le type OU l'usage est alimentaire (anti-triche).
+            $artiFood = !empty(arti_type_meta($collection, $productType)['food'])
+                || in_array((string) ($ea['usage'] ?? ''), (array) config('artisanat.food_usages', []), true);
+            if ($artiFood && input_string('contact_alimentaire', '') === '1') { $ea['contact_alimentaire'] = true; }
             $axis = mb_substr(trim((string) input_string('variant_axis', '')), 0, 24);
             if ($axis !== '') { $ea['variant_axis'] = $axis; }
             $attributes = $ea !== [] ? (string) json_encode($ea, JSON_UNESCAPED_UNICODE) : null;

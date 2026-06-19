@@ -207,11 +207,12 @@ foreach ($realVariants as $rv) {
                     if (!empty($product['brand'])) { $apTags[] = (string) $product['brand']; }
                     if (!empty($product['product_type'])) { $apTags[] = (string) $product['product_type']; }
                     foreach ($aAttr as $ak => $av) {
-                        if (in_array($ak, ['condition', 'fait_main', 'piece_unique', 'histoire', 'elec', 'garantie', 'variant_axis'], true)) { continue; }
+                        if (in_array($ak, ['condition', 'fait_main', 'piece_unique', 'histoire', 'elec', 'garantie', 'contact_alimentaire', 'variant_axis'], true)) { continue; }
                         if (is_scalar($av) && trim((string) $av) !== '') { $apTags[] = (string) $av; }
                     }
                     if (!empty($aAttr['fait_main'])) { $apTags[] = t('arti.f.faitmain'); }
                     if (!empty($aAttr['piece_unique'])) { $apTags[] = t('arti.f.unique'); }
+                    if (!empty($aAttr['contact_alimentaire'])) { $apTags[] = t('arti.food_tag'); }
                     if (!empty($aAttr['garantie'])) { $apTags[] = t('cuisine.f.warranty') . ' ' . (string) $aAttr['garantie']; }
                     if (!empty($aAttr['condition']) && $aAttr['condition'] !== 'Neuf') { $apTags[] = (string) $aAttr['condition']; }
                 } elseif ($pVertical === 'phone') {

@@ -15,6 +15,8 @@ declare(strict_types=1);
 return [
     'shop_categories' => ['artisanat'],
     'conditions'      => ['Neuf', 'Vintage', 'Occasion'],
+    // Poterie : valeurs d'« usage » qui déclenchent l'alerte contact alimentaire.
+    'food_usages'     => ['Alimentaire (contact food)', 'Cuisson', 'Service de table'],
 
     'rayons' => [
         'Bijoux' => [
@@ -125,6 +127,46 @@ return [
                 'Pouf (peau)'                  => ['group' => 'autres', 'fields' => ['matiere', 'technique', 'origine', 'couleur_cuir'], 'axis' => 'Couleur', 'color' => true],
                 // Autre
                 'Autre maroquinerie'           => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'origine', 'genre', 'couleur_cuir'], 'axis' => 'Modèle', 'color' => true],
+            ],
+        ],
+
+        'Poterie' => [
+            'groups' => [
+                'eau'   => 'Eau & contenants',
+                'table' => 'Table & cuisine',
+                'decor' => 'Décor & rituel',
+                'autre' => 'Autre',
+            ],
+            'atouts' => ['Fait main', 'Tourné main', 'Pièce unique', 'Sans plomb (contact alimentaire)', 'Cuisson traditionnelle', 'Émaillé main', 'Commerce équitable', 'Soutien artisan local'],
+            'fields' => [
+                'matiere'    => ['label' => 'Matière', 'opts' => ['Terre cuite', 'Grès', 'Faïence', 'Argile naturelle', 'Céramique émaillée', 'Porcelaine', 'Terre vernissée']],
+                'technique'  => ['label' => 'Technique', 'opts' => ['Tourné', 'Modelé à la main', 'Colombin', 'Estampé', 'Façonné au tour', 'Cuisson traditionnelle (four à bois)']],
+                'finition'   => ['label' => 'Finition / émail', 'opts' => ['Brut / non émaillé', 'Émaillé', 'Engobe', 'Vernissé', 'Peint à la main', 'Patiné', 'Bruni']],
+                'origine'    => ['label' => 'Origine / tradition', 'opts' => ['Afrique de l’Ouest', 'Maghreb', 'Afrique centrale', 'Sahel', 'Nubie', 'Berbère', 'Non précisé']],
+                'usage'      => ['label' => 'Usage', 'opts' => ['Décoratif', 'Alimentaire (contact food)', 'Cuisson', 'Service de table', 'Jardinage', 'Rituel / parfum']],
+                'piece_dim'  => ['label' => 'Taille', 'opts' => ['Petit (< 15 cm)', 'Moyen (15–40 cm)', 'Grand (40–80 cm)', 'Très grand (> 80 cm)', 'Sur mesure']],
+                'contenance' => ['label' => 'Contenance', 'opts' => ['< 0,5 L', '0,5–1 L', '1–3 L', '3–5 L', '5–10 L', '> 10 L']],
+                'etancheite' => ['label' => 'Étanchéité', 'opts' => ['Étanche', 'Poreux (rafraîchit l’eau)', 'Non précisé']],
+            ],
+            // 'food' => true : type intrinsèquement alimentaire → alerte contact alimentaire.
+            'types' => [
+                // Eau & contenants
+                'Jarre / canari (eau)'         => ['group' => 'eau', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'piece_dim', 'contenance', 'etancheite'], 'axis' => 'Taille', 'color' => true],
+                'Vase'                         => ['group' => 'eau', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'piece_dim'], 'axis' => 'Couleur', 'color' => true],
+                'Pot / jardinière'             => ['group' => 'eau', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'piece_dim', 'etancheite'], 'axis' => 'Taille', 'color' => true],
+                // Table & cuisine (contact alimentaire)
+                'Bol / coupe'                  => ['group' => 'table', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'usage', 'contenance'], 'axis' => 'Couleur', 'color' => true, 'food' => true],
+                'Assiette / plat'              => ['group' => 'table', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'usage', 'piece_dim'], 'axis' => 'Couleur', 'color' => true, 'food' => true],
+                'Tajine'                       => ['group' => 'table', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'piece_dim'], 'axis' => 'Taille', 'color' => true, 'food' => true],
+                'Théière / cafetière'          => ['group' => 'table', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'contenance'], 'axis' => 'Couleur', 'color' => true, 'food' => true],
+                'Mug / tasse'                  => ['group' => 'table', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'contenance'], 'axis' => 'Couleur', 'color' => true, 'food' => true],
+                'Service de table'             => ['group' => 'table', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'usage'], 'axis' => 'Modèle', 'color' => true, 'food' => true],
+                // Décor & rituel
+                'Statuette en terre'           => ['group' => 'decor', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'piece_dim'], 'axis' => 'Modèle', 'color' => false],
+                'Brûle-encens / photophore'    => ['group' => 'decor', 'fields' => ['matiere', 'technique', 'finition', 'origine'], 'axis' => 'Couleur', 'color' => true],
+                'Carreau / azulejo décoratif'  => ['group' => 'decor', 'fields' => ['matiere', 'finition', 'origine'], 'axis' => 'Couleur', 'color' => true],
+                // Autre
+                'Autre poterie'                => ['group' => 'autre', 'fields' => ['matiere', 'technique', 'finition', 'origine', 'usage', 'piece_dim'], 'axis' => 'Modèle', 'color' => true],
             ],
         ],
     ],
