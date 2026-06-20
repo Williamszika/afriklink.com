@@ -165,6 +165,18 @@ final class HomeController
         // Relecteurs KYC configurés (nombre seulement, jamais les adresses).
         $payload['staff_emails'] = count(config('app.admin_emails', []));
 
+        // Diagnostic « suis-je admin ? » : l'appelant CONNECTÉ voit s'il est staff
+        // (is_staff compare son e-mail à ADMIN_EMAILS), avec son e-mail masqué pour
+        // comparer à ce qui a été saisi dans ADMIN_EMAILS. Aucune fuite : seul le
+        // visiteur connecté voit sa propre adresse (masquée), jamais celle des autres.
+        $payload['you_are_staff'] = is_staff();
+        $cu = current_user();
+        if ($cu !== null && trim((string) ($cu['email'] ?? '')) !== '') {
+            $payload['your_login_email'] = self::maskEmail((string) $cu['email']);
+        } elseif ($cu === null) {
+            $payload['you_are_staff'] = 'non_connecté';
+        }
+
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.
         if (($_GET['mail_test'] ?? '') === '1') {
