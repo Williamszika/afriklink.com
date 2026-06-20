@@ -2472,24 +2472,44 @@ a.afk-guar__item:hover .afk-guar__txt strong{color:var(--afk-or,#e6b84a)}
 .ad-buy__tier input:checked+.ad-buy__tierbox{border-color:var(--afk-foret,#1c3d32);box-shadow:0 0 0 3px rgba(28,61,50,.12)}
 .ad-buy__tier input:focus-visible+.ad-buy__tierbox{outline:2px solid var(--afk-or,#b8860b);outline-offset:2px}
 
-/* Bannière « Publicité » remontée tout en haut de l'accueil */
-.afk-spotlight--top{margin-top:6px}
-.afk-spotlight--top .afk-spotlight__empty{margin-top:0}
-/* Bannière « Publicité » (état vide) — promo de marque, en tête d'accueil */
-.afk-spotlight--promo{background:none;border:none;box-shadow:none;padding:0}
-.afk-promo{display:flex;align-items:center;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;
-  background:linear-gradient(135deg,var(--afk-foret) 0%,var(--afk-foret-700) 100%);
-  border:1px solid rgba(229,160,46,.38);border-radius:var(--afk-r-xl);
-  padding:30px 34px;color:#fff;box-shadow:0 22px 48px -26px rgba(11,44,24,.65)}
-.afk-promo::after{content:"";position:absolute;right:-50px;top:-50px;width:230px;height:230px;border-radius:50%;
-  background:radial-gradient(circle,rgba(229,160,46,.20),transparent 70%);pointer-events:none}
-.afk-promo__ic{flex:none;display:grid;place-items:center;width:62px;height:62px;border-radius:17px;
-  background:var(--afk-or);color:var(--afk-foret-700);box-shadow:0 10px 22px -10px rgba(0,0,0,.55)}
-.afk-promo__body{flex:1 1 340px;min-width:240px;position:relative}
-.afk-promo__tag{display:inline-block;font-family:var(--afk-mono);font-size:11px;letter-spacing:.18em;
-  text-transform:uppercase;font-weight:700;color:var(--afk-or-soft);margin-bottom:7px}
-.afk-promo__title{font-family:var(--afk-display);font-weight:800;font-size:1.55rem;line-height:1.14;margin:0 0 7px;color:#fff}
-.afk-promo__body p{margin:0;color:#dbe7e0;font-size:1rem;line-height:1.55;max-width:60ch}
-.afk-promo__cta{flex:none;white-space:nowrap;position:relative}
-@media (max-width:640px){.afk-promo{padding:22px 20px;gap:16px}.afk-promo__title{font-size:1.3rem}
-  .afk-promo__cta{width:100%;text-align:center}}
+/* ===== Carrousel de pub en tête d'accueil (style marketplace) ===== */
+.afk-carousel-wrap{margin-top:6px}
+.afk-carousel{position:relative;border-radius:var(--afk-r-xl);overflow:hidden;box-shadow:0 22px 48px -26px rgba(11,44,24,.6)}
+.afk-carousel__viewport{overflow:hidden}
+.afk-carousel__track{display:flex;transition:transform .5s cubic-bezier(.22,.61,.36,1);will-change:transform}
+.afk-carousel__slide{flex:0 0 100%;min-width:100%;text-decoration:none}
+.afk-ad{display:flex;align-items:center;gap:26px;padding:30px 42px;min-height:236px;color:#fff;position:relative;overflow:hidden}
+.afk-ad::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);pointer-events:none}
+.afk-ad__text{flex:1 1 52%;position:relative;z-index:1}
+.afk-ad__eyebrow{display:inline-flex;align-items:center;gap:6px;font-family:var(--afk-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:#fff;background:rgba(0,0,0,.2);padding:5px 12px;border-radius:99px;margin-bottom:12px}
+.afk-ad__title{font-family:var(--afk-display);font-weight:800;font-size:1.7rem;line-height:1.12;margin:0 0 10px;color:#fff}
+.afk-ad__text p{margin:0 0 14px;color:rgba(255,255,255,.92);max-width:46ch;line-height:1.5}
+.afk-ad__price{display:flex;align-items:baseline;gap:10px;margin:0 0 16px}
+.afk-ad__now{font-family:var(--afk-display);font-weight:800;font-size:1.55rem;color:#fff}
+.afk-ad__old{opacity:.75;text-decoration:line-through;font-size:1rem}
+.afk-ad__media{flex:0 0 30%;display:grid;place-items:center;position:relative;z-index:1}
+.afk-ad__media img{width:200px;height:200px;object-fit:contain;border-radius:16px;filter:drop-shadow(0 16px 26px rgba(0,0,0,.4))}
+.afk-ad__emoji{font-size:118px;line-height:1}
+.afk-ad__media--emblem .brand-logo{display:grid;place-items:center;width:96px;height:96px;background:rgba(255,255,255,.1);border-radius:24px}
+.afk-ad__badge{position:absolute;top:2px;right:8px;background:var(--afk-hibiscus);color:#fff;font-family:var(--afk-mono);font-weight:700;font-size:1rem;padding:6px 12px;border-radius:12px;transform:rotate(6deg);box-shadow:0 8px 18px -8px rgba(0,0,0,.5)}
+.afk-ad--t0,.afk-ad--seller{background:linear-gradient(135deg,#103D30,#0B2C22)}
+.afk-ad--t1{background:linear-gradient(135deg,#C8447A,#8E2D54)}
+.afk-ad--t2{background:linear-gradient(135deg,#E5A02E,#B9791A)}
+.afk-ad--t3{background:linear-gradient(135deg,#1C6B54,#0E3D30)}
+.afk-carousel__arrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:none;background:rgba(255,255,255,.88);color:#103D30;font-size:1.7rem;line-height:1;cursor:pointer;display:grid;place-items:center;box-shadow:0 6px 16px -6px rgba(0,0,0,.4);z-index:3;transition:.15s}
+.afk-carousel__arrow:hover{background:#fff}
+.afk-carousel__arrow--prev{left:12px}
+.afk-carousel__arrow--next{right:12px}
+.afk-carousel__dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px;z-index:3}
+.afk-carousel__dot{width:9px;height:9px;border-radius:99px;border:none;background:rgba(255,255,255,.5);cursor:pointer;padding:0;transition:.18s}
+.afk-carousel__dot.is-active{background:#fff;width:24px}
+@media (max-width:680px){
+  .afk-ad{flex-direction:column-reverse;text-align:center;padding:24px 20px 30px;gap:14px;min-height:0}
+  .afk-ad__text,.afk-ad__media{flex:1 1 auto}
+  .afk-ad__price{justify-content:center}
+  .afk-ad__eyebrow{margin-bottom:8px}
+  .afk-ad__title{font-size:1.35rem}
+  .afk-ad__media img{width:150px;height:150px}
+  .afk-ad__emoji{font-size:84px}
+  .afk-carousel__arrow{display:none}
+}

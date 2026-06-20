@@ -24,6 +24,8 @@ final class HomeController
             \App\Models\AdCampaign::recordImpressions(array_map(static fn (array $p): int => (int) $p['campaign_id'], $sponsored));
         }
         $promoAnnonces = \App\Models\Listing::promotedMarketplace(8);
+        // Carrousel de pub en tête : produits sponsorisés + produits en promo (deals).
+        $promoProducts = \App\Models\Product::onPromo(6);
         // Produits du catalogue à afficher dès l'ouverture de l'accueil.
         $products  = \App\Models\Product::recentMarketplace(12);
         // Vitrine vivante : boutiques, restaurants et annonces actuellement en ligne.
@@ -32,6 +34,8 @@ final class HomeController
         view('home', [
             'categories'      => \App\Services\Categories::live(),
             'sponsored'       => $sponsored,
+            'promo_products'  => $promoProducts,
+            'promo_product_mains' => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $promoProducts)),
             'products'        => $products,
             'product_mains'   => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
             'recently_viewed' => $recent,

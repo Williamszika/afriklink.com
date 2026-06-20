@@ -2,6 +2,8 @@
 use App\Services\CloudinaryService;
 
 $sponsored       = $sponsored ?? [];
+$promo_products  = $promo_products ?? [];
+$promo_product_mains = $promo_product_mains ?? [];
 $products        = $products ?? [];
 $product_mains   = $product_mains ?? [];
 $recently_viewed = $recently_viewed ?? [];
@@ -30,28 +32,74 @@ $catIcons = [
 $categories = $categories ?? [];
 $loggedIn   = current_user() !== null;
 ?>
-<!-- Publicité — bandeau sponsorisé en TÊTE de l'accueil -->
-<section class="afk-spotlight afk-block afk-spotlight--top<?= empty($sponsored) ? ' afk-spotlight--promo' : '' ?>">
-    <?php if (!empty($sponsored)): ?>
-        <div class="afk-spotlight__bar">
-            <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
-            <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+<?php
+// Carrousel de pub en TÊTE (style marketplace) : deals sponsorisés + produits en
+// promo, + une diapo « Promouvoir mon offre ». Auto-défilement + flèches + points (JS).
+$slideMains = $reco_mains + $promo_product_mains;
+$dealSlides = [];
+$seenSlide  = [];
+foreach (array_merge($sponsored, $promo_products) as $sp) {
+    $sid = (int) $sp['id'];
+    if (isset($seenSlide[$sid])) { continue; }
+    $seenSlide[$sid] = true;
+    $dealSlides[] = $sp;
+    if (count($dealSlides) >= 6) { break; }
+}
+$adSellHref = $loggedIn ? url('/vendeur/publicite') : url('/register/vendeur');
+$slideCount = count($dealSlides) + 1; // + la diapo vendeur
+?>
+<!-- Publicité — carrousel défilant en tête de l'accueil -->
+<section class="afk-block afk-carousel-wrap">
+<div class="afk-carousel" data-carousel<?= $slideCount > 1 ? ' data-autoplay="6000"' : '' ?> aria-roledescription="carrousel" aria-label="<?= e(t('ads.label')) ?>">
+    <div class="afk-carousel__viewport">
+        <div class="afk-carousel__track">
+            <?php foreach ($dealSlides as $i => $p):
+                $onPromo = !empty($p['promo_price_cents']) && (int) $p['promo_price_cents'] > 0
+                    && (int) $p['promo_price_cents'] < (int) $p['price_cents']
+                    && (empty($p['promo_until']) || strtotime((string) $p['promo_until']) > time());
+                $now = $onPromo ? (int) $p['promo_price_cents'] : (int) $p['price_cents'];
+                $old = $onPromo ? (int) $p['price_cents'] : null;
+                $pct = $old ? (int) round(($old - $now) / max(1, $old) * 100) : 0;
+                $img = $slideMains[(int) $p['id']] ?? null;
+                $cur = (string) ($p['currency'] ?? 'EUR');
+                $href = !empty($p['campaign_pid'])
+                    ? url('/sp/' . $p['campaign_pid'])
+                    : url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']);
+            ?>
+            <a class="afk-carousel__slide afk-ad afk-ad--t<?= $i % 4 ?>" href="<?= e($href) ?>" role="group" aria-roledescription="diapo">
+                <div class="afk-ad__text">
+                    <span class="afk-ad__eyebrow">⚡ <?= e(t('carousel.deal')) ?><?= $pct > 0 ? ' · −' . $pct . '%' : '' ?></span>
+                    <h2 class="afk-ad__title"><?= e(mb_strimwidth((string) $p['name'], 0, 58, '…')) ?></h2>
+                    <div class="afk-ad__price"><span class="afk-ad__now"><?= e(format_price($now, $cur)) ?></span><?php if ($old !== null): ?> <span class="afk-ad__old"><?= e(format_price($old, $cur)) ?></span><?php endif; ?></div>
+                    <span class="afk-btn afk-btn--gold afk-btn--lg"><?= e(t('carousel.shop')) ?></span>
+                </div>
+                <div class="afk-ad__media">
+                    <?php if ($img !== null): ?><img src="<?= e(CloudinaryService::imageUrl($img, 360, 360)) ?>" alt="" loading="lazy"><?php else: ?><span class="afk-ad__emoji" aria-hidden="true">🛍️</span><?php endif; ?>
+                    <?php if ($pct > 0): ?><span class="afk-ad__badge">−<?= $pct ?>%</span><?php endif; ?>
+                </div>
+            </a>
+            <?php endforeach; ?>
+            <a class="afk-carousel__slide afk-ad afk-ad--seller" href="<?= e($adSellHref) ?>" role="group" aria-roledescription="diapo">
+                <div class="afk-ad__text">
+                    <span class="afk-ad__eyebrow"><?= icon('megaphone', ['size' => 13]) ?> <?= e(t('ads.label')) ?></span>
+                    <h2 class="afk-ad__title"><?= e(t('spotlight.seller_cta_title')) ?></h2>
+                    <p><?= e(t('spotlight.home_empty')) ?></p>
+                    <span class="afk-btn afk-btn--gold afk-btn--lg"><?= e(t('spotlight.seller_cta_btn')) ?></span>
+                </div>
+                <div class="afk-ad__media afk-ad__media--emblem"><span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'ad']) ?></span></div>
+            </a>
         </div>
-        <div class="panel reco-rail">
-            <h2 class="panel-title"><?= icon('sparkle', ['size' => 18]) ?> <?= e(t('reco.sponsored')) ?></h2>
-            <?= render_partial('partials/sponsored_rail', ['products' => $sponsored, 'mains' => $reco_mains]) ?>
-        </div>
-    <?php else: ?>
-        <div class="afk-promo">
-            <span class="afk-promo__ic" aria-hidden="true"><?= icon('megaphone', ['size' => 28]) ?></span>
-            <div class="afk-promo__body">
-                <span class="afk-promo__tag"><?= e(t('ads.label')) ?></span>
-                <h2 class="afk-promo__title"><?= e(t('spotlight.seller_cta_title')) ?></h2>
-                <p><?= e(t('spotlight.home_empty')) ?></p>
-            </div>
-            <a class="afk-btn afk-btn--gold afk-btn--lg afk-promo__cta" href="<?= e(url('/vendeur/publicite')) ?>"><?= e(t('spotlight.seller_cta_btn')) ?></a>
+    </div>
+    <?php if ($slideCount > 1): ?>
+        <button class="afk-carousel__arrow afk-carousel__arrow--prev" type="button" aria-label="<?= e(t('carousel.prev')) ?>" data-prev>‹</button>
+        <button class="afk-carousel__arrow afk-carousel__arrow--next" type="button" aria-label="<?= e(t('carousel.next')) ?>" data-next>›</button>
+        <div class="afk-carousel__dots">
+            <?php for ($d = 0; $d < $slideCount; $d++): ?>
+                <button class="afk-carousel__dot<?= $d === 0 ? ' is-active' : '' ?>" type="button" aria-label="<?= e(t('carousel.go', ['n' => $d + 1])) ?>" data-dot="<?= $d ?>"></button>
+            <?php endfor; ?>
         </div>
     <?php endif; ?>
+</div>
 </section>
 
 <!-- Hero déplacé vers la page « À propos » (/a-propos) -->

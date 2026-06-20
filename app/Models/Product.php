@@ -413,6 +413,27 @@ final class Product
         }
     }
 
+    /** Produits actuellement EN PROMO (vitrines publiées) — pour le carrousel d'accueil. @return list<array> */
+    public static function onPromo(int $limit = 6): array
+    {
+        self::migrate();
+        try {
+            $stmt = db()->prepare(
+                "SELECT p.*, b.slug AS boutique_slug, b.currency AS currency
+                   FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE p.status = 'active' AND b.status = 'published'
+                    AND p.promo_price_cents IS NOT NULL AND p.promo_price_cents > 0
+                    AND p.promo_price_cents < p.price_cents
+                    AND (p.promo_until IS NULL OR p.promo_until > NOW())
+                  ORDER BY (p.stock > 0) DESC, p.id DESC LIMIT " . max(1, min(12, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     /** Produits récents du marketplace (vitrines publiées) pour l'accueil — en stock d'abord. @return list<array> */
     public static function recentMarketplace(int $limit = 12): array
     {

@@ -6827,3 +6827,41 @@ document.addEventListener('click', function (ev) {
     var rowsContainer = document.querySelector('[data-variant-rows]'); if (rowsContainer) { rowsContainer.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('[data-variant-del]')) { setTimeout(rebuild, 40); } }); }
     rebuild();
 })();
+
+/* Carrousel de pub en tête d'accueil : auto-défilement, flèches, points, swipe. */
+(function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelectorAll('[data-carousel]').forEach(function (root) {
+        var track = root.querySelector('.afk-carousel__track');
+        var slides = root.querySelectorAll('.afk-carousel__slide');
+        if (!track || slides.length < 2) { return; }
+        var dots = root.querySelectorAll('[data-dot]');
+        var delay = parseInt(root.getAttribute('data-autoplay') || '0', 10);
+        var i = 0, timer = null;
+        function go(n) {
+            i = (n + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-i * 100) + '%)';
+            dots.forEach(function (d, k) { d.classList.toggle('is-active', k === i); });
+        }
+        function next() { go(i + 1); }
+        function prev() { go(i - 1); }
+        function start() { stop(); if (delay && !reduce) { timer = setInterval(next, delay); } }
+        function stop() { if (timer) { clearInterval(timer); timer = null; } }
+        var nx = root.querySelector('[data-next]'); if (nx) { nx.addEventListener('click', function () { next(); start(); }); }
+        var pv = root.querySelector('[data-prev]'); if (pv) { pv.addEventListener('click', function () { prev(); start(); }); }
+        dots.forEach(function (d) { d.addEventListener('click', function () { go(parseInt(d.getAttribute('data-dot'), 10) || 0); start(); }); });
+        root.addEventListener('mouseenter', stop);
+        root.addEventListener('mouseleave', start);
+        root.addEventListener('focusin', stop);
+        root.addEventListener('focusout', start);
+        var x0 = null;
+        root.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; stop(); }, { passive: true });
+        root.addEventListener('touchend', function (e) {
+            if (x0 === null) { return; }
+            var dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 40) { if (dx < 0) { next(); } else { prev(); } }
+            x0 = null; start();
+        }, { passive: true });
+        go(0); start();
+    });
+})();
