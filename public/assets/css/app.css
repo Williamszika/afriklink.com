@@ -1910,7 +1910,9 @@ form input:focus,form select:focus,form textarea:focus{outline:none;border-color
   .afk-grid-4,.afk-why__grid{grid-template-columns:1fr 1fr}
   .afk-hero-search{flex-direction:column}
   .afk-seller{flex-direction:column;align-items:flex-start}
-  .afk-waxpanel{display:none}
+  .afk-waxpanel{min-height:auto;padding:24px}
+  .afk-waxpanel__emblem{width:84px;height:84px;border-radius:22px}
+  .afk-waxpanel__emblem .brand-logo{width:46px;height:62px}
 }
 
 /* ================================================================
@@ -2414,3 +2416,13 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 .afk-guar__txt span{font-size:.79rem;color:rgba(255,255,255,.78);line-height:1.4}
 @media(max-width:860px){.afk-guar__grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.afk-guar{padding:18px}.afk-guar__grid{grid-template-columns:1fr;gap:14px}}
+/* — Accueil : panneau cauri transformé en HUB multi-vertical — */
+.afk-hub{gap:18px;justify-content:center}
+.afk-hub__title{margin:0;text-align:center;color:var(--afk-or-soft,#e6c98a);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.afk-hub__verts{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:330px}
+.afk-hub__vert{display:flex;flex-direction:column;gap:2px;padding:12px 13px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);border-radius:14px;color:#fff;text-decoration:none;transition:transform .18s,background .18s,border-color .18s}
+.afk-hub__vert:hover{background:rgba(255,255,255,.14);border-color:var(--afk-or,#e6b84a);transform:translateY(-2px)}
+.afk-hub__ic{font-size:1.5rem;line-height:1.1}
+.afk-hub__name{font-family:var(--afk-display,inherit);font-weight:700;font-size:.92rem}
+.afk-hub__sub{font-size:.72rem;color:var(--afk-or-soft,#e6c98a);font-weight:600}
+.afk-hub__cta{width:100%;max-width:330px;justify-content:center;text-align:center}
