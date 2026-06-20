@@ -2629,7 +2629,7 @@ a.afk-guar__item:hover .afk-guar__txt strong{color:var(--afk-or,#e6b84a)}
 .about-page{
   --gn:#14502E; --gn-deep:#0E3A21; --gold:#C7922E; --gold-deep:#9A6F1E; --hib:#B21E4B;
   --cr:#FAF4E6; --pp:#FFFDF7; --ink:#1C2418; --mut:#5B6453; --ln:rgba(20,80,46,.14);
-  --wax:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%23C7922E' stroke-width='1.1' opacity='.16'%3E%3Ccircle cx='32' cy='32' r='13'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3Crect x='26' y='26' width='12' height='12' transform='rotate(45 32 32)'/%3E%3Cpath d='M0 32h17M47 32h17M32 0v17M32 47v17'/%3E%3C/g%3E%3C/svg%3E");
+  --wax:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2256%22%20height%3D%2268%22%20viewBox%3D%220%200%2056%2068%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23C7922E%22%20stroke-width%3D%221.2%22%20stroke-opacity%3D%220.20%22%3E%3Cpath%20d%3D%22M28%209%20C34%209%2038%2017%2038%2027%20C38%2037%2034%2044%2028%2044%20C22%2044%2018%2037%2018%2027%20C18%2017%2022%209%2028%209%20Z%22%2F%3E%3Cpath%20d%3D%22M28%2015%20C29.8%2022%2029.8%2031%2028%2040%20C26.2%2031%2026.2%2022%2028%2015%20Z%22%2F%3E%3Cpath%20d%3D%22M24.5%2020h-3.4M24.5%2025h-3.9M24.5%2030h-4M24.5%2035h-3.5%22%20stroke-width%3D%220.85%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
   width:100vw; position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw;
   color:var(--ink); font-size:17px; line-height:1.6;
 }
