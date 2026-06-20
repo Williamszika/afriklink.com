@@ -780,7 +780,7 @@ return [
     'admin.demo.purge_btn' => 'Tout retirer',
     'admin.demo.need_confirm' => 'Tapez OUI dans le champ de confirmation pour peupler la démo.',
     'admin.demo.seeded' => 'Démo en ligne : :n boutiques et :p produits créés. Visibles sur votre page d’accueil.',
-    'admin.demo.purged' => 'Démo retirée : :n vendeur(s) de démo supprimé(s).',
+    'admin.demo.purged' => 'Démo retirée : :n boutique(s) de démo supprimée(s) (+ comptes de démo).',
     'admin.demo.error' => 'Échec de l’opération : :msg',
     'admin.mail.title' => 'E-mail — Diagnostic',
     'admin.mail.sub' => "Configuration d'envoi effective et test de livraison.",

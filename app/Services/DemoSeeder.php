@@ -15,29 +15,36 @@ use App\Models\User;
  */
 final class DemoSeeder
 {
-    /** Boutiques de démo actuellement publiées. */
+    /**
+     * Critère « boutique de démo » : appartient à un vendeur @afriklink.demo, OU
+     * est ORPHELINE (propriétaire supprimé) avec un nom typé démo (« … #N »). Le 2ᵉ
+     * cas rattrape les boutiques restées après suppression de leurs vendeurs.
+     */
+    private const DEMO_BOUTIQUE_WHERE =
+        "(u.email LIKE '%@afriklink.demo' OR (u.id IS NULL AND b.name REGEXP ' #[0-9]+\$'))";
+
+    /** Boutiques de démo actuellement publiées (vendeur démo OU orphelines typées démo). */
     public static function count(): int
     {
         try {
             return (int) db()->query(
-                "SELECT COUNT(*) FROM boutiques b JOIN users u ON u.id = b.user_id
-                  WHERE u.email LIKE '%@afriklink.demo' AND b.status = 'published'"
+                "SELECT COUNT(*) FROM boutiques b LEFT JOIN users u ON u.id = b.user_id
+                  WHERE b.status = 'published' AND " . self::DEMO_BOUTIQUE_WHERE
             )->fetchColumn();
         } catch (\Throwable) {
             return 0;
         }
     }
 
-    /** Supprime TOUTES les données de démo. @return int nombre de vendeurs retirés */
+    /** Supprime TOUTES les données de démo (boutiques + produits + comptes). @return int boutiques retirées */
     public static function purge(): int
     {
         $pdo = db();
-        $demoIds = $pdo->query("SELECT id FROM users WHERE email LIKE '%@afriklink.demo'")->fetchAll(\PDO::FETCH_COLUMN) ?: [];
-        if ($demoIds === []) {
-            return 0;
-        }
-        $in = implode(',', array_map('intval', $demoIds));
-        $bids = $pdo->query("SELECT id FROM boutiques WHERE user_id IN ($in)")->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        // 1) Boutiques de démo (vendeur @afriklink.demo OU orphelines typées démo) + leur contenu.
+        $bids = $pdo->query(
+            "SELECT b.id FROM boutiques b LEFT JOIN users u ON u.id = b.user_id
+              WHERE " . self::DEMO_BOUTIQUE_WHERE
+        )->fetchAll(\PDO::FETCH_COLUMN) ?: [];
         if ($bids !== []) {
             $binp = implode(',', array_map('intval', $bids));
             $pdo->exec("DELETE FROM product_variants WHERE boutique_id IN ($binp)");
@@ -45,8 +52,13 @@ final class DemoSeeder
             $pdo->exec("DELETE FROM products WHERE boutique_id IN ($binp)");
             $pdo->exec("DELETE FROM boutiques WHERE id IN ($binp)");
         }
-        $pdo->exec("DELETE FROM users WHERE id IN ($in)");
-        return count($demoIds);
+        // 2) Comptes vendeurs de démo restants.
+        $demoIds = $pdo->query("SELECT id FROM users WHERE email LIKE '%@afriklink.demo'")->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        if ($demoIds !== []) {
+            $in = implode(',', array_map('intval', $demoIds));
+            $pdo->exec("DELETE FROM users WHERE id IN ($in)");
+        }
+        return count($bids);
     }
 
     /**

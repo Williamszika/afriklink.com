@@ -34,7 +34,7 @@ if ($isProd && !$allowProd) {
 
 if ($purge) {
     $n = DemoSeeder::purge();
-    fwrite(STDOUT, "✅ Démo retirée : {$n} vendeur(s) de démo et leurs boutiques/produits supprimés.\n");
+    fwrite(STDOUT, "✅ Démo retirée : {$n} boutique(s) de démo (+ produits + comptes @afriklink.demo) supprimées.\n");
     exit(0);
 }
 

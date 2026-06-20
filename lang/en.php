@@ -780,7 +780,7 @@ return [
     'admin.demo.purge_btn' => 'Remove everything',
     'admin.demo.need_confirm' => 'Type OUI in the confirmation field to populate the demo.',
     'admin.demo.seeded' => 'Demo live: :n shops and :p products created. Visible on your home page.',
-    'admin.demo.purged' => 'Demo removed: :n demo seller(s) deleted.',
+    'admin.demo.purged' => 'Demo removed: :n demo shop(s) deleted (+ demo accounts).',
     'admin.demo.error' => 'Operation failed: :msg',
     'admin.mail.title' => 'Email — Diagnostics',
     'admin.mail.sub' => 'Effective sending configuration and delivery test.',
