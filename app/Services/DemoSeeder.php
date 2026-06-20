@@ -198,6 +198,66 @@ final class DemoSeeder
     }
 
     /**
+     * Petit jeu de démo (1–2 boutiques) pour illustrer une fonctionnalité sur la
+     * prod sans la peupler de 50 vitrines. Mêmes conventions que seed() (vendeurs
+     * @afriklink.demo) → purge() les retire proprement. Le 1ᵉʳ produit de chaque
+     * boutique est en promo (pour la « pépite de la semaine »).
+     */
+    public static function seedSmall(int $count = 2): array
+    {
+        self::purge();
+        $count = max(1, min(2, $count));
+        $pwd   = password_hash('demo1234', PASSWORD_DEFAULT);
+        $tpl   = self::productTemplates();
+        // [label, catégorie, ville, pays, continent, devise]
+        $picks = [
+            ['Artisanat', 'artisanat', 'Abidjan', 'CI', 'Afrique', 'XOF'],
+            ['Épicerie',  'alimentation', 'Paris', 'FR', 'Europe', 'EUR'],
+        ];
+        $created = 0; $prodCount = 0;
+        for ($i = 0; $i < $count; $i++) {
+            [$label, $cat, $city, $cc, $continent, $cur] = $picks[$i];
+            $owner = User::create([
+                'email' => 'demo' . ($i + 1) . '@afriklink.demo', 'password_hash' => $pwd,
+                'account_type' => 'professionnel', 'full_name' => $label . ' ' . $city,
+                'locale' => 'fr', 'preferred_currency' => $cur, 'status' => 'active',
+            ]);
+            $name = $label . ' ' . $city . ' (démo)';
+            $slug = Boutique::uniqueSlug($name);
+            Boutique::create($owner, [
+                'slug' => $slug, 'name' => $name, 'tagline' => 'Boutique de démonstration — ' . $city,
+                'description' => 'Boutique de démonstration basée à ' . $city . '. Livraison locale et internationale.',
+                'category' => $cat, 'logo_public_id' => null, 'banners' => [], 'currency' => $cur,
+                'shop_type' => 'online', 'address' => null, 'city' => $city, 'country_code' => $cc, 'continent' => $continent,
+                'geo_lat' => null, 'geo_lng' => null, 'delivery_zones' => null, 'delivery_methods' => 'livraison,retrait',
+                'free_ship_cents' => null, 'delivery_fee_cents' => 0, 'delivery_intl_cents' => null, 'delivery_delay' => '2-5 jours',
+                'prep_time' => null, 'cod_enabled' => 1, 'payment_terms' => ['full'], 'payment_methods' => ['cash', 'mobile_money'],
+                'payment_provider' => null, 'contacts' => ['whatsapp' => '+2250700000000'], 'contact_primary' => ['whatsapp'],
+            ]);
+            $b = Boutique::findBySlug($slug);
+            if ($b === null) {
+                continue;
+            }
+            Boutique::setStatus((int) $b['id'], 'published');
+            $created++;
+            foreach ($tpl[$cat] as $j => $t) {
+                [$rayon, $pname, $brand, $eurCents, $attrs] = $t;
+                $price = self::priceFor($cur, $eurCents);
+                $promo = ($j === 0) ? (int) round($price * 0.8) : null;
+                Product::create((int) $b['id'], $owner, [
+                    'name' => $pname, 'description' => $pname . ' — qualité garantie, expédié rapidement depuis ' . $city . '.',
+                    'price_cents' => $price, 'stock' => 8 + $j, 'status' => 'active',
+                    'brand' => $brand, 'product_type' => $attrs['product_type'] ?? null, 'collection' => $rayon,
+                    'promo_price_cents' => $promo, 'promo_until' => $promo !== null ? date('Y-m-d', time() + 14 * 86400) : null,
+                    'sale_unit' => 'piece', 'attributes' => json_encode($attrs, JSON_UNESCAPED_UNICODE),
+                ], []);
+                $prodCount++;
+            }
+        }
+        return ['boutiques' => $created, 'products' => $prodCount];
+    }
+
+    /**
      * Crée les déclinaisons (tailles / couleurs) d'un produit de démo et remplace
      * la variante par défaut. $spec = ['sizes'=>[...], 'colors'=>[...]] (l'un OU
      * l'autre, ou les deux pour une matrice taille × couleur).

@@ -15,6 +15,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\AddressController;
 use App\Controllers\NewsletterController;
 use App\Controllers\AdminAdsController;
+use App\Controllers\AdminDemoController;
 use App\Controllers\AdminNewsletterController;
 use App\Controllers\AdminDashboardController;
 use App\Controllers\AdminKycController;
@@ -204,6 +205,10 @@ return [
     // Régie marketing : composer + diffuser la lettre d'information (staff).
     ['GET',  '/admin/newsletter',  [AdminNewsletterController::class, 'index'], ['staff']],
     ['POST', '/admin/newsletter',  [AdminNewsletterController::class, 'send'],  ['staff', 'csrf', 'throttle:nlsend,10,3600']],
+    // Outil de démo TEMPORAIRE (staff) — à retirer après la démo.
+    ['GET',  '/admin/demo',         [AdminDemoController::class, 'index'], ['staff']],
+    ['POST', '/admin/demo/creer',   [AdminDemoController::class, 'seed'],  ['staff', 'csrf']],
+    ['POST', '/admin/demo/retirer', [AdminDemoController::class, 'purge'], ['staff', 'csrf']],
     // Diagnostic e-mail (staff) : configuration effective + envoi d'un test.
     ['GET',  '/admin/email',       [AdminMailController::class, 'index'],    ['staff']],
     ['POST', '/admin/email/test',  [AdminMailController::class, 'sendTest'],  ['staff', 'csrf', 'throttle:mailtest,10,3600']],
