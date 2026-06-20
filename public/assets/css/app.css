@@ -2519,3 +2519,105 @@ a.afk-guar__item:hover .afk-guar__txt strong{color:var(--afk-or,#e6b84a)}
   .afk-ad__emoji{font-size:84px}
   .afk-carousel__arrow{display:none}
 }
+
+/* =======================================================================
+   FICHE PRODUIT (boutiques) — direction artistique studio, SCOPÉE à .pf
+   (n'affecte ni l'annonce, ni le resto, ni l'accueil — eux gardent .listing-page)
+   ======================================================================= */
+.pf{
+  --pf-foret:#14502E; --pf-or:#C7922E; --pf-or-deep:#A6781F; --pf-or-wash:#F4E7C8;
+  --pf-hib:#B21E4B; --pf-carte:#FFFDF8; --pf-ligne:#E6DBC0; --pf-plume:#6E6B5B; --pf-encre:#19271D;
+  --pf-r1:6px; --pf-r2:12px; --pf-r3:20px;
+  --pf-sh2:0 10px 26px -16px rgba(18,40,28,.30); --pf-sh3:0 28px 60px -34px rgba(12,46,28,.5);
+  --pf-ease:160ms cubic-bezier(.2,.7,.3,1);
+  color:var(--pf-encre);
+}
+.pf > .muted a{font-family:var(--afk-mono);font-size:.8rem;letter-spacing:.04em;color:var(--pf-plume);text-decoration:none}
+.pf .crumb-rayon{font-family:var(--afk-mono)}
+
+/* Layout asymétrique 7/5 · panneau d'achat collant */
+.pf .listing-layout{display:grid;grid-template-columns:7fr 5fr;gap:64px;align-items:start}
+.pf .listing-side{position:sticky;top:24px}
+
+/* Galerie : cadre arrondi, bordure 1px, ombre cohérente */
+.pf .listing-main-zoom{display:block;border-radius:var(--pf-r3);overflow:hidden;border:1px solid var(--pf-ligne);box-shadow:var(--pf-sh3);background:#fff}
+.pf .listing-main-zoom img{display:block;width:100%;height:auto}
+.pf .listing-thumbs{display:flex;gap:8px;margin-top:16px}
+.pf .listing-thumbs .thumb{border-radius:var(--pf-r1);border:1px solid var(--pf-ligne);overflow:hidden;transition:var(--pf-ease);padding:0}
+.pf .listing-thumbs .thumb:hover{transform:translateY(-2px)}
+.pf .listing-thumbs .thumb.is-active{border-color:var(--pf-foret);box-shadow:0 0 0 2px var(--pf-or)}
+
+/* Panneau d'achat */
+.pf .listing-side .panel{border:1px solid var(--pf-ligne);background:var(--pf-carte);border-radius:var(--pf-r3);box-shadow:var(--pf-sh2);padding:28px}
+.pf .listing-title{font-family:var(--afk-display);font-weight:800;letter-spacing:-.02em;line-height:1.05;font-size:2.5rem;color:var(--pf-foret);margin:0 0 16px}
+
+/* Prix : Space Mono, encadré par deux filets fins */
+.pf .listing-price{font-family:var(--afk-mono);display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 16px;
+  border-top:1px solid var(--pf-ligne);border-bottom:1px solid var(--pf-ligne);padding:18px 0}
+.pf .listing-price > span:not(.price-was):not(.price-approx):not(.discount-badge),.pf .listing-price .price-now{font-weight:700;font-size:1.75rem;color:var(--pf-foret)}
+.pf .listing-price .price-was{font-size:1rem;color:var(--pf-plume)}
+.pf .listing-price .price-approx{font-size:.8125rem;color:var(--pf-plume)}
+.pf .listing-price .price-unit{font-size:.8125rem;color:var(--pf-plume)}
+.pf .discount-badge,.pf .discount-badge--inline{font-family:var(--afk-mono);font-weight:700;font-size:.8125rem;color:#fff;background:var(--pf-hib);padding:3px 9px;border-radius:999px}
+
+/* Disponibilité */
+.pf .badge-ok{color:var(--pf-foret);background:#E9F2EC;border:1px solid #CFE4D6;font-weight:600;border-radius:999px;padding:5px 12px}
+.pf .badge-warn{color:var(--pf-hib);background:#FBEAF0;border:1px solid #EBC4D1;font-weight:600;border-radius:999px;padding:5px 12px}
+
+/* Déclinaisons (taille / couleur) */
+.pf .variant-pick-label{font-family:var(--afk-mono);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--pf-plume)}
+.pf .variant-pick-val{color:var(--pf-encre);font-weight:700}
+.pf .variant-chip span{border:1px solid var(--pf-ligne);border-radius:var(--pf-r1);background:var(--pf-carte);font-family:var(--afk-mono);font-weight:700;font-size:.8125rem;padding:10px 14px;transition:var(--pf-ease)}
+.pf .variant-chip:hover span{border-color:var(--pf-foret)}
+.pf .variant-chip input:checked + span{background:var(--pf-foret);color:#fff;border-color:var(--pf-foret)}
+.pf .variant-chip input:focus-visible + span{outline:2px solid var(--pf-foret);outline-offset:2px}
+.pf .variant-chip.is-out span{opacity:.4;text-decoration:line-through;background:repeating-linear-gradient(45deg,#fff,#fff 5px,#F2E8D0 5px,#F2E8D0 10px)}
+.pf .variant-chip .chip-dot{width:14px;height:14px}
+.pf .variant-unavailable{color:var(--pf-hib);font-weight:600}
+
+/* Boutons : OR = unique accent dominant (CTA) */
+.pf .product-buy{display:grid;gap:12px;margin-top:8px}
+.pf .btn-primary,.pf .buy-now-btn{background:var(--pf-or);color:#2A1E05;border:1px solid transparent;border-radius:var(--pf-r2);box-shadow:var(--pf-sh2);font-weight:700;transition:var(--pf-ease)}
+.pf .btn-primary:hover,.pf .buy-now-btn:hover{background:var(--pf-or-deep);color:#fff;box-shadow:var(--pf-sh3)}
+.pf .qty-stepper{border:1px solid var(--pf-ligne);border-radius:var(--pf-r1);background:var(--pf-carte)}
+.pf .qty-btn{color:var(--pf-foret)}
+.pf .btn-wa{background:#1E7A43;color:#fff;border:1px solid transparent;border-radius:var(--pf-r2)}
+.pf .btn-wa:hover{background:#176233}
+.pf .product-wish-line{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.8125rem;color:var(--pf-plume);margin-top:14px}
+.pf .verified-line{color:var(--pf-foret);font-weight:600}
+
+/* Sections basses : titre display + filet */
+.pf .panel-title{font-family:var(--afk-display);font-weight:700;font-size:1.75rem;color:var(--pf-foret);display:flex;align-items:center;gap:16px;margin:0 0 20px}
+.pf .panel-title::after{content:"";flex:1;height:1px;background:var(--pf-ligne)}
+
+/* Caractéristiques : libellés Space Mono, lignes fines zébrées */
+.pf .spec-sheet{border:1px solid var(--pf-ligne);border-radius:var(--pf-r2);overflow:hidden;background:var(--pf-carte)}
+.pf .spec-row{display:grid;grid-template-columns:42% 1fr;gap:16px;padding:13px 24px;border-bottom:1px solid var(--pf-ligne);margin:0}
+.pf .spec-row:last-child{border-bottom:0}
+.pf .spec-row:nth-child(odd){background:#FFFEFB}
+.pf .spec-row dt{font-family:var(--afk-mono);font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;color:var(--pf-plume);margin:0}
+.pf .spec-row dd{font-weight:500;margin:0}
+
+/* Avis */
+.pf .review-item{border:1px solid var(--pf-ligne);border-radius:var(--pf-r2);background:var(--pf-carte);padding:20px;box-shadow:var(--sh1)}
+.pf .review-verified{color:var(--pf-foret);background:#E9F2EC;border:1px solid #CFE4D6;font-weight:600;font-size:.72rem;padding:2px 8px;border-radius:999px}
+.pf .review-author{font-weight:600}
+.pf .star-input,.pf .review-stars{color:var(--pf-or)}
+.pf .review-form-box textarea:focus{outline:0;border-color:var(--pf-foret);box-shadow:0 0 0 3px rgba(20,80,46,.12)}
+
+/* Cartes « Vous aimerez aussi » */
+.pf .product-card{border:1px solid var(--pf-ligne);border-radius:var(--pf-r2);transition:var(--pf-ease)}
+.pf .product-card:hover{transform:translateY(-4px);box-shadow:var(--pf-sh2);border-color:var(--pf-or)}
+.pf .product-card-price{font-family:var(--afk-mono);font-weight:700;color:var(--pf-foret)}
+
+/* Mobile-first : empilé, panneau non collant */
+@media(max-width:900px){
+  .pf .listing-layout{grid-template-columns:1fr;gap:32px}
+  .pf .listing-side{position:static}
+  .pf .listing-title{font-size:1.75rem}
+}
+/* Galerie sans photo : placeholder de marque (wax) plutôt qu'un vide */
+.pf .listing-media-empty{aspect-ratio:4/5;border-radius:var(--pf-r3);border:1px solid var(--pf-ligne);
+  display:grid;place-items:center;color:var(--pf-plume);box-shadow:var(--pf-sh2);
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%2314502E' stroke-opacity='0.06' stroke-width='1.2'%3E%3Cpath d='M32 6l10 10-10 10-10-10z'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3C/g%3E%3C/svg%3E") repeat;background-size:64px}
+.pf .listing-media-empty .icon{width:44px;height:44px;opacity:.5}

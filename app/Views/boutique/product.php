@@ -94,7 +94,7 @@ $dotHtml = static function (array $hexes): string {
     return '<span class="chip-dot chip-dot--split" style="background:linear-gradient(135deg,' . implode(',', $stops) . ')"></span>';
 };
 ?>
-<section class="listing-page">
+<section class="listing-page pf">
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a><?php if (!empty($product['collection'])): ?> <span class="crumb-sep" aria-hidden="true">›</span> <span class="crumb-rayon"><?= e((string) $product['collection']) ?></span><?php endif; ?></p>
 
     <div class="listing-layout">
@@ -105,6 +105,8 @@ $dotHtml = static function (array $hexes): string {
                     <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($main, 1100, 825)) ?>" alt="<?= e((string) $product['name']) ?>" width="880" height="660">
                     <span class="zoom-hint" aria-hidden="true"><?= icon('search', ['size' => 16]) ?></span>
                 </button>
+            <?php elseif (!$hasVideo): ?>
+                <div class="listing-media-empty" aria-hidden="true"><?= icon('package', ['size' => 44]) ?></div>
             <?php endif; ?>
             <?php if (count($photos) > 1): ?>
                 <div class="listing-thumbs">
