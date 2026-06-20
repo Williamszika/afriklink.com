@@ -26,10 +26,11 @@ final class PaymentController
         $user = $this->sellerOrRedirect();
         $boutique = Boutique::findByUserId((int) $user['id']);
         view('paiement/tester', [
-            'active'    => 'gains',
-            'boutique'  => $boutique,
-            'providers' => PaymentProviders::all(),
-            'chosen'    => (string) ($boutique['payment_provider'] ?? config('payment.default', 'simulation')),
+            'active'      => 'gains',
+            'boutique'    => $boutique,
+            'providers'   => PaymentProviders::all(),
+            'chosen'      => (string) ($boutique['payment_provider'] ?? config('payment.default', 'simulation')),
+            'recommended' => default_payment_provider_for_country($boutique['country_code'] ?? null),
         ] + SellerController::commonData($user));
     }
 

@@ -991,6 +991,7 @@ return [
     'pay.tester_sub' => 'Vérifiez le parcours de paiement de bout en bout. La « simulation » fonctionne sans argent réel, en attendant vos comptes CinetPay/Stripe.',
     'pay.providers_title' => 'Fournisseurs disponibles',
     'pay.your_choice' => 'votre choix',
+    'pay.recommended' => 'Recommandé pour votre pays',
     'pay.env_hint' => 'Un fournisseur passe à « Prêt » dès que ses clés API sont ajoutées aux variables d’environnement.',
     'pay.run_test' => 'Lancer un paiement test',
     'pay.run_test_hint' => 'Un paiement de test sera créé via : :provider.',

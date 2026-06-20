@@ -200,6 +200,20 @@ function language_for_country(?string $cc): ?string
     return in_array($lang, config('app.locales', ['fr', 'en']), true) ? $lang : null;
 }
 
+/**
+ * Fournisseur d'encaissement recommandé selon le pays du vendeur : CinetPay
+ * (mobile money) en Afrique, Stripe (cartes) en Europe, sinon la simulation.
+ * Simple indication à l'onboarding — le vendeur reste libre de son choix.
+ */
+function default_payment_provider_for_country(?string $cc): string
+{
+    return match (\App\Services\GeoService::continentOf($cc)) {
+        'africa' => 'cinetpay',
+        'europe' => 'stripe',
+        default  => 'simulation',
+    };
+}
+
 /* ------------------------------------------------------------------ */
 /* Identifiers                                                         */
 /* ------------------------------------------------------------------ */

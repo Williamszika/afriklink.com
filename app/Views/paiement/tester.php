@@ -1,8 +1,9 @@
 <?php
 /** @var string $active  @var array $user  @var array $profile  @var ?string $avatar_url
  *  @var ?array $boutique  @var array<string,\App\Services\Payment\PaymentProvider> $providers
- *  @var string $chosen */
+ *  @var string $chosen  @var string $recommended */
 $cur = (string) ($boutique['currency'] ?? 'EUR');
+$recommended = $recommended ?? 'simulation';
 ?>
 <div class="seller-shell">
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
@@ -20,6 +21,7 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                     <div class="prov-row">
                         <span class="prov-name"><?= e($p->label()) ?>
                             <?php if ($key === $chosen): ?><span class="badge badge-neutral"><?= e(t('pay.your_choice')) ?></span><?php endif; ?>
+                            <?php if ($key === $recommended && $key !== 'simulation'): ?><span class="badge badge-neutral">⭐ <?= e(t('pay.recommended')) ?></span><?php endif; ?>
                         </span>
                         <span class="muted prov-desc"><?= e((string) config('payment.providers.' . $key . '.desc', '')) ?></span>
                         <span class="badge <?= $ready ? 'badge-ok' : 'badge-warn' ?>">
