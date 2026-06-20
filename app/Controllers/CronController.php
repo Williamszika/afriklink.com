@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Models\AbandonedCart;
 use App\Request;
 use App\Services\MailService;
+use App\Services\Supervision;
 
 /**
  * Tâches planifiées (déclenchées par Vercel Cron ou un planificateur externe).
@@ -48,6 +49,77 @@ final class CronController
         }
 
         json_response(['checked' => count($due), 'sent' => $sent]);
+    }
+
+    /** Agent Supervision : envoie un digest « À surveiller » aux opérateurs si besoin. */
+    public function supervision(Request $request): void
+    {
+        $this->authorize();
+
+        $report = Supervision::report();
+        $alerts = $report['alerts'];
+        $to     = Supervision::recipients();
+        $sent   = 0;
+
+        // On n'envoie que s'il y a quelque chose d'actionnable (pas de bruit).
+        if ($alerts !== [] && $to !== []) {
+            $html = self::supervisionHtml($report);
+            $text = self::supervisionText($report);
+            foreach ($to as $email) {
+                try {
+                    if (MailService::send($email, t('sup.subject', ['n' => count($alerts)]), $html, $text)) {
+                        $sent++;
+                    }
+                } catch (\Throwable) {
+                    // best-effort
+                }
+            }
+        }
+
+        json_response(['alerts' => count($alerts), 'recipients' => count($to), 'sent' => $sent]);
+    }
+
+    /** @param array{alerts:list<array>,stats:array<string,int>} $report */
+    private static function supervisionHtml(array $report): string
+    {
+        $rows = '';
+        foreach ($report['alerts'] as $al) {
+            $dot = $al['level'] === 'warn' ? '🟠' : '🔵';
+            $rows .= '<tr>'
+                . '<td style="padding:9px 0;border-bottom:1px solid #eee">' . $dot . ' ' . e((string) $al['label']) . '</td>'
+                . '<td align="right" style="padding:9px 0;border-bottom:1px solid #eee;white-space:nowrap">'
+                . '<strong style="color:#103D30">' . (int) $al['count'] . '</strong> · '
+                . '<a href="' . e((string) $al['href']) . '" style="color:#B8860B;font-weight:700;text-decoration:none">' . e(t('sup.view')) . '</a></td></tr>';
+        }
+        $s = $report['stats'];
+        $statLine = t('sup.pulse', [
+            'orders' => (int) ($s['orders_7d'] ?? 0),
+            'shops'  => (int) ($s['boutiques_7d'] ?? 0),
+            'subs'   => (int) ($s['subscribers'] ?? 0),
+        ]);
+        $body = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:2px 0 16px;font-size:.97rem">' . $rows . '</table>'
+            . '<div class="afk-panel">📊 ' . e($statLine) . '</div>';
+
+        return render_partial('emails/base', [
+            'subject'   => t('sup.subject', ['n' => count($report['alerts'])]),
+            'preheader' => t('sup.intro'),
+            'heading'   => '🛰️ ' . e(t('sup.heading')),
+            'intro'     => e(t('sup.intro')),
+            'body'      => $body,
+            'cta_url'   => url('/admin'),
+            'cta_label' => t('sup.cta'),
+            'accent'    => 'forest',
+        ]);
+    }
+
+    /** @param array{alerts:list<array>,stats:array<string,int>} $report */
+    private static function supervisionText(array $report): string
+    {
+        $t = t('sup.heading') . "\n";
+        foreach ($report['alerts'] as $al) {
+            $t .= '- ' . $al['label'] . ' : ' . (int) $al['count'] . ' (' . $al['href'] . ")\n";
+        }
+        return $t . url('/admin');
     }
 
     private function authorize(): void

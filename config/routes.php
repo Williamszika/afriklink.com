@@ -126,8 +126,9 @@ return [
     ['POST', '/newsletter/popup',  [NewsletterController::class, 'popup'],     ['csrf', 'throttle:news,20,3600']],
     ['GET',  '/desinscription/{token}', [NewsletterController::class, 'unsubscribe'], ['throttle:unsub,60,3600']],
     ['GET',  '/paniers/stop/{token}',   [CartController::class, 'stopReminders'],     ['throttle:unsub,60,3600']],
-    // Tâche planifiée (Vercel Cron / externe) — protégée par CRON_SECRET.
+    // Tâches planifiées (Vercel Cron / externe) — protégées par CRON_SECRET.
     ['GET',  '/cron/relance-paniers',   [CronController::class, 'abandonedCart'],     ['throttle:cron,120,3600']],
+    ['GET',  '/cron/supervision',       [CronController::class, 'supervision'],       ['throttle:cron,120,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
     ['POST', '/mes-adresses/{id}/defaut', [AddressController::class, 'setDefault'], ['auth', 'csrf']],

@@ -13,6 +13,7 @@
     { "src": "/(.*)", "dest": "/api/index.php" }
   ],
   "crons": [
-    { "path": "/cron/relance-paniers", "schedule": "0 9 * * *" }
+    { "path": "/cron/relance-paniers", "schedule": "0 9 * * *" },
+    { "path": "/cron/supervision", "schedule": "0 7 * * *" }
   ]
 }
