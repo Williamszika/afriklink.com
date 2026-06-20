@@ -122,6 +122,7 @@ return [
     // Pied de page
     'footer.impressum' => 'Mentions légales',
     'footer.terms'     => 'Conditions',
+    'footer.withdrawal' => 'Rétractation',
     'footer.privacy'   => 'Confidentialité',
     'footer.cookies'   => 'Cookies',
     'legal.updated' => 'Dernière mise à jour : :date',
@@ -129,11 +130,17 @@ return [
     'legal.notice.title' => 'Mentions légales',
     'legal.privacy.title' => 'Politique de confidentialité',
     'legal.terms.title' => 'Conditions générales (CGU / CGV)',
+    'legal.withdrawal.title' => 'Droit de rétractation',
     'cookie.aria' => 'Bandeau de consentement aux cookies',
-    'cookie.text' => 'Nous utilisons des cookies essentiels au fonctionnement du site ; avec votre accord, nous pourrons aussi mesurer l’audience pour améliorer Afriklink.',
+    'cookie.text' => 'Nous utilisons des cookies essentiels au fonctionnement du site ; avec votre accord, nous pourrons aussi activer des cookies fonctionnels et de mesure d’audience pour améliorer Afriklink.',
     'cookie.learn' => 'En savoir plus',
     'cookie.accept' => 'Tout accepter',
     'cookie.refuse' => 'Continuer sans accepter',
+    'cookie.customize' => 'Personnaliser',
+    'cookie.save' => 'Enregistrer mes choix',
+    'cookie.cat.essential' => 'Essentiels (toujours actifs)',
+    'cookie.cat.functional' => 'Fonctionnels (confort de navigation)',
+    'cookie.cat.analytics' => 'Mesure d’audience (statistiques anonymes)',
 
     // Champs
     'field.email'            => 'Adresse e-mail',

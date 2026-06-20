@@ -340,6 +340,65 @@ function country_name(string $code): string
     return $list[$code] ?? $code;
 }
 
+/* ------------------------------------------------------------------ */
+/* Legal regime (country-aware compliance: DE / EU / CI / INTL)        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Régime juridique applicable selon le pays. Quand $cc est null, on déduit le
+ * pays de la géolocalisation détectée. Renvoie 'DE', 'EU', 'CI' ou 'INTL'.
+ * (DE et CI sont traités spécifiquement ; le reste de l'UE/EEE + UK → 'EU'.)
+ */
+function legal_regime(?string $cc = null): string
+{
+    if ($cc === null) {
+        $cc = detected_geo()['country_code'] ?? null;
+    }
+    $cc = $cc !== null ? strtoupper(trim($cc)) : '';
+
+    // Régime forcé via le sélecteur de pays des pages légales.
+    if ($cc === 'EU' || $cc === 'INTL') {
+        return $cc;
+    }
+    if ($cc === 'DE') {
+        return 'DE';
+    }
+    if ($cc === 'CI') {
+        return 'CI';
+    }
+    $eu = array_merge(
+        config('legal.eu_member_states', []),
+        config('legal.eea_states', []),
+        ['GB'] // Royaume-Uni : rétractation 14 j + UK GDPR équivalents
+    );
+    if ($cc !== '' && in_array($cc, $eu, true)) {
+        return 'EU';
+    }
+    return 'INTL';
+}
+
+/**
+ * Contexte légal prêt à l'emploi pour les vues. $cc peut forcer un régime
+ * (code pays ISO, ou 'DE'/'EU'/'CI'/'INTL' directement).
+ * @return array{cc:?string,regime:string,data:array<string,mixed>,operator:array<string,mixed>,is_de:bool,is_eu:bool,is_ci:bool}
+ */
+function legal_ctx(?string $cc = null): array
+{
+    if ($cc === null) {
+        $cc = detected_geo()['country_code'] ?? null;
+    }
+    $regime = legal_regime($cc);
+    return [
+        'cc'       => $cc !== null && $cc !== '' ? strtoupper($cc) : null,
+        'regime'   => $regime,
+        'data'     => config("legal.regimes.$regime", []),
+        'operator' => config('legal.operator', []),
+        'is_de'    => $regime === 'DE',
+        'is_eu'    => in_array($regime, ['DE', 'EU'], true),
+        'is_ci'    => $regime === 'CI',
+    ];
+}
+
 /**
  * Étiquette d'horaires d'un restaurant à partir des champs structurés :
  * jours cochés regroupés (« Lun–Mer, Ven–Sam ») + plage horaire

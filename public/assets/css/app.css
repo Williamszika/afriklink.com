@@ -1160,13 +1160,39 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .legal-page p, .legal-page li { line-height:1.6; }
 .legal-page ul { margin:6px 0; padding-left:20px; display:grid; gap:4px; }
 .legal-updated { font-size:.85rem; margin-top:0; }
+.legal-aka { font-weight:600; color:var(--muted); font-size:.8em; }
+.legal-todo { color:#b21e4b; font-style:italic; }
+.legal-lead { font-size:.95rem; color:var(--ink-soft); }
+.legal-back { margin-top:26px; }
+
+/* Sélecteur de régime juridique (pays applicable) */
+.legal-regimes { display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin:10px 0 16px; padding:10px 14px; background:var(--bg,#f4f6f5); border:1px solid var(--border); border-radius:12px; font-size:.85rem; }
+.legal-regimes__label { font-weight:600; color:var(--ink-soft); }
+.legal-regimes__opts { display:flex; flex-wrap:wrap; gap:6px; }
+.legal-regimes__opt { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--ink); font-weight:600; text-decoration:none; transition:.15s ease; }
+.legal-regimes__opt:hover { border-color:var(--ink); }
+.legal-regimes__opt.is-active { background:var(--ink); color:#fff; border-color:var(--ink); }
+
+/* Formulaire-type de rétractation */
+.legal-form-model { border:1px dashed var(--border); border-radius:12px; padding:18px 20px; background:#fff; margin:6px 0 4px; }
+.legal-form-model p { margin:0 0 10px; }
+.legal-form-fields { list-style:none; padding-left:0; margin:8px 0; display:grid; gap:8px; }
 
 /* Bandeau de consentement aux cookies */
-.cookie-banner { position:fixed; left:0; right:0; bottom:0; z-index:80; display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; background:#14241d; color:#fff; padding:12px 18px; box-shadow:0 -4px 18px rgba(0,0,0,.22); }
+.cookie-banner { position:fixed; left:0; right:0; bottom:0; z-index:80; display:flex; flex-direction:column; align-items:center; gap:8px; background:#14241d; color:#fff; padding:12px 18px; box-shadow:0 -4px 18px rgba(0,0,0,.22); }
+.cookie-main { display:flex; gap:14px; align-items:center; justify-content:center; flex-wrap:wrap; width:100%; }
 .cookie-text { margin:0; font-size:.9rem; max-width:760px; }
 .cookie-text a { color:#fff; text-decoration:underline; }
 .cookie-actions { display:flex; gap:8px; flex-shrink:0; }
 .cookie-banner .btn-ghost { color:#fff; border-color:rgba(255,255,255,.55); background:rgba(255,255,255,.10); }
+.cookie-custom { font-size:.85rem; width:100%; max-width:780px; }
+.cookie-custom summary { cursor:pointer; color:#fff; opacity:.85; text-align:center; list-style:none; }
+.cookie-custom summary::-webkit-details-marker { display:none; }
+.cookie-custom summary:hover { opacity:1; text-decoration:underline; }
+.cookie-cats { display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center; justify-content:center; padding:10px 0 2px; }
+.cookie-cat { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+.cookie-cat.is-locked { opacity:.7; cursor:default; }
+.cookie-cat input { accent-color:#C7922E; }
 
 /* Explorer — recherche marketplace */
 .explore-h1 { margin-bottom:2px; }

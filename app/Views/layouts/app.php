@@ -181,6 +181,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 <a href="<?= e(url('/a-propos')) ?>"><?= e(t('nav.about')) ?></a>
                 <a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a>
                 <a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a>
+                <a href="<?= e(url('/retractation')) ?>"><?= e(t('footer.withdrawal')) ?></a>
                 <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>
                 <a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a>
             </nav>

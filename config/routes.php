@@ -68,6 +68,7 @@ return [
     ['GET',  '/mentions-legales',  [LegalController::class, 'notice'],        []],
     ['GET',  '/confidentialite',   [LegalController::class, 'privacy'],       []],
     ['GET',  '/cgv',               [LegalController::class, 'terms'],         []],
+    ['GET',  '/retractation',      [LegalController::class, 'withdrawal'],    []],
     ['GET',  '/consentement/{choice}', [LegalController::class, 'consent'],   ['throttle:consent,60,3600']],
     // Piliers de confiance (pages publiques expliquant chaque système)
     ['GET',  '/paiements-securises', [TrustController::class, 'payments'], []],
