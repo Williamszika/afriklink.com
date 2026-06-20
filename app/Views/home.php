@@ -103,6 +103,8 @@ $slideCount = count($dealSlides);
 $catOrder  = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'auto', 'artisanat', 'bebe', 'sport'];
 $catCounts = [];
 foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'] ?? 0); }
+// Visuel de chaque catégorie = photo de sa meilleure vente (repli : émoji).
+$catThumbs = \App\Models\Product::categoryThumbs($catOrder);
 ?>
 <section class="afk-cats afk-block" aria-label="<?= e(t('home.categories_title')) ?>">
     <div class="afk-head">
@@ -110,9 +112,9 @@ foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'
         <a class="afk-link-all" href="<?= e(url('/explorer')) ?>"><?= e(t('common.see_all')) ?> →</a>
     </div>
     <div class="cat-tiles cat-tiles--browse">
-        <?php foreach ($catOrder as $ck): $cn = $catCounts[$ck] ?? 0; ?>
-            <a class="cat-tile" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
-                <span class="cat-tile-ico" aria-hidden="true"><?= $catIcons[$ck] ?? '🛍️' ?></span>
+        <?php foreach ($catOrder as $ck): $cn = $catCounts[$ck] ?? 0; $thumb = $catThumbs[$ck] ?? null; ?>
+            <a class="cat-tile<?= $thumb !== null ? ' cat-tile--photo' : '' ?>" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
+                <span class="cat-tile-ico" aria-hidden="true"><?php if ($thumb !== null): ?><img src="<?= e(CloudinaryService::imageUrl($thumb, 220, 220)) ?>" alt="" loading="lazy" onerror="this.remove()"><span class="cat-tile-fallback"><?= $catIcons[$ck] ?? '🛍️' ?></span><?php else: ?><?= $catIcons[$ck] ?? '🛍️' ?><?php endif; ?></span>
                 <span class="cat-tile-name"><?= e(t('listing.cat.' . $ck)) ?></span>
                 <?php if ($cn > 0): ?><span class="cat-tile-count"><?= e(t('home.cat_count', ['n' => $cn])) ?></span><?php endif; ?>
             </a>

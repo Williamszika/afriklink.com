@@ -434,6 +434,56 @@ final class Product
         }
     }
 
+    /**
+     * Photo représentative par catégorie pour les cartes « Explorer par catégorie » :
+     * la MEILLEURE VENTE (qui a une photo) de la catégorie, à défaut le produit le
+     * plus récent en stock. @param list<string> $cats
+     * @return array<string,string> catégorie => identifiant Cloudinary de la photo
+     */
+    public static function categoryThumbs(array $cats): array
+    {
+        $cats = array_values(array_unique(array_filter(array_map('strval', $cats))));
+        if ($cats === []) {
+            return [];
+        }
+        $in = implode(',', array_fill(0, count($cats), '?'));
+        // 1) Classé par meilleures ventes (order_items) puis récence.
+        $withSales =
+            "SELECT b.category AS cat, pp.cloud_public_id AS photo
+               FROM products p
+               JOIN boutiques b ON b.id = p.boutique_id
+               JOIN product_photos pp ON pp.product_id = p.id AND pp.position = 0
+               LEFT JOIN (SELECT product_id, SUM(qty) AS sold FROM order_items GROUP BY product_id) s
+                      ON s.product_id = p.id
+              WHERE p.status='active' AND b.status='published' AND b.category IN ($in)
+              ORDER BY b.category, COALESCE(s.sold,0) DESC, (p.stock > 0) DESC, p.id DESC";
+        // 2) Repli sans ventes (table order_items absente / vide) : récence + stock.
+        $recentOnly =
+            "SELECT b.category AS cat, pp.cloud_public_id AS photo
+               FROM products p
+               JOIN boutiques b ON b.id = p.boutique_id
+               JOIN product_photos pp ON pp.product_id = p.id AND pp.position = 0
+              WHERE p.status='active' AND b.status='published' AND b.category IN ($in)
+              ORDER BY b.category, (p.stock > 0) DESC, p.id DESC";
+        foreach ([$withSales, $recentOnly] as $sql) {
+            try {
+                $stmt = db()->prepare($sql);
+                $stmt->execute($cats);
+                $out = [];
+                foreach ($stmt->fetchAll() ?: [] as $r) {
+                    $c = (string) $r['cat'];
+                    if (!isset($out[$c]) && $r['photo'] !== null && $r['photo'] !== '') {
+                        $out[$c] = (string) $r['photo']; // 1ʳᵉ ligne d'une catégorie = la mieux classée
+                    }
+                }
+                return $out;
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+        return [];
+    }
+
     /** Produits récents du marketplace (vitrines publiées) pour l'accueil — en stock d'abord. @return list<array> */
     public static function recentMarketplace(int $limit = 12): array
     {

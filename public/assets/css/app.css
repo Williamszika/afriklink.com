@@ -2405,7 +2405,13 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 .cat-tiles--browse .cat-tile{padding:18px 10px 16px}
 .cat-tiles--browse .cat-tile-ico{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 30% 28%,#fff,var(--afk-cream,#f3eee2));border:1px solid var(--afk-ligne,#e7e0d2);font-size:1.7rem;line-height:1;margin-bottom:4px;transition:transform .2s,border-color .2s}
 .cat-tiles--browse .cat-tile:hover .cat-tile-ico{transform:scale(1.07);border-color:var(--afk-or,#d4a017)}
-@media(max-width:480px){.cat-tiles--browse{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}.cat-tiles--browse .cat-tile-ico{width:48px;height:48px;font-size:1.45rem}}
+/* Variante carte avec vraie photo (meilleure vente de la catégorie) */
+.cat-tiles--browse .cat-tile--photo{padding:8px 8px 12px}
+.cat-tiles--browse .cat-tile--photo .cat-tile-ico{position:relative;width:100%;height:auto;aspect-ratio:1/1;border-radius:13px;background:radial-gradient(circle at 30% 28%,#fff,var(--afk-cream,#f3eee2));border:1px solid var(--afk-ligne,#e7e0d2);overflow:hidden;margin-bottom:8px;padding:0}
+.cat-tiles--browse .cat-tile--photo .cat-tile-ico img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:2}
+.cat-tiles--browse .cat-tile--photo .cat-tile-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;z-index:1}
+.cat-tiles--browse .cat-tile--photo:hover .cat-tile-ico{transform:scale(1.04);border-color:var(--afk-or,#d4a017)}
+@media(max-width:480px){.cat-tiles--browse{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}.cat-tiles--browse .cat-tile-ico{width:48px;height:48px;font-size:1.45rem}.cat-tiles--browse .cat-tile--photo .cat-tile-ico{width:100%;height:auto}}
 /* — Accueil : bandeau garanties (confiance forte, style Trade Assurance) — */
 .afk-guar{background:var(--afk-foret,#1c3d32);border-radius:var(--afk-r-lg,18px);padding:22px 24px;color:#fff}
 .afk-guar__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
