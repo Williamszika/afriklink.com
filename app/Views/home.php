@@ -31,22 +31,25 @@ $categories = $categories ?? [];
 $loggedIn   = current_user() !== null;
 ?>
 <!-- Publicité — bandeau sponsorisé en TÊTE de l'accueil -->
-<section class="afk-spotlight afk-block afk-spotlight--top">
-    <div class="afk-spotlight__bar">
-        <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
-        <?php if (!empty($sponsored)): ?>
-            <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
-        <?php endif; ?>
-    </div>
+<section class="afk-spotlight afk-block afk-spotlight--top<?= empty($sponsored) ? ' afk-spotlight--promo' : '' ?>">
     <?php if (!empty($sponsored)): ?>
+        <div class="afk-spotlight__bar">
+            <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
+            <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+        </div>
         <div class="panel reco-rail">
             <h2 class="panel-title"><?= icon('sparkle', ['size' => 18]) ?> <?= e(t('reco.sponsored')) ?></h2>
             <?= render_partial('partials/sponsored_rail', ['products' => $sponsored, 'mains' => $reco_mains]) ?>
         </div>
     <?php else: ?>
-        <div class="afk-spotlight__empty">
-            <p><?= e(t('spotlight.home_empty')) ?></p>
-            <a class="afk-btn afk-btn--gold" href="<?= e(url('/vendeur/publicite')) ?>"><?= e(t('spotlight.seller_cta_btn')) ?></a>
+        <div class="afk-promo">
+            <span class="afk-promo__ic" aria-hidden="true"><?= icon('megaphone', ['size' => 28]) ?></span>
+            <div class="afk-promo__body">
+                <span class="afk-promo__tag"><?= e(t('ads.label')) ?></span>
+                <h2 class="afk-promo__title"><?= e(t('spotlight.seller_cta_title')) ?></h2>
+                <p><?= e(t('spotlight.home_empty')) ?></p>
+            </div>
+            <a class="afk-btn afk-btn--gold afk-btn--lg afk-promo__cta" href="<?= e(url('/vendeur/publicite')) ?>"><?= e(t('spotlight.seller_cta_btn')) ?></a>
         </div>
     <?php endif; ?>
 </section>
