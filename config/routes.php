@@ -14,6 +14,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\AddressController;
 use App\Controllers\NewsletterController;
 use App\Controllers\AdminAdsController;
+use App\Controllers\AdminNewsletterController;
 use App\Controllers\AdminDashboardController;
 use App\Controllers\AdminKycController;
 use App\Controllers\AdminMailController;
@@ -118,6 +119,7 @@ return [
     ['POST', '/affiliation/retrait',   [AffiliateController::class, 'withdraw'],     ['auth', 'csrf', 'throttle:wd,20,3600']],
     ['POST', '/newsletter',        [NewsletterController::class, 'subscribe'], ['csrf', 'throttle:news,20,3600']],
     ['POST', '/newsletter/popup',  [NewsletterController::class, 'popup'],     ['csrf', 'throttle:news,20,3600']],
+    ['GET',  '/desinscription/{token}', [NewsletterController::class, 'unsubscribe'], ['throttle:unsub,60,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
     ['POST', '/mes-adresses/{id}/defaut', [AddressController::class, 'setDefault'], ['auth', 'csrf']],
@@ -195,6 +197,9 @@ return [
     // Régie publicitaire : back-office (staff) — campagnes + revenu.
     ['GET',  '/admin/publicite',              [AdminAdsController::class, 'index'],  ['staff']],
     ['POST', '/admin/publicite/{pid}/action', [AdminAdsController::class, 'action'], ['staff', 'csrf']],
+    // Régie marketing : composer + diffuser la lettre d'information (staff).
+    ['GET',  '/admin/newsletter',  [AdminNewsletterController::class, 'index'], ['staff']],
+    ['POST', '/admin/newsletter',  [AdminNewsletterController::class, 'send'],  ['staff', 'csrf', 'throttle:nlsend,10,3600']],
     // Diagnostic e-mail (staff) : configuration effective + envoi d'un test.
     ['GET',  '/admin/email',       [AdminMailController::class, 'index'],    ['staff']],
     ['POST', '/admin/email/test',  [AdminMailController::class, 'sendTest'],  ['staff', 'csrf', 'throttle:mailtest,10,3600']],

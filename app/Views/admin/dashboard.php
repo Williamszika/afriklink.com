@@ -60,6 +60,7 @@ $fmt = static fn (int $n): string => number_format($n, 0, ',', ' ');
             <a class="admin-tool" href="<?= e(url('/admin/annonces')) ?>"><?= icon('megaphone', ['size' => 20]) ?> <span><?= e(t('admin.dash.t_ann')) ?></span></a>
             <a class="admin-tool" href="<?= e(url('/admin/retraits')) ?>"><?= icon('wallet', ['size' => 20]) ?> <span><?= e(t('admin.dash.t_wallet')) ?></span></a>
             <a class="admin-tool" href="<?= e(url('/admin/publicite')) ?>"><?= icon('sparkle', ['size' => 20]) ?> <span><?= e(t('ads.admin_title')) ?></span></a>
+            <a class="admin-tool" href="<?= e(url('/admin/newsletter')) ?>"><span class="admin-tool-emoji" aria-hidden="true">📨</span> <span><?= e(t('newsletter.admin_title')) ?></span></a>
             <a class="admin-tool" href="<?= e(url('/admin/email')) ?>"><span class="admin-tool-emoji" aria-hidden="true">✉️</span> <span><?= e(t('admin.dash.t_email')) ?></span></a>
             <a class="admin-tool" href="<?= e(url('/health')) ?>" target="_blank" rel="noopener"><span class="admin-tool-emoji" aria-hidden="true">🩺</span> <span><?= e(t('admin.dash.t_health')) ?></span></a>
         </div>

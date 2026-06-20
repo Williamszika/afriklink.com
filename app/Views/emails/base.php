@@ -8,6 +8,8 @@
  * @var string $intro  (HTML autorisé)   @var string $body  (HTML, optionnel)
  * @var string $cta_url @var string $cta_label  @var string $outro  (HTML, optionnel)
  * @var string $accent  'gold' (défaut) ou 'forest'
+ * @var string $unsubscribe_url  Lien de désinscription — UNIQUEMENT pour les
+ *   e-mails MARKETING (RGPD). Transactionnel = laisser vide (pas de désinscription).
  */
 $site    = (string) config('app.name', 'Afriklink');
 $heading = (string) ($heading ?? '');
@@ -89,6 +91,12 @@ $cauri   = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20wid
         <tr><td class="afk-foot">
             <?= render_partial('partials/logo', ['uid' => 'mailf']) ?>
             <span style="margin-left:5px"><b>Afrik<span>link</span></b> — <?= e(t('mail.footer_tag')) ?></span>
+            <?php if (($unsubscribe_url ?? '') !== ''): ?>
+                <div style="margin-top:9px;font-size:.72rem;color:#9aa39d;line-height:1.5">
+                    <?= e(t('mail.unsub_pre')) ?>
+                    <a href="<?= e((string) $unsubscribe_url) ?>" style="color:#5B6B62;text-decoration:underline"><?= e(t('mail.unsub_link')) ?></a>
+                </div>
+            <?php endif; ?>
         </td></tr>
     </table>
 </td></tr></table>
