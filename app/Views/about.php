@@ -143,9 +143,13 @@ $C = $en ? [
     <div class="ab-wrap reveal">
       <p class="ab-eyebrow"><?= e($C['founder_k']) ?></p>
       <div class="ab-founder">
-        <div class="ab-avatar">
-          <img src="<?= e(url('/assets/img/founder.jpeg')) ?>" alt="<?= e($C['founder_name']) ?>" loading="lazy" onerror="this.remove()">
-          <span class="ab-avatar__i" aria-hidden="true"><?= e(mb_substr($C['founder_name'], 0, 1)) ?></span>
+        <div class="ab-portrait">
+          <div class="ab-avatar">
+            <img src="<?= e(url('/assets/img/founder.jpeg')) ?>" alt="<?= e($C['founder_name']) ?>" loading="lazy" onerror="this.remove()">
+            <span class="ab-avatar__i" aria-hidden="true"><?= e(mb_substr($C['founder_name'], 0, 1)) ?></span>
+          </div>
+          <span class="ab-portrait__seal" aria-hidden="true"><?= render_partial('partials/logo', ['uid' => 'founder-seal']) ?></span>
+          <span class="ab-portrait__tag"><?= e($C['founder_role']) ?></span>
         </div>
         <div>
           <blockquote><?= e($C['founder_q']) ?></blockquote>
