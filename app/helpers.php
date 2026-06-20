@@ -176,6 +176,30 @@ function currency_for_country(?string $cc): ?string
     return in_array($cur, config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']), true) ? $cur : null;
 }
 
+/**
+ * Langue d'interface par défaut pour un pays (ISO-3166), parmi les langues
+ * supportées. Sert au choix AUTOMATIQUE de la langue selon la géolocalisation :
+ * un visiteur en Côte d'Ivoire voit le site en français, au Nigeria en anglais.
+ * null si aucune correspondance (l'appelant retombe sur le navigateur/défaut).
+ */
+function language_for_country(?string $cc): ?string
+{
+    $cc = strtoupper(trim((string) $cc));
+    if ($cc === '') {
+        return null;
+    }
+    // Pays francophones (Europe + Afrique) → fr ; anglophones → en.
+    static $fr = ['FR', 'BE', 'LU', 'MC', 'CH', 'CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ',
+                  'GN', 'CM', 'GA', 'CG', 'CD', 'TD', 'CF', 'DJ', 'KM', 'MG', 'BI', 'MR'];
+    static $en = ['GB', 'US', 'IE', 'CA', 'AU', 'NZ', 'NG', 'GH', 'KE', 'ZA', 'UG', 'TZ',
+                  'ZM', 'ZW', 'RW', 'SL', 'LR', 'GM', 'BW', 'NA', 'MW'];
+    $lang = in_array($cc, $fr, true) ? 'fr' : (in_array($cc, $en, true) ? 'en' : null);
+    if ($lang === null) {
+        return null;
+    }
+    return in_array($lang, config('app.locales', ['fr', 'en']), true) ? $lang : null;
+}
+
 /* ------------------------------------------------------------------ */
 /* Identifiers                                                         */
 /* ------------------------------------------------------------------ */
