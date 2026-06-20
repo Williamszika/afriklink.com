@@ -135,17 +135,57 @@ final class DemoSeeder
                 [$rayon, $pname, $brand, $eurCents, $attrs] = $tpl;
                 $price = self::priceFor($cur, $eurCents);
                 $promo = ($j === 0) ? (int) round($price * 0.8) : null;
-                Product::create((int) $b['id'], $owner, [
+                $pid = Product::create((int) $b['id'], $owner, [
                     'name' => $pname, 'description' => $pname . ' — qualité garantie, expédié rapidement depuis ' . $city . '.',
                     'price_cents' => $price, 'stock' => 5 + (($i + $j) % 25), 'status' => 'active',
                     'brand' => $brand, 'product_type' => $attrs['product_type'] ?? null, 'collection' => $rayon,
                     'promo_price_cents' => $promo, 'promo_until' => $promo !== null ? date('Y-m-d', time() + 14 * 86400) : null,
                     'sale_unit' => 'piece', 'attributes' => json_encode($attrs, JSON_UNESCAPED_UNICODE),
                 ], []);
+                // Déclinaisons (tailles / couleurs) si le gabarit en définit.
+                if (isset($tpl[5]) && is_array($tpl[5])) {
+                    $prodRow = Product::findByPublicId($pid);
+                    if ($prodRow !== null) {
+                        self::applyVariants((int) $prodRow['id'], (int) $b['id'], $tpl[5]);
+                    }
+                }
                 $prodCount++;
             }
         }
         return ['boutiques' => $created, 'products' => $prodCount, 'sellers' => count($sellerNames)];
+    }
+
+    /**
+     * Crée les déclinaisons (tailles / couleurs) d'un produit de démo et remplace
+     * la variante par défaut. $spec = ['sizes'=>[...], 'colors'=>[...]] (l'un OU
+     * l'autre, ou les deux pour une matrice taille × couleur).
+     */
+    private static function applyVariants(int $productId, int $boutiqueId, array $spec): void
+    {
+        $sizes  = $spec['sizes']  ?? [''];
+        $colors = $spec['colors'] ?? [''];
+        \App\Models\ProductVariant::deleteForProduct($productId);
+        $pos = 0;
+        foreach ($sizes as $s) {
+            foreach ($colors as $c) {
+                $attrs = [];
+                if ($s !== '') { $attrs['size'] = (string) $s; }
+                // Pas de hex stocké : la fiche acheteur déduit la pastille couleur du
+                // NOM (variant_color_hex). Stocker un hex polluerait aussi l'axe taille.
+                if ($c !== '') { $attrs['color'] = (string) $c; }
+                $label = trim($s . ' ' . $c);
+                \App\Models\ProductVariant::create($productId, $boutiqueId, [
+                    'sku'         => \App\Models\ProductVariant::generateSku(),
+                    'attributes'  => $attrs,
+                    'label'       => $label !== '' ? $label : null,
+                    'price_cents' => null,
+                    'stock'       => 2 + ($pos * 3) % 14,
+                    'position'    => $pos,
+                    'is_default'  => $pos === 0,
+                ]);
+                $pos++;
+            }
+        }
     }
 
     /** Convertit un prix EUR (cents) vers la devise cible (cents). */
@@ -175,10 +215,10 @@ final class DemoSeeder
                 ['Snacks', 'Chips de plantain 150 g', 'Banania', 290, ['conservation' => 'Ambiante', 'origine' => 'Côte d\'Ivoire']],
             ],
             'mode' => [
-                ['Chaussures', 'Baskets en cuir blanches', 'UrbanFeet', 7990, ['genre' => 'Homme', 'couleur' => 'Blanc', 'matiere' => 'Cuir', 'condition' => 'Neuf']],
-                ['Robes', 'Robe wax longue', 'WaxStyle', 4990, ['genre' => 'Femme', 'couleur' => 'Multicolore', 'matiere' => 'Wax / coton', 'condition' => 'Neuf']],
-                ['T-shirts', 'T-shirt coton bio', 'BasicWear', 1990, ['genre' => 'Mixte', 'couleur' => 'Noir', 'matiere' => 'Coton bio', 'condition' => 'Neuf']],
-                ['Sacs', 'Sac à main cuir grainé', 'Élégance', 8990, ['couleur' => 'Camel', 'matiere' => 'Cuir', 'condition' => 'Neuf']],
+                ['Chaussures', 'Baskets en cuir blanches', 'UrbanFeet', 7990, ['genre' => 'Homme', 'couleur' => 'Blanc', 'matiere' => 'Cuir', 'condition' => 'Neuf'], ['sizes' => ['40', '41', '42', '43'], 'colors' => ['Blanc', 'Noir']]],
+                ['Robes', 'Robe wax longue', 'WaxStyle', 4990, ['genre' => 'Femme', 'couleur' => 'Multicolore', 'matiere' => 'Wax / coton', 'condition' => 'Neuf'], ['sizes' => ['S', 'M', 'L', 'XL']]],
+                ['T-shirts', 'T-shirt coton bio', 'BasicWear', 1990, ['genre' => 'Mixte', 'couleur' => 'Noir', 'matiere' => 'Coton bio', 'condition' => 'Neuf'], ['sizes' => ['S', 'M', 'L', 'XL'], 'colors' => ['Noir', 'Blanc']]],
+                ['Sacs', 'Sac à main cuir grainé', 'Élégance', 8990, ['couleur' => 'Camel', 'matiere' => 'Cuir', 'condition' => 'Neuf'], ['colors' => ['Camel', 'Noir']]],
             ],
             'auto' => [
                 ['Accessoires', 'Caméra de recul HD', 'AutoTech', 3490, ['compatibilite' => 'Universel', 'condition' => 'Neuf', 'garantie' => '1 an']],
@@ -200,18 +240,18 @@ final class DemoSeeder
             ],
             'bebe' => [
                 ['Jouets', 'Cube d\'éveil musical', 'PetitMonde', 2490, ['age_min' => '6 mois', 'matiere' => 'Plastique sans BPA', 'ce' => 1, 'condition' => 'Neuf']],
-                ['Vêtements bébé', 'Body coton bio (lot de 3)', 'Câlin', 1790, ['taille' => '6 mois', 'matiere' => 'Coton bio', 'condition' => 'Neuf']],
+                ['Vêtements bébé', 'Body coton bio (lot de 3)', 'Câlin', 1790, ['matiere' => 'Coton bio', 'condition' => 'Neuf'], ['sizes' => ['3 mois', '6 mois', '12 mois']]],
                 ['Puériculture', 'Biberon anti-colique 260 ml', 'BabyCare', 990, ['ce' => 1, 'condition' => 'Neuf', 'specs' => ['Contenance' => '260 ml']]],
                 ['Soins', 'Liniment oléo-calcaire 500 ml', 'BabyCare', 690, ['condition' => 'Neuf', 'specs' => ['Contenance' => '500 ml']]],
             ],
             'sport' => [
-                ['Chaussures', 'Chaussures de running légères', 'AfrikRun', 6990, ['product_type' => 'Running', 'public' => 'Homme', 'terrain' => 'Route', 'matiere' => 'Mesh', 'condition' => 'Neuf', 'par_paire' => 1, 'specs' => ['Drop' => '8 mm']]],
+                ['Chaussures', 'Chaussures de running légères', 'AfrikRun', 6990, ['product_type' => 'Running', 'public' => 'Homme', 'terrain' => 'Route', 'matiere' => 'Mesh', 'condition' => 'Neuf', 'par_paire' => 1, 'specs' => ['Drop' => '8 mm']], ['sizes' => ['40', '41', '42', '43', '44'], 'colors' => ['Noir', 'Bleu']]],
                 ['Fitness', 'Haltères réglables 20 kg', 'IronFit', 8990, ['product_type' => 'Haltères', 'condition' => 'Neuf', 'specs' => ['Poids' => '2×10 kg']]],
-                ['Vêtements', 'Maillot de foot domicile', 'TeamWear', 3490, ['public' => 'Mixte', 'matiere' => 'Polyester', 'condition' => 'Neuf']],
+                ['Vêtements', 'Maillot de foot domicile', 'TeamWear', 3490, ['public' => 'Mixte', 'matiere' => 'Polyester', 'condition' => 'Neuf'], ['sizes' => ['S', 'M', 'L', 'XL']]],
                 ['Plein air', 'Tente 2 places imperméable', 'OutGear', 7990, ['condition' => 'Neuf', 'specs' => ['Places' => '2', 'Imperméabilité' => '3000 mm']]],
             ],
             'electronique' => [
-                ['Téléphones', 'Smartphone 128 Go double SIM', 'Nova', 14990, ['variant_axis' => 'Stockage', 'variant_axis2' => 'Couleur', 'condition' => 'Neuf', 'garantie' => '1 an', 'specs' => ['RAM' => '6 Go', 'Écran' => '6,5"']]],
+                ['Téléphones', 'Smartphone double SIM', 'Nova', 14990, ['variant_axis' => 'Stockage', 'variant_axis2' => 'Couleur', 'condition' => 'Neuf', 'garantie' => '1 an', 'specs' => ['RAM' => '6 Go', 'Écran' => '6,5"']], ['sizes' => ['128 Go', '256 Go'], 'colors' => ['Noir', 'Bleu']]],
                 ['Accessoires', 'Écouteurs Bluetooth ANC', 'SoundPods', 3990, ['compatibilite' => 'Universel', 'condition' => 'Neuf', 'specs' => ['Autonomie' => '24 h']]],
                 ['Audio & écouteurs', 'Enceinte portable étanche', 'BoomBox', 4990, ['condition' => 'Neuf', 'specs' => ['Autonomie' => '12 h', 'Puissance' => '20 W']]],
                 ['Accessoires', 'Powerbank 20000 mAh', 'ChargePro', 2490, ['condition' => 'Neuf', 'specs' => ['Capacité' => '20000 mAh']]],
