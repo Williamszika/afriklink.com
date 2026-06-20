@@ -8,6 +8,13 @@ $appName  = (string) config('app.name', 'Afriklink');
 $pageTitle = isset($page_title) && $page_title !== '' ? $page_title . ' — ' . $appName : $appName;
 $metaDesc  = (string) (($meta['description'] ?? '') !== '' ? $meta['description'] : t('home.hero_subtitle'));
 $metaUrl   = (string) ($meta['url'] ?? '');
+// Canonique par défaut : l'URL de la page courante sur le domaine configuré
+// (APP_URL). On retire la query string pour ne jamais exposer de jeton
+// (?token=…) ni dupliquer le contenu sur des paramètres de tracking.
+if ($metaUrl === '') {
+    $reqPath = strtok((string) ($_SERVER['REQUEST_URI'] ?? '/'), '?');
+    $metaUrl = url($reqPath === false || $reqPath === '' ? '/' : $reqPath);
+}
 $metaImage = (string) ($meta['image'] ?? '');
 ?>
 <!doctype html>
