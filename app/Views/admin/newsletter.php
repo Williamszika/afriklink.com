@@ -36,6 +36,11 @@
             </label>
         </div>
 
+        <label class="field" style="flex-direction:row;align-items:center;gap:9px;cursor:pointer">
+            <input type="checkbox" name="include_picks" value="1" checked style="width:auto">
+            <span><?= icon('sparkle', ['size' => 15]) ?> <?= e(t('newsletter.admin_include_picks')) ?></span>
+        </label>
+
         <p class="muted" style="font-size:.85rem"><?= icon('info', ['size' => 14]) ?> <?= e(t('newsletter.admin_rgpd_note')) ?></p>
 
         <div class="product-row-actions">

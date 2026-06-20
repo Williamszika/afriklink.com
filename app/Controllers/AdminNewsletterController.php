@@ -48,13 +48,16 @@ final class AdminNewsletterController
             $cta = ['url' => url($ctaUrl), 'label' => $ctaLbl !== '' ? $ctaLbl : t('newsletter.admin_cta_default')];
         }
 
+        // « Pépites du catalogue » : blocs auto générés depuis les vraies données.
+        $picks = input_string('include_picks', '') !== null ? \App\Services\NewsletterContent::weeklyPicks() : '';
+
         if ($action === 'test') {
             $to = trim((string) (current_user()['email'] ?? ''));
             if ($to === '') {
                 flash('error', t('admin.mail.no_email'));
                 redirect('/admin/newsletter');
             }
-            $html = self::buildHtml($subject, $message, $cta, NewsletterSubscriber::unsubscribeUrl('apercu-test'));
+            $html = self::buildHtml($subject, $message, $cta, NewsletterSubscriber::unsubscribeUrl('apercu-test'), $picks);
             MailService::send($to, '[TEST] ' . $subject, $html, $message);
             flash('success', t('newsletter.admin_test_sent', ['email' => $to]));
             redirect('/admin/newsletter');
@@ -64,7 +67,7 @@ final class AdminNewsletterController
         $recipients = NewsletterSubscriber::subscribed(self::MAX_PER_SEND);
         $sent = 0;
         foreach ($recipients as $r) {
-            $html = self::buildHtml($subject, $message, $cta, NewsletterSubscriber::unsubscribeUrl((string) $r['token']));
+            $html = self::buildHtml($subject, $message, $cta, NewsletterSubscriber::unsubscribeUrl((string) $r['token']), $picks);
             try {
                 if (MailService::send((string) $r['email'], $subject, $html, $message)) {
                     $sent++;
@@ -83,7 +86,7 @@ final class AdminNewsletterController
      * (texte → paragraphes), CTA optionnel, + lien de désinscription (RGPD).
      * @param array{url:string,label:string}|null $cta
      */
-    private static function buildHtml(string $subject, string $message, ?array $cta, string $unsubUrl): string
+    private static function buildHtml(string $subject, string $message, ?array $cta, string $unsubUrl, string $extraHtml = ''): string
     {
         $paras = '';
         foreach (preg_split('/\n{2,}/', $message) ?: [$message] as $block) {
@@ -97,7 +100,7 @@ final class AdminNewsletterController
             'preheader'       => mb_substr(strip_tags($message), 0, 140),
             'heading'         => e($subject),
             'intro'           => '',
-            'body'            => $paras,
+            'body'            => $paras . $extraHtml,
             'cta_url'         => $cta['url'] ?? '',
             'cta_label'       => $cta['label'] ?? '',
             'accent'          => 'gold',
