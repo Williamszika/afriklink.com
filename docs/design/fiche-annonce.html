@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AfrikaLink — Fiche annonce / service (direction artistique)</title>
+<link rel="stylesheet" href="./fonts.css">
+<style>
+:root{
+  --t-12:.75rem;--t-13:.8125rem;--t-16:1rem;--t-20:1.25rem;--t-28:1.75rem;--t-40:2.5rem;
+  --s1:8px;--s2:16px;--s3:24px;--s4:32px;--s5:40px;--s6:48px;--s8:64px;--s12:96px;
+  --foret:#14502E;--foret-deep:#0C3A20;--foret-soft:#2E7D4F;
+  --or:#C7922E;--or-deep:#A6781F;--or-wash:#F4E7C8;--hibiscus:#B21E4B;
+  --creme:#FAF4E6;--creme-2:#F2E8D0;--carte:#FFFDF8;--encre:#19271D;--plume:#6E6B5B;--ligne:#E6DBC0;
+  --r1:6px;--r2:12px;--r3:20px;--pill:999px;
+  --sh1:0 1px 2px rgba(18,40,28,.05);--sh2:0 10px 26px -16px rgba(18,40,28,.30);--sh3:0 28px 60px -34px rgba(12,46,28,.50);
+  --ease:160ms cubic-bezier(.2,.7,.3,1);
+  --wax:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%2314502E' stroke-opacity='0.05' stroke-width='1.2'%3E%3Cpath d='M32 6l10 10-10 10-10-10z'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Cpath d='M0 32h16M48 32h16M32 48v16M32 0v16'/%3E%3C/g%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--creme);background-image:var(--wax);background-size:64px 64px;color:var(--encre);
+  font-family:'Inter',system-ui,sans-serif;font-size:var(--t-16);line-height:1.55;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}::selection{background:var(--or-wash)}
+.display{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.06;color:var(--foret)}
+.mono{font-family:'Space Mono',monospace}
+.eyebrow{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.22em;text-transform:uppercase;color:var(--or-deep)}
+.btn{font:600 var(--t-16)/1 'Inter',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:var(--s1);
+  padding:14px 22px;border-radius:var(--r2);border:1px solid transparent;cursor:pointer;text-decoration:none;
+  transition:transform var(--ease),box-shadow var(--ease),background var(--ease),border-color var(--ease)}
+.btn:focus-visible{outline:2px solid var(--foret);outline-offset:3px}.btn:active{transform:translateY(1px)}
+.btn--wa{background:#1E7A43;color:#fff;box-shadow:var(--sh2)}.btn--wa:hover{background:#176233;box-shadow:var(--sh3)}
+.btn--ghost{background:transparent;border-color:var(--ligne);color:var(--foret)}.btn--ghost:hover{border-color:var(--foret);background:#fff}
+.btn--block{width:100%}.btn--lg{padding:16px 26px;font-size:var(--t-20)}
+
+.shell{max-width:1080px;margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
+.crumb{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.08em;color:var(--plume);margin:0 0 var(--s4)}
+.crumb b{color:var(--encre);font-weight:400}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:var(--s8);align-items:start}
+
+/* Galerie sobre */
+.media{display:grid;grid-template-columns:1fr;gap:var(--s2)}
+.shot{aspect-ratio:4/3;border-radius:var(--r3);border:1px solid var(--ligne);box-shadow:var(--sh2);background:var(--c);position:relative;overflow:hidden}
+.shot::after{content:"";position:absolute;inset:0;background:var(--wax);background-size:56px 56px;opacity:.5}
+.mini{display:flex;gap:var(--s1)}
+.mini i{flex:1;aspect-ratio:1;border-radius:var(--r1);border:1px solid var(--ligne);background:var(--c)}
+
+/* Colonne action */
+.panel{border:1px solid var(--ligne);border-radius:var(--r3);background:var(--carte);box-shadow:var(--sh2);padding:var(--s4);position:sticky;top:var(--s3)}
+.title{font-size:var(--t-28);margin:6px 0 0}
+.price{font-family:'Space Mono',monospace;font-weight:700;font-size:var(--t-28);color:var(--foret);margin:var(--s2) 0 4px}
+.price small{font-size:var(--t-13);color:var(--plume);font-weight:400}
+.meta{display:flex;gap:var(--s1);flex-wrap:wrap;margin:var(--s2) 0 var(--s3)}
+.tagpill{font-family:'Space Mono',monospace;font-size:var(--t-12);color:var(--foret);background:#E9F2EC;border:1px solid #CFE4D6;padding:5px 11px;border-radius:var(--pill)}
+.actions{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s2)}
+.assurance{display:flex;gap:var(--s2);flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:var(--t-12);color:var(--plume);margin-top:var(--s3)}
+
+/* Carte vendeur */
+.seller{display:flex;align-items:center;gap:var(--s2);border-top:1px solid var(--ligne);margin-top:var(--s3);padding-top:var(--s3)}
+.avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--foret),var(--foret-soft));color:#fff;
+  display:grid;place-items:center;font-family:'Bricolage Grotesque';font-weight:800}
+.seller .nm{font-weight:600} .seller .since{font-family:'Space Mono',monospace;font-size:var(--t-12);color:var(--plume)}
+.verified{display:inline-flex;align-items:center;gap:4px;color:var(--foret);background:#E9F2EC;border:1px solid #CFE4D6;font-weight:600;font-size:var(--t-12);padding:2px 8px;border-radius:var(--pill)}
+
+/* Description */
+.desc{margin-top:var(--s8);max-width:64ch}
+.desc .kick{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s3)}
+.desc h2{font-family:'Bricolage Grotesque';font-weight:700;font-size:var(--t-28);color:var(--foret);margin:0}
+.desc .rule{flex:1;height:1px;background:var(--ligne)}
+.desc p{color:#33402F;margin:0 0 var(--s2)}
+.list{list-style:none;padding:0;margin:var(--s2) 0 0;display:grid;gap:8px}
+.list li{display:flex;gap:10px;align-items:flex-start}
+.list .ck{color:var(--or-deep);font-weight:700}
+
+@media(max-width:880px){
+  .grid{grid-template-columns:1fr;gap:var(--s5)}
+  .panel{position:static}.title{font-size:var(--t-20)}
+}
+</style>
+</head>
+<body>
+<main class="shell">
+  <p class="crumb">Métiers &amp; services › Couture › <b>Couturier sur mesure — Abidjan</b></p>
+
+  <div class="grid">
+    <!-- Galerie -->
+    <div class="media">
+      <div class="shot" style="--c:#2A3A6B"></div>
+      <div class="mini"><i style="--c:#C7922E"></i><i style="--c:#B21E4B"></i><i style="--c:#2E7D4F"></i><i style="--c:#9C5A2A"></i></div>
+    </div>
+
+    <!-- Action -->
+    <aside class="panel">
+      <span class="eyebrow">◆ Service · Couture</span>
+      <h1 class="title display">Couturier sur mesure</h1>
+      <p class="price">dès 15 000 F <small>/ pièce · ou sur devis</small></p>
+      <div class="meta"><span class="tagpill">Abidjan</span><span class="tagpill">À domicile</span><span class="tagpill">Délai 3–5 j</span></div>
+
+      <div class="actions">
+        <a class="btn btn--wa btn--block btn--lg" href="#">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4-1.1l-.3-.2-2.8.7.8-2.7-.2-.3A8 8 0 1112 20zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.2-.4.2-.4.6-1.2a.4.4 0 000-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-1 2.2 5.3 5.3 0 001.1 2.8 12 12 0 004.6 4c2.2.8 2.2.6 2.6.5a2.6 2.6 0 001.7-1.2 2.1 2.1 0 00.1-1.2c0-.1-.2-.2-.4-.3z"/></svg>
+          Contacter sur WhatsApp
+        </a>
+        <a class="btn btn--ghost btn--block" href="#">↗ Partager l'annonce</a>
+      </div>
+
+      <div class="seller">
+        <span class="avatar">KN</span>
+        <div>
+          <div class="nm">Atelier Kouadio <span class="verified">✓ Vérifié</span></div>
+          <div class="since">Membre depuis mars 2025 · 38 avis</div>
+        </div>
+      </div>
+
+      <div class="assurance"><span>🔒 Paiement à la livraison</span><span>📍 Sur place &amp; à domicile</span></div>
+    </aside>
+  </div>
+
+  <!-- Description -->
+  <section class="desc">
+    <div class="kick"><h2>Description</h2><span class="rule"></span></div>
+    <p>Atelier de couture sur mesure à Abidjan : tenues traditionnelles et modernes, retouches, et confection à partir de votre tissu (wax, bazin, lin). Prise de mesures à domicile sur Abidjan, ou envoyez vos mensurations.</p>
+    <ul class="list">
+      <li><span class="ck">✓</span> Tenues homme &amp; femme, cérémonies et quotidien</li>
+      <li><span class="ck">✓</span> Travail à partir de votre tissu ou fourni</li>
+      <li><span class="ck">✓</span> Délai 3 à 5 jours · retouches incluses</li>
+      <li><span class="ck">✓</span> Livraison Abidjan, ou expédition internationale sur demande</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

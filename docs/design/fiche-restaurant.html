@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AfrikaLink — Fiche restaurant (direction artistique)</title>
+<link rel="stylesheet" href="./fonts.css">
+<style>
+:root{
+  --t-12:.75rem;--t-13:.8125rem;--t-16:1rem;--t-20:1.25rem;--t-28:1.75rem;--t-40:2.5rem;--t-56:3.5rem;
+  --s1:8px;--s2:16px;--s3:24px;--s4:32px;--s5:40px;--s6:48px;--s8:64px;--s12:96px;
+  --foret:#14502E;--foret-deep:#0C3A20;--foret-soft:#2E7D4F;
+  --or:#C7922E;--or-deep:#A6781F;--or-wash:#F4E7C8;--hibiscus:#B21E4B;
+  --creme:#FAF4E6;--creme-2:#F2E8D0;--carte:#FFFDF8;--encre:#19271D;--plume:#6E6B5B;--ligne:#E6DBC0;
+  --r1:6px;--r2:12px;--r3:20px;--pill:999px;
+  --sh1:0 1px 2px rgba(18,40,28,.05);--sh2:0 10px 26px -16px rgba(18,40,28,.30);--sh3:0 28px 60px -34px rgba(12,46,28,.50);
+  --ease:160ms cubic-bezier(.2,.7,.3,1);
+  --wax:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%2314502E' stroke-opacity='0.05' stroke-width='1.2'%3E%3Cpath d='M32 6l10 10-10 10-10-10z'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Cpath d='M0 32h16M48 32h16M32 48v16M32 0v16'/%3E%3C/g%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--creme);background-image:var(--wax);background-size:64px 64px;color:var(--encre);
+  font-family:'Inter',system-ui,sans-serif;font-size:var(--t-16);line-height:1.55;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}::selection{background:var(--or-wash)}
+.display{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.04}
+.mono{font-family:'Space Mono',monospace}
+.eyebrow{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.22em;text-transform:uppercase;color:var(--or)}
+.btn{font:600 var(--t-16)/1 'Inter',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:var(--s1);
+  padding:14px 22px;border-radius:var(--r2);border:1px solid transparent;cursor:pointer;text-decoration:none;
+  transition:transform var(--ease),box-shadow var(--ease),background var(--ease),border-color var(--ease)}
+.btn:focus-visible{outline:2px solid var(--foret);outline-offset:3px}.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;pointer-events:none}
+.btn--gold{background:var(--or);color:#2A1E05;box-shadow:var(--sh2)}.btn--gold:hover{background:var(--or-deep);color:#fff;box-shadow:var(--sh3)}
+.btn--wa{background:#1E7A43;color:#fff}.btn--wa:hover{background:#176233}
+.btn--block{width:100%}
+
+/* En-tête restaurant : bandeau forêt + wax, asymétrique */
+.hero{position:relative;background:linear-gradient(120deg,var(--foret),var(--foret-deep));color:#fff;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background:var(--wax);background-size:64px 64px;opacity:.5;mix-blend-mode:overlay}
+.hero__in{position:relative;max-width:1160px;margin:0 auto;padding:var(--s8) var(--s4) var(--s6);display:grid;grid-template-columns:1fr auto;gap:var(--s4);align-items:end}
+.hero .eyebrow{color:var(--or-wash)}
+.hero h1{font-size:var(--t-56);margin:var(--s1) 0 0;color:#fff}
+.hero .tagline{margin:var(--s2) 0 0;max-width:46ch;color:#DCEAE0}
+.chips{display:flex;gap:var(--s1);flex-wrap:wrap;margin-top:var(--s3)}
+.chip{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.04em;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:6px 12px;border-radius:var(--pill)}
+.open{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:var(--t-13);background:rgba(46,125,79,.35);border:1px solid #5FAF82;padding:7px 14px;border-radius:var(--pill)}
+.open .dot{width:8px;height:8px;border-radius:50%;background:#7EE2A8;box-shadow:0 0 0 3px rgba(126,226,168,.25)}
+
+/* Corps : menu (7) + commande (5) */
+.shell{max-width:1160px;margin:0 auto;padding:var(--s6) var(--s4) var(--s12);display:grid;grid-template-columns:7fr 5fr;gap:var(--s8);align-items:start}
+.menu-nav{position:sticky;top:0;z-index:5;display:flex;gap:var(--s1);padding:var(--s2) 0;background:linear-gradient(var(--creme),var(--creme) 70%,transparent);flex-wrap:wrap}
+.menu-nav a{font-family:'Space Mono',monospace;font-size:var(--t-13);text-decoration:none;color:var(--foret);border:1px solid var(--ligne);
+  background:var(--carte);padding:8px 14px;border-radius:var(--pill);transition:var(--ease)}
+.menu-nav a:hover{border-color:var(--or);color:var(--or-deep)}
+.cat{margin-top:var(--s5)}
+.cat__h{display:flex;align-items:baseline;gap:var(--s2);margin:0 0 var(--s3)}
+.cat__h h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:var(--t-28);color:var(--foret);margin:0}
+.cat__h .rule{flex:1;height:1px;background:var(--ligne)}
+.dish{display:grid;grid-template-columns:84px 1fr auto;gap:var(--s3);padding:var(--s3) 0;border-bottom:1px solid var(--ligne);align-items:center}
+.dish:last-child{border-bottom:0}
+.dish__img{width:84px;height:84px;border-radius:var(--r2);border:1px solid var(--ligne);background:var(--c);position:relative;overflow:hidden}
+.dish__img::after{content:"";position:absolute;inset:0;background:var(--wax);background-size:48px 48px;opacity:.5}
+.dish__name{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:var(--t-20);color:var(--encre);margin:0}
+.dish__desc{color:var(--plume);font-size:var(--t-13);margin:4px 0 0;max-width:44ch}
+.dish__side{display:flex;flex-direction:column;align-items:flex-end;gap:10px;white-space:nowrap}
+.dish__price{font-family:'Space Mono',monospace;font-weight:700;color:var(--foret)}
+.dish__price small{color:var(--plume);font-weight:400}
+.add{width:42px;height:42px;border-radius:50%;border:1px solid var(--or);background:var(--or-wash);color:var(--or-deep);font-size:var(--t-20);
+  cursor:pointer;display:grid;place-items:center;transition:var(--ease)}
+.add:hover{background:var(--or);color:#2A1E05;transform:translateY(-2px)}.add:focus-visible{outline:2px solid var(--foret);outline-offset:2px}
+.soldout{font-family:'Space Mono',monospace;font-size:var(--t-12);color:var(--hibiscus);border:1px solid #EBC4D1;background:#FBEAF0;padding:6px 12px;border-radius:var(--pill)}
+.dish--out{opacity:.6}
+
+/* Panneau commande (sticky) */
+.order{position:sticky;top:var(--s3);border:1px solid var(--ligne);border-radius:var(--r3);background:var(--carte);box-shadow:var(--sh2);overflow:hidden}
+.order__h{padding:var(--s3);border-bottom:1px solid var(--ligne)}
+.toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--creme-2);border-radius:var(--pill);padding:5px}
+.toggle button{border:0;background:transparent;padding:9px;border-radius:var(--pill);font:600 var(--t-13)/1 'Inter';cursor:pointer;color:var(--plume);transition:var(--ease)}
+.toggle button[aria-pressed="true"]{background:#fff;color:var(--foret);box-shadow:var(--sh1)}
+.order__body{padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
+.line{display:flex;align-items:center;gap:var(--s2);font-size:var(--t-13)}
+.line .n{font-family:'Space Mono',monospace;color:var(--plume)}
+.line .t{flex:1}
+.line .p{font-family:'Space Mono',monospace;font-weight:700;color:var(--foret)}
+.line .x{border:0;background:none;color:var(--plume);cursor:pointer;font-size:var(--t-16)}.line .x:hover{color:var(--hibiscus)}
+.empty{padding:var(--s4) var(--s2);text-align:center;color:var(--plume);font-size:var(--t-13);border:1px dashed var(--ligne);border-radius:var(--r2)}
+.totals{border-top:1px solid var(--ligne);padding-top:var(--s2);display:flex;flex-direction:column;gap:6px;font-size:var(--t-13)}
+.totals .row{display:flex;justify-content:space-between;color:var(--plume)}
+.totals .grand{display:flex;justify-content:space-between;font-weight:800;color:var(--foret);border-top:2px solid var(--or);padding-top:10px;margin-top:4px;font-size:var(--t-20)}
+.totals .grand .mono{font-size:var(--t-20)}
+.info{border-top:1px solid var(--ligne);padding:var(--s3);display:flex;flex-direction:column;gap:10px;font-size:var(--t-13);color:var(--plume)}
+.info b{color:var(--encre)}
+
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr;gap:var(--s5);padding-bottom:120px}
+  .hero__in{grid-template-columns:1fr;padding:var(--s6) var(--s3) var(--s5)}.hero h1{font-size:var(--t-40)}
+  .order{position:static}.menu-nav{position:static}
+}
+</style>
+</head>
+<body x-data="resto()" x-cloak>
+
+<header class="hero">
+  <div class="hero__in">
+    <div>
+      <span class="eyebrow">◆ Restaurant · Dakar</span>
+      <h1 class="display">Chez Lébou</h1>
+      <p class="tagline">Cuisine sénégalaise de marché — thiéboudienne, yassa et jus maison, préparés le jour même.</p>
+      <div class="chips">
+        <span class="open"><span class="dot"></span>Ouvert · ferme à 23h00</span>
+        <span class="chip">Sénégalaise</span><span class="chip">★ 4,7 (212)</span><span class="chip">Halal</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <!-- MENU -->
+  <div>
+    <nav class="menu-nav" aria-label="Catégories du menu">
+      <a href="#c-entrees">Entrées</a><a href="#c-plats">Plats</a><a href="#c-boissons">Boissons</a>
+    </nav>
+
+    <section class="cat" id="c-plats">
+      <div class="cat__h"><h2>Plats</h2><span class="rule"></span></div>
+
+      <div class="dish">
+        <div class="dish__img" style="--c:#B07A2E"></div>
+        <div>
+          <h3 class="dish__name">Thiéboudienne rouge</h3>
+          <p class="dish__desc">Riz au poisson, légumes mijotés, sauce tomate — la recette du dimanche.</p>
+        </div>
+        <div class="dish__side">
+          <span class="dish__price mono">4 500 F</span>
+          <button class="add" aria-label="Ajouter Thiéboudienne" @click="add('Thiéboudienne rouge',4500)">＋</button>
+        </div>
+      </div>
+
+      <div class="dish">
+        <div class="dish__img" style="--c:#9C5A2A"></div>
+        <div>
+          <h3 class="dish__name">Yassa poulet</h3>
+          <p class="dish__desc">Poulet mariné au citron et oignons confits, riz blanc. <em>Portions S/M/L.</em></p>
+        </div>
+        <div class="dish__side">
+          <span class="dish__price mono"><small>dès</small> 3 800 F</span>
+          <button class="add" aria-label="Ajouter Yassa" @click="add('Yassa poulet (M)',3800)">＋</button>
+        </div>
+      </div>
+
+      <div class="dish dish--out">
+        <div class="dish__img" style="--c:#6E6B5B"></div>
+        <div>
+          <h3 class="dish__name">Mafé bœuf</h3>
+          <p class="dish__desc">Ragoût à la pâte d'arachide, riz. Revient demain.</p>
+        </div>
+        <div class="dish__side"><span class="soldout">Épuisé</span></div>
+      </div>
+    </section>
+
+    <section class="cat" id="c-boissons">
+      <div class="cat__h"><h2>Boissons maison</h2><span class="rule"></span></div>
+      <div class="dish">
+        <div class="dish__img" style="--c:#B21E4B"></div>
+        <div><h3 class="dish__name">Bissap glacé</h3><p class="dish__desc">Infusion d'hibiscus, menthe fraîche. 50 cl.</p></div>
+        <div class="dish__side"><span class="dish__price mono">1 200 F</span>
+          <button class="add" aria-label="Ajouter Bissap" @click="add('Bissap glacé',1200)">＋</button></div>
+      </div>
+      <div class="dish">
+        <div class="dish__img" style="--c:#2E7D4F"></div>
+        <div><h3 class="dish__name">Gingembre maison</h3><p class="dish__desc">Jus de gingembre frais, citron. 50 cl.</p></div>
+        <div class="dish__side"><span class="dish__price mono">1 200 F</span>
+          <button class="add" aria-label="Ajouter Gingembre" @click="add('Gingembre maison',1200)">＋</button></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- COMMANDE -->
+  <aside class="order">
+    <div class="order__h">
+      <div class="toggle" role="group" aria-label="Mode de réception">
+        <button :aria-pressed="mode==='retrait'" @click="mode='retrait'">Retrait</button>
+        <button :aria-pressed="mode==='livraison'" @click="mode='livraison'">Livraison</button>
+      </div>
+    </div>
+    <div class="order__body">
+      <template x-if="items.length===0"><div class="empty">Votre panier est vide.<br>Ajoutez un plat pour commencer.</div></template>
+      <template x-for="(it,i) in items" :key="i">
+        <div class="line">
+          <span class="n" x-text="it.q+'×'"></span>
+          <span class="t" x-text="it.name"></span>
+          <span class="p mono" x-text="fmt(it.q*it.price)"></span>
+          <button class="x" @click="remove(i)" aria-label="Retirer">✕</button>
+        </div>
+      </template>
+      <div class="totals" x-show="items.length">
+        <div class="row"><span>Sous-total</span><span class="mono" x-text="fmt(sub)"></span></div>
+        <div class="row" x-show="mode==='livraison'"><span>Livraison</span><span class="mono" x-text="fmt(800)"></span></div>
+        <div class="grand"><span>Total</span><span class="mono" x-text="fmt(total)"></span></div>
+      </div>
+      <button class="btn btn--gold btn--block" :disabled="!items.length">Commander</button>
+      <button class="btn btn--wa btn--block">Commander sur WhatsApp</button>
+    </div>
+    <div class="info">
+      <span>🕑 <b>Horaires</b> — 11h00 → 23h00, tous les jours</span>
+      <span>📍 <b>Zone</b> — Dakar Plateau · livraison 800 F (3 km)</span>
+    </div>
+  </aside>
+</main>
+
+<script>
+function resto(){return{
+  mode:'retrait', items:[],
+  add(name,price){const e=this.items.find(i=>i.name===name);e?e.q++:this.items.push({name,price,q:1})},
+  remove(i){this.items.splice(i,1)},
+  get sub(){return this.items.reduce((s,i)=>s+i.q*i.price,0)},
+  get total(){return this.sub+(this.mode==='livraison'&&this.items.length?800:0)},
+  fmt(v){return new Intl.NumberFormat('fr-FR').format(v)+' F'}
+}}
+</script>
+<style>[x-cloak]{display:none!important}</style>
+<script defer src="./vendor/alpine.min.js"></script>
+</body>
+</html>

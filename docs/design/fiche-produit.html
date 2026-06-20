@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AfrikaLink — Fiche produit (direction artistique)</title>
+<link rel="stylesheet" href="./fonts.css">
+<style>
+/* =========================================================================
+   AfrikaLink — Direction artistique fiche produit
+   Décisions : échelle typo réelle · grille 8px · couleur à rôles stricts ·
+   layout asymétrique · tous les états · wax discret. Vanilla CSS + Alpine.
+   ========================================================================= */
+:root{
+  /* — Échelle typographique (rapport ~1.4, pas "tout en 16") — */
+  --t-12:.75rem; --t-13:.8125rem; --t-16:1rem; --t-20:1.25rem;
+  --t-28:1.75rem; --t-40:2.5rem; --t-56:3.5rem;
+  /* — Espacement : grille stricte de 8px — */
+  --s1:8px; --s2:16px; --s3:24px; --s4:32px; --s5:40px; --s6:48px; --s8:64px; --s12:96px;
+  /* — Couleur à rôles — */
+  --foret:#14502E; --foret-deep:#0C3A20; --foret-soft:#2E7D4F;
+  --or:#C7922E; --or-deep:#A6781F; --or-wash:#F4E7C8;
+  --hibiscus:#B21E4B;
+  --creme:#FAF4E6; --creme-2:#F2E8D0; --carte:#FFFDF8;
+  --encre:#19271D; --plume:#6E6B5B; --ligne:#E6DBC0;
+  /* — Élévation, rayons, mouvement (cohérents) — */
+  --r1:6px; --r2:12px; --r3:20px; --pill:999px;
+  --sh1:0 1px 2px rgba(18,40,28,.05);
+  --sh2:0 10px 26px -16px rgba(18,40,28,.30);
+  --sh3:0 28px 60px -34px rgba(12,46,28,.50);
+  --ease:160ms cubic-bezier(.2,.7,.3,1);
+  /* — Wax : motif géométrique discret, tuilé, très faible opacité — */
+  --wax:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2314502E' stroke-opacity='0.05' stroke-width='1.2'%3E%3Cpath d='M32 6l10 10-10 10-10-10z'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3Cpath d='M0 32h16M48 32h16M32 48v16M32 0v16'/%3E%3C/g%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--creme); background-image:var(--wax); background-size:64px 64px;
+  color:var(--encre); font-family:'Inter',system-ui,sans-serif; font-size:var(--t-16);
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--or-wash)}
+a{color:inherit}
+img{max-width:100%;display:block}
+
+/* — Type — */
+.display{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:var(--foret)}
+.mono{font-family:'Space Mono',monospace}
+.eyebrow{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.22em;text-transform:uppercase;color:var(--or-deep)}
+.measure{max-width:62ch}
+
+/* — Boutons (états soignés) — */
+.btn{font:600 var(--t-16)/1 'Inter',sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:var(--s1);
+  padding:14px 22px;border-radius:var(--r2);border:1px solid transparent;cursor:pointer;text-decoration:none;
+  transition:transform var(--ease),box-shadow var(--ease),background var(--ease),border-color var(--ease)}
+.btn:focus-visible{outline:2px solid var(--foret);outline-offset:3px}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;pointer-events:none}
+.btn--gold{background:var(--or);color:#2A1E05;box-shadow:var(--sh2)}
+.btn--gold:hover{background:var(--or-deep);color:#fff;box-shadow:var(--sh3)}
+.btn--ghost{background:transparent;border-color:var(--ligne);color:var(--foret)}
+.btn--ghost:hover{border-color:var(--foret);background:#fff}
+.btn--wa{background:#1E7A43;color:#fff}
+.btn--wa:hover{background:#176233}
+.btn--lg{padding:16px 26px;font-size:var(--t-20)}
+.btn--block{width:100%}
+
+/* — Mise en page — */
+.shell{max-width:1200px;margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
+.crumb{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.08em;color:var(--plume);margin:0 0 var(--s4)}
+.crumb a{text-decoration:none;color:var(--plume)} .crumb a:hover{color:var(--foret)}
+.crumb b{color:var(--encre);font-weight:400}
+
+/* Grille asymétrique : galerie 7 / achat 5 */
+.fiche{display:grid;grid-template-columns:7fr 5fr;gap:var(--s8);align-items:start}
+
+/* — Galerie (la "photo" = swatch wax teinté par la couleur, change à la sélection) — */
+.gallery{position:sticky;top:var(--s3)}
+.frame{position:relative;border-radius:var(--r3);overflow:hidden;border:1px solid var(--ligne);box-shadow:var(--sh3);aspect-ratio:4/5}
+.swatch{position:absolute;inset:0;transition:background var(--ease)}
+.swatch::before{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:soft-light;
+  background-image:
+    repeating-linear-gradient(45deg,#fff 0 10px,transparent 10px 28px),
+    radial-gradient(circle at 22% 26%,#fff 0 8px,transparent 9px),
+    radial-gradient(circle at 70% 60%,#000 0 7px,transparent 8px);
+  background-size:80px 80px,120px 120px,120px 120px}
+.swatch::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 80% 10%,rgba(255,255,255,.28),transparent 55%),linear-gradient(180deg,transparent 60%,rgba(0,0,0,.22))}
+.frame .tag{position:absolute;left:var(--s2);top:var(--s2);z-index:2;background:var(--hibiscus);color:#fff;
+  font-family:'Space Mono',monospace;font-weight:700;font-size:var(--t-13);letter-spacing:.04em;padding:6px 12px;border-radius:var(--pill);box-shadow:var(--sh2)}
+.frame .ref{position:absolute;right:var(--s2);bottom:var(--s2);z-index:2;font-family:'Space Mono',monospace;font-size:var(--t-12);
+  color:#fff;background:rgba(12,46,28,.55);backdrop-filter:blur(4px);padding:5px 10px;border-radius:var(--pill)}
+.thumbs{display:flex;gap:var(--s1);margin-top:var(--s2)}
+.thumb{flex:0 0 64px;height:80px;border-radius:var(--r1);border:1px solid var(--ligne);position:relative;overflow:hidden;cursor:pointer;
+  background:var(--c);transition:border-color var(--ease),transform var(--ease)}
+.thumb:hover{transform:translateY(-2px)}
+.thumb[aria-pressed="true"]{border-color:var(--foret);box-shadow:0 0 0 2px var(--or)}
+.thumb:focus-visible{outline:2px solid var(--foret);outline-offset:2px}
+
+/* — Panneau d'achat — */
+.buy{display:flex;flex-direction:column;gap:var(--s3)}
+.head .eyebrow{display:block;margin-bottom:var(--s1)}
+.title{font-size:var(--t-40);margin:0}
+.seller{display:flex;align-items:center;gap:var(--s1);margin-top:var(--s2);font-size:var(--t-13);color:var(--plume)}
+.seller a{color:var(--foret);text-decoration:none;font-weight:600}
+.verified{display:inline-flex;align-items:center;gap:4px;color:var(--foret);background:#E9F2EC;border:1px solid #CFE4D6;
+  font-weight:600;font-size:var(--t-12);padding:3px 9px;border-radius:var(--pill)}
+.rating{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:var(--t-13);color:var(--plume)}
+.stars{color:var(--or);letter-spacing:1px}
+
+.priceblock{border-top:1px solid var(--ligne);border-bottom:1px solid var(--ligne);padding:var(--s3) 0}
+.price{display:flex;align-items:baseline;gap:var(--s2);flex-wrap:wrap}
+.price .now{font-family:'Space Mono',monospace;font-weight:700;font-size:var(--t-28);color:var(--foret)}
+.price .was{font-family:'Space Mono',monospace;font-size:var(--t-16);color:var(--plume);text-decoration:line-through}
+.price .off{font-family:'Space Mono',monospace;font-weight:700;font-size:var(--t-13);color:#fff;background:var(--hibiscus);padding:3px 9px;border-radius:var(--pill)}
+.conv{font-family:'Space Mono',monospace;font-size:var(--t-13);color:var(--plume);margin-top:6px}
+.stock{display:inline-flex;align-items:center;gap:7px;font-size:var(--t-13);font-weight:600;margin-top:var(--s2)}
+.stock .dot{width:8px;height:8px;border-radius:50%}
+.stock--ok{color:var(--foret-soft)} .stock--ok .dot{background:var(--foret-soft)}
+.stock--low{color:var(--or-deep)} .stock--low .dot{background:var(--or)}
+.stock--out{color:var(--hibiscus)} .stock--out .dot{background:var(--hibiscus)}
+
+/* — Déclinaisons — */
+.opt{display:flex;flex-direction:column;gap:var(--s1)}
+.opt__label{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.08em;text-transform:uppercase;color:var(--plume)}
+.opt__label b{color:var(--encre);font-weight:700}
+.colors{display:flex;gap:10px}
+.color{width:38px;height:38px;border-radius:50%;border:1px solid rgba(0,0,0,.12);cursor:pointer;position:relative;background:var(--c);
+  transition:transform var(--ease),box-shadow var(--ease)}
+.color:hover{transform:translateY(-2px)}
+.color[aria-pressed="true"]{box-shadow:0 0 0 2px var(--creme),0 0 0 4px var(--foret)}
+.color:focus-visible{outline:2px solid var(--foret);outline-offset:3px}
+.color[disabled]{cursor:not-allowed;opacity:.4}
+.color[disabled]::after{content:"";position:absolute;inset:48% 12% auto;height:1px;background:var(--hibiscus);transform:rotate(-20deg)}
+.sizes{display:flex;gap:8px;flex-wrap:wrap}
+.size{min-width:48px;padding:11px 14px;border:1px solid var(--ligne);border-radius:var(--r1);background:var(--carte);
+  font-family:'Space Mono',monospace;font-weight:700;font-size:var(--t-13);cursor:pointer;transition:var(--ease)}
+.size:hover{border-color:var(--foret)}
+.size[aria-pressed="true"]{background:var(--foret);color:#fff;border-color:var(--foret)}
+.size:focus-visible{outline:2px solid var(--foret);outline-offset:2px}
+.size[disabled]{opacity:.4;cursor:not-allowed;text-decoration:line-through;background:repeating-linear-gradient(45deg,#fff,#fff 5px,var(--creme-2) 5px,var(--creme-2) 10px)}
+.hint{font-size:var(--t-13);color:var(--plume)}
+.hint--err{color:var(--hibiscus);font-weight:600}
+
+/* — Quantité + actions — */
+.qty{display:inline-flex;align-items:stretch;border:1px solid var(--ligne);border-radius:var(--r1);overflow:hidden;background:var(--carte)}
+.qty button{width:44px;border:0;background:transparent;font-size:var(--t-20);color:var(--foret);cursor:pointer;transition:background var(--ease)}
+.qty button:hover{background:var(--creme-2)} .qty button:focus-visible{outline:2px solid var(--foret);outline-offset:-2px}
+.qty input{width:48px;border:0;text-align:center;font-family:'Space Mono',monospace;font-weight:700;background:transparent;font-size:var(--t-16)}
+.actions{display:grid;grid-template-columns:auto 1fr;gap:var(--s2);align-items:center}
+.subactions{display:flex;gap:var(--s2);flex-wrap:wrap;font-size:var(--t-13)}
+.linklike{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--foret);cursor:pointer;font:inherit;padding:6px 0}
+.linklike:hover{color:var(--or-deep)} .linklike:focus-visible{outline:2px solid var(--foret);outline-offset:2px}
+.assurance{display:flex;gap:var(--s3);flex-wrap:wrap;font-size:var(--t-12);color:var(--plume);font-family:'Space Mono',monospace}
+.assurance span{display:inline-flex;gap:6px;align-items:center}
+
+/* — Sections basses — */
+.sections{margin-top:var(--s12);display:grid;grid-template-columns:7fr 5fr;gap:var(--s8) var(--s8);align-items:start}
+.section__kicker{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s3)}
+.section__kicker h2{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:var(--t-28);color:var(--foret);margin:0}
+.rule{flex:1;height:1px;background:var(--ligne)}
+.prose p{margin:0 0 var(--s2);color:#33402F}
+.prose p:first-letter{}
+.lede{font-size:var(--t-20);color:var(--foret-soft);font-weight:500}
+
+/* Caractéristiques : données en Space Mono, grille 2 colonnes, lignes fines */
+.specs{display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--ligne);border-radius:var(--r2);overflow:hidden;background:var(--carte)}
+.spec{display:grid;grid-template-columns:42% 1fr;gap:var(--s2);padding:13px var(--s3);border-bottom:1px solid var(--ligne)}
+.spec:last-child{border-bottom:0}
+.spec:nth-child(odd){background:#FFFEFB}
+.spec dt{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.04em;text-transform:uppercase;color:var(--plume);margin:0}
+.spec dd{margin:0;font-weight:500}
+.spec .flag{display:inline-block;font-family:'Space Mono',monospace;font-size:var(--t-12);color:var(--foret);background:#E9F2EC;border:1px solid #CFE4D6;padding:2px 8px;border-radius:var(--pill)}
+
+/* Avis */
+.reviews{grid-column:1 / -1;margin-top:var(--s4)}
+.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3)}
+.review{border:1px solid var(--ligne);border-radius:var(--r2);background:var(--carte);padding:var(--s3);box-shadow:var(--sh1)}
+.review__top{display:flex;align-items:center;gap:var(--s1);margin-bottom:var(--s1)}
+.review__name{font-weight:600}
+.review__date{font-family:'Space Mono',monospace;font-size:var(--t-12);color:var(--plume);margin-left:auto}
+.review__photos{display:flex;gap:8px;margin-top:var(--s2)}
+.review__photos i{width:54px;height:54px;border-radius:var(--r1);border:1px solid var(--ligne);background:var(--c);display:block}
+
+/* Formulaire d'avis — avec état d'erreur stylé + état désactivé */
+.form{border:1px solid var(--ligne);border-radius:var(--r2);background:var(--carte);padding:var(--s4);margin-top:var(--s3)}
+.field{display:flex;flex-direction:column;gap:8px;margin-bottom:var(--s3)}
+.field > label{font-family:'Space Mono',monospace;font-size:var(--t-12);letter-spacing:.06em;text-transform:uppercase;color:var(--plume)}
+.field textarea{font:inherit;padding:12px 14px;border:1px solid var(--ligne);border-radius:var(--r1);background:#fff;resize:vertical;min-height:84px;transition:border-color var(--ease),box-shadow var(--ease)}
+.field textarea:focus{outline:0;border-color:var(--foret);box-shadow:0 0 0 3px rgba(20,80,46,.12)}
+.field--error textarea{border-color:var(--hibiscus);box-shadow:0 0 0 3px rgba(178,30,75,.12)}
+.field__err{color:var(--hibiscus);font-size:var(--t-13);font-weight:600;display:flex;align-items:center;gap:6px}
+.starpick{display:inline-flex;gap:4px;font-size:var(--t-28);color:var(--ligne);cursor:pointer}
+.starpick span{transition:color var(--ease)} .starpick:hover span,.starpick span.on{color:var(--or)}
+.dropzone{border:1.5px dashed var(--ligne);border-radius:var(--r1);padding:var(--s3);text-align:center;color:var(--plume);
+  font-size:var(--t-13);cursor:pointer;transition:var(--ease)}
+.dropzone:hover{border-color:var(--or);color:var(--foret);background:#FFFDF6}
+
+/* Empty + loading (états) */
+.empty{border:1px dashed var(--ligne);border-radius:var(--r2);padding:var(--s4);text-align:center;color:var(--plume)}
+.skeleton{height:14px;border-radius:var(--pill);background:linear-gradient(90deg,var(--creme-2) 25%,#fff 50%,var(--creme-2) 75%);background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{to{background-position:-200% 0}}
+
+/* Rail produits liés */
+.rail{grid-column:1 / -1;margin-top:var(--s8)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s3)}
+.card{border:1px solid var(--ligne);border-radius:var(--r2);overflow:hidden;background:var(--carte);text-decoration:none;color:inherit;
+  transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease)}
+.card:hover{transform:translateY(-4px);box-shadow:var(--sh2);border-color:var(--or)}
+.card__img{aspect-ratio:1;background:var(--c)}
+.card__b{padding:var(--s2)}
+.card__n{font-weight:600;font-size:var(--t-13);margin:0 0 4px}
+.card__p{font-family:'Space Mono',monospace;font-weight:700;color:var(--foret)}
+
+/* Barre d'achat collante mobile */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;display:none;gap:var(--s2);align-items:center;
+  padding:12px var(--s3);background:rgba(255,253,248,.92);backdrop-filter:blur(10px);border-top:1px solid var(--ligne);box-shadow:0 -10px 30px -20px rgba(0,0,0,.4)}
+.dock .now{font-family:'Space Mono',monospace;font-weight:700;color:var(--foret)}
+
+/* ===== Mobile-first : breakpoints francs ===== */
+@media (max-width:900px){
+  .fiche{grid-template-columns:1fr;gap:var(--s5)}
+  .sections{grid-template-columns:1fr;gap:var(--s6)}
+  .gallery{position:static}
+  .rev-grid{grid-template-columns:1fr}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .title{font-size:var(--t-28)}
+  .shell{padding:var(--s4) var(--s3) 104px}
+  .dock{display:flex}
+  .actions{grid-template-columns:1fr}
+  .qty{justify-self:start}
+}
+@media (min-width:1280px){ .title{font-size:var(--t-56)} }
+</style>
+</head>
+<body x-data="fiche()" x-cloak>
+
+<main class="shell">
+  <p class="crumb"><a href="#">Boutiques</a> › <a href="#">Artisanat</a> › <b>Robe en wax « Abidjan »</b></p>
+
+  <article class="fiche">
+
+    <!-- ============ GALERIE ============ -->
+    <div class="gallery">
+      <div class="frame">
+        <div class="swatch" :style="`background:${active.hex}`"></div>
+        <span class="tag" x-show="off > 0" x-text="`−${off}%`"></span>
+        <span class="ref mono" x-text="sku"></span>
+      </div>
+      <div class="thumbs" role="group" aria-label="Couleurs">
+        <template x-for="c in colors" :key="c.n">
+          <button class="thumb" :style="`--c:${c.hex}`" :aria-pressed="color===c.n"
+                  :aria-label="c.n" @click="if(!soldOutColor(c.n)) color=c.n"></button>
+        </template>
+      </div>
+    </div>
+
+    <!-- ============ ACHAT ============ -->
+    <div class="buy">
+      <header class="head">
+        <span class="eyebrow">◆ Artisanat · Côte d'Ivoire</span>
+        <h1 class="title display">Robe en wax<br>« Abidjan »</h1>
+        <p class="seller">
+          <a href="#">Maison Lébou</a>
+          <span class="verified">✓ Vendeur vérifié</span>
+          <span class="rating"><span class="stars">★★★★★</span> 4,8 <span aria-hidden="true">·</span> 124 avis</span>
+        </p>
+      </header>
+
+      <div class="priceblock">
+        <div class="price">
+          <span class="now" x-text="fmt(active.price)"></span>
+          <span class="was" x-show="active.was" x-text="fmt(active.was)"></span>
+          <span class="off" x-show="off>0" x-text="`−${off}%`"></span>
+        </div>
+        <p class="conv">≈ <span x-text="eur(active.price)"></span> · TVA incluse</p>
+        <p class="stock" :class="stockClass">
+          <span class="dot"></span><span x-text="stockLabel"></span>
+        </p>
+      </div>
+
+      <div class="opt">
+        <p class="opt__label">Couleur · <b x-text="color"></b></p>
+        <div class="colors" role="group" aria-label="Couleur">
+          <template x-for="c in colors" :key="c.n">
+            <button class="color" :style="`--c:${c.hex}`" :aria-pressed="color===c.n"
+                    :aria-label="c.n" :disabled="soldOutColor(c.n)"
+                    @click="color=c.n; if(soldOutSize(size)) size=null"></button>
+          </template>
+        </div>
+      </div>
+
+      <div class="opt">
+        <p class="opt__label">Taille · <b x-text="size || '—'"></b>
+          <a href="#" style="font-weight:400;color:var(--plume);margin-left:8px">Guide des tailles</a></p>
+        <div class="sizes" role="group" aria-label="Taille">
+          <template x-for="s in sizes" :key="s">
+            <button class="size" :aria-pressed="size===s" :disabled="soldOutSize(s)"
+                    @click="size=s; touched=true" x-text="s"></button>
+          </template>
+        </div>
+        <p class="hint hint--err" x-show="touched && !size">Choisis une taille pour continuer.</p>
+        <p class="hint" x-show="!touched">Indigo · S est en rupture pour cette couleur — il se grise tout seul.</p>
+      </div>
+
+      <div class="actions">
+        <div class="qty" role="group" aria-label="Quantité">
+          <button @click="qty=Math.max(1,qty-1)" aria-label="Moins">−</button>
+          <input class="mono" :value="qty" inputmode="numeric" aria-label="Quantité" readonly>
+          <button @click="qty=Math.min(maxQty,qty+1)" aria-label="Plus" :disabled="qty>=maxQty">+</button>
+        </div>
+        <button class="btn btn--gold btn--lg btn--block" :disabled="!ready"
+                x-text="ready ? 'Ajouter au panier' : 'Choisir les options'"></button>
+      </div>
+
+      <button class="btn btn--wa btn--block">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4-1.1l-.3-.2-2.8.7.8-2.7-.2-.3A8 8 0 1112 20zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.2-.4.2-.4.6-1.2a.4.4 0 000-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-1 2.2 5.3 5.3 0 001.1 2.8 12 12 0 004.6 4c2.2.8 2.2.6 2.6.5a2.6 2.6 0 001.7-1.2 2.1 2.1 0 00.1-1.2c0-.1-.2-.2-.4-.3z"/></svg>
+        Commander sur WhatsApp
+      </button>
+
+      <div class="subactions">
+        <button class="linklike">♡ Favoris</button>
+        <button class="linklike">⇄ Comparer</button>
+        <button class="linklike">↗ Partager</button>
+      </div>
+
+      <div class="assurance">
+        <span>🔒 Paiement sécurisé</span><span>🚚 Livraison locale & internationale</span><span>↩︎ Retours 14 j</span>
+      </div>
+    </div>
+  </article>
+
+  <!-- ============ SECTIONS BASSES ============ -->
+  <div class="sections">
+
+    <div class="prose">
+      <div class="section__kicker"><h2>La pièce</h2><span class="rule"></span></div>
+      <p class="lede">Une coupe ajustée taillée dans un wax authentique, cousue à la main à Abidjan.</p>
+      <p>Chaque robe est confectionnée à la commande par les couturières de la Maison Lébou. Le motif est positionné pièce par pièce : aucune robe n'est exactement identique. Le tissu, un wax 100 % coton, garde sa tenue et ses couleurs lavage après lavage.</p>
+      <p>Portez-la cintrée pour une silhouette structurée, ou avec une ceinture basse pour un tombé plus libre. Elle passe du bureau à une cérémonie sans effort.</p>
+    </div>
+
+    <div>
+      <div class="section__kicker"><h2>Caractéristiques</h2><span class="rule"></span></div>
+      <dl class="specs">
+        <div class="spec"><dt>Matière</dt><dd>Wax 100 % coton</dd></div>
+        <div class="spec"><dt>Coupe</dt><dd>Ajustée, longueur midi</dd></div>
+        <div class="spec"><dt>Origine</dt><dd>Abidjan, Côte d'Ivoire</dd></div>
+        <div class="spec"><dt>Fabrication</dt><dd><span class="flag">Fait main</span> <span class="flag">Pièce unique</span></dd></div>
+        <div class="spec"><dt>Entretien</dt><dd>Lavage à froid, à l'envers</dd></div>
+        <div class="spec"><dt>Référence</dt><dd class="mono" x-text="sku"></dd></div>
+      </dl>
+    </div>
+
+    <!-- AVIS : liste + formulaire avec état d'erreur, + bloc vide commenté -->
+    <section class="reviews">
+      <div class="section__kicker"><h2>Avis vérifiés</h2><span class="rule"></span>
+        <span class="rating"><span class="stars">★★★★★</span> 4,8/5</span></div>
+      <div class="rev-grid">
+        <article class="review">
+          <div class="review__top">
+            <strong class="review__name">Aïssata D.</strong>
+            <span class="verified">✓ Achat vérifié</span>
+            <span class="review__date">12/05/2026</span>
+          </div>
+          <span class="stars">★★★★★</span>
+          <p style="margin:8px 0 0">Le tissu est superbe et la coupe tombe parfaitement. Reçue en 4 jours à Paris.</p>
+          <div class="review__photos"><i style="--c:#2A3A6B"></i><i style="--c:#C7922E"></i></div>
+        </article>
+        <article class="review">
+          <div class="review__top">
+            <strong class="review__name">Marie L.</strong>
+            <span class="verified">✓ Achat vérifié</span>
+            <span class="review__date">28/04/2026</span>
+          </div>
+          <span class="stars">★★★★☆</span>
+          <p style="margin:8px 0 0">Très belle finition. J'aurais aimé une taille au-dessus — pensez à commander large.</p>
+        </article>
+      </div>
+
+      <!-- Formulaire d'avis : démontre focus, erreur, dropzone -->
+      <form class="form" @submit.prevent="">
+        <p class="opt__label" style="margin:0 0 var(--s2)">📸 Partage ta photo — comme sur Shein</p>
+        <div class="field">
+          <label>Ta note</label>
+          <div class="starpick" role="radiogroup" aria-label="Note">
+            <template x-for="n in 5" :key="n"><span :class="n<=note?'on':''" @click="note=n" role="radio" :aria-checked="n===note" tabindex="0">★</span></template>
+          </div>
+        </div>
+        <div class="field" :class="{'field--error': showErr}">
+          <label for="rv">Ton commentaire</label>
+          <textarea id="rv" placeholder="Qu'as-tu pensé de la coupe, du tissu, de la livraison ?" @input="showErr=false"></textarea>
+          <span class="field__err" x-show="showErr">⚠︎ Ajoute au moins quelques mots avant d'envoyer.</span>
+        </div>
+        <div class="field">
+          <label>Photos <span style="text-transform:none;color:var(--plume)">(optionnel)</span></label>
+          <div class="dropzone">＋ Glisse tes photos ici, ou clique pour parcourir</div>
+        </div>
+        <button class="btn btn--gold" type="button" @click="showErr=true">Publier mon avis</button>
+      </form>
+
+      <!-- État VIDE (variante, masquée par défaut) -->
+      <div class="empty" x-show="false">Pas encore d'avis — sois la première personne à en laisser un après réception.</div>
+    </section>
+
+    <!-- RAIL produits liés -->
+    <section class="rail">
+      <div class="section__kicker"><h2>Vous aimerez aussi</h2><span class="rule"></span></div>
+      <div class="cards">
+        <a class="card" href="#"><div class="card__img" style="--c:#2E7D4F"></div><div class="card__b"><p class="card__n">Boubou brodé homme</p><span class="card__p">42 000 F</span></div></a>
+        <a class="card" href="#"><div class="card__img" style="--c:#C7922E"></div><div class="card__b"><p class="card__n">Sac en raphia tressé</p><span class="card__p">17 900 F</span></div></a>
+        <a class="card" href="#"><div class="card__img" style="--c:#B21E4B"></div><div class="card__b"><p class="card__n">Foulard wax assorti</p><span class="card__p">8 500 F</span></div></a>
+        <a class="card" href="#"><div class="card__img" style="--c:#2A3A6B"></div><div class="card__b"><p class="card__n">Sandales cuir cousu</p><span class="card__p">29 000 F</span></div></a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Barre d'achat collante (mobile) -->
+<div class="dock">
+  <div><span class="now" x-text="fmt(active.price)"></span></div>
+  <button class="btn btn--gold btn--block" style="flex:1" :disabled="!ready" x-text="ready?'Ajouter au panier':'Choisir les options'"></button>
+</div>
+
+<script>
+function fiche(){
+  return {
+    color:'Indigo', size:null, qty:1, note:5, touched:false, showErr:false,
+    colors:[{n:'Indigo',hex:'#2A3A6B'},{n:'Ocre',hex:'#C7922E'},{n:'Hibiscus',hex:'#B21E4B'}],
+    sizes:['S','M','L','XL'],
+    /* matrice combinaison → {stock, price, was} ; certaines en rupture */
+    matrix:{
+      'Indigo|S':{stock:0,price:28000}, 'Indigo|M':{stock:6,price:28000,was:34000}, 'Indigo|L':{stock:3,price:28000,was:34000}, 'Indigo|XL':{stock:2,price:28000},
+      'Ocre|S':{stock:4,price:34000},   'Ocre|M':{stock:5,price:34000},          'Ocre|L':{stock:0,price:34000},          'Ocre|XL':{stock:1,price:34000},
+      'Hibiscus|S':{stock:7,price:30000,was:34000},'Hibiscus|M':{stock:0,price:30000},'Hibiscus|L':{stock:4,price:30000,was:34000},'Hibiscus|XL':{stock:3,price:30000,was:34000}
+    },
+    get colorObj(){ return this.colors.find(c=>c.n===this.color) },
+    get active(){
+      const base = this.matrix[this.color+'|'+(this.size||'M')] || {price:28000};
+      const min = Math.min(...this.sizes.map(s=>(this.matrix[this.color+'|'+s]||{price:1e9}).price));
+      const cell = this.size ? base : {price:min, was:base.was};
+      return { hex:this.colorObj.hex, price:cell.price, was:(this.size?cell.was:base.was) };
+    },
+    get off(){ return this.active.was ? Math.round((this.active.was-this.active.price)/this.active.was*100) : 0 },
+    get cur(){ return this.matrix[this.color+'|'+this.size] },
+    get ready(){ return !!this.size && !this.soldOutSize(this.size) },
+    get maxQty(){ return this.size && this.cur ? Math.max(1,this.cur.stock) : 9 },
+    get sku(){ return 'AFK-WAX-'+this.color.slice(0,3).toUpperCase()+(this.size?'-'+this.size:'') },
+    soldOutSize(s){ const c=this.matrix[this.color+'|'+s]; return !c || c.stock<=0 },
+    soldOutColor(n){ return this.sizes.every(s=>{const c=this.matrix[n+'|'+s];return !c||c.stock<=0}) },
+    get stockClass(){ if(!this.size) return 'stock--ok'; const st=this.cur?this.cur.stock:0; return st<=0?'stock--out':st<=3?'stock--low':'stock--ok' },
+    get stockLabel(){ if(!this.size) return 'En stock'; const st=this.cur?this.cur.stock:0; return st<=0?'Rupture pour cette combinaison':st<=3?('Plus que '+st+' !'):'En stock' },
+    fmt(v){ return new Intl.NumberFormat('fr-FR').format(v)+' F CFA' },
+    eur(v){ return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(v/655.957) }
+  }
+}
+document.addEventListener('alpine:init',()=>{});
+</script>
+<style>[x-cloak]{display:none!important}</style>
+<script defer src="./vendor/alpine.min.js"></script>
+</body>
+</html>

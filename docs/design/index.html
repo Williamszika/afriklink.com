@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AfrikaLink — Direction artistique des fiches</title>
+<link rel="stylesheet" href="./fonts.css">
+<style>
+:root{--foret:#14502E;--or:#C7922E;--or-deep:#A6781F;--hibiscus:#B21E4B;--creme:#FAF4E6;--carte:#FFFDF8;--encre:#19271D;--plume:#6E6B5B;--ligne:#E6DBC0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--creme);color:var(--encre);font-family:'Inter',system-ui,sans-serif;line-height:1.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%2314502E' stroke-opacity='0.05' stroke-width='1.2'%3E%3Cpath d='M32 6l10 10-10 10-10-10z'/%3E%3Ccircle cx='32' cy='32' r='4'/%3E%3C/g%3E%3C/svg%3E");background-size:64px}
+.wrap{max-width:980px;margin:0 auto;padding:80px 32px 96px}
+.eyebrow{font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:.22em;text-transform:uppercase;color:var(--or-deep)}
+h1{font-family:'Bricolage Grotesque';font-weight:800;font-size:3rem;letter-spacing:-.02em;color:var(--foret);margin:8px 0 12px;line-height:1.04}
+.lede{font-size:1.25rem;color:var(--foret);max-width:60ch;margin:0 0 8px}
+.note{color:var(--plume);max-width:62ch}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.card{display:block;text-decoration:none;color:inherit;border:1px solid var(--ligne);border-radius:20px;background:var(--carte);overflow:hidden;transition:transform .16s,box-shadow .16s,border-color .16s}
+.card:hover{transform:translateY(-4px);box-shadow:0 22px 48px -28px rgba(12,46,28,.5);border-color:var(--or)}
+.card .top{height:120px;background:linear-gradient(120deg,var(--foret),#0C3A20);position:relative}
+.card .top::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.12' stroke-width='1.2'%3E%3Cpath d='M24 4l8 8-8 8-8-8z'/%3E%3Ccircle cx='24' cy='24' r='3'/%3E%3C/g%3E%3C/svg%3E");background-size:48px}
+.card .top.alt{background:linear-gradient(120deg,#A6781F,#7A5512)}
+.card .top.alt2{background:linear-gradient(120deg,#8E1B3D,#5E122A)}
+.card .b{padding:20px}
+.card h3{font-family:'Bricolage Grotesque';font-weight:700;color:var(--foret);margin:0 0 4px}
+.card p{margin:0;color:var(--plume);font-size:.875rem}
+.card .go{font-family:'Space Mono',monospace;font-size:.8125rem;color:var(--or-deep);margin-top:12px;display:inline-block}
+.foot{margin-top:48px;font-family:'Space Mono',monospace;font-size:.75rem;color:var(--plume)}
+@media(max-width:760px){.cards{grid-template-columns:1fr}h1{font-size:2.25rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">◆ Direction artistique · AfrikaLink</span>
+  <h1>Fiches publiques —<br>proposition de design</h1>
+  <p class="lede">Une direction studio : échelle typographique réelle, grille de 8px, or comme unique accent, hibiscus réservé aux promos, motif wax en texture discrète.</p>
+  <p class="note">Maquettes interactives, 100 % autonomes (polices &amp; Alpine en local). Teste les déclinaisons, le panier restaurant et les états (rupture, erreur, vide).</p>
+
+  <div class="cards">
+    <a class="card" href="./fiche-produit.html"><div class="top"></div><div class="b"><h3>Fiche produit</h3><p>Boutiques — déclinaisons couleur × taille, prix dynamique, avis, caractéristiques adaptatives.</p><span class="go">Ouvrir →</span></div></a>
+    <a class="card" href="./fiche-restaurant.html"><div class="top alt"></div><div class="b"><h3>Fiche restaurant</h3><p>Menu par catégories, panier interactif, retrait / livraison, états « épuisé ».</p><span class="go">Ouvrir →</span></div></a>
+    <a class="card" href="./fiche-annonce.html"><div class="top alt2"></div><div class="b"><h3>Fiche annonce / service</h3><p>Métiers &amp; services — galerie, contact WhatsApp, carte vendeur vérifié, description.</p><span class="go">Ouvrir →</span></div></a>
+  </div>
+
+  <p class="foot">Palette · forêt #14502E · or #C7922E · hibiscus #B21E4B · crème #FAF4E6 — Bricolage Grotesque / Inter / Space Mono</p>
+</div>
+</body>
+</html>
