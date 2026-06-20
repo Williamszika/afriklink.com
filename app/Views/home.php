@@ -97,16 +97,6 @@ foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'
     </div>
 </section>
 
-<!-- Bandeau garanties — confiance forte (style Trade Assurance) -->
-<section class="afk-guar afk-block" aria-label="<?= e(t('home.why_title')) ?>">
-    <div class="afk-guar__grid">
-        <div class="afk-guar__item"><span class="afk-guar__ic" aria-hidden="true"><?= icon('lock', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.secure_t')) ?></strong><span><?= e(t('home.why.secure_d')) ?></span></span></div>
-        <div class="afk-guar__item"><span class="afk-guar__ic" aria-hidden="true"><?= icon('shield', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.verified_t')) ?></strong><span><?= e(t('home.why.verified_d')) ?></span></span></div>
-        <div class="afk-guar__item"><span class="afk-guar__ic" aria-hidden="true"><?= icon('globe', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.ship_t')) ?></strong><span><?= e(t('home.why.ship_d')) ?></span></span></div>
-        <div class="afk-guar__item"><span class="afk-guar__ic" aria-hidden="true"><?= icon('chat', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.support_t')) ?></strong><span><?= e(t('home.why.support_d')) ?></span></span></div>
-    </div>
-</section>
-
 <section class="afk-spotlight afk-block">
     <div class="afk-spotlight__bar">
         <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
@@ -221,4 +211,14 @@ foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'
         <p><?= e(t('home.seller_cta_text')) ?></p>
     </div>
     <a class="afk-btn afk-btn--dark afk-btn--lg" href="<?= e(url($loggedIn ? '/vendre' : '/register/vendeur')) ?>"><?= e(t('home.seller_cta_btn')) ?></a>
+</section>
+
+<!-- Bandeau garanties — tout en bas, chaque pilier mène à sa page « système » -->
+<section class="afk-guar afk-block" aria-label="<?= e(t('home.why_title')) ?>">
+    <div class="afk-guar__grid">
+        <a class="afk-guar__item" href="<?= e(url('/paiements-securises')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('lock', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.secure_t')) ?></strong><span><?= e(t('home.why.secure_d')) ?></span></span></a>
+        <a class="afk-guar__item" href="<?= e(url('/vendeurs-verifies')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('shield', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.verified_t')) ?></strong><span><?= e(t('home.why.verified_d')) ?></span></span></a>
+        <a class="afk-guar__item" href="<?= e(url('/local-international')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('globe', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.ship_t')) ?></strong><span><?= e(t('home.why.ship_d')) ?></span></span></a>
+        <a class="afk-guar__item" href="<?= e(url('/assistance')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('chat', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.support_t')) ?></strong><span><?= e(t('home.why.support_d')) ?></span></span></a>
+    </div>
 </section>

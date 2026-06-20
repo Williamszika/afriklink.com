@@ -2426,3 +2426,24 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 .afk-hub__name{font-family:var(--afk-display,inherit);font-weight:700;font-size:.92rem}
 .afk-hub__sub{font-size:.72rem;color:var(--afk-or-soft,#e6c98a);font-weight:600}
 .afk-hub__cta{width:100%;max-width:330px;justify-content:center;text-align:center}
+/* Bandeau garanties : items cliquables vers leur page « système » */
+a.afk-guar__item{text-decoration:none;color:inherit;border-radius:12px;padding:8px;margin:-8px;transition:background .18s}
+a.afk-guar__item:hover{background:rgba(255,255,255,.07)}
+a.afk-guar__item:hover .afk-guar__txt strong{color:var(--afk-or,#e6b84a)}
+/* — Pages « piliers de confiance » — */
+.trust-page{max-width:780px;margin:0 auto;padding:8px 0 24px}
+.trust-hero{text-align:center;margin:6px 0 28px}
+.trust-hero__ic{font-size:2.6rem;display:block;margin-bottom:6px}
+.trust-hero .afk-eyebrow{display:inline-block;margin-bottom:6px}
+.trust-lead{font-size:1.08rem;color:var(--muted);max-width:54ch;margin:10px auto 0;line-height:1.55}
+.trust-points{display:grid;gap:14px;margin:0 0 28px}
+.trust-point{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+.trust-point__n{flex:none;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--afk-foret,#1c3d32);color:var(--afk-or,#e6b84a);font-weight:800}
+.trust-point strong{display:block;font-family:var(--afk-display,inherit);margin-bottom:3px}
+.trust-point p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.5}
+.trust-cta{text-align:center;margin:0 0 36px}
+.trust-more{border-top:1px solid var(--border);padding-top:22px}
+.trust-more__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}
+.trust-more__item{display:flex;align-items:center;gap:8px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;font-weight:600;color:var(--ink,#222);text-decoration:none;transition:.15s}
+.trust-more__item:hover{border-color:var(--afk-foret,#1c3d32);box-shadow:0 6px 18px -10px rgba(16,36,30,.3)}
+.trust-more__ic{font-size:1.2rem}

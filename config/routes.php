@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 use App\Controllers\AffiliateController;
 use App\Controllers\LegalController;
+use App\Controllers\TrustController;
 use App\Controllers\WishlistController;
 use App\Controllers\CompareController;
 use App\Controllers\CartController;
@@ -62,6 +63,11 @@ return [
     ['GET',  '/confidentialite',   [LegalController::class, 'privacy'],       []],
     ['GET',  '/cgv',               [LegalController::class, 'terms'],         []],
     ['GET',  '/consentement/{choice}', [LegalController::class, 'consent'],   ['throttle:consent,60,3600']],
+    // Piliers de confiance (pages publiques expliquant chaque système)
+    ['GET',  '/paiements-securises', [TrustController::class, 'payments'], []],
+    ['GET',  '/vendeurs-verifies',   [TrustController::class, 'verified'], []],
+    ['GET',  '/local-international',  [TrustController::class, 'intl'],     []],
+    ['GET',  '/assistance',          [TrustController::class, 'support'],  []],
     ['GET',  '/favoris',                [WishlistController::class, 'index'],  []],
     ['POST', '/favoris/{pid}/basculer', [WishlistController::class, 'toggle'], ['csrf', 'throttle:wish,180,3600']],
     ['GET',  '/comparer',               [CompareController::class, 'index'],   []],
