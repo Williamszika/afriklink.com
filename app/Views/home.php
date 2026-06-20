@@ -51,51 +51,7 @@ $loggedIn   = current_user() !== null;
     <?php endif; ?>
 </section>
 
-<!-- Hero — accroche, recherche, confiance + panneau wax -->
-<section class="afk-hero">
-    <div class="afk-hero__text">
-        <span class="afk-eyebrow">◆ <?= e(t('home.hero_kicker')) ?></span>
-        <h1 class="afk-h1"><?= e(t('home.hero_title')) ?></h1>
-        <p class="afk-lede"><?= e(t('home.hero_subtitle')) ?></p>
-        <form class="afk-hero-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
-            <div class="afk-search">
-                <span class="afk-ic" aria-hidden="true"><?= icon('search', ['size' => 18]) ?></span>
-                <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
-            </div>
-            <button class="afk-btn afk-btn--gold" type="submit"><?= e(t('explore.search_btn')) ?></button>
-        </form>
-        <div class="afk-trust">
-            <span class="afk-trust__item"><?= icon('lock', ['size' => 15]) ?> <?= e(t('home.why.secure_t')) ?></span>
-            <span class="afk-trust__item"><?= icon('shield', ['size' => 15]) ?> <?= e(t('home.why.verified_t')) ?></span>
-            <span class="afk-trust__item"><?= icon('globe', ['size' => 15]) ?> <?= e(t('home.why.ship_t')) ?></span>
-        </div>
-    </div>
-    <?php
-    // Panneau au cauri transformé en HUB multi-vertical : Boutiques → catalogue,
-    // les 3 autres univers invitent à devenir le 1er vendeur, + CTA « ouvrir une boutique ».
-    $sellHref = $loggedIn ? url('/boutique/creer') : url('/register/vendeur');
-    $uniHub = [
-        ['key' => 'shop',       'icon' => '🛍️', 'href' => url('/explorer'),        'sub' => t('home.hub.browse')],
-        ['key' => 'restaurant', 'icon' => '🍽️', 'href' => url('/register/vendeur'), 'sub' => t('home.hub.first')],
-        ['key' => 'salon',      'icon' => '💈', 'href' => url('/register/vendeur'), 'sub' => t('home.hub.first')],
-        ['key' => 'service',    'icon' => '🛠️', 'href' => url('/register/vendeur'), 'sub' => t('home.hub.first')],
-    ];
-    ?>
-    <aside class="afk-waxpanel afk-hub">
-        <div class="afk-waxpanel__emblem"><span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'hero']) ?></span></div>
-        <p class="afk-hub__title"><?= e(t('home.hub.title')) ?></p>
-        <div class="afk-hub__verts">
-            <?php foreach ($uniHub as $u): ?>
-                <a class="afk-hub__vert" href="<?= e($u['href']) ?>">
-                    <span class="afk-hub__ic" aria-hidden="true"><?= $u['icon'] ?></span>
-                    <span class="afk-hub__name"><?= e(t('home.vertical.' . $u['key'] . '.title')) ?></span>
-                    <span class="afk-hub__sub"><?= e($u['sub']) ?> →</span>
-                </a>
-            <?php endforeach; ?>
-        </div>
-        <a class="afk-btn afk-btn--gold afk-hub__cta" href="<?= e($sellHref) ?>"><?= e(t('home.hub.cta')) ?></a>
-    </aside>
-</section>
+<!-- Hero déplacé vers la page « À propos » (/a-propos) -->
 
 <?php
 // Navigation par CATÉGORIE — toujours visible (pattern des grandes marketplaces :

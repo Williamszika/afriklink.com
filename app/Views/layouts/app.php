@@ -103,6 +103,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
         <nav class="main-nav" aria-label="<?= e(t('nav.primary')) ?>">
             <a href="<?= e(url('/')) ?>" class="<?= $navPath === '/' ? 'is-active' : '' ?>"><?= e(t('nav.home')) ?></a>
             <a href="<?= e(url('/explorer')) ?>" class="<?= str_starts_with($navPath, '/explorer') ? 'is-active' : '' ?>"><?= e(t('nav.explore')) ?></a>
+            <a href="<?= e(url('/a-propos')) ?>" class="<?= $navPath === '/a-propos' ? 'is-active' : '' ?>"><?= e(t('nav.about')) ?></a>
         </nav>
 
         <div class="nav-actions">
@@ -177,6 +178,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 <p class="footer-tag"><?= e(t('home.hero_subtitle')) ?></p>
             </div>
             <nav class="footer-nav" aria-label="legal">
+                <a href="<?= e(url('/a-propos')) ?>"><?= e(t('nav.about')) ?></a>
                 <a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a>
                 <a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a>
                 <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>

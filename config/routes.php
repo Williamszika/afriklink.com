@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use App\Controllers\AboutController;
 use App\Controllers\AffiliateController;
 use App\Controllers\LegalController;
 use App\Controllers\TrustController;
@@ -73,6 +74,8 @@ return [
     ['GET',  '/vendeurs-verifies',   [TrustController::class, 'verified'], []],
     ['GET',  '/local-international',  [TrustController::class, 'intl'],     []],
     ['GET',  '/assistance',          [TrustController::class, 'support'],  []],
+    ['GET',  '/a-propos',            [AboutController::class, 'index'],    []],
+    ['GET',  '/about',               [AboutController::class, 'index'],    []],
     ['GET',  '/favoris',                [WishlistController::class, 'index'],  []],
     ['POST', '/favoris/{pid}/basculer', [WishlistController::class, 'toggle'], ['csrf', 'throttle:wish,180,3600']],
     ['GET',  '/comparer',               [CompareController::class, 'index'],   []],
