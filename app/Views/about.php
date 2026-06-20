@@ -144,7 +144,7 @@ $C = $en ? [
       <p class="ab-eyebrow"><?= e($C['founder_k']) ?></p>
       <div class="ab-founder">
         <div class="ab-avatar">
-          <img src="<?= e(url('/assets/img/founder.jpg')) ?>" alt="<?= e($C['founder_name']) ?>" loading="lazy" onerror="this.remove()">
+          <img src="<?= e(url('/assets/img/founder.jpeg')) ?>" alt="<?= e($C['founder_name']) ?>" loading="lazy" onerror="this.remove()">
           <span class="ab-avatar__i" aria-hidden="true"><?= e(mb_substr($C['founder_name'], 0, 1)) ?></span>
         </div>
         <div>
