@@ -37,6 +37,7 @@ final class AuthController
     {
         view('auth/register_particulier', [
             'detected_country' => detect_country_code(),
+            'detected_city'    => detect_city(),
             'countries'        => config('countries', []),
         ]);
     }

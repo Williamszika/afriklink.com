@@ -22,6 +22,7 @@ final class ProRegistrationController
     {
         view('auth/register_pro', [
             'detected_country' => detect_country_code(),
+            'detected_city'    => detect_city(),
             'countries'        => config('countries', []),
         ]);
     }

@@ -12,6 +12,11 @@ $g          = old('gender');
 $inRegion = static fn (string $cc): bool => in_array(\App\Services\GeoService::continentOf($cc), ['africa', 'europe'], true);
 $lockCountry = isset($countries[$selCountry]) && $inRegion($selCountry);
 $lockDial    = ($selDial !== '' && dial_code($selDial) !== '') && $inRegion($selDial);
+// Ville détectée (IP edge) : préremplie + verrouillée si le pays est dans la zone.
+// Le GPS l'affine ensuite (app.js), et « Modifier » rouvre tout (escape hatch).
+$detected_city = (string) ($detected_city ?? '');
+$cityVal  = (string) old('city', $detected_city);
+$lockCity = $cityVal !== '' && $lockCountry;
 ?>
 <section class="auth-card auth-card--wide">
     <h1><?= e(t('register.particulier_title')) ?></h1>
@@ -106,14 +111,14 @@ $lockDial    = ($selDial !== '' && dial_code($selDial) !== '') && $inRegion($sel
             </div>
             <div>
                 <label for="city"><?= e(t('field.city')) ?></label>
-                <input type="text" id="city" name="city" value="<?= old('city') ?>" autocomplete="address-level2">
+                <input type="text" id="city" name="city" value="<?= e($cityVal) ?>" autocomplete="address-level2"<?= $lockCity ? ' readonly class="is-locked"' : '' ?>>
                 <button type="button" id="geo-detect" class="link-button geo-detect-btn" hidden
                         data-asking="<?= e(t('geo.asking')) ?>" data-denied="<?= e(t('geo.denied')) ?>"
                         data-unavailable="<?= e(t('geo.error')) ?>">📍 <?= e(t('geo.btn')) ?></button>
                 <span id="geo-detect-status" class="hint geo-detect-status" aria-live="polite"></span>
             </div>
         </div>
-        <p class="hint geo-lock-note" id="geo-lock-note" <?= $lockCountry ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?>
+        <p class="hint geo-lock-note" id="geo-lock-note" <?= ($lockCountry || $lockCity) ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?>
             <button type="button" id="geo-unlock" class="link-button">— <?= e(t('geo.unlock')) ?></button>
         </p>
 
