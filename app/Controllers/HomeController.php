@@ -24,12 +24,16 @@ final class HomeController
             \App\Models\AdCampaign::recordImpressions(array_map(static fn (array $p): int => (int) $p['campaign_id'], $sponsored));
         }
         $promoAnnonces = \App\Models\Listing::promotedMarketplace(8);
+        // Produits du catalogue à afficher dès l'ouverture de l'accueil.
+        $products  = \App\Models\Product::recentMarketplace(12);
         // Vitrine vivante : boutiques, restaurants et annonces actuellement en ligne.
         $annonces  = \App\Models\Listing::recentActive(12);
         $boutiques = \App\Models\Boutique::recentPublished(12);
         view('home', [
             'categories'      => \App\Services\Categories::live(),
             'sponsored'       => $sponsored,
+            'products'        => $products,
+            'product_mains'   => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
             'recently_viewed' => $recent,
             'for_you'         => $forYou,
             'reco_mains'      => \App\Services\Recommender::mainsFor(array_merge($sponsored, $recent, $forYou)),

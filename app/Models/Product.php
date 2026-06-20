@@ -413,6 +413,24 @@ final class Product
         }
     }
 
+    /** Produits récents du marketplace (vitrines publiées) pour l'accueil — en stock d'abord. @return list<array> */
+    public static function recentMarketplace(int $limit = 12): array
+    {
+        self::migrate();
+        try {
+            $stmt = db()->prepare(
+                "SELECT p.*, b.slug AS boutique_slug, b.currency AS currency
+                   FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE p.status = 'active' AND b.status = 'published'
+                  ORDER BY (p.stock > 0) DESC, p.id DESC LIMIT " . max(1, min(48, $limit))
+            );
+            $stmt->execute();
+            return $stmt->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
     public static function countFor(int $boutiqueId): array
     {
         try {

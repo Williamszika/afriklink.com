@@ -2471,3 +2471,7 @@ a.afk-guar__item:hover .afk-guar__txt strong{color:var(--afk-or,#e6b84a)}
 .ad-buy__tierbox span{color:var(--afk-or,#b8860b);font-weight:800}
 .ad-buy__tier input:checked+.ad-buy__tierbox{border-color:var(--afk-foret,#1c3d32);box-shadow:0 0 0 3px rgba(28,61,50,.12)}
 .ad-buy__tier input:focus-visible+.ad-buy__tierbox{outline:2px solid var(--afk-or,#b8860b);outline-offset:2px}
+
+/* Bannière « Publicité » remontée tout en haut de l'accueil */
+.afk-spotlight--top{margin-top:6px}
+.afk-spotlight--top .afk-spotlight__empty{margin-top:0}

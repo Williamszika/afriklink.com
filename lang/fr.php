@@ -51,6 +51,7 @@ return [
     'home.trust'           => 'Sécurité intégrée par défaut : paiements protégés, données chiffrées, conformité européenne.',
     'home.categories_title' => 'Explorer par catégorie',
     'home.cat_count'        => ':n article(s)',
+    'home.products_title' => 'Nos produits',
     'home.boutiques_title' => 'Boutiques en ligne',
     'home.restaurants_title' => 'Restaurants en ligne',
     'home.annonces_title' => 'Annonces récentes',

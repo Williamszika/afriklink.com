@@ -51,6 +51,7 @@ return [
     'home.trust'           => 'Security by default: protected payments, encrypted data, European compliance.',
     'home.categories_title' => 'Browse by category',
     'home.cat_count'        => ':n item(s)',
+    'home.products_title' => 'Our products',
     'home.boutiques_title' => 'Online shops',
     'home.restaurants_title' => 'Online restaurants',
     'home.annonces_title' => 'Latest listings',

@@ -2,6 +2,8 @@
 use App\Services\CloudinaryService;
 
 $sponsored       = $sponsored ?? [];
+$products        = $products ?? [];
+$product_mains   = $product_mains ?? [];
 $recently_viewed = $recently_viewed ?? [];
 $for_you         = $for_you ?? [];
 $reco_mains      = $reco_mains ?? [];
@@ -28,6 +30,27 @@ $catIcons = [
 $categories = $categories ?? [];
 $loggedIn   = current_user() !== null;
 ?>
+<!-- Publicité — bandeau sponsorisé en TÊTE de l'accueil -->
+<section class="afk-spotlight afk-block afk-spotlight--top">
+    <div class="afk-spotlight__bar">
+        <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
+        <?php if (!empty($sponsored)): ?>
+            <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+        <?php endif; ?>
+    </div>
+    <?php if (!empty($sponsored)): ?>
+        <div class="panel reco-rail">
+            <h2 class="panel-title"><?= icon('sparkle', ['size' => 18]) ?> <?= e(t('reco.sponsored')) ?></h2>
+            <?= render_partial('partials/sponsored_rail', ['products' => $sponsored, 'mains' => $reco_mains]) ?>
+        </div>
+    <?php else: ?>
+        <div class="afk-spotlight__empty">
+            <p><?= e(t('spotlight.home_empty')) ?></p>
+            <a class="afk-btn afk-btn--gold" href="<?= e(url('/vendeur/publicite')) ?>"><?= e(t('spotlight.seller_cta_btn')) ?></a>
+        </div>
+    <?php endif; ?>
+</section>
+
 <!-- Hero — accroche, recherche, confiance + panneau wax -->
 <section class="afk-hero">
     <div class="afk-hero__text">
@@ -97,25 +120,27 @@ foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'
     </div>
 </section>
 
-<section class="afk-spotlight afk-block">
+<?php if (!empty($products)): ?>
+<!-- Produits du catalogue — visibles dès l'ouverture de l'accueil -->
+<section class="live-section afk-block">
     <div class="afk-spotlight__bar">
-        <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
-        <?php if (!empty($sponsored)): ?>
-            <a class="afk-link-all" href="<?= e(url('/mise-en-avant')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
-        <?php endif; ?>
+        <h2><?= icon('store', ['size' => 18]) ?> <?= e(t('home.products_title')) ?></h2>
+        <a class="afk-link-all" href="<?= e(url('/explorer')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
     </div>
-    <?php if (!empty($sponsored)): ?>
-        <div class="panel reco-rail">
-            <h2 class="panel-title"><?= icon('sparkle', ['size' => 18]) ?> <?= e(t('reco.sponsored')) ?></h2>
-            <?= render_partial('partials/sponsored_rail', ['products' => $sponsored, 'mains' => $reco_mains]) ?>
-        </div>
-    <?php else: ?>
-        <div class="afk-spotlight__empty">
-            <p><?= e(t('spotlight.home_empty')) ?></p>
-            <a class="afk-btn afk-btn--gold" href="<?= e(url('/vendeur/publicite')) ?>"><?= e(t('spotlight.seller_cta_btn')) ?></a>
-        </div>
-    <?php endif; ?>
+    <div class="product-grid">
+        <?php foreach ($products as $p): $pm = $product_mains[(int) $p['id']] ?? null; ?>
+            <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
+                <span class="product-card-img">
+                    <?php if ($pm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($pm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
+                    <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+                </span>
+                <span class="product-card-name"><?= e((string) $p['name']) ?></span>
+                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></span>
+            </a>
+        <?php endforeach; ?>
+    </div>
 </section>
+<?php endif; ?>
 
 <?php if (!empty($promo_annonces)): ?>
 <section class="live-section afk-block">
