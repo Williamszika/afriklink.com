@@ -2382,3 +2382,17 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 .color-photo-previews{display:flex;flex-wrap:wrap;gap:8px}
 .color-up-add{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:46px;padding:0 14px;margin-top:8px;border:1.5px dashed var(--afk-ligne-fort,#c9bfa9);border-radius:8px;color:var(--muted);font-weight:600;font-size:.82rem;cursor:pointer}
 .color-up-add:hover{border-color:var(--afk-foret,#1c3d32);color:var(--afk-foret,#1c3d32)}
+/* — Tableau de bord administrateur — */
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.admin-stat{display:flex;flex-direction:column;gap:2px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#fff}
+.admin-stat-ico{font-size:1.3rem}
+.admin-stat-n{font-size:1.7rem;font-weight:800;line-height:1.05;font-family:var(--afk-display,inherit)}
+.admin-stat-lbl{font-size:.82rem;color:var(--muted);font-weight:600}
+.admin-pending{display:grid;gap:8px}
+.admin-todo{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #f5d9a0;background:#fff8ec;border-radius:10px;font-weight:600;color:var(--ink,#222);text-decoration:none}
+.admin-todo:hover{border-color:var(--afk-or,#d4a017)}
+.admin-todo-n{min-width:28px;height:26px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;background:var(--afk-hibiscus,#c0392b);color:#fff;border-radius:999px;font-weight:800;font-size:.85rem}
+.admin-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.admin-tool{display:flex;align-items:center;gap:10px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#fff;font-weight:600;color:var(--ink,#222);text-decoration:none;transition:.15s}
+.admin-tool:hover{border-color:var(--afk-foret,#1c3d32);box-shadow:0 6px 18px -10px rgba(16,36,30,.3)}
+.admin-tool-emoji{font-size:1.2rem}

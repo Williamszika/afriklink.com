@@ -12,6 +12,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AddressController;
 use App\Controllers\NewsletterController;
+use App\Controllers\AdminDashboardController;
 use App\Controllers\AdminKycController;
 use App\Controllers\AdminMailController;
 use App\Controllers\AnnouncementController;
@@ -162,6 +163,9 @@ return [
     ['GET',  '/vendeur/verification',[SellerController::class, 'verification'], ['auth']],
     ['POST', '/vendeur/verification/{level}', [KycController::class, 'submit'], ['auth', 'csrf', 'throttle:kycsub2,200,3600']],
     ['POST', '/api/kyc/sign',        [MediaController::class, 'signKyc'],      ['auth', 'csrf', 'throttle:sign,60,3600']],
+
+    // Tableau de bord administrateur (staff) : vue d'ensemble + outils
+    ['GET',  '/admin',               [AdminDashboardController::class, 'index'], ['staff']],
 
     // Espace de modération KYC (admins / modérateurs)
     ['GET',  '/admin/kyc',           [AdminKycController::class, 'index'],     ['staff']],
