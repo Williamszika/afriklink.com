@@ -15,8 +15,14 @@ final class HomeController
             8,
             array_map(static fn (array $p): string => (string) $p['public_id'], $recent)
         );
-        // Mise en avant (« sponsorisé », simulation) : produits + annonces.
-        $sponsored     = \App\Models\Product::promotedMarketplace(8);
+        // Mise en avant payante (« À la une ») : campagnes actives, en rotation.
+        // Repli sur l'ancien drapeau promoted_until si aucune campagne en cours.
+        $sponsored = \App\Models\AdCampaign::activeProducts('home');
+        if ($sponsored === []) {
+            $sponsored = \App\Models\Product::promotedMarketplace(8);
+        } else {
+            \App\Models\AdCampaign::recordImpressions(array_map(static fn (array $p): int => (int) $p['campaign_id'], $sponsored));
+        }
         $promoAnnonces = \App\Models\Listing::promotedMarketplace(8);
         // Vitrine vivante : boutiques, restaurants et annonces actuellement en ligne.
         $annonces  = \App\Models\Listing::recentActive(12);
@@ -57,6 +63,13 @@ final class HomeController
             'boutiques'   => $boutiques,
             'verified_sellers' => \App\Models\ProProfile::verifiedAmong(array_map(static fn (array $b): int => (int) $b['user_id'], $boutiques)),
         ]);
+    }
+
+    /** Clic sur une offre sponsorisée : comptabilise le clic puis redirige vers l'objet. */
+    public function sponsoredClick(Request $request): void
+    {
+        $target = \App\Models\AdCampaign::clickThrough((string) $request->param('pid', ''));
+        redirect($target ?? '/');
     }
 
     /** Explorer public — recherche marketplace (mot-clé, catégorie, prix, tri). */

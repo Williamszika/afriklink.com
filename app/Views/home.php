@@ -105,7 +105,10 @@ foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'
         <?php endif; ?>
     </div>
     <?php if (!empty($sponsored)): ?>
-        <?= render_partial('partials/product_rail', ['icon' => 'sparkle', 'title' => t('reco.sponsored'), 'products' => $sponsored, 'mains' => $reco_mains]) ?>
+        <div class="panel reco-rail">
+            <h2 class="panel-title"><?= icon('sparkle', ['size' => 18]) ?> <?= e(t('reco.sponsored')) ?></h2>
+            <?= render_partial('partials/sponsored_rail', ['products' => $sponsored, 'mains' => $reco_mains]) ?>
+        </div>
     <?php else: ?>
         <div class="afk-spotlight__empty">
             <p><?= e(t('spotlight.home_empty')) ?></p>

@@ -202,19 +202,33 @@ final class SellerController
 
     public function advertising(Request $request): void
     {
-        $user     = current_user() ?? [];
-        $boutique = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
-        $products = $boutique !== null ? \App\Models\Product::forBoutique((int) $boutique['id']) : [];
+        $user      = current_user() ?? [];
+        $boutique  = \App\Models\Boutique::findByUserId((int) ($user['id'] ?? 0));
+        $products  = $boutique !== null ? \App\Models\Product::forBoutique((int) $boutique['id']) : [];
+        $cur       = (string) ($boutique['currency'] ?? config('ads.base_currency', 'EUR'));
+        $placement = 'home';
+
+        // Grille des forfaits (durée → prix dans la devise du vendeur).
+        $packages = [];
+        foreach (\App\Models\AdCampaign::durations($placement) as $d) {
+            $packages[$d] = \App\Models\AdCampaign::priceIn($placement, $d, $cur);
+        }
+
         view('vendeur/publicite', [
-            'active'     => 'publicite',
-            'boutique'   => $boutique,
-            'products'   => $products,
-            'mains'      => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
-            'promo_days' => 7,
+            'active'       => 'publicite',
+            'boutique'     => $boutique,
+            'products'     => $products,
+            'mains'        => \App\Models\Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'campaigns'    => \App\Models\AdCampaign::activeMap('product', array_map(static fn (array $p): int => (int) $p['id'], $products)),
+            'placement'    => $placement,
+            'packages'     => $packages,
+            'currency'     => $cur,
+            'billing'      => (string) config('ads.billing', 'simulation'),
+            'wallet_cents' => \App\Models\Wallet::balanceCents((int) ($user['id'] ?? 0)),
         ] + self::commonData($user));
     }
 
-    /** Active/retire la mise en avant « sponsorisé » d'un de ses produits. */
+    /** Achète un forfait de mise en avant pour un produit, ou arrête une campagne. */
     public function promote(Request $request): void
     {
         $user     = current_user() ?? [];
@@ -227,8 +241,24 @@ final class SellerController
         if ($action === null) {
             abort(404);
         }
-        \App\Models\Product::setPromoted((int) $product['id'], $action === 'promote' ? 7 : null);
-        flash('success', t($action === 'promote' ? 'ads.promoted_flash' : 'ads.stopped_flash'));
+
+        if ($action === 'stop') {
+            $current = \App\Models\AdCampaign::activeFor('product', (int) $product['id']);
+            if ($current !== null) {
+                \App\Models\AdCampaign::stop((string) $current['public_id'], (int) $user['id']);
+            }
+            flash('success', t('ads.stopped_flash'));
+            redirect('/vendeur/publicite');
+        }
+
+        $placement = \App\Models\AdCampaign::validPlacement((string) input_string('placement', 'home'));
+        $days      = \App\Models\AdCampaign::validDays($placement, (int) input_string('days', '7'));
+        $res       = \App\Models\AdCampaign::purchaseProduct($user, $product, $boutique, $placement, $days);
+        if ($res['ok']) {
+            flash('success', t('ads.promoted_flash'));
+        } else {
+            flash('error', t($res['code'] === 'insufficient' ? 'ads.err_balance' : 'ads.err_package'));
+        }
         redirect('/vendeur/publicite');
     }
 

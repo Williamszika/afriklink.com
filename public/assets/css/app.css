@@ -2447,3 +2447,27 @@ a.afk-guar__item:hover .afk-guar__txt strong{color:var(--afk-or,#e6b84a)}
 .trust-more__item{display:flex;align-items:center;gap:8px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;font-weight:600;color:var(--ink,#222);text-decoration:none;transition:.15s}
 .trust-more__item:hover{border-color:var(--afk-foret,#1c3d32);box-shadow:0 6px 18px -10px rgba(16,36,30,.3)}
 .trust-more__ic{font-size:1.2rem}
+
+/* === AfrikLink Ads — forfaits de mise en avant (espace vendeur) === */
+.ad-offer__head{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.ad-offer__ic{display:grid;place-items:center;width:40px;height:40px;border-radius:11px;background:var(--afk-foret,#1c3d32);color:#fff;flex:none}
+.ad-offer__head strong{display:block;font-size:1.05rem;font-family:var(--afk-display,inherit)}
+.ad-offer__head p{margin:2px 0 0}
+.ad-offer__tiers{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.ad-tier{display:flex;flex-direction:column;gap:1px;padding:8px 14px;border:1px solid var(--border);border-radius:11px;background:#fff;min-width:96px}
+.ad-tier strong{font-size:.9rem}
+.ad-tier span{color:var(--afk-or,#b8860b);font-weight:800}
+.ad-billing{display:flex;align-items:center;gap:7px;margin:8px 0 0;font-size:.86rem}
+.ad-stats{display:flex;gap:18px;margin:6px 0 10px}
+.ad-stat{display:flex;flex-direction:column;line-height:1.1}
+.ad-stat strong{font-size:1.15rem;font-family:var(--afk-display,inherit)}
+.ad-stat span{font-size:.76rem;color:var(--muted)}
+.ad-buy{margin-top:8px}
+.ad-buy__tiers{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.ad-buy__tier{cursor:pointer}
+.ad-buy__tier input{position:absolute;opacity:0;pointer-events:none}
+.ad-buy__tierbox{display:flex;flex-direction:column;gap:1px;padding:9px 16px;border:1.5px solid var(--border);border-radius:11px;background:#fff;transition:.15s}
+.ad-buy__tierbox strong{font-size:.9rem}
+.ad-buy__tierbox span{color:var(--afk-or,#b8860b);font-weight:800}
+.ad-buy__tier input:checked+.ad-buy__tierbox{border-color:var(--afk-foret,#1c3d32);box-shadow:0 0 0 3px rgba(28,61,50,.12)}
+.ad-buy__tier input:focus-visible+.ad-buy__tierbox{outline:2px solid var(--afk-or,#b8860b);outline-offset:2px}

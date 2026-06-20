@@ -13,6 +13,7 @@ use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
 use App\Controllers\AddressController;
 use App\Controllers\NewsletterController;
+use App\Controllers\AdminAdsController;
 use App\Controllers\AdminDashboardController;
 use App\Controllers\AdminKycController;
 use App\Controllers\AdminMailController;
@@ -53,6 +54,7 @@ return [
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
     ['GET',  '/explorer',          [HomeController::class, 'explore'],        []],
     ['GET',  '/mise-en-avant',     [HomeController::class, 'spotlight'],      []],
+    ['GET',  '/sp/{pid}',          [HomeController::class, 'sponsoredClick'], ['throttle:spclick,300,3600']],
     ['GET',  '/sitemap.xml',       [HomeController::class, 'sitemap'],        ['throttle:sitemap,60,3600']],
     ['GET',  '/robots.txt',        [HomeController::class, 'robots'],         []],
     ['GET',  '/health',            [HomeController::class, 'health'],         []],
@@ -190,6 +192,9 @@ return [
     // Retraits vendeurs : back-office (staff) — versement manuel.
     ['GET',  '/admin/retraits',               [WalletController::class, 'adminIndex'],   ['staff']],
     ['POST', '/admin/retraits/{id}/traiter',  [WalletController::class, 'adminProcess'], ['staff', 'csrf']],
+    // Régie publicitaire : back-office (staff) — campagnes + revenu.
+    ['GET',  '/admin/publicite',              [AdminAdsController::class, 'index'],  ['staff']],
+    ['POST', '/admin/publicite/{pid}/action', [AdminAdsController::class, 'action'], ['staff', 'csrf']],
     // Diagnostic e-mail (staff) : configuration effective + envoi d'un test.
     ['GET',  '/admin/email',       [AdminMailController::class, 'index'],    ['staff']],
     ['POST', '/admin/email/test',  [AdminMailController::class, 'sendTest'],  ['staff', 'csrf', 'throttle:mailtest,10,3600']],
