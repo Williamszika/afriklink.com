@@ -2396,3 +2396,11 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 .admin-tool{display:flex;align-items:center;gap:10px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#fff;font-weight:600;color:var(--ink,#222);text-decoration:none;transition:.15s}
 .admin-tool:hover{border-color:var(--afk-foret,#1c3d32);box-shadow:0 6px 18px -10px rgba(16,36,30,.3)}
 .admin-tool-emoji{font-size:1.2rem}
+/* — Accueil : navigation par catégorie (rayon grid type marketplace) — */
+.afk-cats .afk-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px}
+.afk-cats .afk-link-all{white-space:nowrap;font-weight:600}
+.cat-tiles--browse{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:14px}
+.cat-tiles--browse .cat-tile{padding:18px 10px 16px}
+.cat-tiles--browse .cat-tile-ico{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 30% 28%,#fff,var(--afk-cream,#f3eee2));border:1px solid var(--afk-ligne,#e7e0d2);font-size:1.7rem;line-height:1;margin-bottom:4px;transition:transform .2s,border-color .2s}
+.cat-tiles--browse .cat-tile:hover .cat-tile-ico{transform:scale(1.07);border-color:var(--afk-or,#d4a017)}
+@media(max-width:480px){.cat-tiles--browse{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}.cat-tiles--browse .cat-tile-ico{width:48px;height:48px;font-size:1.45rem}}

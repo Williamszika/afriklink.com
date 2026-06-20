@@ -57,6 +57,29 @@ $loggedIn   = current_user() !== null;
     </aside>
 </section>
 
+<?php
+// Navigation par CATÉGORIE — toujours visible (pattern des grandes marketplaces :
+// rayon/department grid juste sous le héros), avec compteur en direct si du contenu existe.
+$catOrder  = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'auto', 'artisanat', 'bebe', 'sport'];
+$catCounts = [];
+foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'] ?? 0); }
+?>
+<section class="afk-cats afk-block" aria-label="<?= e(t('home.categories_title')) ?>">
+    <div class="afk-head">
+        <h2 class="afk-h2"><?= e(t('home.categories_title')) ?></h2>
+        <a class="afk-link-all" href="<?= e(url('/explorer')) ?>"><?= e(t('common.see_all')) ?> →</a>
+    </div>
+    <div class="cat-tiles cat-tiles--browse">
+        <?php foreach ($catOrder as $ck): $cn = $catCounts[$ck] ?? 0; ?>
+            <a class="cat-tile" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
+                <span class="cat-tile-ico" aria-hidden="true"><?= $catIcons[$ck] ?? '🛍️' ?></span>
+                <span class="cat-tile-name"><?= e(t('listing.cat.' . $ck)) ?></span>
+                <?php if ($cn > 0): ?><span class="cat-tile-count"><?= e(t('home.cat_count', ['n' => $cn])) ?></span><?php endif; ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+
 <section class="afk-spotlight afk-block">
     <div class="afk-spotlight__bar">
         <span class="afk-ad-tag"><?= icon('megaphone', ['size' => 15]) ?> <?= e(t('ads.label')) ?></span>
@@ -149,21 +172,6 @@ $loggedIn   = current_user() !== null;
     <?php if (!empty($for_you)): ?>
         <?= render_partial('partials/product_rail', ['icon' => 'lightbulb', 'title' => t('reco.for_you'), 'products' => $for_you, 'mains' => $reco_mains]) ?>
     <?php endif; ?>
-</section>
-<?php endif; ?>
-
-<?php if ($categories !== []): ?>
-<section class="cat-section afk-block">
-    <div class="afk-head"><h2 class="afk-h2"><?= e(t('home.categories_title')) ?></h2></div>
-    <div class="cat-tiles">
-        <?php foreach ($categories as $c): $ck = (string) $c['key']; ?>
-            <a class="cat-tile" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
-                <span class="cat-tile-ico" aria-hidden="true"><?= $catIcons[$ck] ?? '🛍️' ?></span>
-                <span class="cat-tile-name"><?= e(t('listing.cat.' . $ck)) ?></span>
-                <?php if ((int) ($c['count'] ?? 0) > 0): ?><span class="cat-tile-count"><?= e(t('home.cat_count', ['n' => (int) $c['count']])) ?></span><?php endif; ?>
-            </a>
-        <?php endforeach; ?>
-    </div>
 </section>
 <?php endif; ?>
 
