@@ -9,6 +9,14 @@
         <div class="admin-stat"><span class="admin-stat-n"><?= number_format((float) $count, 0, ',', ' ') ?></span><span class="admin-stat-lbl">Boutiques de démo en ligne</span></div>
     </div>
 
+    <?php if (!empty($showcase)): ?>
+        <div class="panel" style="border-color:var(--afk-or,#c7922e)">
+            <p style="margin:0 0 10px"><strong>🎨 Produit vitrine — variantes dépareillées</strong><br>
+                <span class="muted">Une taille en rupture (grisée), une couleur plus chère : pour voir le grisé + le prix dynamique en vrai.</span></p>
+            <a class="btn btn-primary" href="<?= e(url($showcase)) ?>" target="_blank" rel="noopener"><?= icon('eye', ['size' => 16]) ?> Voir le produit vitrine →</a>
+        </div>
+    <?php endif; ?>
+
     <div class="panel">
         <div class="product-row-actions">
             <form method="post" action="<?= e(url('/admin/demo/creer')) ?>" class="inline-form">

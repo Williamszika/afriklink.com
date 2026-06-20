@@ -19,6 +19,7 @@ final class AdminDemoController
         view('admin/demo', [
             'page_title' => 'Démo',
             'count'      => DemoSeeder::count(),
+            'showcase'   => DemoSeeder::showcaseUrl(),
         ]);
     }
 

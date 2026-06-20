@@ -254,7 +254,109 @@ final class DemoSeeder
                 $prodCount++;
             }
         }
-        return ['boutiques' => $created, 'products' => $prodCount];
+        // Produit « vitrine » : variantes volontairement dépareillées (une taille en
+        // rupture, une couleur plus chère) pour démontrer le grisé + le prix dynamique.
+        $showcase = self::createShowcaseProduct($pwd);
+        if ($showcase !== null) {
+            $created++;
+            $prodCount++;
+        }
+        return ['boutiques' => $created, 'products' => $prodCount, 'showcase' => $showcase];
+    }
+
+    /** Nom repère du produit vitrine (pour le retrouver / lier depuis l'admin). */
+    public const SHOWCASE_NAME = 'Robe en wax « Abidjan » (démo variantes)';
+
+    /**
+     * Crée une boutique mode + un produit à variantes DÉPAREILLÉES :
+     * couleurs Indigo / Ocre (plus chère) / Hibiscus × tailles S–XL, avec
+     * Indigo·S et Hibiscus·M en rupture. @return array{slug:string,pid:string}|null
+     */
+    private static function createShowcaseProduct(string $pwd): ?array
+    {
+        try {
+            $owner = (int) User::create([
+                'email' => 'vitrine@afriklink.demo', 'password_hash' => $pwd,
+                'account_type' => 'professionnel', 'full_name' => 'Atelier Vitrine',
+                'locale' => 'fr', 'preferred_currency' => 'EUR', 'status' => 'active',
+            ]);
+            $name = 'Mode Démo (vitrine)';
+            $slug = Boutique::uniqueSlug($name);
+            Boutique::create($owner, [
+                'slug' => $slug, 'name' => $name, 'tagline' => 'Boutique de démonstration — variantes',
+                'description' => 'Démonstration des déclinaisons (taille × couleur).',
+                'category' => 'mode', 'logo_public_id' => null, 'banners' => [], 'currency' => 'EUR',
+                'shop_type' => 'online', 'address' => null, 'city' => 'Abidjan', 'country_code' => 'CI', 'continent' => 'Afrique',
+                'geo_lat' => null, 'geo_lng' => null, 'delivery_zones' => null, 'delivery_methods' => 'livraison,retrait',
+                'free_ship_cents' => null, 'delivery_fee_cents' => 0, 'delivery_intl_cents' => null, 'delivery_delay' => '2-5 jours',
+                'prep_time' => null, 'cod_enabled' => 1, 'payment_terms' => ['full'], 'payment_methods' => ['cash', 'mobile_money'],
+                'payment_provider' => null, 'contacts' => ['whatsapp' => '+2250700000000'], 'contact_primary' => ['whatsapp'],
+            ]);
+            $b = Boutique::findBySlug($slug);
+            if ($b === null) {
+                return null;
+            }
+            Boutique::setStatus((int) $b['id'], 'published');
+
+            $base = 4900;
+            $pid  = Product::create((int) $b['id'], $owner, [
+                'name' => self::SHOWCASE_NAME,
+                'description' => 'Robe en wax taillée à la commande. Choisissez la couleur et la taille : '
+                    . 'l\'« Ocre » est à 69 € au lieu de 49 €, et certaines combinaisons (Indigo·S, Hibiscus·M) sont en rupture.',
+                'price_cents' => $base, 'stock' => null, 'status' => 'active',
+                'brand' => 'Maison Lébou', 'product_type' => 'Robe', 'collection' => 'Robes',
+                'promo_price_cents' => null, 'promo_until' => null, 'sale_unit' => 'piece',
+                'attributes' => json_encode(['matiere' => 'Wax 100% coton', 'coupe' => 'Ajustée'], JSON_UNESCAPED_UNICODE),
+            ], []);
+            $product = Product::findByPublicId($pid);
+            if ($product === null) {
+                return null;
+            }
+            $productId = (int) $product['id'];
+            \App\Models\ProductVariant::deleteForProduct($productId);
+
+            $colors = ['Indigo', 'Ocre', 'Hibiscus'];
+            $sizes  = ['S', 'M', 'L', 'XL'];
+            $pos = 0; $defaultSet = false;
+            foreach ($colors as $color) {
+                foreach ($sizes as $size) {
+                    $out   = ($color === 'Indigo' && $size === 'S') || ($color === 'Hibiscus' && $size === 'M');
+                    $stock = $out ? 0 : (2 + ($pos * 3) % 7);
+                    $price = $color === 'Ocre' ? 6900 : $base;        // une couleur plus chère
+                    $isDef = !$defaultSet && $stock > 0;
+                    if ($isDef) { $defaultSet = true; }
+                    \App\Models\ProductVariant::create($productId, (int) $b['id'], [
+                        'sku'         => \App\Models\ProductVariant::generateSku(),
+                        'attributes'  => ['size' => $size, 'color' => $color],
+                        'label'       => $color . ' / ' . $size,
+                        'price_cents' => $price,
+                        'stock'       => $stock,
+                        'position'    => $pos,
+                        'is_default'  => $isDef,
+                    ]);
+                    $pos++;
+                }
+            }
+            return ['slug' => (string) $b['slug'], 'pid' => $pid];
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** URL publique du produit vitrine (ou null s'il n'existe pas). */
+    public static function showcaseUrl(): ?string
+    {
+        try {
+            $stmt = db()->prepare(
+                "SELECT b.slug, p.public_id FROM products p JOIN boutiques b ON b.id = p.boutique_id
+                  WHERE p.name = :n AND b.status = 'published' ORDER BY p.id DESC LIMIT 1"
+            );
+            $stmt->execute(['n' => self::SHOWCASE_NAME]);
+            $r = $stmt->fetch();
+            return $r ? '/boutique/' . $r['slug'] . '/p/' . $r['public_id'] : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**
