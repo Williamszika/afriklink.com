@@ -14,6 +14,7 @@ $days0 = array_key_first($packages) ?: 7;
 
         <div class="seller-head">
             <h1><?= icon('megaphone', ['size' => 24]) ?> <?= e(t('ads.title')) ?></h1>
+            <p class="muted"><?= e(t('spotlight.home_empty')) ?></p>
             <p class="muted"><?= e(t('ads.lead2')) ?></p>
         </div>
 

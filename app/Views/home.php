@@ -33,8 +33,9 @@ $categories = $categories ?? [];
 $loggedIn   = current_user() !== null;
 ?>
 <?php
-// Carrousel de pub en TÊTE (style marketplace) : deals sponsorisés + produits en
-// promo, + une diapo « Promouvoir mon offre ». Auto-défilement + flèches + points (JS).
+// Carrousel de pub en TÊTE : UNIQUEMENT les vraies pubs des vendeurs (campagnes
+// sponsorisées + produits en promo). L'invitation « Promouvoir mon offre » vit
+// dans l'espace vendeur (Publicité), pas ici. Carrousel masqué s'il n'y a aucune pub.
 $slideMains = $reco_mains + $promo_product_mains;
 $dealSlides = [];
 $seenSlide  = [];
@@ -45,10 +46,10 @@ foreach (array_merge($sponsored, $promo_products) as $sp) {
     $dealSlides[] = $sp;
     if (count($dealSlides) >= 6) { break; }
 }
-$adSellHref = $loggedIn ? url('/vendeur/publicite') : url('/register/vendeur');
-$slideCount = count($dealSlides) + 1; // + la diapo vendeur
+$slideCount = count($dealSlides);
 ?>
-<!-- Publicité — carrousel défilant en tête de l'accueil -->
+<?php if ($dealSlides !== []): ?>
+<!-- Publicité — carrousel défilant en tête de l'accueil (pubs des vendeurs) -->
 <section class="afk-block afk-carousel-wrap">
 <div class="afk-carousel" data-carousel<?= $slideCount > 1 ? ' data-autoplay="6000"' : '' ?> aria-roledescription="carrousel" aria-label="<?= e(t('ads.label')) ?>">
     <div class="afk-carousel__viewport">
@@ -79,15 +80,6 @@ $slideCount = count($dealSlides) + 1; // + la diapo vendeur
                 </div>
             </a>
             <?php endforeach; ?>
-            <a class="afk-carousel__slide afk-ad afk-ad--seller" href="<?= e($adSellHref) ?>" role="group" aria-roledescription="diapo">
-                <div class="afk-ad__text">
-                    <span class="afk-ad__eyebrow"><?= icon('megaphone', ['size' => 13]) ?> <?= e(t('ads.label')) ?></span>
-                    <h2 class="afk-ad__title"><?= e(t('spotlight.seller_cta_title')) ?></h2>
-                    <p><?= e(t('spotlight.home_empty')) ?></p>
-                    <span class="afk-btn afk-btn--gold afk-btn--lg"><?= e(t('spotlight.seller_cta_btn')) ?></span>
-                </div>
-                <div class="afk-ad__media afk-ad__media--emblem"><span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'ad']) ?></span></div>
-            </a>
         </div>
     </div>
     <?php if ($slideCount > 1): ?>
@@ -101,6 +93,7 @@ $slideCount = count($dealSlides) + 1; // + la diapo vendeur
     <?php endif; ?>
 </div>
 </section>
+<?php endif; ?>
 
 <!-- Hero déplacé vers la page « À propos » (/a-propos) -->
 
