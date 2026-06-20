@@ -78,22 +78,27 @@ final class OrderNotifier
     ): void {
         $rows = '';
         foreach ($lines as $l) {
-            $rows .= '<tr>'
-                . '<td style="padding:4px 10px 4px 0">' . (int) $l['qty'] . '× ' . e((string) $l['title']) . '</td>'
-                . '<td style="padding:4px 0;text-align:right;white-space:nowrap"><strong>'
-                . e(format_price((int) $l['line_total_cents'], $currency)) . '</strong></td></tr>';
+            $rows .= '<tr><td style="padding:7px 0;border-bottom:1px solid #eee">' . (int) $l['qty'] . '× ' . e((string) $l['title'])
+                . '</td><td align="right" style="padding:7px 0;border-bottom:1px solid #eee;white-space:nowrap">'
+                . e(format_price((int) $l['line_total_cents'], $currency)) . '</td></tr>';
         }
         $client = e($clientName) . ($clientPhone !== '' ? ' · ' . e($clientPhone) : '');
 
-        $html = '<p>' . e(t('notify.order.mail_intro', ['shop' => $vitrineName, 'ref' => $orderRef])) . '</p>'
-            . '<table style="border-collapse:collapse;margin:6px 0 10px">' . $rows
-            . '<tr><td style="padding:8px 10px 0 0;border-top:1px solid #e5e7eb"><strong>' . e(t('rorder.total')) . '</strong></td>'
-            . '<td style="padding:8px 0 0;text-align:right;border-top:1px solid #e5e7eb"><strong>' . e($totalLabel) . '</strong></td></tr>'
-            . '</table>'
-            . '<p>' . e(t('notify.order.mail_client')) . ' : ' . $client . '</p>'
-            . '<p><a href="' . e($manageUrl) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
-            . e(t('notify.order.mail_cta')) . '</a></p>'
-            . '<p style="color:#666;font-size:13px">' . e($manageUrl) . '</p>';
+        $body = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:2px 0 14px;font-size:.95rem">' . $rows
+            . '<tr><td style="padding:8px 0 0;border-top:2px solid #E5A02E;font-weight:800;color:#103D30">' . e(t('rorder.total')) . '</td>'
+            . '<td align="right" style="padding:8px 0 0;border-top:2px solid #E5A02E;font-weight:800;color:#103D30">' . e($totalLabel) . '</td></tr></table>'
+            . '<div class="afk-panel">👤 <strong>' . e(t('notify.order.mail_client')) . '</strong> : ' . $client . '</div>';
+
+        $html = render_partial('emails/base', [
+            'subject'   => t('notify.order.mail_subject', ['shop' => $vitrineName, 'ref' => $orderRef]),
+            'preheader' => t('notify.order.mail_intro', ['shop' => $vitrineName, 'ref' => $orderRef]),
+            'heading'   => '🛍️ ' . e(t('notify.order.mail_heading')),
+            'intro'     => e(t('notify.order.mail_intro', ['shop' => $vitrineName, 'ref' => $orderRef])),
+            'body'      => $body,
+            'cta_url'   => $manageUrl,
+            'cta_label' => t('notify.order.mail_cta'),
+            'accent'    => 'forest',
+        ]);
 
         $text = t('notify.order.mail_intro', ['shop' => $vitrineName, 'ref' => $orderRef]) . "\n";
         foreach ($lines as $l) {
@@ -115,10 +120,15 @@ final class OrderNotifier
         $prefs = \App\Models\ProProfile::sellerPrefs((int) ($seller['id'] ?? 0));
         $email = trim((string) ($seller['email'] ?? ''));
         if ($email !== '' && $prefs['notify_email']) {
-            $html = '<p>' . e($line) . '</p>'
-                . '<p><a href="' . e($url) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
-                . e(t('notify.order.mail_cta')) . '</a></p>'
-                . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+            $html = render_partial('emails/base', [
+                'subject'   => $subject,
+                'preheader' => $line,
+                'heading'   => e($subject),
+                'intro'     => e($line),
+                'cta_url'   => $url,
+                'cta_label' => t('notify.order.mail_cta'),
+                'accent'    => 'forest',
+            ]);
             try {
                 MailService::send($email, $subject, $html, $line . "\n" . $url);
             } catch (\Throwable) {
@@ -272,17 +282,22 @@ final class OrderNotifier
         $trackLine = '';
         if ($tracking !== '') {
             $cl = $carrier !== '' ? carrier_label($carrier) : '';
-            $trackLine = '<p>' . e(t('order.track.tracking')) . ' : <strong>' . e($tracking) . '</strong>'
-                . ($cl !== '' ? ' · ' . e($cl) : '') . '</p>';
+            $trackLine = '<div class="afk-panel">📦 ' . e(t('order.track.tracking')) . ' : <strong>' . e($tracking) . '</strong>'
+                . ($cl !== '' ? ' · ' . e($cl) : '') . '</div>';
         }
         // Le bouton « Suivre le colis » pointe vers le transporteur si on a un
         // lien, sinon vers la page de suivi de la commande.
         $cta = $trackUrl !== '' ? $trackUrl : $url;
-        $html = '<p>' . e(t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-            . $trackLine
-            . '<p><a href="' . e($cta) . '" style="display:inline-block;padding:10px 18px;background:#0b7a4b;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:bold">'
-            . e(t('notify.client.track_cta')) . '</a></p>'
-            . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+        $html = render_partial('emails/base', [
+            'subject'   => t('notify.client.shipped_subject', ['ref' => $ref]),
+            'preheader' => t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref]),
+            'heading'   => e(t('notify.client.shipped_heading')),
+            'intro'     => e(t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref])),
+            'body'      => $trackLine,
+            'cta_url'   => $cta,
+            'cta_label' => t('notify.client.track_cta'),
+            'accent'    => 'forest',
+        ]);
         $text = t('notify.client.shipped_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n"
             . ($tracking !== '' ? t('order.track.tracking') . ' : ' . $tracking . "\n" : '')
             . ($trackUrl !== '' ? $trackUrl . "\n" : '') . $url;
@@ -302,9 +317,16 @@ final class OrderNotifier
     public static function clientOrderDelivered(array $order, string $shopName, string $url): void
     {
         $ref = self::ref($order);
-        $html = '<p>' . e(t('notify.client.delivered_intro', ['shop' => $shopName, 'ref' => $ref])) . '</p>'
-            . '<p>' . e(t('notify.client.delivered_review')) . '</p>'
-            . '<p style="color:#666;font-size:13px">' . e($url) . '</p>';
+        $html = render_partial('emails/base', [
+            'subject'   => t('notify.client.delivered_subject', ['ref' => $ref]),
+            'preheader' => t('notify.client.delivered_intro', ['shop' => $shopName, 'ref' => $ref]),
+            'heading'   => e(t('notify.client.delivered_heading')),
+            'intro'     => e(t('notify.client.delivered_intro', ['shop' => $shopName, 'ref' => $ref])),
+            'body'      => '<div class="afk-panel">⭐ <strong>' . e(t('notify.client.delivered_review')) . '</strong></div>',
+            'cta_url'   => $url,
+            'cta_label' => t('notify.client.review_cta'),
+            'accent'    => 'gold',
+        ]);
         $text = t('notify.client.delivered_intro', ['shop' => $shopName, 'ref' => $ref]) . "\n"
             . t('notify.client.delivered_review') . "\n" . $url;
         $sms  = t('notify.client.delivered_sms', ['ref' => $ref]) . ' ' . $url;

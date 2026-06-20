@@ -31,11 +31,20 @@ final class AdminMailController
 
         $app  = (string) config('app.name', 'Afriklink');
         $now  = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
-        $ok   = MailService::send(
+        // E-mail de test branché sur le gabarit de marque : le staff voit
+        // exactement l'identité qu'un client recevra.
+        $html = render_partial('emails/base', [
+            'subject'   => t('admin.mail.test_subject', ['app' => $app]),
+            'preheader' => t('admin.mail.test_body', ['app' => $app]),
+            'heading'   => '✅ ' . e(t('admin.mail.test_subject', ['app' => $app])),
+            'intro'     => e(t('admin.mail.test_body', ['app' => $app])),
+            'body'      => '<p class="afk-link" style="margin:0">' . e($now) . '</p>',
+            'accent'    => 'forest',
+        ]);
+        $ok = MailService::send(
             $to,
             t('admin.mail.test_subject', ['app' => $app]),
-            '<p>' . e(t('admin.mail.test_body', ['app' => $app])) . '</p>'
-                . '<p style="color:#888">' . e($now) . '</p>',
+            $html,
             t('admin.mail.test_body', ['app' => $app]) . "\n" . $now
         );
 

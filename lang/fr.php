@@ -958,6 +958,7 @@ return [
     'notify.order.mail_intro' => 'Bonne nouvelle ! Vous avez reçu une nouvelle commande (#:ref) sur :shop.',
     'notify.order.mail_client' => 'Client',
     'notify.order.mail_cta' => 'Voir la commande',
+    'notify.order.mail_heading' => 'Nouvelle commande !',
     // Notifications au client
     'notify.paid.title' => 'Commande payée',
     'notify.paid.body' => 'Commande #:ref réglée (:amount) — à préparer.',
@@ -986,6 +987,9 @@ return [
     'notify.client.delivered_intro' => 'Votre commande #:ref chez :shop a été livrée. Merci pour votre achat !',
     'notify.client.delivered_review' => 'Votre avis aide les autres acheteurs — laissez-en un sur la fiche produit.',
     'notify.client.delivered_sms' => 'Commande #:ref livrée. Merci ! Donnez votre avis :',
+    'notify.client.shipped_heading' => 'Votre colis est en route 📦',
+    'notify.client.delivered_heading' => 'Votre commande est arrivée 🎉',
+    'notify.client.review_cta' => 'Laisser un avis',
 
     // Restaurant
     'pro.vertical.restaurant' => 'Restaurant',
