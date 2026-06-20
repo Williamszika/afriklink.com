@@ -11,8 +11,14 @@ final class AboutController
     public function index(Request $request): void
     {
         view('about', [
-            'page_title' => t('about.title'),
-            'meta'       => ['description' => t('home.hero_subtitle')],
+            'page_title'  => t('about.title'),
+            'hide_ticker' => true, // page éditoriale : pas de bandeau commercial
+            'meta'        => [
+                'description' => t('home.hero_subtitle'),
+                'url'         => url('/a-propos'),
+                'image'       => url('/assets/og/about.png'),
+                'type'        => 'website',
+            ],
         ]);
     }
 }

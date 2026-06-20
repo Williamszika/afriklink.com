@@ -150,7 +150,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
     </div>
 </header>
 
-<?= render_partial('partials/ticker') ?>
+<?php if (empty($hide_ticker)): ?><?= render_partial('partials/ticker') ?><?php endif; ?>
 
 <?php $flashes = get_flashes(); ?>
 <?php if ($flashes !== []): ?>

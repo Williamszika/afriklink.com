@@ -6865,3 +6865,18 @@ document.addEventListener('click', function (ev) {
         go(0); start();
     });
 })();
+
+/* Page « À propos » : apparition au scroll (sûr CSP — script externe). Si JS ou
+   IntersectionObserver absent, le contenu reste visible (pas de .ab-reveal). */
+(function () {
+    var page = document.querySelector('.about-page');
+    if (!page) { return; }
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var els = page.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window) || !els.length) { return; }
+    document.documentElement.classList.add('ab-reveal');
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.12 });
+    els.forEach(function (e) { io.observe(e); });
+})();
