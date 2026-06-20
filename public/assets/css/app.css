@@ -2404,3 +2404,13 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 .cat-tiles--browse .cat-tile-ico{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;background:radial-gradient(circle at 30% 28%,#fff,var(--afk-cream,#f3eee2));border:1px solid var(--afk-ligne,#e7e0d2);font-size:1.7rem;line-height:1;margin-bottom:4px;transition:transform .2s,border-color .2s}
 .cat-tiles--browse .cat-tile:hover .cat-tile-ico{transform:scale(1.07);border-color:var(--afk-or,#d4a017)}
 @media(max-width:480px){.cat-tiles--browse{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}.cat-tiles--browse .cat-tile-ico{width:48px;height:48px;font-size:1.45rem}}
+/* — Accueil : bandeau garanties (confiance forte, style Trade Assurance) — */
+.afk-guar{background:var(--afk-foret,#1c3d32);border-radius:var(--afk-r-lg,18px);padding:22px 24px;color:#fff}
+.afk-guar__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.afk-guar__item{display:flex;align-items:flex-start;gap:12px}
+.afk-guar__ic{flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;background:rgba(255,255,255,.1);color:var(--afk-or,#e6b84a)}
+.afk-guar__txt{display:flex;flex-direction:column;gap:3px}
+.afk-guar__txt strong{font-family:var(--afk-display,inherit);font-size:.97rem;line-height:1.2}
+.afk-guar__txt span{font-size:.79rem;color:rgba(255,255,255,.78);line-height:1.4}
+@media(max-width:860px){.afk-guar__grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.afk-guar{padding:18px}.afk-guar__grid{grid-template-columns:1fr;gap:14px}}
