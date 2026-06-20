@@ -93,7 +93,7 @@ $cauri   = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20wid
             <span style="margin-left:5px"><b>Afrik<span>link</span></b> — <?= e(t('mail.footer_tag')) ?></span>
             <?php if (($unsubscribe_url ?? '') !== ''): ?>
                 <div style="margin-top:9px;font-size:.72rem;color:#9aa39d;line-height:1.5">
-                    <?= e(t('mail.unsub_pre')) ?>
+                    <?= e(($unsub_text ?? '') !== '' ? (string) $unsub_text : t('mail.unsub_pre')) ?>
                     <a href="<?= e((string) $unsubscribe_url) ?>" style="color:#5B6B62;text-decoration:underline"><?= e(t('mail.unsub_link')) ?></a>
                 </div>
             <?php endif; ?>

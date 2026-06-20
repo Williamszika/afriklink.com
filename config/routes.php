@@ -7,6 +7,7 @@ use App\Controllers\TrustController;
 use App\Controllers\WishlistController;
 use App\Controllers\CompareController;
 use App\Controllers\CartController;
+use App\Controllers\CronController;
 use App\Controllers\NotificationController;
 use App\Controllers\MessageController;
 use App\Controllers\AuthController;
@@ -120,6 +121,9 @@ return [
     ['POST', '/newsletter',        [NewsletterController::class, 'subscribe'], ['csrf', 'throttle:news,20,3600']],
     ['POST', '/newsletter/popup',  [NewsletterController::class, 'popup'],     ['csrf', 'throttle:news,20,3600']],
     ['GET',  '/desinscription/{token}', [NewsletterController::class, 'unsubscribe'], ['throttle:unsub,60,3600']],
+    ['GET',  '/paniers/stop/{token}',   [CartController::class, 'stopReminders'],     ['throttle:unsub,60,3600']],
+    // Tâche planifiée (Vercel Cron / externe) — protégée par CRON_SECRET.
+    ['GET',  '/cron/relance-paniers',   [CronController::class, 'abandonedCart'],     ['throttle:cron,120,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
     ['POST', '/mes-adresses/{id}/defaut', [AddressController::class, 'setDefault'], ['auth', 'csrf']],

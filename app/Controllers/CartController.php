@@ -88,6 +88,7 @@ final class CartController
             && $product !== null && (int) $product['boutique_id'] === (int) $boutique['id'] && ($product['status'] ?? '') === 'active';
         if ($ok) {
             Cart::setQty((int) $boutique['id'], $pid, (int) input_string('qty', '1'));
+            self::snapshot();
         }
         if (str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json')) {
             json_response(['count' => Cart::count(), 'qty' => $ok ? Cart::qty((int) $boutique['id'], $pid) : 0]);
@@ -101,8 +102,35 @@ final class CartController
         $boutique = Boutique::findBySlug((string) input_string('slug', ''));
         if ($boutique !== null) {
             Cart::setQty((int) $boutique['id'], (string) input_string('pid', ''), (int) input_string('qty', '0'));
+            self::snapshot();
         }
         redirect('/panier');
+    }
+
+    /**
+     * Miroir du panier pour la relance (acheteurs connectés avec e-mail). Les
+     * comptes par téléphone (sans e-mail) ne sont pas captés. Best-effort.
+     */
+    private static function snapshot(): void
+    {
+        $u = current_user();
+        $email = trim((string) ($u['email'] ?? ''));
+        if ($u === null || $email === '') {
+            return;
+        }
+        \App\Models\AbandonedCart::capture((int) $u['id'], $email, Cart::raw());
+    }
+
+    /** Désinscription des rappels de panier (lien dans l'e-mail). */
+    public function stopReminders(Request $request): void
+    {
+        $email = \App\Models\AbandonedCart::optout((string) $request->param('token', ''));
+        view('newsletter/unsubscribed', [
+            'page_title' => t('cart.remind.optout_title'),
+            'ok'         => $email !== null,
+            'email'      => $email,
+            'context'    => 'cart',
+        ]);
     }
 
     /** Passe à la caisse d'une boutique : copie ses lignes vers la caisse de session. */

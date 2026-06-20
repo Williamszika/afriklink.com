@@ -1199,6 +1199,7 @@ final class BoutiqueController
         // Rattache l'achat au compte de l'acheteur s'il est connecté (sinon = invité).
         if (($buyerId = current_user_id()) !== null) {
             Order::setBuyer($publicId, (int) $buyerId);
+            \App\Models\AbandonedCart::convert((int) $buyerId); // pas de relance après achat
         }
 
         unset($_SESSION['caisse'][(int) $boutique['id']]); // panier consommé

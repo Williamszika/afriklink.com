@@ -11,5 +11,8 @@
   "routes": [
     { "src": "/assets/(.*)", "dest": "/public/assets/$1" },
     { "src": "/(.*)", "dest": "/api/index.php" }
+  ],
+  "crons": [
+    { "path": "/cron/relance-paniers", "schedule": "0 9 * * *" }
   ]
 }
