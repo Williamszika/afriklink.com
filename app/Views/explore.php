@@ -82,6 +82,7 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
                         <span class="product-card-name"><?= e((string) $p['name']) ?></span>
                         <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></span>
                         <span class="muted explore-card-shop"><?= e(t('explore.by', ['shop' => (string) $p['boutique_name']])) ?></span>
+                        <?= render_partial('partials/card_geo', ['row' => $p]) ?>
                         <?php if (!empty($r['count'])): ?>
                             <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $r['avg'], 'count' => $r['count'], 'small' => true]) ?></span>
                         <?php endif; ?>

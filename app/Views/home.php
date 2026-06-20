@@ -126,7 +126,10 @@ $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
 <!-- Produits du catalogue — visibles dès l'ouverture de l'accueil -->
 <section class="live-section afk-block">
     <div class="afk-spotlight__bar">
-        <h2><?= icon('store', ['size' => 18]) ?> <?= e(t('home.products_title')) ?></h2>
+        <h2><?= icon('store', ['size' => 18]) ?> <?= e(t('home.products_title')) ?>
+            <?php $buyerGeo = detected_geo(); $buyerPlace = $buyerGeo['country'] ?? null; ?>
+            <?php if ($buyerPlace): ?><span class="near-hint">· <?= e(t('home.near_you', ['place' => $buyerPlace])) ?></span><?php endif; ?>
+        </h2>
         <a class="afk-link-all" href="<?= e(url('/explorer')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
     </div>
     <div class="product-grid">
@@ -138,6 +141,7 @@ $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
                 </span>
                 <span class="product-card-name"><?= e((string) $p['name']) ?></span>
                 <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></span>
+                <?= render_partial('partials/card_geo', ['row' => $p]) ?>
             </a>
         <?php endforeach; ?>
     </div>

@@ -485,16 +485,28 @@ final class Product
     }
 
     /** Produits récents du marketplace (vitrines publiées) pour l'accueil — en stock d'abord. @return list<array> */
-    public static function recentMarketplace(int $limit = 12): array
+    /**
+     * Produits récents de la marketplace. Quand le pays de l'acheteur est connu
+     * ($buyerCc), les boutiques du même pays remontent en tête (« local d'abord »).
+     */
+    public static function recentMarketplace(int $limit = 12, string $buyerCc = ''): array
     {
         self::migrate();
+        $buyerCc = strtoupper(trim($buyerCc));
         try {
+            $localFirst = $buyerCc !== '' ? '(b.country_code = :cc) DESC, ' : '';
             $stmt = db()->prepare(
-                "SELECT p.*, b.slug AS boutique_slug, b.currency AS currency
+                "SELECT p.*, b.slug AS boutique_slug, b.currency AS currency,
+                        b.city AS boutique_city, b.country_code AS boutique_country,
+                        b.delivery_zones AS delivery_zones, b.delivery_methods AS delivery_methods,
+                        b.geo_lat AS boutique_lat, b.geo_lng AS boutique_lng
                    FROM products p JOIN boutiques b ON b.id = p.boutique_id
                   WHERE p.status = 'active' AND b.status = 'published'
-                  ORDER BY (p.stock > 0) DESC, p.id DESC LIMIT " . max(1, min(48, $limit))
+                  ORDER BY {$localFirst}(p.stock > 0) DESC, p.id DESC LIMIT " . max(1, min(48, $limit))
             );
+            if ($buyerCc !== '') {
+                $stmt->bindValue(':cc', $buyerCc);
+            }
             $stmt->execute();
             return $stmt->fetchAll() ?: [];
         } catch (\Throwable) {
@@ -753,11 +765,28 @@ final class Product
             default      => 'p.id DESC',
         };
 
+        // « Local d'abord » : à pertinence égale, les boutiques du pays (puis de
+        // la ville) de l'acheteur remontent — sans masquer l'international.
+        $localOrder = '';
+        $nearCc   = strtoupper(trim((string) ($f['near_cc'] ?? '')));
+        $nearCity = trim((string) ($f['near_city'] ?? ''));
+        if ($nearCc !== '') {
+            $localOrder .= '(b.country_code = :nearcc) DESC, ';
+            $args['nearcc'] = $nearCc;
+        }
+        if ($nearCity !== '') {
+            $localOrder .= '(' . self::foldExpr('b.city') . ' = :nearcity) DESC, ';
+            $args['nearcity'] = self::searchFold($nearCity);
+        }
+
         try {
-            $sql = "SELECT p.*, b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency, b.category AS boutique_category
+            $sql = "SELECT p.*, b.slug AS boutique_slug, b.name AS boutique_name, b.currency AS currency, b.category AS boutique_category,
+                            b.city AS boutique_city, b.country_code AS boutique_country,
+                            b.delivery_zones AS delivery_zones, b.delivery_methods AS delivery_methods,
+                            b.geo_lat AS boutique_lat, b.geo_lng AS boutique_lng
                       FROM products p JOIN boutiques b ON b.id = p.boutique_id
                      WHERE " . implode(' AND ', $where) . "
-                     ORDER BY (p.promoted_until IS NOT NULL AND p.promoted_until > NOW()) DESC, $order
+                     ORDER BY (p.promoted_until IS NOT NULL AND p.promoted_until > NOW()) DESC, {$localOrder}$order
                      LIMIT $limit OFFSET $offset";
             $stmt = db()->prepare($sql);
             $stmt->execute($args);

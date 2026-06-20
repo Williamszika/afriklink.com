@@ -399,6 +399,86 @@ function legal_ctx(?string $cc = null): array
     ];
 }
 
+/* ------------------------------------------------------------------ */
+/* Proximité & portée de livraison (expérience acheteur géolocalisée)  */
+/* ------------------------------------------------------------------ */
+
+/** Distance en kilomètres entre deux points (formule de haversine). */
+function geo_distance_km(float $lat1, float $lng1, float $lat2, float $lng2): float
+{
+    $earth = 6371.0;
+    $dLat  = deg2rad($lat2 - $lat1);
+    $dLng  = deg2rad($lng2 - $lng1);
+    $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+    return $earth * 2 * asin(min(1.0, sqrt($a)));
+}
+
+/** Étiquette courte de distance (« à ~4 km ») ou '' si non pertinent. */
+function geo_km_label(?float $km): string
+{
+    if ($km === null || $km < 0 || $km > 400) {
+        return '';
+    }
+    $r = $km < 10 ? round($km, 1) : (float) round($km);
+    return t('reach.km', ['km' => rtrim(rtrim(number_format($r, 1, ',', ' '), '0'), ',')]);
+}
+
+/**
+ * Portée de livraison d'une boutique/restaurant VUE PAR L'ACHETEUR courant.
+ * Compare la position détectée de l'acheteur aux zones déclarées par le vendeur
+ * (delivery_zones = city|country|international) et à ses méthodes (pickup…).
+ *
+ * @param array $shop  city, country_code, delivery_zones, delivery_methods?, geo_lat?, geo_lng?
+ * @param array|null $buyer  détecté par défaut (detected_geo())
+ * @return array{status:string,label:string,local:bool,km:?float}
+ *   status ∈ city | country | international | pickup | none | unknown
+ */
+function delivery_reach(array $shop, ?array $buyer = null): array
+{
+    $buyer ??= detected_geo();
+    $zones   = array_filter(array_map('trim', explode(',', (string) ($shop['delivery_zones'] ?? ''))));
+    $methods = array_filter(array_map('trim', explode(',', (string) ($shop['delivery_methods'] ?? ''))));
+
+    $shopCc   = strtoupper(trim((string) ($shop['country_code'] ?? '')));
+    $shopCity = mb_strtolower(trim((string) ($shop['city'] ?? '')), 'UTF-8');
+    $buyCc    = strtoupper(trim((string) ($buyer['country_code'] ?? '')));
+    $buyCity  = mb_strtolower(trim((string) ($buyer['city'] ?? '')), 'UTF-8');
+
+    $km = null;
+    if (isset($shop['geo_lat'], $shop['geo_lng'], $buyer['lat'], $buyer['lng'])
+        && is_numeric($shop['geo_lat']) && is_numeric($shop['geo_lng'])
+        && is_numeric($buyer['lat']) && is_numeric($buyer['lng'])) {
+        $km = geo_distance_km((float) $buyer['lat'], (float) $buyer['lng'], (float) $shop['geo_lat'], (float) $shop['geo_lng']);
+    }
+
+    $sameCity    = $shopCity !== '' && $buyCity !== '' && $shopCity === $buyCity;
+    $sameCountry = $shopCc !== '' && $buyCc !== '' && $shopCc === $buyCc;
+
+    $make = static fn (string $status, bool $local): array
+        => ['status' => $status, 'label' => t('reach.' . $status), 'local' => $local, 'km' => $km];
+
+    // Sans zones déclarées, la portée est inconnue : on n'affiche aucune
+    // promesse de livraison (on ne montre que la localisation).
+    if ($zones === []) {
+        return ['status' => 'unknown', 'label' => '', 'local' => false, 'km' => $km];
+    }
+    if ($sameCity && in_array('city', $zones, true)) {
+        return $make('city', true);
+    }
+    if ($sameCountry && in_array('country', $zones, true)) {
+        return $make('country', true);
+    }
+    if (in_array('international', $zones, true)) {
+        return $make('international', $sameCountry);
+    }
+    // Hors zone de livraison : retrait sur place si le vendeur le propose
+    // ('pickup'/'hand_to_hand', ou l'ancien vocabulaire 'retrait').
+    if (array_intersect(['pickup', 'hand_to_hand', 'retrait'], $methods) !== []) {
+        return $make('pickup', $sameCity || $sameCountry);
+    }
+    return $make('none', false);
+}
+
 /**
  * Étiquette d'horaires d'un restaurant à partir des champs structurés :
  * jours cochés regroupés (« Lun–Mer, Ven–Sam ») + plage horaire

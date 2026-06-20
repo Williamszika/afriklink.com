@@ -26,8 +26,9 @@ final class HomeController
         $promoAnnonces = \App\Models\Listing::promotedMarketplace(8);
         // Carrousel de pub en tête : produits sponsorisés + produits en promo (deals).
         $promoProducts = \App\Models\Product::onPromo(6);
-        // Produits du catalogue à afficher dès l'ouverture de l'accueil.
-        $products  = \App\Models\Product::recentMarketplace(12);
+        // Produits du catalogue à afficher dès l'ouverture de l'accueil
+        // (« local d'abord » : boutiques du pays détecté en tête).
+        $products  = \App\Models\Product::recentMarketplace(12, (string) (detected_geo()['country_code'] ?? ''));
         // Vitrine vivante : boutiques, restaurants et annonces actuellement en ligne.
         $annonces  = \App\Models\Listing::recentActive(12);
         $boutiques = \App\Models\Boutique::recentPublished(12);
@@ -98,6 +99,9 @@ final class HomeController
             'sort'     => whitelist((string) input_string('tri', 'recent'), ['recent', 'price_asc', 'price_desc'], 'recent'),
             'audience' => apparel_audience_clean(input_string('genre', '')),
             'garment'  => apparel_category_clean(input_string('vetement', '')),
+            // « Local d'abord » : à pertinence égale, le pays/ville détecté remonte.
+            'near_cc'   => (string) (detected_geo()['country_code'] ?? ''),
+            'near_city' => (string) (detected_geo()['city'] ?? ''),
             'limit'    => $limit,
             'offset'   => ($page - 1) * $limit,
         ];

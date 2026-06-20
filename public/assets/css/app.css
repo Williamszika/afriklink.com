@@ -1242,6 +1242,23 @@ form input.is-locked, form select.is-locked { background: #f3f4f6; color: #37415
 .product-card-img .listing-thumb-empty { width:100%; height:100%; border:0; border-radius:0; font-size:2rem; }
 .product-card-name { font-weight:600; line-height:1.25; }
 .product-card-price { font-weight:800; color:var(--brand); }
+
+/* Localisation + portée de livraison sur les cartes (géolocalisation acheteur) */
+.card-geo { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin-top:1px; }
+.card-geo__place { font-size:.76rem; color:var(--muted); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.reach-chip { font-size:.68rem; font-weight:700; line-height:1; padding:3px 7px; border-radius:999px; border:1px solid transparent; white-space:nowrap; }
+.reach-chip--local { background:#e7f4ec; color:#14502E; border-color:#bfe2cd; }
+.reach-chip--intl  { background:#eef2fb; color:#234; border-color:#d3ddf2; }
+.near-hint { font-size:.85rem; font-weight:500; color:var(--muted); }
+
+/* Ligne « livre chez vous » sur la fiche produit */
+.deliver-reach { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin:6px 0; padding:8px 12px; border-radius:12px; background:var(--bg,#f4f6f5); border:1px solid var(--border); font-size:.88rem; }
+.deliver-reach svg { flex:none; }
+.deliver-reach--local { background:#e7f4ec; border-color:#bfe2cd; color:#14502E; }
+.deliver-reach--none  { background:#fdeef0; border-color:#f6cdd5; color:#8a1f37; }
+.deliver-reach__from { color:var(--muted); font-weight:500; }
+.deliver-reach--local .deliver-reach__from { color:#3a6b4f; }
+
 /* Carte produit avec ajout au panier */
 .product-cell { display:grid; gap:8px; align-content:start; }
 .product-card-img { position:relative; }

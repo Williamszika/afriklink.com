@@ -503,6 +503,19 @@ $dotHtml = static function (array $hexes): string {
                         <span class="badge badge-warn"><?= e(t('product.out_of_stock')) ?></span>
                     <?php endif; ?>
                 </p>
+                <?php
+                // Portée de livraison vue par l'acheteur géolocalisé.
+                $pfReach = delivery_reach($boutique);
+                $pfPlace = place_label($boutique['city'] ?? null, $boutique['country_code'] ?? null);
+                $pfKm    = geo_km_label($pfReach['km']);
+                ?>
+                <?php if ($pfPlace !== '' || in_array($pfReach['status'], ['city', 'country', 'international', 'pickup', 'none'], true)): ?>
+                    <p class="deliver-reach deliver-reach--<?= e($pfReach['local'] ? 'local' : $pfReach['status']) ?>">
+                        <?= icon($pfReach['status'] === 'pickup' ? 'store' : 'truck', ['size' => 16]) ?>
+                        <?php if ($pfReach['status'] !== 'unknown'): ?><strong><?= e($pfReach['label']) ?></strong><?php endif; ?>
+                        <?php if ($pfPlace !== ''): ?><span class="deliver-reach__from"><?= e(t('reach.from', ['place' => $pfPlace])) ?><?= $pfKm !== '' ? ' · ' . e($pfKm) : '' ?></span><?php endif; ?>
+                    </p>
+                <?php endif; ?>
                 <?php if (!$inStock && $published): ?>
                     <div class="stock-alert" id="stock-alert">
                         <p class="stock-alert-cta"><?= icon('bell', ['size' => 16]) ?> <?= e(t('stock.cta')) ?></p>
