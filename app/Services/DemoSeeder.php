@@ -23,40 +23,70 @@ final class DemoSeeder
     private const DEMO_BOUTIQUE_WHERE =
         "(u.email LIKE '%@afriklink.demo' OR (u.id IS NULL AND b.name REGEXP ' #[0-9]+\$'))";
 
-    /** Boutiques de démo actuellement publiées (vendeur démo OU orphelines typées démo). */
+    /** Boutiques de TEST/QA héritées (slugs EXACTS connus) — nettoyées avec la démo. */
+    private const TEST_SLUGS = ['banner-test', 'boutique-demo-3166769', 'cat-demo-9992644', 'qa-vendeur-test', 'test-phys'];
+
+    /** @return list<int> ids des boutiques de démo (vendeur démo, orphelines typées, slugs de test). */
+    private static function demoBoutiqueIds(): array
+    {
+        $pdo = db();
+        $ids = array_map('intval', $pdo->query(
+            "SELECT b.id FROM boutiques b LEFT JOIN users u ON u.id = b.user_id WHERE " . self::DEMO_BOUTIQUE_WHERE
+        )->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+        $place = implode(',', array_fill(0, count(self::TEST_SLUGS), '?'));
+        $st = $pdo->prepare("SELECT id FROM boutiques WHERE slug IN ($place)");
+        $st->execute(self::TEST_SLUGS);
+        foreach ($st->fetchAll(\PDO::FETCH_COLUMN) ?: [] as $tid) {
+            $ids[] = (int) $tid;
+        }
+        return array_values(array_unique($ids));
+    }
+
+    /** Boutiques de démo/test publiées (vendeur démo, orphelines typées, slugs de test). */
     public static function count(): int
     {
         try {
-            return (int) db()->query(
+            $place = implode(',', array_fill(0, count(self::TEST_SLUGS), '?'));
+            $st = db()->prepare(
                 "SELECT COUNT(*) FROM boutiques b LEFT JOIN users u ON u.id = b.user_id
-                  WHERE b.status = 'published' AND " . self::DEMO_BOUTIQUE_WHERE
-            )->fetchColumn();
+                  WHERE b.status = 'published' AND (" . self::DEMO_BOUTIQUE_WHERE . " OR b.slug IN ($place))"
+            );
+            $st->execute(self::TEST_SLUGS);
+            return (int) $st->fetchColumn();
         } catch (\Throwable) {
             return 0;
         }
     }
 
-    /** Supprime TOUTES les données de démo (boutiques + produits + comptes). @return int boutiques retirées */
+    /** Supprime TOUTES les données de démo/test (boutiques + produits + comptes). @return int boutiques retirées */
     public static function purge(): int
     {
         $pdo = db();
-        // 1) Boutiques de démo (vendeur @afriklink.demo OU orphelines typées démo) + leur contenu.
-        $bids = $pdo->query(
-            "SELECT b.id FROM boutiques b LEFT JOIN users u ON u.id = b.user_id
-              WHERE " . self::DEMO_BOUTIQUE_WHERE
-        )->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+        // 1) Boutiques de démo + test (et leur contenu). On note leurs propriétaires.
+        $bids = self::demoBoutiqueIds();
+        $owners = [];
         if ($bids !== []) {
-            $binp = implode(',', array_map('intval', $bids));
+            $binp = implode(',', $bids);
+            $owners = array_map('intval', $pdo->query("SELECT DISTINCT user_id FROM boutiques WHERE id IN ($binp) AND user_id IS NOT NULL")->fetchAll(\PDO::FETCH_COLUMN) ?: []);
             $pdo->exec("DELETE FROM product_variants WHERE boutique_id IN ($binp)");
             $pdo->exec("DELETE FROM product_photos WHERE product_id IN (SELECT id FROM products WHERE boutique_id IN ($binp))");
             $pdo->exec("DELETE FROM products WHERE boutique_id IN ($binp)");
             $pdo->exec("DELETE FROM boutiques WHERE id IN ($binp)");
         }
-        // 2) Comptes vendeurs de démo restants.
+        // 2) Comptes vendeurs @afriklink.demo restants.
         $demoIds = $pdo->query("SELECT id FROM users WHERE email LIKE '%@afriklink.demo'")->fetchAll(\PDO::FETCH_COLUMN) ?: [];
         if ($demoIds !== []) {
-            $in = implode(',', array_map('intval', $demoIds));
-            $pdo->exec("DELETE FROM users WHERE id IN ($in)");
+            try { $pdo->exec("DELETE FROM users WHERE id IN (" . implode(',', array_map('intval', $demoIds)) . ")"); } catch (\Throwable) {}
+        }
+        // 3) Comptes propriétaires de boutiques de test : supprimés UNIQUEMENT s'ils ne
+        // possèdent plus aucune boutique, et JAMAIS s'ils sont staff (garde-fou).
+        foreach ($owners as $oid) {
+            if ($oid <= 0) { continue; }
+            $still = (int) $pdo->query("SELECT COUNT(*) FROM boutiques WHERE user_id = $oid")->fetchColumn();
+            if ($still > 0) { continue; }
+            $email = (string) ($pdo->query("SELECT email FROM users WHERE id = $oid")->fetchColumn() ?: '');
+            if ($email !== '' && is_staff(['email' => $email])) { continue; }
+            try { $pdo->exec("DELETE FROM users WHERE id = $oid"); } catch (\Throwable) {}
         }
         return count($bids);
     }
