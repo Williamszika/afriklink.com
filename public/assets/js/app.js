@@ -880,38 +880,33 @@ document.addEventListener('click', function (ev) {
 });
 
 /* ---- Fiche produit boutique : zoom plein écran (lightbox) ----
-   La grande photo s'ouvre en plein écran ; flèches/Échap pour naviguer/fermer. */
+   La grande photo s'ouvre en plein écran ; flèches/Échap pour naviguer/fermer.
+   Relit data-photos À L'OUVERTURE pour refléter un changement de galerie (photos
+   par couleur), et suit l'index des vignettes par DÉLÉGATION (survit au remplacement
+   des vignettes lorsqu'on change de couleur). */
 (function () {
     var gallery = document.querySelector('[data-gallery]');
     if (!gallery) { return; }
-    var photos = [];
-    try { photos = JSON.parse(gallery.getAttribute('data-photos') || '[]'); } catch (e) { photos = []; }
     var zoomBtn = gallery.querySelector('[data-zoom-open]');
-    var current = 0;
-
-    // Suit la photo affichée (le swap de la vignette est géré au-dessus).
-    gallery.querySelectorAll('.thumb[data-index]').forEach(function (th) {
-        th.addEventListener('click', function () {
-            current = parseInt(th.getAttribute('data-index'), 10) || 0;
-            if (zoomBtn) { zoomBtn.setAttribute('data-index', String(current)); }
-        });
+    if (!zoomBtn) { return; }
+    function getPhotos() { try { return JSON.parse(gallery.getAttribute('data-photos') || '[]'); } catch (e) { return []; } }
+    gallery.addEventListener('click', function (ev) {
+        var th = ev.target && ev.target.closest ? ev.target.closest('.thumb[data-index]') : null;
+        if (th) { zoomBtn.setAttribute('data-index', th.getAttribute('data-index') || '0'); }
     });
-
-    if (!zoomBtn || !photos.length) { return; }
-    var ov, imgEl;
-    function show(i) {
-        current = ((i % photos.length) + photos.length) % photos.length;
-        if (imgEl) { imgEl.src = photos[current]; }
-    }
+    var ov, imgEl, photos = [], current = 0;
+    function show(i) { if (!photos.length) { return; } current = ((i % photos.length) + photos.length) % photos.length; if (imgEl) { imgEl.src = photos[current]; } }
     function close() { if (ov) { ov.classList.remove('is-open'); document.body.style.overflow = ''; } }
     function open() {
+        photos = getPhotos();
+        if (!photos.length) { return; }
         if (!ov) {
             ov = document.createElement('div');
             ov.className = 'lightbox';
             ov.innerHTML = '<button class="lightbox-close" type="button" aria-label="Fermer">×</button>'
-                + (photos.length > 1 ? '<button class="lightbox-nav lightbox-prev" type="button" aria-label="Précédent">‹</button>' : '')
+                + '<button class="lightbox-nav lightbox-prev" type="button" aria-label="Précédent">‹</button>'
                 + '<img class="lightbox-img" alt="">'
-                + (photos.length > 1 ? '<button class="lightbox-nav lightbox-next" type="button" aria-label="Suivant">›</button>' : '');
+                + '<button class="lightbox-nav lightbox-next" type="button" aria-label="Suivant">›</button>';
             document.body.appendChild(ov);
             imgEl = ov.querySelector('.lightbox-img');
             ov.addEventListener('click', function (e) {
@@ -3916,6 +3911,38 @@ document.addEventListener('click', function (ev) {
     var hasColor = !!pick.querySelector('input[name="pick_color"]');
     var priceVaries = variants.some(function (v) { return v.price !== variants[0].price; });
 
+    // Photos par couleur : clic sur une couleur → bascule la galerie produit.
+    var colorImages = {};
+    try { colorImages = JSON.parse(pick.getAttribute('data-color-images') || '{}'); } catch (e) { colorImages = {}; }
+    var hasColorImages = Object.keys(colorImages).length > 0;
+    var gal = document.querySelector('[data-gallery]');
+    var galMain = document.getElementById('listing-main-photo');
+    var galThumbs = gal ? gal.querySelector('.listing-thumbs') : null;
+    var galZoom = gal ? gal.querySelector('[data-zoom-open]') : null;
+    var galDefaults = gal ? { photos: gal.getAttribute('data-photos'), main: galMain ? galMain.src : '', thumbs: galThumbs ? galThumbs.innerHTML : '' } : null;
+    var lastColor = null;
+    function swapGallery(color) {
+        if (!hasColorImages || !gal || !galMain || color === lastColor) { return; }
+        lastColor = color;
+        var imgs = colorImages[color];
+        if (imgs && imgs.length) {
+            galMain.src = imgs[0].full;
+            gal.setAttribute('data-photos', JSON.stringify(imgs.map(function (x) { return x.zoom; })));
+            if (galThumbs) {
+                galThumbs.innerHTML = imgs.map(function (x, i) {
+                    return '<button type="button" class="thumb" data-index="' + i + '" data-gallery-full="' + x.full + '"><img src="' + x.thumb + '" alt="" loading="lazy" width="120" height="90"></button>';
+                }).join('');
+            }
+            if (galZoom) { galZoom.setAttribute('data-index', '0'); }
+        } else if (galDefaults) {
+            // Couleur sans photo dédiée → galerie d'origine du produit.
+            galMain.src = galDefaults.main;
+            gal.setAttribute('data-photos', galDefaults.photos || '[]');
+            if (galThumbs) { galThumbs.innerHTML = galDefaults.thumbs; }
+            if (galZoom) { galZoom.setAttribute('data-index', '0'); }
+        }
+    }
+
     function fmt(c) { return (curInt ? String(Math.round(c / 100)) : (c / 100).toFixed(2).replace('.', ',')) + ' ' + sym; }
     function sel(name) { var r = pick.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ''; }
     function inStock(v) { return !!v && (v.stock === null || v.stock > 0); }
@@ -3940,6 +3967,7 @@ document.addEventListener('click', function (ev) {
     }
     function update() {
         var size = sel('pick_size'), color = sel('pick_color');
+        if (hasColorImages) { swapGallery(color); }
         pick.querySelectorAll('[data-axis-val]').forEach(function (s) {
             var v = s.getAttribute('data-axis-val') === 'size' ? size : color;
             s.textContent = v ? '· ' + v : '';
@@ -6723,4 +6751,79 @@ document.addEventListener('click', function (ev) {
         if (!ov || !ov.classList.contains('is-open')) { return; }
         if (e.key === 'Escape') { close(); } else if (e.key === 'ArrowRight') { show(cur + 1); } else if (e.key === 'ArrowLeft') { show(cur - 1); }
     });
+})();
+
+/* ---- Vendeur : photos par couleur (déclinaisons, combos inclus) ---- */
+(function () {
+    var box = document.querySelector('[data-color-photos]');
+    if (!box) { return; }
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+    var hidden = box.querySelector('[data-color-images-json]');
+    var rowsBox = box.querySelector('[data-color-photos-rows]');
+    var tpl = document.getElementById('color-photo-row-tpl');
+    var statusEl = box.querySelector('[data-color-status]');
+    if (!hidden || !rowsBox || !tpl) { return; }
+
+    var COLOR_HEX = { noir:'#1a1a1a', black:'#1a1a1a', blanc:'#f5f5f0', white:'#f5f5f0', gris:'#9ca3af', gray:'#9ca3af', grey:'#9ca3af',
+        rouge:'#dc2626', red:'#dc2626', bordeaux:'#7f1d1d', bleu:'#2563eb', blue:'#2563eb', marine:'#1e3a5f', turquoise:'#06b6d4',
+        vert:'#16a34a', green:'#16a34a', kaki:'#78866b', jaune:'#facc15', yellow:'#facc15', or:'#d4af37', gold:'#d4af37',
+        orange:'#ea580c', rose:'#ec4899', pink:'#ec4899', fuchsia:'#d946ef', violet:'#7c3aed', purple:'#7c3aed', mauve:'#b57edc',
+        marron:'#92400e', brown:'#92400e', camel:'#c19a6b', taupe:'#8b8589', beige:'#e7d8b8', argent:'#c0c0c0', bronze:'#cd7f32' };
+    function hexOf(name) { var f = (name || '').split(/[\/&·,]| et /i)[0].trim().toLowerCase(); return COLOR_HEX[f] || COLOR_HEX[(f.split(' ')[0] || '')] || ''; }
+
+    var state = {}; // { colorLower: { name, imgs:[{id,url}] } }
+    try { var pre = JSON.parse(box.getAttribute('data-prefill') || '{}'); Object.keys(pre).forEach(function (c) { state[c.toLowerCase()] = { name: c, imgs: pre[c] || [] }; }); } catch (e) {}
+    var pending = 0;
+    var submitBtn = document.getElementById('product-submit');
+
+    function setStatus() { if (statusEl) { statusEl.hidden = pending === 0; if (pending > 0) { statusEl.textContent = statusEl.getAttribute('data-msg') || 'Envoi…'; } } if (submitBtn) { submitBtn.disabled = pending > 0; } }
+    function syncHidden() { var map = {}; Object.keys(state).forEach(function (k) { if (state[k].imgs && state[k].imgs.length) { map[state[k].name] = state[k].imgs.map(function (x) { return x.id; }); } }); hidden.value = JSON.stringify(map); }
+    function sign() { var b = new FormData(); b.append('resource_type', 'image'); return fetch('/api/media/sign', { method: 'POST', headers: { 'X-CSRF-Token': csrf }, body: b }).then(function (r) { if (!r.ok) { throw new Error('sign'); } return r.json(); }); }
+    function shrink(file) { if (file.size < 600 * 1024 || typeof window.createImageBitmap !== 'function') { return Promise.resolve(file); } return createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) { var s = Math.min(1, 1600 / Math.max(bmp.width, bmp.height)); if (s === 1) { return file; } var c = document.createElement('canvas'); c.width = Math.round(bmp.width * s); c.height = Math.round(bmp.height * s); c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); return new Promise(function (res) { c.toBlob(function (bl) { res(bl && bl.size < file.size ? new File([bl], 'p.jpg', { type: 'image/jpeg' }) : file); }, 'image/jpeg', 0.85); }); }).catch(function () { return file; }); }
+    function upload(file, p) { var fd = new FormData(); fd.append('file', file); fd.append('api_key', p.api_key); fd.append('timestamp', p.timestamp); fd.append('folder', p.folder); fd.append('signature', p.signature); return fetch('https://api.cloudinary.com/v1_1/' + encodeURIComponent(p.cloud_name) + '/' + p.resource_type + '/upload', { method: 'POST', body: fd }).then(function (r) { if (!r.ok) { throw new Error('up'); } return r.json(); }); }
+
+    function renderPreviews(row, key) {
+        var prev = row.querySelector('[data-color-previews]'); prev.innerHTML = '';
+        (state[key].imgs || []).forEach(function (img) {
+            var w = document.createElement('div'); w.className = 'review-prev';
+            var im = document.createElement('img'); im.src = img.url; im.alt = '';
+            var del = document.createElement('button'); del.type = 'button'; del.className = 'review-prev-del'; del.textContent = '✕';
+            del.addEventListener('click', function () { state[key].imgs = state[key].imgs.filter(function (x) { return x.id !== img.id; }); renderPreviews(row, key); syncHidden(); });
+            w.appendChild(im); w.appendChild(del); prev.appendChild(w);
+        });
+    }
+    function buildRow(color) {
+        var key = color.toLowerCase();
+        if (!state[key]) { state[key] = { name: color, imgs: [] }; } else { state[key].name = color; }
+        var node = tpl.content.firstElementChild.cloneNode(true);
+        node.setAttribute('data-key', key);
+        node.querySelector('[data-color-name]').textContent = color;
+        var dot = node.querySelector('[data-color-dot]'); var hx = hexOf(color);
+        if (dot) { if (hx) { dot.style.background = hx; } else { dot.style.display = 'none'; } }
+        var file = node.querySelector('[data-color-file]');
+        file.addEventListener('change', function () {
+            Array.prototype.filter.call(file.files || [], function (f) { return f && f.type.indexOf('image/') === 0; }).forEach(function (f) {
+                pending++; setStatus();
+                shrink(f).then(function (ff) { return sign().then(function (p) { return upload(ff, p); }); })
+                    .then(function (res) { if (res && res.public_id) { state[key].imgs.push({ id: res.public_id, url: res.secure_url || '' }); renderPreviews(node, key); syncHidden(); } pending--; setStatus(); })
+                    .catch(function () { pending--; setStatus(); });
+            });
+            file.value = '';
+        });
+        rowsBox.appendChild(node); renderPreviews(node, key);
+    }
+    function distinctColors() { var seen = {}, out = []; document.querySelectorAll('input[name="var_color[]"]').forEach(function (i) { var v = (i.value || '').trim(); if (!v) { return; } var k = v.toLowerCase(); if (seen[k]) { return; } seen[k] = true; out.push(v); }); return out; }
+    function rebuild() {
+        var colors = distinctColors();
+        box.hidden = colors.length === 0;
+        var present = {}; colors.forEach(function (c) { present[c.toLowerCase()] = true; });
+        rowsBox.querySelectorAll('[data-color-row]').forEach(function (r) { if (!present[r.getAttribute('data-key')]) { r.remove(); } });
+        var existing = {}; rowsBox.querySelectorAll('[data-color-row]').forEach(function (r) { existing[r.getAttribute('data-key')] = true; });
+        colors.forEach(function (c) { if (!existing[c.toLowerCase()]) { buildRow(c); } });
+        syncHidden();
+    }
+    document.addEventListener('input', function (ev) { if (ev.target && ev.target.name === 'var_color[]') { rebuild(); } });
+    var addBtn = document.querySelector('[data-variant-add]'); if (addBtn) { addBtn.addEventListener('click', function () { setTimeout(rebuild, 40); }); }
+    var rowsContainer = document.querySelector('[data-variant-rows]'); if (rowsContainer) { rowsContainer.addEventListener('click', function (e) { if (e.target && e.target.closest && e.target.closest('[data-variant-del]')) { setTimeout(rebuild, 40); } }); }
+    rebuild();
 })();

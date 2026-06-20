@@ -1045,6 +1045,45 @@ final class ProductController
             }
         }
 
+        // Photos par couleur : { "Rouge": ["id1"...], "Rouge/Noir": [...] }. Chaque image
+        // est re-vérifiée (Cloudinary) ; on ne garde que les COULEURS réellement présentes
+        // dans les déclinaisons (var_color), combos « Rouge/Noir » inclus. Bornes anti-abus.
+        $rawCi = json_decode((string) ($_POST['color_images_json'] ?? ''), true);
+        if (is_array($rawCi) && $rawCi !== [] && !isset($_POST['var_name'])) {
+            $varColors = array_map(
+                static fn ($c): string => mb_strtolower(trim((string) $c)),
+                (array) ($_POST['var_color'] ?? [])
+            );
+            $ci = [];
+            $nColors = 0;
+            foreach ($rawCi as $cName => $ids) {
+                $cName = trim((string) $cName);
+                if ($cName === '' || !is_array($ids) || !in_array(mb_strtolower($cName), $varColors, true)) {
+                    continue;
+                }
+                if (++$nColors > 16) {
+                    break;
+                }
+                $keep = [];
+                $cand = array_slice(array_values(array_unique(array_filter($ids, 'is_string'))), 0, 6);
+                foreach ($cand as $cid) {
+                    if (CloudinaryService::verifyAsset('image', $cid) !== null) {
+                        $keep[] = $cid;
+                    }
+                }
+                if ($keep !== []) {
+                    $ci[$cName] = $keep;
+                }
+            }
+            if ($ci !== []) {
+                $aDec = ($attributes ?? null) !== null ? (json_decode((string) $attributes, true) ?: []) : [];
+                if (is_array($aDec)) {
+                    $aDec['color_images'] = $ci;
+                    $attributes = (string) json_encode($aDec, JSON_UNESCAPED_UNICODE);
+                }
+            }
+        }
+
         return [[
             'name' => $name, 'description' => $description, 'price_cents' => $priceCents,
             'promo_price_cents' => $promoCents, 'promo_until' => $promoUntil,

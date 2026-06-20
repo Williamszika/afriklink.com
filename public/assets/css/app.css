@@ -2372,3 +2372,13 @@ form label .muted, form label .opt { font-weight: 400; color: var(--muted); font
 }
 @media (max-width: 560px) { .auth-card--pf { padding-left: 16px; padding-right: 16px; } }
 /* /FORMS PRO */
+/* — Vendeur : photos par couleur (déclinaisons) — */
+.color-photos-box{margin:12px 0 2px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fbfaf7}
+.color-photos-title{margin:0 0 2px;font-weight:700}
+.color-photo-row{padding:10px 0;border-top:1px solid var(--border)}
+.color-photo-row:first-of-type{border-top:0;padding-top:2px}
+.color-photo-head{display:flex;align-items:center;gap:6px;font-weight:600;margin-bottom:6px}
+.color-photo-head .chip-dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18)}
+.color-photo-previews{display:flex;flex-wrap:wrap;gap:8px}
+.color-up-add{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:46px;padding:0 14px;margin-top:8px;border:1.5px dashed var(--afk-ligne-fort,#c9bfa9);border-radius:8px;color:var(--muted);font-weight:600;font-size:.82rem;cursor:pointer}
+.color-up-add:hover{border-color:var(--afk-foret,#1c3d32);color:var(--afk-foret,#1c3d32)}

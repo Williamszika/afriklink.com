@@ -1879,15 +1879,16 @@ function variant_color_hex(?string $value): array
         $first = preg_split('/\s+/', $k)[0] ?? '';
         return ($first !== '' && isset($map[$first])) ? $map[$first] : null;
     };
-    // Valeur bicolore : « A/B », « A & B », « A et B », « A · B ».
-    $parts = preg_split('#\s*(?:/|&|·|\bet\b)\s*#ui', $value, 3) ?: [$value];
+    // Valeur multicolore : « A/B », « A & B », « A et B », « A, B, C », « A · B · C »…
+    // jusqu'à 4 teintes (bicolore, tricolore, quadricolore).
+    $parts = preg_split('#\s*(?:/|&|·|,|\bet\b)\s*#ui', $value, 5) ?: [$value];
     $out = [];
     foreach ($parts as $p) {
         $h = $resolve((string) $p);
         if ($h !== null && !in_array($h, $out, true)) {
             $out[] = $h;
         }
-        if (count($out) >= 2) {
+        if (count($out) >= 4) {
             break;
         }
     }
@@ -1943,7 +1944,7 @@ function product_spec_rows(array $product): array
     $boolKeys = ['ce', 'en71', 'fait_main', 'piece_unique', 'par_paire', 'personnalisation', 'universel',
         'alcoolise', 'contact_alimentaire', 'small_parts', 'avertissement_3ans', 'securite_enfant'];
     // Clés purement techniques (déjà servies ailleurs comme libellés d'axe / non pertinentes).
-    $skip = ['variant_axis', 'variant_axis2', 'sale_mode', 'unit', 'hex', 'nuance', 'notes', 'capteurs'];
+    $skip = ['variant_axis', 'variant_axis2', 'sale_mode', 'unit', 'hex', 'nuance', 'notes', 'capteurs', 'color_images'];
 
     // 1) Champs « colonnes » clés du produit.
     $add('Rayon', (string) ($product['collection'] ?? ''));

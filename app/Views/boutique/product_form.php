@@ -3839,6 +3839,41 @@ $fmtP = static function ($cents) use ($cur): string {
             </template>
             <datalist id="size-suggest"><?php foreach ($sizeOpts as $s): ?><option value="<?= e($s) ?>"></option><?php endforeach; ?></datalist>
             <datalist id="color-suggest"><?php foreach (['Noir','Blanc','Gris','Rouge','Bleu','Vert','Jaune','Orange','Rose','Violet','Marron','Beige'] as $c): ?><option value="<?= e($c) ?>"></option><?php endforeach; ?></datalist>
+            <?php
+            // Photos par couleur : aperçus existants (édition) reconstruits depuis attributes.color_images.
+            $ciPrefill = [];
+            if (!empty($product['attributes'])) {
+                $ciA = json_decode((string) $product['attributes'], true);
+                if (is_array($ciA) && is_array($ciA['color_images'] ?? null)) {
+                    foreach ($ciA['color_images'] as $ciName => $ciIds) {
+                        if (!is_array($ciIds)) { continue; }
+                        foreach ($ciIds as $ciId) {
+                            $ciId = (string) $ciId;
+                            if ($ciId !== '') { $ciPrefill[(string) $ciName][] = ['id' => $ciId, 'url' => CloudinaryService::imageUrl($ciId, 120, 90)]; }
+                        }
+                    }
+                }
+            }
+            ?>
+            <?php if (!empty($media_ready)): ?>
+                <div class="color-photos-box" data-color-photos data-prefill="<?= e((string) json_encode($ciPrefill, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>" hidden>
+                    <p class="color-photos-title">📸 <?= e(t('variant.color_photos_title')) ?></p>
+                    <p class="hint"><?= e(t('variant.color_photos_hint')) ?></p>
+                    <input type="hidden" name="color_images_json" data-color-images-json value="">
+                    <div class="color-photos-rows" data-color-photos-rows></div>
+                    <p class="review-up-status" data-color-status data-msg="<?= e(t('variant.uploading')) ?>" hidden></p>
+                </div>
+                <template id="color-photo-row-tpl">
+                    <div class="color-photo-row" data-color-row>
+                        <div class="color-photo-head"><span class="chip-dot" data-color-dot></span> <strong data-color-name></strong></div>
+                        <div class="color-photo-previews review-up-previews" data-color-previews></div>
+                        <label class="review-up-add" data-color-add>
+                            <input type="file" accept="image/*" multiple data-color-file hidden>
+                            <span>＋ <?= e(t('variant.add_photos')) ?></span>
+                        </label>
+                    </div>
+                </template>
+            <?php endif; ?>
         </details>
         </div><!-- /phone decl (ou générique) -->
         <?php if ($isApparel): ?>

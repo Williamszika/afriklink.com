@@ -59,15 +59,39 @@ foreach ($realVariants as $rv) {
         'base'  => $vBase,
     ];
 }
+// Photos par couleur : si le vendeur a associé des images à des couleurs, on prépare
+// la galerie de chaque couleur (3 résolutions). Clic sur une couleur → la galerie bascule.
+$colorImages = [];
+$pCiAttr = json_decode((string) ($product['attributes'] ?? ''), true);
+if (is_array($pCiAttr) && is_array($pCiAttr['color_images'] ?? null)) {
+    foreach ($pCiAttr['color_images'] as $cName => $cIds) {
+        if (!is_array($cIds)) { continue; }
+        foreach ($cIds as $cId) {
+            $cId = (string) $cId;
+            if ($cId === '') { continue; }
+            $colorImages[(string) $cName][] = [
+                'full'  => CloudinaryService::imageUrl($cId, 1100, 825),
+                'zoom'  => CloudinaryService::imageUrl($cId, 1400, 1050),
+                'thumb' => CloudinaryService::imageUrl($cId, 120, 90),
+            ];
+        }
+    }
+}
 // Rendu d'une pastille couleur : une teinte, ou deux côte à côte pour une valeur
 // bicolore (« Rouge/Noir »). Rien n'est affiché pour une capacité (« 256 Go »),
 // ce qui sépare visuellement un axe couleur d'un axe capacité.
 $dotHtml = static function (array $hexes): string {
     if ($hexes === []) { return ''; }
-    if (count($hexes) >= 2) {
-        return '<span class="chip-dot chip-dot--split" style="background:linear-gradient(135deg,' . e($hexes[0]) . ' 0 50%,' . e($hexes[1]) . ' 50% 100%)"></span>';
+    if (count($hexes) === 1) {
+        return '<span class="chip-dot" style="background:' . e($hexes[0]) . '"></span>';
     }
-    return '<span class="chip-dot" style="background:' . e($hexes[0]) . '"></span>';
+    // 2 à 4 teintes côte à côte (bi/tri/quadricolore) en tranches égales.
+    $n = count($hexes);
+    $stops = [];
+    foreach (array_values($hexes) as $i => $h) {
+        $stops[] = e($h) . ' ' . round($i * 100 / $n, 2) . '% ' . round(($i + 1) * 100 / $n, 2) . '%';
+    }
+    return '<span class="chip-dot chip-dot--split" style="background:linear-gradient(135deg,' . implode(',', $stops) . ')"></span>';
 };
 ?>
 <section class="listing-page">
@@ -489,7 +513,7 @@ $dotHtml = static function (array $hexes): string {
                     </div>
                 <?php endif; ?>
                 <?php if ($realVariants !== []): ?>
-                    <div class="variant-pick" data-variant-pick data-variants="<?= e((string) json_encode($vMap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>">
+                    <div class="variant-pick" data-variant-pick data-variants="<?= e((string) json_encode($vMap, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>"<?= $colorImages !== [] ? ' data-color-images="' . e((string) json_encode($colorImages, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) . '"' : '' ?>>
                         <?php if ($vSizes !== []): ?>
                             <div class="variant-axis">
                                 <p class="variant-pick-label"><?= e($pSizeLabel) ?> <span class="variant-pick-val" data-axis-val="size"></span></p>
