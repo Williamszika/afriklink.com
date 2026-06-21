@@ -235,6 +235,15 @@ function locale_dir(?string $locale = null): string
 }
 
 /**
+ * Texte d'un champ de régime légal (config/legal.php) dans la langue active.
+ * Cherche {base}_{locale}, sinon repli anglais, sinon français. Ex. rg_field($rg,'authority').
+ */
+function rg_field(array $rg, string $base): string
+{
+    return (string) ($rg[$base . '_' . current_locale()] ?? $rg[$base . '_en'] ?? $rg[$base . '_fr'] ?? '');
+}
+
+/**
  * Fournisseur d'encaissement recommandé selon le pays du vendeur : CinetPay
  * (mobile money) en Afrique, Stripe (cartes) en Europe, sinon la simulation.
  * Simple indication à l'onboarding — le vendeur reste libre de son choix.
