@@ -4,7 +4,7 @@
  * (Muster-Widerrufsformular). Pour les visiteurs hors UE : renvoi à la
  * politique de retour du vendeur. Modèle à faire valider juridiquement.
  */
-$en = current_locale() === 'en';
+$en = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
 $L  = legal_ctx($forced_cc ?? null);
 $op = $L['operator'];
 ?>

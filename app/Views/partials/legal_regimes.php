@@ -9,7 +9,7 @@
  */
 $current = $current ?? 'INTL';
 $base    = $base ?? '/mentions-legales';
-$en      = current_locale() === 'en';
+$en      = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
 $opts = [
     'DE'   => ['🇩🇪', $en ? 'Germany' : 'Allemagne'],
     'EU'   => ['🇪🇺', $en ? 'EU / EEA' : 'UE / EEE'],

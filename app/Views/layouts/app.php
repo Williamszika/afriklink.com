@@ -71,12 +71,15 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
             <span data-geo-chip-text><?= e($geoChip) ?></span>
         </button>
         <span class="topbar-spacer"></span>
-        <span class="lang-switch">
-            <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
-                <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>"
-                   href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?></a>
-            <?php endforeach; ?>
-        </span>
+        <?php $langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano']; ?>
+        <details class="cur-switch lang-dd">
+            <summary title="Langue / Language"><?= e(strtoupper(current_locale())) ?> ▾</summary>
+            <div class="cur-menu">
+                <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
+                    <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>" href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?> · <?= e($langNames[$loc] ?? $loc) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </details>
         <details class="cur-switch">
             <summary title="<?= e(t('field.currency')) ?>" aria-label="<?= e(t('field.currency')) ?>"><?= e(current_currency()) ?> ▾</summary>
             <div class="cur-menu">

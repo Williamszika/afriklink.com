@@ -113,8 +113,16 @@ function set_locale(string $locale): void
 function t(string $key, array $replace = []): string
 {
     if (empty($GLOBALS['__afrikalink_translations'])) {
-        $path = LANG_PATH . '/' . current_locale() . '.php';
-        $GLOBALS['__afrikalink_translations'] = is_file($path) ? require $path : [];
+        $locale = current_locale();
+        $path   = LANG_PATH . '/' . $locale . '.php';
+        $active = is_file($path) ? require $path : [];
+        if ($locale !== 'en') {
+            // Repli sur l'anglais (référence complète) pour toute clé non encore
+            // traduite : on n'affiche jamais une clé brute dans une langue partielle.
+            $enPath = LANG_PATH . '/en.php';
+            $active += is_file($enPath) ? require $enPath : [];
+        }
+        $GLOBALS['__afrikalink_translations'] = $active;
     }
     $translations = $GLOBALS['__afrikalink_translations'];
     $text = $translations[$key] ?? $key;
@@ -165,7 +173,7 @@ function currency_for_country(?string $cc): ?string
         'ML' => 'XOF', 'NE' => 'XOF', 'SN' => 'XOF', 'TG' => 'XOF',
         // Zone euro
         'FR' => 'EUR', 'DE' => 'EUR', 'IT' => 'EUR', 'ES' => 'EUR', 'PT' => 'EUR',
-        'BE' => 'EUR', 'NL' => 'EUR', 'IE' => 'EUR', 'AT' => 'EUR', 'FI' => 'EUR',
+        'BE' => 'EUR', 'NL' => 'EUR', 'IE' => 'EUR', 'AT' => 'EUR', 'FI' => 'EUR', 'SM' => 'EUR',
         'GR' => 'EUR', 'LU' => 'EUR', 'SK' => 'EUR', 'SI' => 'EUR', 'EE' => 'EUR',
         'LV' => 'EUR', 'LT' => 'EUR', 'CY' => 'EUR', 'MT' => 'EUR',
     ];
@@ -188,12 +196,23 @@ function language_for_country(?string $cc): ?string
     if ($cc === '') {
         return null;
     }
-    // Pays francophones (Europe + Afrique) → fr ; anglophones → en.
+    // Pays → langue d'interface. Ordre : langues spécifiques d'abord.
     static $fr = ['FR', 'BE', 'LU', 'MC', 'CH', 'CI', 'SN', 'ML', 'BF', 'NE', 'TG', 'BJ',
                   'GN', 'CM', 'GA', 'CG', 'CD', 'TD', 'CF', 'DJ', 'KM', 'MG', 'BI', 'MR'];
     static $en = ['GB', 'US', 'IE', 'CA', 'AU', 'NZ', 'NG', 'GH', 'KE', 'ZA', 'UG', 'TZ',
                   'ZM', 'ZW', 'RW', 'SL', 'LR', 'GM', 'BW', 'NA', 'MW'];
-    $lang = in_array($cc, $fr, true) ? 'fr' : (in_array($cc, $en, true) ? 'en' : null);
+    static $de = ['DE', 'AT'];
+    static $es = ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'VE', 'EC', 'GT', 'CU', 'BO',
+                  'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ'];
+    static $it = ['IT', 'SM', 'VA'];
+    $lang = match (true) {
+        in_array($cc, $de, true) => 'de',
+        in_array($cc, $es, true) => 'es',
+        in_array($cc, $it, true) => 'it',
+        in_array($cc, $fr, true) => 'fr',
+        in_array($cc, $en, true) => 'en',
+        default                  => null,
+    };
     if ($lang === null) {
         return null;
     }

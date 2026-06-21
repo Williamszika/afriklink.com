@@ -107,6 +107,9 @@ a:hover { text-decoration: underline; }
 .lang-switch { display: inline-flex; gap: 6px; margin-right: 6px; font-size: .85rem; }
 .lang-switch a { color: var(--muted); padding: 2px 4px; }
 .lang-switch a.is-active { color: var(--brand); font-weight: 700; }
+/* Sélecteur de langue (menu déroulant, partage le style de .cur-switch) */
+.lang-dd .cur-menu { min-width: 148px; }
+.lang-dd .cur-menu a { white-space: nowrap; }
 .inline-form { display: inline; margin: 0; }
 
 /* Buttons */

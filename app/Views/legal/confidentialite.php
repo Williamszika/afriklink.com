@@ -4,7 +4,7 @@
  *  DE/EU → RGPD + autorité nationale ; CI → Loi 2013-450 + ARTCI ; sinon loi
  *  locale. Sous-traitants listés depuis config/legal.php. À faire valider.
  */
-$en   = current_locale() === 'en';
+$en   = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
 $L    = legal_ctx($forced_cc ?? null);
 $op   = $L['operator'];
 $rg   = $L['data'];

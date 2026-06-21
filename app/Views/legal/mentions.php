@@ -5,7 +5,7 @@
  *  sinon mentions génériques. Coordonnées réelles dans config/legal.php (.env).
  *  Modèle à faire valider juridiquement.
  */
-$en   = current_locale() === 'en';
+$en   = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
 $L    = legal_ctx($forced_cc ?? null);
 $op   = $L['operator'];
 $rg   = $L['data'];

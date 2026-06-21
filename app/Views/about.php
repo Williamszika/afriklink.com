@@ -1,7 +1,7 @@
 <?php
 /** Page « À propos » — éditoriale, narrative, professionnelle. Bilingue (inline).
  *  Design intégré au site (en-tête/pied fournis par le layout), scopé à .about-page. */
-$en = current_locale() === 'en';
+$en = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
 $loggedIn = current_user() !== null;
 $sellHref = $loggedIn ? url('/boutique/creer') : url('/register/vendeur');
 

@@ -4,7 +4,7 @@
  *  EU/DE → rétractation 14 j + médiation ; CI → loi 2016-412 + transactions
  *  électroniques. Droit applicable = siège de l'éditeur. À faire valider.
  */
-$en = current_locale() === 'en';
+$en = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
 $L  = legal_ctx($forced_cc ?? null);
 $op = $L['operator'];
 $rg = $L['data'];
