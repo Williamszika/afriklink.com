@@ -71,7 +71,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
             <span data-geo-chip-text><?= e($geoChip) ?></span>
         </button>
         <span class="topbar-spacer"></span>
-        <?php $langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano']; ?>
+        <?php $langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano', 'pt' => 'Português']; ?>
         <details class="cur-switch lang-dd">
             <summary title="Langue / Language"><?= e(strtoupper(current_locale())) ?> ▾</summary>
             <div class="cur-menu">

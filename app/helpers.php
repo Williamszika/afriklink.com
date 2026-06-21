@@ -205,10 +205,12 @@ function language_for_country(?string $cc): ?string
     static $es = ['ES', 'MX', 'AR', 'CO', 'PE', 'CL', 'VE', 'EC', 'GT', 'CU', 'BO',
                   'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ'];
     static $it = ['IT', 'SM', 'VA'];
+    static $pt = ['PT', 'BR', 'AO', 'MZ', 'CV', 'GW', 'ST', 'TL', 'MO'];
     $lang = match (true) {
         in_array($cc, $de, true) => 'de',
         in_array($cc, $es, true) => 'es',
         in_array($cc, $it, true) => 'it',
+        in_array($cc, $pt, true) => 'pt',
         in_array($cc, $fr, true) => 'fr',
         in_array($cc, $en, true) => 'en',
         default                  => null,
