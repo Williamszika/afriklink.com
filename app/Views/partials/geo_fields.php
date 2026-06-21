@@ -9,7 +9,7 @@
  * @var ?string $city  @var ?string $cc  @var ?string $continent
  * @var ?string $lat   @var ?string $lng
  */
-$countries = config('countries', []);
+$countries = countries_list();
 $locked = ($lat ?? '') !== '' && ($lng ?? '') !== '';
 ?>
 <div class="geo-row">

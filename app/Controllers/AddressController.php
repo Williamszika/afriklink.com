@@ -17,7 +17,7 @@ final class AddressController
         $uid = (int) current_user_id();
         view('addresses', [
             'addresses'  => UserAddress::forUser($uid),
-            'countries'  => config('countries', []),
+            'countries'  => countries_list(),
             'page_title' => t('addr.title'),
         ]);
     }

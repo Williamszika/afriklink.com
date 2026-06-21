@@ -389,12 +389,41 @@ function set_session_geo(array $geo): void
     $_SESSION['geo'] = $geo;
 }
 
-/** French country name for an ISO code, or the code itself if unknown. */
+/** Localized country name for an ISO code (current locale), or the code itself. */
 function country_name(string $code): string
 {
-    $code = strtoupper($code);
+    $code = strtoupper(trim($code));
+    if ($code === '') {
+        return $code;
+    }
+    // Nom localisé via l'extension intl (Allemagne / Germany / Deutschland…).
+    if (extension_loaded('intl')) {
+        $name = \Locale::getDisplayRegion('-' . $code, current_locale());
+        if ($name !== '' && strtoupper($name) !== $code) {
+            return $name;
+        }
+    }
     $list = config('countries', []);
     return $list[$code] ?? $code;
+}
+
+/**
+ * Liste des pays SUPPORTÉS (mêmes codes que config/countries.php) avec libellés
+ * localisés dans la langue active, triés par nom. Alimente les menus déroulants.
+ * @return array<string,string> code ISO => nom localisé
+ */
+function countries_list(): array
+{
+    $out = [];
+    foreach (array_keys(config('countries', [])) as $code) {
+        $out[(string) $code] = country_name((string) $code);
+    }
+    if (extension_loaded('intl') && class_exists(\Collator::class)) {
+        (new \Collator(current_locale()))->asort($out);
+    } else {
+        asort($out);
+    }
+    return $out;
 }
 
 /* ------------------------------------------------------------------ */

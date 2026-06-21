@@ -1034,7 +1034,7 @@ final class BoutiqueController
             'ship_map'     => $shipMap,
             'shipping_zones' => $zones,
             'dest_country' => $destCountry,
-            'countries'    => config('countries', []),
+            'countries'    => countries_list(),
             'delivery_delay' => (string) ($boutique['delivery_delay'] ?? ''),
             'preview'      => $boutique['status'] !== 'published',
             'terms'        => array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? '')))),

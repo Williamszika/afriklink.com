@@ -21,7 +21,7 @@ final class ProfileController
         $user = current_user() ?? [];
         view('profile/edit', [
             'user'           => $user,
-            'countries'      => config('countries', []),
+            'countries'      => countries_list(),
             'avatar_version' => Avatar::versionFor((int) ($user['id'] ?? 0)),
         ]);
     }
