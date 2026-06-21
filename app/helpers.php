@@ -206,10 +206,16 @@ function language_for_country(?string $cc): ?string
                   'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ'];
     static $it = ['IT', 'SM', 'VA'];
     static $pt = ['PT', 'BR', 'AO', 'MZ', 'CV', 'GW', 'ST', 'TL', 'MO'];
+    static $nl = ['NL', 'SR', 'AW', 'CW'];
+    // Pays arabophones (Maghreb + Machrek + Golfe).
+    static $ar = ['MA', 'DZ', 'TN', 'EG', 'LY', 'SD', 'SA', 'AE', 'QA', 'KW',
+                  'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'YE', 'PS'];
     $lang = match (true) {
         in_array($cc, $de, true) => 'de',
         in_array($cc, $es, true) => 'es',
         in_array($cc, $it, true) => 'it',
+        in_array($cc, $nl, true) => 'nl',
+        in_array($cc, $ar, true) => 'ar',
         in_array($cc, $pt, true) => 'pt',
         in_array($cc, $fr, true) => 'fr',
         in_array($cc, $en, true) => 'en',
@@ -219,6 +225,13 @@ function language_for_country(?string $cc): ?string
         return null;
     }
     return in_array($lang, config('app.locales', ['fr', 'en']), true) ? $lang : null;
+}
+
+/** Sens d'écriture de la langue active : 'rtl' (arabe) ou 'ltr' (défaut). */
+function locale_dir(?string $locale = null): string
+{
+    $locale = $locale ?? current_locale();
+    return in_array($locale, config('app.rtl_locales', ['ar']), true) ? 'rtl' : 'ltr';
 }
 
 /**

@@ -18,7 +18,7 @@ if ($metaUrl === '') {
 $metaImage = (string) ($meta['image'] ?? '');
 ?>
 <!doctype html>
-<html lang="<?= e(current_locale()) ?>">
+<html lang="<?= e(current_locale()) ?>" dir="<?= e(locale_dir()) ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -71,7 +71,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
             <span data-geo-chip-text><?= e($geoChip) ?></span>
         </button>
         <span class="topbar-spacer"></span>
-        <?php $langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano', 'pt' => 'Português']; ?>
+        <?php $langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano', 'pt' => 'Português', 'nl' => 'Nederlands', 'ar' => 'العربية']; ?>
         <details class="cur-switch lang-dd">
             <summary title="Langue / Language"><?= e(strtoupper(current_locale())) ?> ▾</summary>
             <div class="cur-menu">

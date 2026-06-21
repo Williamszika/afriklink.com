@@ -26,7 +26,10 @@ return [
     // i18n / money. Language, country and currency are three independent axes.
     'default_locale'   => $_ENV['DEFAULT_LOCALE'] ?? 'fr',
     'default_currency' => $_ENV['DEFAULT_CURRENCY'] ?? 'EUR',
-    'locales'          => ['fr', 'en', 'de', 'es', 'it', 'pt'],
+    'locales'          => ['fr', 'en', 'de', 'es', 'it', 'pt', 'nl', 'ar'],
+
+    // Langues écrites de droite à gauche (affichage dir="rtl").
+    'rtl_locales'      => ['ar'],
     'currencies'       => ['EUR', 'USD', 'XOF', 'NGN', 'GBP'],
 
     // Zero-decimal currencies (no minor unit) — never blindly /100 these.

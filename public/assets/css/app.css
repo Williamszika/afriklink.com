@@ -2768,3 +2768,32 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 @media(max-width:860px){.ab-split,.ab-how{grid-template-columns:1fr}.ab-grid4,.ab-pledges,.ab-values{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:680px){.ab-founder{grid-template-columns:1fr;justify-items:start}.ab-portrait,.ab-avatar{width:158px;height:192px}.ab-avatar{font-size:2.4rem}.ab-portrait{margin:8px 14px 16px 12px}}
 @media(max-width:480px){.ab-grid4,.ab-pledges,.ab-values{grid-template-columns:1fr}}
+
+/* ===================== Mise en page droite-à-gauche (arabe / RTL) ===================== */
+/* La plupart des conteneurs sont en flexbox : dir="rtl" inverse déjà l'ordre.
+   Ci-dessous, on corrige le texte et les rares propriétés physiques visibles. */
+[dir="rtl"] body { text-align: right; }
+[dir="rtl"] .container { text-align: right; }
+[dir="rtl"] input, [dir="rtl"] textarea, [dir="rtl"] select { text-align: right; }
+/* Données latines/numériques : rester en LTR pour rester lisibles */
+[dir="rtl"] .price-approx, [dir="rtl"] .product-card-price, [dir="rtl"] .afk-mono,
+[dir="rtl"] .listing-price, [dir="rtl"] .afk-ad__price, [dir="rtl"] .cart-total-row strong,
+[dir="rtl"] input[type="tel"], [dir="rtl"] input[type="email"], [dir="rtl"] input[type="url"],
+[dir="rtl"] .geo-chip, [dir="rtl"] .cur-switch summary {
+    direction: ltr; unicode-bidi: isolate;
+}
+/* Listes à puces : aligner à droite */
+[dir="rtl"] ul, [dir="rtl"] ol { padding-right: 1.2em; padding-left: 0; }
+/* Champs avec marge gauche physique → passer à droite */
+[dir="rtl"] .form-row label, [dir="rtl"] .field-hint, [dir="rtl"] .hint { text-align: right; }
+/* Boutons avec icône : l'espace logique (gap) gère déjà l'inversion */
+[dir="rtl"] .btn { }
+/* Bandeau cookie + bandeau promo : centrés, OK ; flèches du carrousel restent fonctionnelles */
+[dir="rtl"] .afk-carousel__arrow--prev { left: auto; right: 12px; }
+[dir="rtl"] .afk-carousel__arrow--next { right: auto; left: 12px; }
+/* Menus déroulants (devise/langue) : aligner sous le bouton, côté droit */
+[dir="rtl"] .cur-menu { left: auto; right: 0; text-align: right; }
+/* Fil d'Ariane et liens « ← retour » : la flèche garde son sens via le texte */
+[dir="rtl"] .legal-back, [dir="rtl"] .crumb { text-align: right; }
+/* Pied de page : colonnes en flex, auto-inversées ; liens alignés à droite */
+[dir="rtl"] .footer-nav { text-align: right; }
