@@ -9,9 +9,381 @@ $L    = legal_ctx($forced_cc ?? null);
 $op   = $L['operator'];
 $rg   = $L['data'];
 $proc = config('legal.processors', []);
-$dataLaw   = $en ? ($rg['data_law_en'] ?? '') : ($rg['data_law_fr'] ?? '');
-$authority = $en ? ($rg['authority_en'] ?? '') : ($rg['authority_fr'] ?? '');
+$dataLaw   = rg_field($rg, 'data_law');
+$authority = rg_field($rg, 'authority');
 $contact   = trim((string) ($op['dpo_email'] ?? '')) !== '' ? $op['dpo_email'] : ($op['email'] ?? '');
+
+$TX = [
+    'en' => [
+        'lead_pre'         => 'This processing complies with ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Data controller',
+        'contact_label'    => 'Contact:',
+        'h_collect'        => 'What we collect',
+        'c_account'        => 'Account',
+        'c_account_txt'    => 'name, nickname, email and/or phone, country, language, hashed password.',
+        'c_sellers'        => 'Sellers',
+        'c_sellers_txt'    => 'business details and KYC documents for identity verification.',
+        'c_orders'         => 'Orders',
+        'c_orders_txt'     => 'items, amounts, delivery contact and address, optional GPS location you share.',
+        'c_technical'      => 'Technical',
+        'c_technical_txt'  => 'session and security cookies; functional and audience-measurement cookies only with your consent.',
+        'h_purposes'       => 'Purposes & legal bases',
+        'p_run'            => 'Run the marketplace and process orders',
+        'p_run_basis'      => 'performance of a contract',
+        'p_security'       => 'Account security, fraud and abuse prevention',
+        'p_security_basis' => 'legitimate interest',
+        'p_email'          => 'Transactional emails',
+        'p_email_basis'    => 'contract',
+        'p_news'           => 'newsletter & audience measurement',
+        'p_news_basis'     => 'consent',
+        'p_legal'          => 'Legal, tax and accounting obligations',
+        'p_legal_basis'    => 'legal obligation',
+        'h_recipients'     => 'Recipients & processors',
+        'recipients_txt'   => 'Your order data is shared with the seller concerned (to fulfil the order). We never sell your data. We rely on the following processors:',
+        'h_transfers'      => 'International transfers',
+        'transfers_txt'    => 'Afriklink connects Africa and Europe: some data is transferred between these regions and to providers located outside the EU/EEA. Such transfers rely on appropriate safeguards (e.g. EU standard contractual clauses) and data minimisation.',
+        'h_retention'      => 'Retention',
+        'retention_txt'    => 'Account data is kept while your account is active; order and invoicing data for the legal retention period; then deleted or anonymised.',
+        'h_rights'         => 'Your rights',
+        'rights_pre'       => 'You may request access, rectification, erasure, portability, restriction or object to processing, and lodge a complaint with ',
+        'breach_txt'       => 'In the event of a personal-data breach, we notify the competent authority within 72 hours where required.',
+        'h_cookies'        => 'Cookies',
+        'cookies_intro'    => 'We use three categories of cookies:',
+        'ck_essential'     => 'Essential',
+        'ck_essential_on'  => 'always on',
+        'ck_essential_txt' => 'session, security/CSRF, language, cart, consent choice.',
+        'ck_functional'    => 'Functional',
+        'ck_functional_txt'=> 'e.g. recently-viewed products; set only with your consent.',
+        'ck_audience'      => 'Audience measurement',
+        'ck_audience_txt'  => 'anonymous traffic statistics; set only with your consent.',
+        'cookies_change'   => 'You can change your choice at any time via the cookie banner.',
+        'cookies_reset'    => 'Reset my choice',
+    ],
+    'fr' => [
+        'lead_pre'         => 'Les traitements décrits respectent ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Responsable du traitement',
+        'contact_label'    => 'Contact :',
+        'h_collect'        => 'Données collectées',
+        'c_account'        => 'Compte',
+        'c_account_txt'    => 'nom, pseudo, e-mail et/ou téléphone, pays, langue, mot de passe (haché).',
+        'c_sellers'        => 'Vendeurs',
+        'c_sellers_txt'    => "informations d'entreprise et pièces KYC pour la vérification d'identité.",
+        'c_orders'         => 'Commandes',
+        'c_orders_txt'     => 'articles, montants, coordonnées et adresse de livraison, position GPS si vous la partagez.',
+        'c_technical'      => 'Technique',
+        'c_technical_txt'  => "cookies de session et de sécurité ; cookies fonctionnels et de mesure d'audience uniquement avec votre consentement.",
+        'h_purposes'       => 'Finalités & bases légales',
+        'p_run'            => 'Faire fonctionner la marketplace et traiter les commandes',
+        'p_run_basis'      => 'exécution du contrat',
+        'p_security'       => 'Sécurité des comptes, prévention de la fraude et des abus',
+        'p_security_basis' => 'intérêt légitime',
+        'p_email'          => 'E-mails transactionnels',
+        'p_email_basis'    => 'contrat',
+        'p_news'           => "newsletter & mesure d'audience",
+        'p_news_basis'     => 'consentement',
+        'p_legal'          => 'Obligations légales, fiscales et comptables',
+        'p_legal_basis'    => 'obligation légale',
+        'h_recipients'     => 'Destinataires & sous-traitants',
+        'recipients_txt'   => "Les données de commande sont transmises au vendeur concerné (pour exécuter la commande). Nous ne vendons jamais vos données. Nous recourons aux sous-traitants suivants :",
+        'h_transfers'      => 'Transferts internationaux',
+        'transfers_txt'    => "Afriklink relie l'Afrique et l'Europe : certaines données sont transférées entre ces régions et vers des prestataires situés hors UE/EEE. Ces transferts reposent sur des garanties appropriées (clauses contractuelles types de l'UE, par exemple) et la minimisation des données.",
+        'h_retention'      => 'Durée de conservation',
+        'retention_txt'    => 'Les données de compte sont conservées tant que le compte est actif ; les données de commande et de facturation pendant la durée légale ; puis supprimées ou anonymisées.',
+        'h_rights'         => 'Vos droits',
+        'rights_pre'       => "Vous disposez des droits d'accès, de rectification, d'effacement, de portabilité, de limitation et d'opposition, et pouvez introduire une réclamation auprès de ",
+        'breach_txt'       => "En cas de violation de données à caractère personnel, nous notifions l'autorité compétente sous 72 heures lorsque la loi l'exige.",
+        'h_cookies'        => 'Cookies',
+        'cookies_intro'    => 'Nous utilisons trois catégories de cookies :',
+        'ck_essential'     => 'Essentiels',
+        'ck_essential_on'  => 'toujours actifs',
+        'ck_essential_txt' => 'session, sécurité/CSRF, langue, panier, choix de consentement.',
+        'ck_functional'    => 'Fonctionnels',
+        'ck_functional_txt'=> 'ex. produits vus récemment ; déposés uniquement avec votre consentement.',
+        'ck_audience'      => "Mesure d'audience",
+        'ck_audience_txt'  => "statistiques de fréquentation anonymes ; déposés uniquement avec votre consentement.",
+        'cookies_change'   => 'Vous pouvez modifier votre choix à tout moment via le bandeau cookies.',
+        'cookies_reset'    => 'Réinitialiser mon choix',
+    ],
+    'de' => [
+        'lead_pre'         => 'Diese Verarbeitung erfolgt im Einklang mit ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Verantwortlicher',
+        'contact_label'    => 'Kontakt:',
+        'h_collect'        => 'Welche Daten wir erheben',
+        'c_account'        => 'Konto',
+        'c_account_txt'    => 'Name, Pseudonym, E-Mail und/oder Telefon, Land, Sprache, gehashtes Passwort.',
+        'c_sellers'        => 'Verkäufer',
+        'c_sellers_txt'    => 'Unternehmensangaben und KYC-Dokumente zur Identitätsprüfung.',
+        'c_orders'         => 'Bestellungen',
+        'c_orders_txt'     => 'Artikel, Beträge, Lieferkontakt und -adresse, optional von Ihnen geteilter GPS-Standort.',
+        'c_technical'      => 'Technisches',
+        'c_technical_txt'  => 'Sitzungs- und Sicherheits-Cookies; funktionale und Reichweitenmessungs-Cookies nur mit Ihrer Einwilligung.',
+        'h_purposes'       => 'Zwecke & Rechtsgrundlagen',
+        'p_run'            => 'Betrieb des Marktplatzes und Abwicklung von Bestellungen',
+        'p_run_basis'      => 'Erfüllung eines Vertrags',
+        'p_security'       => 'Kontosicherheit, Betrugs- und Missbrauchsprävention',
+        'p_security_basis' => 'berechtigtes Interesse',
+        'p_email'          => 'Transaktions-E-Mails',
+        'p_email_basis'    => 'Vertrag',
+        'p_news'           => 'Newsletter & Reichweitenmessung',
+        'p_news_basis'     => 'Einwilligung',
+        'p_legal'          => 'Gesetzliche, steuerliche und buchhalterische Pflichten',
+        'p_legal_basis'    => 'rechtliche Verpflichtung',
+        'h_recipients'     => 'Empfänger & Auftragsverarbeiter',
+        'recipients_txt'   => 'Ihre Bestelldaten werden an den betreffenden Verkäufer weitergegeben (zur Ausführung der Bestellung). Wir verkaufen Ihre Daten niemals. Wir greifen auf folgende Auftragsverarbeiter zurück:',
+        'h_transfers'      => 'Internationale Datenübermittlungen',
+        'transfers_txt'    => 'Afriklink verbindet Afrika und Europa: Einige Daten werden zwischen diesen Regionen und an Anbieter außerhalb der EU/des EWR übermittelt. Solche Übermittlungen stützen sich auf geeignete Garantien (z. B. EU-Standardvertragsklauseln) und Datenminimierung.',
+        'h_retention'      => 'Speicherdauer',
+        'retention_txt'    => 'Kontodaten werden gespeichert, solange Ihr Konto aktiv ist; Bestell- und Rechnungsdaten für die gesetzliche Aufbewahrungsfrist; danach gelöscht oder anonymisiert.',
+        'h_rights'         => 'Ihre Rechte',
+        'rights_pre'       => 'Sie können Auskunft, Berichtigung, Löschung, Datenübertragbarkeit, Einschränkung verlangen oder der Verarbeitung widersprechen sowie Beschwerde einlegen bei ',
+        'breach_txt'       => 'Im Falle einer Verletzung des Schutzes personenbezogener Daten benachrichtigen wir die zuständige Behörde innerhalb von 72 Stunden, soweit gesetzlich vorgeschrieben.',
+        'h_cookies'        => 'Cookies',
+        'cookies_intro'    => 'Wir verwenden drei Kategorien von Cookies:',
+        'ck_essential'     => 'Notwendige',
+        'ck_essential_on'  => 'immer aktiv',
+        'ck_essential_txt' => 'Sitzung, Sicherheit/CSRF, Sprache, Warenkorb, Einwilligungsentscheidung.',
+        'ck_functional'    => 'Funktionale',
+        'ck_functional_txt'=> 'z. B. zuletzt angesehene Produkte; nur mit Ihrer Einwilligung gesetzt.',
+        'ck_audience'      => 'Reichweitenmessung',
+        'ck_audience_txt'  => 'anonyme Zugriffsstatistiken; nur mit Ihrer Einwilligung gesetzt.',
+        'cookies_change'   => 'Sie können Ihre Entscheidung jederzeit über das Cookie-Banner ändern.',
+        'cookies_reset'    => 'Meine Auswahl zurücksetzen',
+    ],
+    'es' => [
+        'lead_pre'         => 'Estos tratamientos cumplen con ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Responsable del tratamiento',
+        'contact_label'    => 'Contacto:',
+        'h_collect'        => 'Datos que recopilamos',
+        'c_account'        => 'Cuenta',
+        'c_account_txt'    => 'nombre, alias, correo electrónico y/o teléfono, país, idioma, contraseña cifrada (hash).',
+        'c_sellers'        => 'Vendedores',
+        'c_sellers_txt'    => 'datos de la empresa y documentos KYC para la verificación de identidad.',
+        'c_orders'         => 'Pedidos',
+        'c_orders_txt'     => 'artículos, importes, contacto y dirección de entrega, ubicación GPS opcional que usted comparta.',
+        'c_technical'      => 'Técnicos',
+        'c_technical_txt'  => 'cookies de sesión y de seguridad; cookies funcionales y de medición de audiencia únicamente con su consentimiento.',
+        'h_purposes'       => 'Finalidades y bases jurídicas',
+        'p_run'            => 'Operar el marketplace y tramitar los pedidos',
+        'p_run_basis'      => 'ejecución de un contrato',
+        'p_security'       => 'Seguridad de las cuentas, prevención del fraude y los abusos',
+        'p_security_basis' => 'interés legítimo',
+        'p_email'          => 'Correos transaccionales',
+        'p_email_basis'    => 'contrato',
+        'p_news'           => 'boletín y medición de audiencia',
+        'p_news_basis'     => 'consentimiento',
+        'p_legal'          => 'Obligaciones legales, fiscales y contables',
+        'p_legal_basis'    => 'obligación legal',
+        'h_recipients'     => 'Destinatarios y encargados del tratamiento',
+        'recipients_txt'   => 'Los datos de su pedido se comparten con el vendedor correspondiente (para ejecutar el pedido). Nunca vendemos sus datos. Recurrimos a los siguientes encargados del tratamiento:',
+        'h_transfers'      => 'Transferencias internacionales',
+        'transfers_txt'    => 'Afriklink conecta África y Europa: algunos datos se transfieren entre estas regiones y a proveedores situados fuera de la UE/EEE. Dichas transferencias se basan en garantías adecuadas (por ejemplo, las cláusulas contractuales tipo de la UE) y en la minimización de datos.',
+        'h_retention'      => 'Conservación',
+        'retention_txt'    => 'Los datos de la cuenta se conservan mientras su cuenta esté activa; los datos de pedidos y facturación durante el plazo legal de conservación; después se suprimen o se anonimizan.',
+        'h_rights'         => 'Sus derechos',
+        'rights_pre'       => 'Puede solicitar el acceso, la rectificación, la supresión, la portabilidad, la limitación u oponerse al tratamiento, y presentar una reclamación ante ',
+        'breach_txt'       => 'En caso de violación de datos personales, notificamos a la autoridad competente en un plazo de 72 horas cuando la ley así lo exige.',
+        'h_cookies'        => 'Cookies',
+        'cookies_intro'    => 'Utilizamos tres categorías de cookies:',
+        'ck_essential'     => 'Esenciales',
+        'ck_essential_on'  => 'siempre activas',
+        'ck_essential_txt' => 'sesión, seguridad/CSRF, idioma, carrito, elección de consentimiento.',
+        'ck_functional'    => 'Funcionales',
+        'ck_functional_txt'=> 'p. ej., productos vistos recientemente; se instalan únicamente con su consentimiento.',
+        'ck_audience'      => 'Medición de audiencia',
+        'ck_audience_txt'  => 'estadísticas de tráfico anónimas; se instalan únicamente con su consentimiento.',
+        'cookies_change'   => 'Puede cambiar su elección en cualquier momento mediante el banner de cookies.',
+        'cookies_reset'    => 'Restablecer mi elección',
+    ],
+    'it' => [
+        'lead_pre'         => 'Questi trattamenti sono conformi a ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Titolare del trattamento',
+        'contact_label'    => 'Contatto:',
+        'h_collect'        => 'Dati che raccogliamo',
+        'c_account'        => 'Account',
+        'c_account_txt'    => 'nome, pseudonimo, e-mail e/o telefono, paese, lingua, password con hash.',
+        'c_sellers'        => 'Venditori',
+        'c_sellers_txt'    => "dati aziendali e documenti KYC per la verifica dell'identità.",
+        'c_orders'         => 'Ordini',
+        'c_orders_txt'     => 'articoli, importi, contatto e indirizzo di consegna, posizione GPS facoltativa da voi condivisa.',
+        'c_technical'      => 'Tecnici',
+        'c_technical_txt'  => 'cookie di sessione e di sicurezza; cookie funzionali e di misurazione del pubblico solo con il vostro consenso.',
+        'h_purposes'       => 'Finalità e basi giuridiche',
+        'p_run'            => 'Gestire il marketplace ed evadere gli ordini',
+        'p_run_basis'      => 'esecuzione di un contratto',
+        'p_security'       => 'Sicurezza degli account, prevenzione di frodi e abusi',
+        'p_security_basis' => 'legittimo interesse',
+        'p_email'          => 'E-mail transazionali',
+        'p_email_basis'    => 'contratto',
+        'p_news'           => 'newsletter e misurazione del pubblico',
+        'p_news_basis'     => 'consenso',
+        'p_legal'          => 'Obblighi legali, fiscali e contabili',
+        'p_legal_basis'    => 'obbligo legale',
+        'h_recipients'     => 'Destinatari e responsabili del trattamento',
+        'recipients_txt'   => "I dati del vostro ordine sono comunicati al venditore interessato (per evadere l'ordine). Non vendiamo mai i vostri dati. Ci avvaliamo dei seguenti responsabili del trattamento:",
+        'h_transfers'      => 'Trasferimenti internazionali',
+        'transfers_txt'    => "Afriklink collega l'Africa e l'Europa: alcuni dati vengono trasferiti tra queste regioni e verso fornitori situati al di fuori dell'UE/SEE. Tali trasferimenti si basano su garanzie adeguate (ad esempio le clausole contrattuali tipo dell'UE) e sulla minimizzazione dei dati.",
+        'h_retention'      => 'Conservazione',
+        'retention_txt'    => "I dati dell'account sono conservati finché il vostro account è attivo; i dati di ordini e fatturazione per il periodo di conservazione previsto dalla legge; quindi cancellati o anonimizzati.",
+        'h_rights'         => 'I vostri diritti',
+        'rights_pre'       => "Potete richiedere l'accesso, la rettifica, la cancellazione, la portabilità, la limitazione od opporvi al trattamento, nonché proporre reclamo a ",
+        'breach_txt'       => "In caso di violazione dei dati personali, notifichiamo l'autorità competente entro 72 ore quando la legge lo richiede.",
+        'h_cookies'        => 'Cookie',
+        'cookies_intro'    => 'Utilizziamo tre categorie di cookie:',
+        'ck_essential'     => 'Essenziali',
+        'ck_essential_on'  => 'sempre attivi',
+        'ck_essential_txt' => 'sessione, sicurezza/CSRF, lingua, carrello, scelta del consenso.',
+        'ck_functional'    => 'Funzionali',
+        'ck_functional_txt'=> 'ad es. prodotti visualizzati di recente; installati solo con il vostro consenso.',
+        'ck_audience'      => 'Misurazione del pubblico',
+        'ck_audience_txt'  => 'statistiche di traffico anonime; installate solo con il vostro consenso.',
+        'cookies_change'   => 'Potete modificare la vostra scelta in qualsiasi momento tramite il banner dei cookie.',
+        'cookies_reset'    => 'Reimposta la mia scelta',
+    ],
+    'pt' => [
+        'lead_pre'         => 'Estes tratamentos cumprem ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Responsável pelo tratamento',
+        'contact_label'    => 'Contacto:',
+        'h_collect'        => 'Dados que recolhemos',
+        'c_account'        => 'Conta',
+        'c_account_txt'    => 'nome, alcunha, e-mail e/ou telefone, país, idioma, palavra-passe codificada (hash).',
+        'c_sellers'        => 'Vendedores',
+        'c_sellers_txt'    => 'dados da empresa e documentos KYC para a verificação de identidade.',
+        'c_orders'         => 'Encomendas',
+        'c_orders_txt'     => 'artigos, montantes, contacto e morada de entrega, localização GPS opcional que partilhe.',
+        'c_technical'      => 'Técnicos',
+        'c_technical_txt'  => 'cookies de sessão e de segurança; cookies funcionais e de medição de audiência apenas com o seu consentimento.',
+        'h_purposes'       => 'Finalidades e bases jurídicas',
+        'p_run'            => 'Operar o marketplace e processar as encomendas',
+        'p_run_basis'      => 'execução de um contrato',
+        'p_security'       => 'Segurança das contas, prevenção de fraude e de abusos',
+        'p_security_basis' => 'interesse legítimo',
+        'p_email'          => 'E-mails transacionais',
+        'p_email_basis'    => 'contrato',
+        'p_news'           => 'newsletter e medição de audiência',
+        'p_news_basis'     => 'consentimento',
+        'p_legal'          => 'Obrigações legais, fiscais e contabilísticas',
+        'p_legal_basis'    => 'obrigação legal',
+        'h_recipients'     => 'Destinatários e subcontratantes',
+        'recipients_txt'   => 'Os dados da sua encomenda são partilhados com o vendedor em causa (para executar a encomenda). Nunca vendemos os seus dados. Recorremos aos seguintes subcontratantes:',
+        'h_transfers'      => 'Transferências internacionais',
+        'transfers_txt'    => 'A Afriklink liga a África e a Europa: alguns dados são transferidos entre estas regiões e para prestadores situados fora da UE/EEE. Tais transferências assentam em garantias adequadas (por exemplo, as cláusulas contratuais-tipo da UE) e na minimização dos dados.',
+        'h_retention'      => 'Conservação',
+        'retention_txt'    => 'Os dados da conta são conservados enquanto a sua conta estiver ativa; os dados de encomendas e faturação durante o prazo legal de conservação; em seguida, são eliminados ou anonimizados.',
+        'h_rights'         => 'Os seus direitos',
+        'rights_pre'       => 'Pode solicitar o acesso, a retificação, o apagamento, a portabilidade, a limitação ou opor-se ao tratamento, bem como apresentar uma reclamação junto de ',
+        'breach_txt'       => 'Em caso de violação de dados pessoais, notificamos a autoridade competente no prazo de 72 horas, quando a lei o exige.',
+        'h_cookies'        => 'Cookies',
+        'cookies_intro'    => 'Utilizamos três categorias de cookies:',
+        'ck_essential'     => 'Essenciais',
+        'ck_essential_on'  => 'sempre ativos',
+        'ck_essential_txt' => 'sessão, segurança/CSRF, idioma, carrinho, escolha de consentimento.',
+        'ck_functional'    => 'Funcionais',
+        'ck_functional_txt'=> 'p. ex., produtos vistos recentemente; instalados apenas com o seu consentimento.',
+        'ck_audience'      => 'Medição de audiência',
+        'ck_audience_txt'  => 'estatísticas de tráfego anónimas; instaladas apenas com o seu consentimento.',
+        'cookies_change'   => 'Pode alterar a sua escolha a qualquer momento através do banner de cookies.',
+        'cookies_reset'    => 'Repor a minha escolha',
+    ],
+    'nl' => [
+        'lead_pre'         => 'Deze verwerkingen voldoen aan ',
+        'lead_post'        => '.',
+        'h_controller'     => 'Verwerkingsverantwoordelijke',
+        'contact_label'    => 'Contact:',
+        'h_collect'        => 'Welke gegevens wij verzamelen',
+        'c_account'        => 'Account',
+        'c_account_txt'    => 'naam, gebruikersnaam, e-mail en/of telefoon, land, taal, gehasht wachtwoord.',
+        'c_sellers'        => 'Verkopers',
+        'c_sellers_txt'    => 'bedrijfsgegevens en KYC-documenten voor identiteitsverificatie.',
+        'c_orders'         => 'Bestellingen',
+        'c_orders_txt'     => 'artikelen, bedragen, bezorgcontact en -adres, optionele GPS-locatie die u deelt.',
+        'c_technical'      => 'Technisch',
+        'c_technical_txt'  => 'sessie- en beveiligingscookies; functionele en publieksmetingscookies uitsluitend met uw toestemming.',
+        'h_purposes'       => 'Doeleinden & rechtsgronden',
+        'p_run'            => 'De marktplaats laten functioneren en bestellingen verwerken',
+        'p_run_basis'      => 'uitvoering van een overeenkomst',
+        'p_security'       => 'Accountbeveiliging, fraude- en misbruikpreventie',
+        'p_security_basis' => 'gerechtvaardigd belang',
+        'p_email'          => 'Transactionele e-mails',
+        'p_email_basis'    => 'overeenkomst',
+        'p_news'           => 'nieuwsbrief & publieksmeting',
+        'p_news_basis'     => 'toestemming',
+        'p_legal'          => 'Wettelijke, fiscale en boekhoudkundige verplichtingen',
+        'p_legal_basis'    => 'wettelijke verplichting',
+        'h_recipients'     => 'Ontvangers & verwerkers',
+        'recipients_txt'   => 'Uw bestelgegevens worden gedeeld met de betrokken verkoper (om de bestelling uit te voeren). Wij verkopen uw gegevens nooit. Wij maken gebruik van de volgende verwerkers:',
+        'h_transfers'      => 'Internationale doorgiften',
+        'transfers_txt'    => 'Afriklink verbindt Afrika en Europa: sommige gegevens worden tussen deze regio\'s en naar dienstverleners buiten de EU/EER doorgegeven. Dergelijke doorgiften berusten op passende waarborgen (bijvoorbeeld de EU-modelcontractbepalingen) en gegevensminimalisatie.',
+        'h_retention'      => 'Bewaring',
+        'retention_txt'    => 'Accountgegevens worden bewaard zolang uw account actief is; bestel- en facturatiegegevens gedurende de wettelijke bewaartermijn; daarna verwijderd of geanonimiseerd.',
+        'h_rights'         => 'Uw rechten',
+        'rights_pre'       => 'U kunt verzoeken om inzage, rectificatie, wissing, overdraagbaarheid, beperking of bezwaar maken tegen de verwerking, en een klacht indienen bij ',
+        'breach_txt'       => 'In geval van een inbreuk in verband met persoonsgegevens stellen wij de bevoegde autoriteit binnen 72 uur in kennis wanneer de wet dit vereist.',
+        'h_cookies'        => 'Cookies',
+        'cookies_intro'    => 'Wij gebruiken drie categorieën cookies:',
+        'ck_essential'     => 'Essentieel',
+        'ck_essential_on'  => 'altijd aan',
+        'ck_essential_txt' => 'sessie, beveiliging/CSRF, taal, winkelwagen, toestemmingskeuze.',
+        'ck_functional'    => 'Functioneel',
+        'ck_functional_txt'=> 'bijv. onlangs bekeken producten; uitsluitend met uw toestemming geplaatst.',
+        'ck_audience'      => 'Publieksmeting',
+        'ck_audience_txt'  => 'anonieme bezoekersstatistieken; uitsluitend met uw toestemming geplaatst.',
+        'cookies_change'   => 'U kunt uw keuze op elk moment wijzigen via de cookiebanner.',
+        'cookies_reset'    => 'Mijn keuze opnieuw instellen',
+    ],
+    'ar' => [
+        'lead_pre'         => 'تمتثل عمليات المعالجة هذه لـ ',
+        'lead_post'        => '.',
+        'h_controller'     => 'المسؤول عن المعالجة',
+        'contact_label'    => 'جهة الاتصال:',
+        'h_collect'        => 'البيانات التي نجمعها',
+        'c_account'        => 'الحساب',
+        'c_account_txt'    => 'الاسم، الاسم المستعار، البريد الإلكتروني و/أو الهاتف، البلد، اللغة، كلمة المرور المُجزّأة.',
+        'c_sellers'        => 'البائعون',
+        'c_sellers_txt'    => 'بيانات الشركة ووثائق اعرف عميلك (KYC) للتحقق من الهوية.',
+        'c_orders'         => 'الطلبات',
+        'c_orders_txt'     => 'العناصر، المبالغ، جهة الاتصال وعنوان التسليم، وموقع GPS الاختياري الذي تشاركه.',
+        'c_technical'      => 'تقنية',
+        'c_technical_txt'  => 'ملفات تعريف الارتباط الخاصة بالجلسة والأمان؛ وملفات تعريف الارتباط الوظيفية وقياس الجمهور بموافقتك فقط.',
+        'h_purposes'       => 'الأغراض والأسس القانونية',
+        'p_run'            => 'تشغيل السوق ومعالجة الطلبات',
+        'p_run_basis'      => 'تنفيذ عقد',
+        'p_security'       => 'أمن الحسابات والوقاية من الاحتيال وإساءة الاستخدام',
+        'p_security_basis' => 'المصلحة المشروعة',
+        'p_email'          => 'رسائل البريد الإلكتروني الخاصة بالمعاملات',
+        'p_email_basis'    => 'عقد',
+        'p_news'           => 'النشرة الإخبارية وقياس الجمهور',
+        'p_news_basis'     => 'الموافقة',
+        'p_legal'          => 'الالتزامات القانونية والضريبية والمحاسبية',
+        'p_legal_basis'    => 'التزام قانوني',
+        'h_recipients'     => 'المستلمون ومعالجو البيانات',
+        'recipients_txt'   => 'تتم مشاركة بيانات طلبك مع البائع المعني (لتنفيذ الطلب). نحن لا نبيع بياناتك أبدًا. ونستعين بمعالجي البيانات التاليين:',
+        'h_transfers'      => 'عمليات النقل الدولية',
+        'transfers_txt'    => 'يربط Afriklink بين إفريقيا وأوروبا: تُنقل بعض البيانات بين هاتين المنطقتين وإلى مزوّدين موجودين خارج الاتحاد الأوروبي/المنطقة الاقتصادية الأوروبية. وتستند عمليات النقل هذه إلى ضمانات مناسبة (مثل الشروط التعاقدية النموذجية للاتحاد الأوروبي) وإلى تقليل البيانات.',
+        'h_retention'      => 'مدة الاحتفاظ',
+        'retention_txt'    => 'يُحتفظ ببيانات الحساب طالما ظل حسابك نشطًا؛ وببيانات الطلبات والفوترة طوال مدة الاحتفاظ القانونية؛ ثم تُحذف أو يجري إخفاء هويتها.',
+        'h_rights'         => 'حقوقك',
+        'rights_pre'       => 'يمكنك طلب الوصول إلى بياناتك أو تصحيحها أو محوها أو نقلها أو تقييد معالجتها أو الاعتراض عليها، وتقديم شكوى لدى ',
+        'breach_txt'       => 'في حال حدوث انتهاك للبيانات الشخصية، نُخطر السلطة المختصة في غضون 72 ساعة عندما يقتضي القانون ذلك.',
+        'h_cookies'        => 'ملفات تعريف الارتباط',
+        'cookies_intro'    => 'نستخدم ثلاث فئات من ملفات تعريف الارتباط:',
+        'ck_essential'     => 'أساسية',
+        'ck_essential_on'  => 'مفعّلة دائمًا',
+        'ck_essential_txt' => 'الجلسة، الأمان/CSRF، اللغة، سلة التسوق، اختيار الموافقة.',
+        'ck_functional'    => 'وظيفية',
+        'ck_functional_txt'=> 'مثل المنتجات المعروضة مؤخرًا؛ تُوضع بموافقتك فقط.',
+        'ck_audience'      => 'قياس الجمهور',
+        'ck_audience_txt'  => 'إحصاءات زيارات مجهولة المصدر؛ تُوضع بموافقتك فقط.',
+        'cookies_change'   => 'يمكنك تغيير اختيارك في أي وقت عبر شريط ملفات تعريف الارتباط.',
+        'cookies_reset'    => 'إعادة تعيين اختياري',
+    ],
+];
+$T = $TX[current_locale()] ?? $TX['en'];
 ?>
 <section class="legal-page">
     <h1><?= e(t('legal.privacy.title')) ?><?php if ($L['is_eu']): ?> <span class="legal-aka">/ Datenschutzerklärung</span><?php endif; ?></h1>
@@ -20,64 +392,54 @@ $contact   = trim((string) ($op['dpo_email'] ?? '')) !== '' ? $op['dpo_email'] :
     <?= render_partial('partials/legal_regimes', ['current' => $L['regime'], 'base' => '/confidentialite']) ?>
     <div class="notice notice-warning"><p>⚠️ <?= e(t('legal.disclaimer')) ?></p></div>
 
-    <p class="legal-lead"><?= $en
-        ? 'This processing complies with ' . e($dataLaw) . '.'
-        : 'Les traitements décrits respectent ' . e($dataLaw) . '.' ?></p>
+    <p class="legal-lead"><?= e($T['lead_pre']) ?><?= e($dataLaw) ?><?= e($T['lead_post']) ?></p>
 
-    <h2>1. <?= $en ? 'Data controller' : 'Responsable du traitement' ?></h2>
-    <p><?= e($op['name'] ?? 'Afriklink') ?><?php if (trim((string) ($op['city'] ?? '')) !== ''): ?>, <?= e(trim(($op['postal_code'] ?? '') . ' ' . ($op['city'] ?? ''))) ?> (<?= e(country_name($op['country_code'] ?? 'DE')) ?>)<?php endif; ?>. <?= $en ? 'Contact:' : 'Contact :' ?> <strong><?= e($contact) ?></strong>.</p>
+    <h2>1. <?= e($T['h_controller']) ?></h2>
+    <p><?= e($op['name'] ?? 'Afriklink') ?><?php if (trim((string) ($op['city'] ?? '')) !== ''): ?>, <?= e(trim(($op['postal_code'] ?? '') . ' ' . ($op['city'] ?? ''))) ?> (<?= e(country_name($op['country_code'] ?? 'DE')) ?>)<?php endif; ?>. <?= e($T['contact_label']) ?> <strong><?= e($contact) ?></strong>.</p>
 
-    <h2>2. <?= $en ? 'What we collect' : 'Données collectées' ?></h2>
+    <h2>2. <?= e($T['h_collect']) ?></h2>
     <ul>
-        <li><strong><?= $en ? 'Account' : 'Compte' ?></strong> : <?= $en ? 'name, nickname, email and/or phone, country, language, hashed password.' : 'nom, pseudo, e-mail et/ou téléphone, pays, langue, mot de passe (haché).' ?></li>
-        <li><strong><?= $en ? 'Sellers' : 'Vendeurs' ?></strong> : <?= $en ? 'business details and KYC documents for identity verification.' : "informations d'entreprise et pièces KYC pour la vérification d'identité." ?></li>
-        <li><strong><?= $en ? 'Orders' : 'Commandes' ?></strong> : <?= $en ? 'items, amounts, delivery contact and address, optional GPS location you share.' : 'articles, montants, coordonnées et adresse de livraison, position GPS si vous la partagez.' ?></li>
-        <li><strong><?= $en ? 'Technical' : 'Technique' ?></strong> : <?= $en ? 'session and security cookies; functional and audience-measurement cookies only with your consent.' : "cookies de session et de sécurité ; cookies fonctionnels et de mesure d'audience uniquement avec votre consentement." ?></li>
+        <li><strong><?= e($T['c_account']) ?></strong> : <?= e($T['c_account_txt']) ?></li>
+        <li><strong><?= e($T['c_sellers']) ?></strong> : <?= e($T['c_sellers_txt']) ?></li>
+        <li><strong><?= e($T['c_orders']) ?></strong> : <?= e($T['c_orders_txt']) ?></li>
+        <li><strong><?= e($T['c_technical']) ?></strong> : <?= e($T['c_technical_txt']) ?></li>
     </ul>
 
-    <h2>3. <?= $en ? 'Purposes & legal bases' : 'Finalités & bases légales' ?></h2>
+    <h2>3. <?= e($T['h_purposes']) ?></h2>
     <ul>
-        <li><?= $en ? 'Run the marketplace and process orders' : 'Faire fonctionner la marketplace et traiter les commandes' ?> — <em><?= $en ? 'performance of a contract' : 'exécution du contrat' ?></em>.</li>
-        <li><?= $en ? 'Account security, fraud and abuse prevention' : 'Sécurité des comptes, prévention de la fraude et des abus' ?> — <em><?= $en ? 'legitimate interest' : 'intérêt légitime' ?></em>.</li>
-        <li><?= $en ? 'Transactional emails' : 'E-mails transactionnels' ?> — <em><?= $en ? 'contract' : 'contrat' ?></em> ; <?= $en ? 'newsletter & audience measurement' : "newsletter & mesure d'audience" ?> — <em><?= $en ? 'consent' : 'consentement' ?></em>.</li>
-        <li><?= $en ? 'Legal, tax and accounting obligations' : 'Obligations légales, fiscales et comptables' ?> — <em><?= $en ? 'legal obligation' : 'obligation légale' ?></em>.</li>
+        <li><?= e($T['p_run']) ?> — <em><?= e($T['p_run_basis']) ?></em>.</li>
+        <li><?= e($T['p_security']) ?> — <em><?= e($T['p_security_basis']) ?></em>.</li>
+        <li><?= e($T['p_email']) ?> — <em><?= e($T['p_email_basis']) ?></em> ; <?= e($T['p_news']) ?> — <em><?= e($T['p_news_basis']) ?></em>.</li>
+        <li><?= e($T['p_legal']) ?> — <em><?= e($T['p_legal_basis']) ?></em>.</li>
     </ul>
 
-    <h2>4. <?= $en ? 'Recipients & processors' : 'Destinataires & sous-traitants' ?></h2>
-    <p><?= $en
-        ? 'Your order data is shared with the seller concerned (to fulfil the order). We never sell your data. We rely on the following processors:'
-        : "Les données de commande sont transmises au vendeur concerné (pour exécuter la commande). Nous ne vendons jamais vos données. Nous recourons aux sous-traitants suivants :" ?></p>
+    <h2>4. <?= e($T['h_recipients']) ?></h2>
+    <p><?= e($T['recipients_txt']) ?></p>
     <ul>
         <?php foreach ($proc as $p): ?>
             <li><strong><?= e($p['name']) ?></strong> — <?= e($en ? $p['role_en'] : $p['role_fr']) ?> (<?= e($p['loc']) ?>)</li>
         <?php endforeach; ?>
     </ul>
 
-    <h2>5. <?= $en ? 'International transfers' : 'Transferts internationaux' ?></h2>
-    <p><?= $en
-        ? 'Afriklink connects Africa and Europe: some data is transferred between these regions and to providers located outside the EU/EEA. Such transfers rely on appropriate safeguards (e.g. EU standard contractual clauses) and data minimisation.'
-        : "Afriklink relie l'Afrique et l'Europe : certaines données sont transférées entre ces régions et vers des prestataires situés hors UE/EEE. Ces transferts reposent sur des garanties appropriées (clauses contractuelles types de l'UE, par exemple) et la minimisation des données." ?></p>
+    <h2>5. <?= e($T['h_transfers']) ?></h2>
+    <p><?= e($T['transfers_txt']) ?></p>
 
-    <h2>6. <?= $en ? 'Retention' : 'Durée de conservation' ?></h2>
-    <p><?= $en
-        ? 'Account data is kept while your account is active; order and invoicing data for the legal retention period; then deleted or anonymised.'
-        : 'Les données de compte sont conservées tant que le compte est actif ; les données de commande et de facturation pendant la durée légale ; puis supprimées ou anonymisées.' ?></p>
+    <h2>6. <?= e($T['h_retention']) ?></h2>
+    <p><?= e($T['retention_txt']) ?></p>
 
-    <h2>7. <?= $en ? 'Your rights' : 'Vos droits' ?></h2>
-    <p><?= $en
-        ? 'You may request access, rectification, erasure, portability, restriction or object to processing, and lodge a complaint with '
-        : "Vous disposez des droits d'accès, de rectification, d'effacement, de portabilité, de limitation et d'opposition, et pouvez introduire une réclamation auprès de " ?><?= e($authority) ?>. <?= $en ? 'Contact:' : 'Contact :' ?> <strong><?= e($contact) ?></strong>.</p>
+    <h2>7. <?= e($T['h_rights']) ?></h2>
+    <p><?= e($T['rights_pre']) ?><?= e($authority) ?>. <?= e($T['contact_label']) ?> <strong><?= e($contact) ?></strong>.</p>
     <?php if ($L['is_eu']): ?>
-        <p class="muted"><?= $en ? 'In the event of a personal-data breach, we notify the competent authority within 72 hours where required.' : "En cas de violation de données à caractère personnel, nous notifions l'autorité compétente sous 72 heures lorsque la loi l'exige." ?></p>
+        <p class="muted"><?= e($T['breach_txt']) ?></p>
     <?php endif; ?>
 
-    <h2 id="cookies">8. <?= $en ? 'Cookies' : 'Cookies' ?></h2>
-    <p><?= $en ? 'We use three categories of cookies:' : 'Nous utilisons trois catégories de cookies :' ?></p>
+    <h2 id="cookies">8. <?= e($T['h_cookies']) ?></h2>
+    <p><?= e($T['cookies_intro']) ?></p>
     <ul>
-        <li><strong><?= $en ? 'Essential' : 'Essentiels' ?></strong> (<?= $en ? 'always on' : 'toujours actifs' ?>) — <?= $en ? 'session, security/CSRF, language, cart, consent choice.' : 'session, sécurité/CSRF, langue, panier, choix de consentement.' ?></li>
-        <li><strong><?= $en ? 'Functional' : 'Fonctionnels' ?></strong> — <?= $en ? 'e.g. recently-viewed products; set only with your consent.' : 'ex. produits vus récemment ; déposés uniquement avec votre consentement.' ?></li>
-        <li><strong><?= $en ? 'Audience measurement' : "Mesure d'audience" ?></strong> — <?= $en ? 'anonymous traffic statistics; set only with your consent.' : "statistiques de fréquentation anonymes ; déposés uniquement avec votre consentement." ?></li>
+        <li><strong><?= e($T['ck_essential']) ?></strong> (<?= e($T['ck_essential_on']) ?>) — <?= e($T['ck_essential_txt']) ?></li>
+        <li><strong><?= e($T['ck_functional']) ?></strong> — <?= e($T['ck_functional_txt']) ?></li>
+        <li><strong><?= e($T['ck_audience']) ?></strong> — <?= e($T['ck_audience_txt']) ?></li>
     </ul>
-    <p><?= $en ? 'You can change your choice at any time via the cookie banner.' : 'Vous pouvez modifier votre choix à tout moment via le bandeau cookies.' ?>
-        <a href="<?= e(url('/consentement/refuser?to=' . rawurlencode('/confidentialite#cookies'))) ?>"><?= $en ? 'Reset my choice' : 'Réinitialiser mon choix' ?></a>.</p>
+    <p><?= e($T['cookies_change']) ?>
+        <a href="<?= e(url('/consentement/refuser?to=' . rawurlencode('/confidentialite#cookies'))) ?>"><?= e($T['cookies_reset']) ?></a>.</p>
 </section>
