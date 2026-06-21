@@ -3,22 +3,29 @@
  * Sélecteur de régime juridique sur les pages légales.
  * Affiche le pays détecté et permet d'afficher les informations adaptées à un
  * autre pays (DE / UE / CI / international). Sans JavaScript : simples liens
- * `?pays=…` relus par le LegalController.
+ * `?pays=…` relus par le LegalController. Libellés localisés (8 langues).
  *
  * Variables attendues : $current (code régime), $base (chemin de la page).
  */
 $current = $current ?? 'INTL';
 $base    = $base ?? '/mentions-legales';
-$en      = current_locale() !== 'fr'; // de/es/it : repli sur l'anglais
+$loc     = current_locale();
+$pick = static fn (array $m): string => $m[$loc] ?? $m['en'];
+
+$euLbl   = ['fr' => 'UE / EEE', 'en' => 'EU / EEA', 'de' => 'EU / EWR', 'es' => 'UE / EEE', 'it' => 'UE / SEE', 'pt' => 'UE / EEE', 'nl' => 'EU / EER', 'ar' => 'الاتحاد الأوروبي / المنطقة الاقتصادية الأوروبية'];
+$intlLbl = ['fr' => 'International', 'en' => 'International', 'de' => 'International', 'es' => 'Internacional', 'it' => 'Internazionale', 'pt' => 'Internacional', 'nl' => 'Internationaal', 'ar' => 'دولي'];
+$headLbl = ['fr' => 'Informations affichées pour :', 'en' => 'Information shown for:', 'de' => 'Angezeigte Informationen für:', 'es' => 'Información mostrada para:', 'it' => 'Informazioni mostrate per:', 'pt' => 'Informações apresentadas para:', 'nl' => 'Getoonde informatie voor:', 'ar' => 'المعلومات المعروضة لـ:'];
+$ariaLbl = ['fr' => 'Pays applicable', 'en' => 'Applicable country', 'de' => 'Anwendbares Land', 'es' => 'País aplicable', 'it' => 'Paese applicabile', 'pt' => 'País aplicável', 'nl' => 'Toepasselijk land', 'ar' => 'البلد المعني'];
+
 $opts = [
-    'DE'   => ['🇩🇪', $en ? 'Germany' : 'Allemagne'],
-    'EU'   => ['🇪🇺', $en ? 'EU / EEA' : 'UE / EEE'],
-    'CI'   => ['🇨🇮', "Côte d'Ivoire"],
-    'INTL' => ['🌍', $en ? 'International' : 'International'],
+    'DE'   => ['🇩🇪', country_name('DE')],
+    'EU'   => ['🇪🇺', $pick($euLbl)],
+    'CI'   => ['🇨🇮', country_name('CI')],
+    'INTL' => ['🌍', $pick($intlLbl)],
 ];
 ?>
-<div class="legal-regimes" role="group" aria-label="<?= e($en ? 'Applicable country' : 'Pays applicable') ?>">
-    <span class="legal-regimes__label"><?= e($en ? 'Information shown for:' : 'Informations affichées pour :') ?></span>
+<div class="legal-regimes" role="group" aria-label="<?= e($pick($ariaLbl)) ?>">
+    <span class="legal-regimes__label"><?= e($pick($headLbl)) ?></span>
     <span class="legal-regimes__opts">
         <?php foreach ($opts as $code => [$flag, $name]): ?>
             <?php $isCur = $code === $current; ?>
