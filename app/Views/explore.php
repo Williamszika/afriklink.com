@@ -79,7 +79,7 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
                             <?php if ($m !== null): ?><img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
                             <?php if (Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                         </span>
-                        <span class="product-card-name"><?= e((string) $p['name']) ?></span>
+                        <span class="product-card-name"><?= e(tr_content('product', (int) $p['id'], 'name', (string) $p['name'])) ?></span>
                         <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></span>
                         <span class="muted explore-card-shop"><?= e(t('explore.by', ['shop' => (string) $p['boutique_name']])) ?></span>
                         <?= render_partial('partials/card_geo', ['row' => $p]) ?>

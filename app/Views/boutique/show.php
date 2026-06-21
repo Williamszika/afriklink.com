@@ -81,12 +81,12 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 <div class="shop-logo shop-logo--empty" aria-hidden="true"><?= icon('store', ['size' => 34]) ?></div>
             <?php endif; ?>
             <div>
-                <h1><?= e((string) $boutique['name']) ?>
+                <h1><?= e(tr_content('boutique', (int) $boutique['id'], 'name', (string) $boutique['name'])) ?>
                     <?php if (!empty($seller_verified)): ?>
                         <span class="badge badge-verified" title="<?= e(t('shop.verified_hint')) ?>"><?= icon('shield', ['size' => 15]) ?> <?= e(t('shop.verified_seller')) ?></span>
                     <?php endif; ?>
                 </h1>
-                <?php if (!empty($boutique['tagline'])): ?><p class="lead"><?= e((string) $boutique['tagline']) ?></p><?php endif; ?>
+                <?php if (!empty($boutique['tagline'])): ?><p class="lead"><?= e(tr_content('boutique', (int) $boutique['id'], 'tagline', (string) $boutique['tagline'])) ?></p><?php endif; ?>
                 <p class="muted">
                     <?php if (!empty($boutique['category'])): ?><span class="badge badge-neutral"><?= e(t('listing.cat.' . $boutique['category'])) ?></span><?php endif; ?>
                     <?php $heroPlace = place_label($boutique['city'] ?? null, $boutique['country_code'] ?: $cc); ?>
@@ -194,7 +194,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
             <?php if (!empty($boutique['description'])): ?>
                 <div class="panel">
                     <h2 class="panel-title"><?= e(t('shop.about')) ?></h2>
-                    <p class="listing-description"><?= nl2br(e((string) $boutique['description'])) ?></p>
+                    <p class="listing-description"><?= nl2br(e(tr_content('boutique', (int) $boutique['id'], 'description', (string) $boutique['description']))) ?></p>
                 </div>
             <?php endif; ?>
             <?php if (!empty($boutique['return_policy'])): ?>

@@ -244,6 +244,22 @@ function rg_field(array $rg, string $base): string
 }
 
 /**
+ * Contenu vendeur (nom/description de produit ou boutique) dans la langue
+ * active si une traduction automatique existe, sinon l'original (langue saisie
+ * par le vendeur). Coût quasi nul tant qu'aucune traduction n'est stockée.
+ * @param string $type 'product' | 'boutique'
+ */
+function tr_content(string $type, int $id, string $field, ?string $original): string
+{
+    $original = (string) $original;
+    if ($id <= 0 || trim($original) === '' || !\App\Models\ContentTranslation::active()) {
+        return $original;
+    }
+    $t = \App\Models\ContentTranslation::get($type, $id, $field, current_locale());
+    return ($t !== null && $t !== '') ? $t : $original;
+}
+
+/**
  * Fournisseur d'encaissement recommandé selon le pays du vendeur : CinetPay
  * (mobile money) en Afrique, Stripe (cartes) en Europe, sinon la simulation.
  * Simple indication à l'onboarding — le vendeur reste libre de son choix.

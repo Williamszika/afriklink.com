@@ -4,9 +4,11 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\AbandonedCart;
+use App\Models\ContentTranslation;
 use App\Request;
 use App\Services\MailService;
 use App\Services\Supervision;
+use App\Services\TranslationService;
 
 /**
  * Tâches planifiées (déclenchées par Vercel Cron ou un planificateur externe).
@@ -49,6 +51,106 @@ final class CronController
         }
 
         json_response(['checked' => count($due), 'sent' => $sent]);
+    }
+
+    /**
+     * Pré-traduit le contenu vendeur (noms/descriptions de produits & boutiques)
+     * dans toutes les langues du site, par lots bornés (temps + coût). Actif
+     * seulement si une clé de traduction est configurée ; sinon ne fait rien.
+     */
+    public function translateContent(Request $request): void
+    {
+        $this->authorize();
+        if (!TranslationService::isConfigured()) {
+            json_response(['enabled' => false, 'note' => 'no translation API key configured']);
+        }
+        ContentTranslation::ensureTable();
+
+        $locales  = array_values((array) config('translate.locales', []));
+        $maxItems = max(1, (int) config('translate.cron_max_items', 20));
+        $maxCalls = max(1, (int) config('translate.cron_max_calls', 80));
+        $calls = 0; $translated = 0; $items = 0;
+
+        // Produits actifs sans aucune traduction de nom (contenu neuf), du plus récent au plus ancien.
+        $prod = db()->query(
+            "SELECT p.id, p.name, p.description, COALESCE(u.locale,'') AS seller_locale
+               FROM products p
+               JOIN boutiques b ON b.id = p.boutique_id
+               LEFT JOIN users u ON u.id = b.user_id
+               LEFT JOIN content_translations ct
+                      ON ct.ref_type='product' AND ct.ref_id=p.id AND ct.field='name'
+              WHERE p.status='active' AND ct.id IS NULL
+              ORDER BY p.id DESC LIMIT " . $maxItems
+        )->fetchAll() ?: [];
+        foreach ($prod as $r) {
+            if ($calls >= $maxCalls) {
+                break;
+            }
+            $items++;
+            $calls += $this->translateRow('product', (int) $r['id'],
+                ['name' => (string) $r['name'], 'description' => (string) ($r['description'] ?? '')],
+                $locales, (string) $r['seller_locale'], $maxCalls - $calls, $translated);
+        }
+
+        // Boutiques publiées sans traduction de nom.
+        if ($calls < $maxCalls) {
+            $shops = db()->query(
+                "SELECT b.id, b.name, b.tagline, b.description, COALESCE(u.locale,'') AS seller_locale
+                   FROM boutiques b
+                   LEFT JOIN users u ON u.id = b.user_id
+                   LEFT JOIN content_translations ct
+                          ON ct.ref_type='boutique' AND ct.ref_id=b.id AND ct.field='name'
+                  WHERE b.status='published' AND ct.id IS NULL
+                  ORDER BY b.id DESC LIMIT " . $maxItems
+            )->fetchAll() ?: [];
+            foreach ($shops as $r) {
+                if ($calls >= $maxCalls) {
+                    break;
+                }
+                $items++;
+                $calls += $this->translateRow('boutique', (int) $r['id'],
+                    ['name' => (string) $r['name'], 'tagline' => (string) ($r['tagline'] ?? ''), 'description' => (string) ($r['description'] ?? '')],
+                    $locales, (string) $r['seller_locale'], $maxCalls - $calls, $translated);
+            }
+        }
+
+        json_response(['enabled' => true, 'items' => $items, 'api_calls' => $calls, 'translated' => $translated]);
+    }
+
+    /**
+     * Traduit les champs d'un objet dans les langues cibles (hors langue source
+     * présumée du vendeur), en sautant ce qui est déjà à jour. Renvoie le nombre
+     * d'appels API consommés (borné par $budget).
+     * @param array<string,string> $fields  @param list<string> $locales
+     */
+    private function translateRow(string $type, int $id, array $fields, array $locales, string $skipLocale, int $budget, int &$translated): int
+    {
+        $used = 0;
+        foreach ($fields as $field => $text) {
+            $text = trim($text);
+            if ($text === '') {
+                continue;
+            }
+            $hash = md5($text);
+            foreach ($locales as $loc) {
+                if ($used >= $budget) {
+                    return $used;
+                }
+                if ($loc === $skipLocale) {
+                    continue; // langue d'origine présumée : on garde l'original
+                }
+                if (ContentTranslation::hasFresh($type, $id, $field, $loc, $hash)) {
+                    continue;
+                }
+                $tr = TranslationService::translate($text, $loc);
+                $used++;
+                if ($tr !== null) {
+                    ContentTranslation::put($type, $id, $field, $loc, $tr, $hash);
+                    $translated++;
+                }
+            }
+        }
+        return $used;
     }
 
     /** Agent Supervision : envoie un digest « À surveiller » aux opérateurs si besoin. */

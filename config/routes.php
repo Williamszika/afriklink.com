@@ -130,6 +130,7 @@ return [
     // Tâches planifiées (Vercel Cron / externe) — protégées par CRON_SECRET.
     ['GET',  '/cron/relance-paniers',   [CronController::class, 'abandonedCart'],     ['throttle:cron,120,3600']],
     ['GET',  '/cron/supervision',       [CronController::class, 'supervision'],       ['throttle:cron,120,3600']],
+    ['GET',  '/cron/traduire-contenu',  [CronController::class, 'translateContent'],  ['throttle:cron,120,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
     ['POST', '/mes-adresses/{id}/defaut', [AddressController::class, 'setDefault'], ['auth', 'csrf']],

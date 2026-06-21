@@ -29,6 +29,8 @@ final class HomeController
         // Produits du catalogue à afficher dès l'ouverture de l'accueil
         // (« local d'abord » : boutiques du pays détecté en tête).
         $products  = \App\Models\Product::recentMarketplace(12, (string) (detected_geo()['country_code'] ?? ''));
+        // Pré-charge les traductions de contenu (évite le N+1 si actives).
+        \App\Models\ContentTranslation::preload('product', array_map(static fn (array $p): int => (int) $p['id'], $products), current_locale());
         // Vitrine vivante : boutiques, restaurants et annonces actuellement en ligne.
         $annonces  = \App\Models\Listing::recentActive(12);
         $boutiques = \App\Models\Boutique::recentPublished(12);
@@ -107,6 +109,7 @@ final class HomeController
         ];
         $products = \App\Models\Product::search($f);
         $ids = array_map(static fn (array $p): int => (int) $p['id'], $products);
+        \App\Models\ContentTranslation::preload('product', $ids, current_locale());
         view('explore', [
             'page_title' => t('explore.title'),
             // Filtre : toutes les catégories restent sélectionnables ($cats sert à la

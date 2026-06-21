@@ -127,7 +127,7 @@ $dotHtml = static function (array $hexes): string {
         <div class="listing-side">
             <?php $isMeter = (string) ($product['sale_unit'] ?? 'piece') === 'meter'; ?>
             <div class="panel" data-cart-root data-shop-slug="<?= e($boutique['slug']) ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-sale-unit="<?= $isMeter ? 'meter' : 'piece' ?>">
-                <h1 class="listing-title"><?= e((string) $product['name']) ?></h1>
+                <h1 class="listing-title"><?= e(tr_content('product', (int) $product['id'], 'name', (string) $product['name'])) ?></h1>
                 <?php
                 $pVertical = product_vertical((string) ($boutique['category'] ?? ''));
                 // Libellé de l'axe de déclinaison piloté par le rayon (Taille / Stockage / Contenance / Teinte…).
@@ -631,7 +631,7 @@ $dotHtml = static function (array $hexes): string {
     <?php if (!empty($product['description'])): ?>
         <div class="panel">
             <h2 class="panel-title"><?= e(t('product.f.description')) ?></h2>
-            <p class="listing-description"><?= nl2br(e((string) $product['description'])) ?></p>
+            <p class="listing-description"><?= nl2br(e(tr_content('product', (int) $product['id'], 'description', (string) $product['description']))) ?></p>
         </div>
     <?php endif; ?>
 
