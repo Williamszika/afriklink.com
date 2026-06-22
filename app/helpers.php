@@ -2673,6 +2673,20 @@ function format_price_approx(int $cents, string $shopCurrency): string
     return $converted === null ? '' : format_price($converted, $buyer);
 }
 
+/**
+ * Montant dans sa devise d'origine + équivalent dans la devise LOCALE du
+ * visiteur (détectée) quand elle diffère : « 12 000 F CFA ≈ 18,30 € ». À
+ * utiliser PARTOUT où l'on affiche de l'argent (tableau de bord, commandes,
+ * portefeuille…) pour que chacun voie sa monnaie locale. Texte simple (à
+ * échapper par l'appelant).
+ */
+function format_price_local(int $cents, string $currency): string
+{
+    $main   = format_price($cents, $currency);
+    $approx = format_price_approx($cents, $currency);
+    return $approx !== '' ? $main . ' ≈ ' . $approx : $main;
+}
+
 /** Send a redirect and stop execution. */
 function redirect(string $path, int $status = 302): never
 {

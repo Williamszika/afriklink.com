@@ -51,7 +51,7 @@
                             </span>
                             <span class="aff-shop-id">
                                 <span class="aff-shop-name"><?= e((string) $p['name']) ?></span>
-                                <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?php if ($pPct > 0): ?><del><?= e(format_price((int) $p['price_cents'], $cur)) ?></del> <strong><?= e(format_price($pEff, $cur)) ?></strong> <span class="discount-badge discount-badge--inline">−<?= $pPct ?>%</span><?php else: ?><?= e(format_price((int) $p['price_cents'], $cur)) ?><?php endif; ?></span>
+                                <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?php if ($pPct > 0): ?><del><?= e(format_price_local((int) $p['price_cents'], $cur)) ?></del> <strong><?= e(format_price_local($pEff, $cur)) ?></strong> <span class="discount-badge discount-badge--inline">−<?= $pPct ?>%</span><?php else: ?><?= e(format_price_local((int) $p['price_cents'], $cur)) ?><?php endif; ?></span>
                             </span>
                         </a>
                         <div class="aff-cat-earn"><?= icon('wallet', ['size' => 14]) ?> <?= e(t('aff.cat_earn', ['amount' => format_price($earn, $cur)])) ?> <span class="muted">/ <?= e(t('aff.cat_per_sale')) ?></span></div>

@@ -269,9 +269,9 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     $dDelay = (string) ($boutique['delivery_delay'] ?? '');
                     if ($dFee > 0 || $dIntl > 0 || $dDelay !== ''):
                         $rows = [];
-                        if ($dFee > 0) { $rows[] = e(t('shop.method.local')) . ' : <strong>' . e(format_price($dFee, $cur)) . '</strong>'; }
-                        if ($dIntl > 0) { $rows[] = e(t('shop.method.international')) . ' : <strong>' . e(format_price($dIntl, $cur)) . '</strong>'; }
-                        if (!empty($boutique['free_ship_cents'])) { $rows[] = e(t('shop.f.free_ship')) . ' ' . e(format_price((int) $boutique['free_ship_cents'], $cur)); }
+                        if ($dFee > 0) { $rows[] = e(t('shop.method.local')) . ' : <strong>' . e(format_price_local($dFee, $cur)) . '</strong>'; }
+                        if ($dIntl > 0) { $rows[] = e(t('shop.method.international')) . ' : <strong>' . e(format_price_local($dIntl, $cur)) . '</strong>'; }
+                        if (!empty($boutique['free_ship_cents'])) { $rows[] = e(t('shop.f.free_ship')) . ' ' . e(format_price_local((int) $boutique['free_ship_cents'], $cur)); }
                         if ($dDelay !== '') { $rows[] = icon('clock', ['size' => 15]) . ' ' . e(t('shop.prep.' . $dDelay)); }
                     ?>
                         <dt><?= e(t('shop.f.delivery_fee')) ?></dt>
@@ -285,7 +285,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                                     $codes = array_filter(array_map('trim', explode(',', (string) ($z['countries'] ?? ''))));
                                     $zn = $codes === [] ? t('ship.zone.rest') : (string) $z['name'];
                                 ?>
-                                    <li><strong><?= e($zn) ?></strong> — <?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></li>
+                                    <li><strong><?= e($zn) ?></strong> — <?= e(format_price_local((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></li>
                                 <?php endforeach; ?>
                             </ul>
                         </dd>
@@ -314,7 +314,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                         <dt><?= e(t('shop.cfg.hours')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= nl2br(e((string) $boutique['open_hours'])) ?></dd>
                     <?php endif; ?>
                     <?php if (!empty($boutique['min_order_cents'])): ?>
-                        <dt><?= e(t('shop.cfg.min_order')) ?></dt><dd><?= icon('cart', ['size' => 15]) ?> <?= e(format_price((int) $boutique['min_order_cents'], $cur)) ?></dd>
+                        <dt><?= e(t('shop.cfg.min_order')) ?></dt><dd><?= icon('cart', ['size' => 15]) ?> <?= e(format_price_local((int) $boutique['min_order_cents'], $cur)) ?></dd>
                     <?php endif; ?>
                     <?php $payTerms = array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))); ?>
                     <?php if ($payTerms): ?>

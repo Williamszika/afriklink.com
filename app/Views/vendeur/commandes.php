@@ -136,11 +136,11 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                         <li class="cart-line"><span><?= (int) $li['qty'] ?>× <?= e(order_item_name($li)) ?><?php if (!empty($li['variant_label'])): ?> <span class="order-variant"><?= e((string) $li['variant_label']) ?></span><?php endif; ?></span> <strong><?= e(format_price((int) $li['line_total_cents'], (string) $o['currency'])) ?></strong></li>
                                     <?php endforeach; ?>
                                 </ul>
-                                <p class="order-line"><strong class="order-total"><?= e(t('rorder.total')) ?> : <?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></strong></p>
+                                <p class="order-line"><strong class="order-total"><?= e(t('rorder.total')) ?> : <?= e(format_price_local((int) $o['total_cents'], (string) $o['currency'])) ?></strong></p>
                             <?php else: ?>
                                 <p class="order-line">
                                     <strong><?= e((string) $o['product_name']) ?></strong> × <?= (int) $o['qty'] ?>
-                                    · <strong class="order-total"><?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></strong>
+                                    · <strong class="order-total"><?= e(format_price_local((int) $o['total_cents'], (string) $o['currency'])) ?></strong>
                                 </p>
                             <?php endif; ?>
                             <p class="order-client">

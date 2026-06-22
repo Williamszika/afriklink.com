@@ -1,6 +1,6 @@
 <?php
 /** @var array $payment */
-$amount = format_price((int) $payment['amount_cents'], (string) $payment['currency']);
+$amount = format_price_local((int) $payment['amount_cents'], (string) $payment['currency']);
 ?>
 <section class="auth-card pay-sim">
     <div class="pay-sim-badge">🧪 <?= e(t('pay.sim_badge')) ?></div>

@@ -39,7 +39,7 @@ $days0 = array_key_first($packages) ?: 7;
                 </div>
                 <div class="ad-offer__tiers">
                     <?php foreach ($packages as $d => $price): ?>
-                        <span class="ad-tier"><strong><?= e(t('ads.days', ['days' => (int) $d])) ?></strong><span><?= e($price !== null ? format_price((int) $price, $cur) : '—') ?></span></span>
+                        <span class="ad-tier"><strong><?= e(t('ads.days', ['days' => (int) $d])) ?></strong><span><?= e($price !== null ? format_price_local((int) $price, $cur) : '—') ?></span></span>
                     <?php endforeach; ?>
                 </div>
                 <?php if ($billing === 'wallet'): ?>
@@ -88,7 +88,7 @@ $days0 = array_key_first($packages) ?: 7;
                                         </form>
                                     </div>
                                 <?php else: ?>
-                                    <p class="product-row-meta"><strong><?= e(format_price((int) $p['price_cents'], $cur)) ?></strong></p>
+                                    <p class="product-row-meta"><strong><?= e(format_price_local((int) $p['price_cents'], $cur)) ?></strong></p>
                                     <form method="post" action="<?= e(url('/vendeur/publicite/' . $p['public_id'] . '/promouvoir')) ?>" class="ad-buy">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="action" value="promote">
@@ -99,7 +99,7 @@ $days0 = array_key_first($packages) ?: 7;
                                                     <input type="radio" name="days" value="<?= (int) $d ?>" <?= (int) $d === (int) $days0 ? 'checked' : '' ?>>
                                                     <span class="ad-buy__tierbox">
                                                         <strong><?= e(t('ads.days', ['days' => (int) $d])) ?></strong>
-                                                        <span><?= e($price !== null ? format_price((int) $price, $cur) : '—') ?></span>
+                                                        <span><?= e($price !== null ? format_price_local((int) $price, $cur) : '—') ?></span>
                                                     </span>
                                                 </label>
                                             <?php endforeach; ?>

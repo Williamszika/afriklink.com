@@ -21,7 +21,7 @@
                         <a class="order-row-main" href="<?= e(url('/boutique/commande/' . $o['public_id'])) ?>">
                             <span class="order-shop"><?= e((string) $o['boutique_name']) ?>
                                 <span class="muted">· #<?= e(strtoupper(substr((string) $o['public_id'], 0, 6))) ?></span></span>
-                            <span class="muted order-meta"><?= e(date('d/m/Y', strtotime((string) $o['created_at']))) ?> · <?= e(format_price((int) $o['total_cents'], (string) $o['currency'])) ?></span>
+                            <span class="muted order-meta"><?= e(date('d/m/Y', strtotime((string) $o['created_at']))) ?> · <?= e(format_price_local((int) $o['total_cents'], (string) $o['currency'])) ?></span>
                         </a>
                         <span class="order-status order-status--<?= e((string) $o['status']) ?>"><?= e(t('order.status.' . $o['status'])) ?></span>
                     </li>

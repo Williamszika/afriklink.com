@@ -40,7 +40,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
     <?php $pStats = $program['stats'] ?? null; $pRecent = $program['recent'] ?? []; ?>
     <?php if ($pStats !== null): ?>
         <?php
-        $paidStr = empty($pStats['paid']) ? '0' : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $pStats['paid'], array_keys($pStats['paid'])));
+        $paidStr = empty($pStats['paid']) ? '0' : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price_local($c, $cur), $pStats['paid'], array_keys($pStats['paid'])));
         $series  = $program['series'] ?? [];
         $curP    = (string) ($program['boutique']['currency'] ?? 'EUR');
         $maxAff  = $maxSales = $maxCom = 0;
@@ -147,8 +147,8 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                         <?php foreach ($pRecent as $r): $paid = !empty($r['paid_out_at']); ?>
                             <tr>
                                 <td><?= e(date('d/m/Y', strtotime((string) $r['created_at']))) ?></td>
-                                <td><?= e(format_price((int) $r['amount_cents'], (string) $r['currency'])) ?></td>
-                                <td><strong><?= e(format_price((int) $r['commission_cents'], (string) $r['currency'])) ?></strong></td>
+                                <td><?= e(format_price_local((int) $r['amount_cents'], (string) $r['currency'])) ?></td>
+                                <td><strong><?= e(format_price_local((int) $r['commission_cents'], (string) $r['currency'])) ?></strong></td>
                                 <td><span class="badge <?= $paid ? 'badge-ok' : 'badge-muted' ?>"><?= e($paid ? t('wallet.status.paid') : t('wallet.status.pending')) ?></span></td>
                             </tr>
                         <?php endforeach; ?>
@@ -171,7 +171,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                             <span class="aff-top-name"><?= e((string) $tp['name']) ?></span>
                             <span class="aff-top-stats">
                                 <span class="muted"><?= (int) $tp['sales'] ?> <?= e(t('aff.top_sales')) ?></span>
-                                <strong><?= e(format_price((int) $tp['commission'], (string) $tp['currency'])) ?></strong>
+                                <strong><?= e(format_price_local((int) $tp['commission'], (string) $tp['currency'])) ?></strong>
                             </span>
                         </li>
                     <?php endforeach; ?>
@@ -212,7 +212,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                 <?php if (empty($stats['earnings'])): ?>
                     0
                 <?php else: ?>
-                    <?= e(implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $stats['earnings'], array_keys($stats['earnings'])))) ?>
+                    <?= e(implode(' · ', array_map(static fn (int $c, string $cur): string => format_price_local($c, $cur), $stats['earnings'], array_keys($stats['earnings'])))) ?>
                 <?php endif; ?>
             </div>
             <div class="lbl"><?= e(t('aff.earnings')) ?></div>
@@ -233,7 +233,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
             <div class="aff-wallet">
                 <div class="aff-wallet-balance">
                     <span class="lbl"><?= e(t('aff.wallet_balance')) ?></span>
-                    <strong class="aff-wallet-amount"><?= e(format_price((int) $wallet['balance'], (string) $wallet['currency'])) ?></strong>
+                    <strong class="aff-wallet-amount"><?= e(format_price_local((int) $wallet['balance'], (string) $wallet['currency'])) ?></strong>
                 </div>
                 <?php if (!empty($wallet['can'])): ?>
                     <?php if (!empty($wallet['providers'])): $cn = country_name((string) ($wallet['country'] ?? '')); ?>
@@ -262,7 +262,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                 <ul class="aff-wd-list">
                     <?php foreach (array_slice($wallet['withdrawals'], 0, 3) as $w): ?>
                         <li>
-                            <span><?= e(format_price((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
+                            <span><?= e(format_price_local((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
                             <span class="badge <?= ($w['status'] ?? '') === 'paid' ? 'badge-ok' : 'badge-muted' ?>"><?= e(t('wallet.status.' . ($w['status'] ?? 'pending'))) ?></span>
                         </li>
                     <?php endforeach; ?>
@@ -331,7 +331,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                             </span>
                             <span class="aff-shop-id">
                                 <span class="aff-shop-name"><?= e((string) $p['name']) ?></span>
-                                <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
+                                <span class="aff-shop-place"><?= e((string) $p['boutique_name']) ?> · <?= e(format_price_local((int) $p['price_cents'], (string) $p['currency'])) ?></span>
                             </span>
                             <span class="badge badge-ok aff-shop-rate"><?= e(t('aff.rate_badge', ['rate' => $pRate])) ?></span>
                         </a>
@@ -361,8 +361,8 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                         <tr>
                             <td><?= e(date('d/m/Y', strtotime((string) $r['created_at']))) ?></td>
                             <td><code><?= e(strtoupper(substr((string) $r['order_public_id'], 0, 8))) ?></code></td>
-                            <td><?= e(format_price((int) $r['amount_cents'], (string) $r['currency'])) ?></td>
-                            <td><strong><?= e(format_price((int) $r['commission_cents'], (string) $r['currency'])) ?></strong></td>
+                            <td><?= e(format_price_local((int) $r['amount_cents'], (string) $r['currency'])) ?></td>
+                            <td><strong><?= e(format_price_local((int) $r['commission_cents'], (string) $r['currency'])) ?></strong></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>

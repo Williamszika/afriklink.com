@@ -10,7 +10,7 @@ $statusLabel = static function (string $s): string {
 
     <div class="admin-stats">
         <div class="admin-stat"><span class="admin-stat-n"><?= number_format((float) $active_count, 0, ',', ' ') ?></span><span class="admin-stat-lbl"><?= e(t('ads.admin_active')) ?></span></div>
-        <div class="admin-stat"><span class="admin-stat-n"><?= e(format_price($revenue_cents, $revenue_cur)) ?></span><span class="admin-stat-lbl"><?= e(t('ads.admin_revenue')) ?></span></div>
+        <div class="admin-stat"><span class="admin-stat-n"><?= e(format_price_local($revenue_cents, $revenue_cur)) ?></span><span class="admin-stat-lbl"><?= e(t('ads.admin_revenue')) ?></span></div>
         <div class="admin-stat"><span class="admin-stat-n"><?= number_format((float) count($campaigns), 0, ',', ' ') ?></span><span class="admin-stat-lbl"><?= e(t('ads.admin_total')) ?></span></div>
     </div>
 
@@ -33,7 +33,7 @@ $statusLabel = static function (string $s): string {
                             <span class="badge"><?= e($statusLabel((string) ($c['status'] ?? ''))) ?></span>
                             <span class="muted">— <?= e((string) ($c['seller_name'] ?: $c['seller_email'] ?? '')) ?>
                                 · <?= e(t('ads.days', ['days' => (int) $c['days']])) ?>
-                                · <?= e(format_price((int) $c['amount_cents'], (string) $c['currency'])) ?>
+                                · <?= e(format_price_local((int) $c['amount_cents'], (string) $c['currency'])) ?>
                                 · <?= number_format((float) $imp, 0, ',', ' ') ?> <?= e(t('ads.impressions')) ?>
                                 / <?= number_format((float) $clk, 0, ',', ' ') ?> <?= e(t('ads.clicks')) ?>
                                 (CTR <?= e(number_format($ctr, 1, ',', ' ')) ?> %)

@@ -1,7 +1,7 @@
 <?php
 /** @var array $payment  @var \App\Services\Payment\PaymentResult $result */
 $paid = $result->isPaid();
-$amount = format_price((int) $payment['amount_cents'], (string) $payment['currency']);
+$amount = format_price_local((int) $payment['amount_cents'], (string) $payment['currency']);
 ?>
 <section class="auth-card pay-result">
     <div class="pay-result-icon <?= $paid ? 'is-ok' : 'is-ko' ?>" aria-hidden="true"><?= $paid ? '✅' : '✖' ?></div>

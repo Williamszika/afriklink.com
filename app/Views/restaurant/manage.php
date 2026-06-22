@@ -169,7 +169,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                                             <span class="menu-item-vars">
                                                 <?php foreach ($vars as $vr): $vOut = !empty($vr['out']); ?>
                                                     <span class="vol-tag<?= $vOut ? ' is-out' : '' ?>">
-                                                        <?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?>
+                                                        <?= e(rtrim(rtrim((string) $vr['v'], '0'), '.')) ?> L · <?= e(format_price_local((int) $vr['p'], $cur)) ?><?= $vOut ? ' — ' . e(t('resto.size_out')) : '' ?>
                                                         <form method="post" action="<?= e(url('/restaurant/plat/' . $it['public_id'] . '/contenance')) ?>" class="inline-form">
                                                             <?= csrf_field() ?>
                                                             <input type="hidden" name="vol" value="<?= e((string) $vr['v']) ?>">
@@ -181,7 +181,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                                             </span>
                                         <?php endif; ?>
                                     </div>
-                                    <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price((int) $it['price_cents'], $cur)) ?></span>
+                                    <span class="menu-item-price"><?= $vars !== [] ? e(t('resto.from_price', ['price' => format_price((int) $it['price_cents'], $cur)])) : e(format_price_local((int) $it['price_cents'], $cur)) ?></span>
                                     <form method="post" action="<?= e(url('/restaurant/plat/' . $it['public_id'] . '/statut')) ?>" class="inline-form menu-item-actions">
                                         <?= csrf_field() ?>
                                         <button class="link-button" name="action" value="<?= $avail ? 'unavailable' : 'available' ?>"><?= e($avail ? t('resto.mark_off') : t('resto.mark_on')) ?></button>
@@ -205,7 +205,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
                         <li class="zone-row">
                             <div class="zone-info">
                                 <strong><?= e((string) $z['name']) ?></strong>
-                                <span class="zone-meta"><?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></span>
+                                <span class="zone-meta"><?= e(format_price_local((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></span>
                             </div>
                             <form method="post" action="<?= e(url('/restaurant/livraison/zones/' . $z['public_id'] . '/suppr')) ?>" class="inline-form">
                                 <?= csrf_field() ?>

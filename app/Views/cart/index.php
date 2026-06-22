@@ -24,7 +24,7 @@ use App\Services\CloudinaryService;
                             <div class="cart-item-body">
                                 <a class="cart-item-name" href="<?= e($purl) ?>"><?= e((string) $p['name']) ?></a>
                                 <?php $cpct = product_promo_pct($p); ?>
-                                <span class="muted"><?php if ($cpct > 0): ?><del><?= e(format_price((int) $p['price_cents'], (string) $g['currency'])) ?></del> <?php endif; ?><?= e(format_price((int) ($l['unit'] ?? $p['price_cents']), (string) $g['currency'])) ?><?php if ($cpct > 0): ?> <span class="discount-badge discount-badge--inline">−<?= $cpct ?>%</span><?php endif; ?></span>
+                                <span class="muted"><?php if ($cpct > 0): ?><del><?= e(format_price_local((int) $p['price_cents'], (string) $g['currency'])) ?></del> <?php endif; ?><?= e(format_price_local((int) ($l['unit'] ?? $p['price_cents']), (string) $g['currency'])) ?><?php if ($cpct > 0): ?> <span class="discount-badge discount-badge--inline">−<?= $cpct ?>%</span><?php endif; ?></span>
                             </div>
                             <div class="cart-item-qty">
                                 <form method="post" action="<?= e(url('/panier/modifier')) ?>" class="inline-form cart-qty-form">
@@ -37,7 +37,7 @@ use App\Services\CloudinaryService;
                                 </form>
                             </div>
                             <div class="cart-item-total">
-                                <strong><?= e(format_price((int) $l['line_total'], (string) $g['currency'])) ?></strong>
+                                <strong><?= e(format_price_local((int) $l['line_total'], (string) $g['currency'])) ?></strong>
                                 <form method="post" action="<?= e(url('/panier/modifier')) ?>" class="inline-form">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="slug" value="<?= e($g['slug']) ?>">
@@ -49,7 +49,7 @@ use App\Services\CloudinaryService;
                     <?php endforeach; ?>
                 </ul>
                 <div class="cart-group-foot">
-                    <span class="cart-subtotal"><?= e(t('cart.subtotal')) ?> : <strong><?= e(format_price((int) $g['subtotal'], (string) $g['currency'])) ?></strong></span>
+                    <span class="cart-subtotal"><?= e(t('cart.subtotal')) ?> : <strong><?= e(format_price_local((int) $g['subtotal'], (string) $g['currency'])) ?></strong></span>
                     <form method="post" action="<?= e(url('/panier/' . $g['slug'] . '/caisse')) ?>" class="inline-form">
                         <?= csrf_field() ?>
                         <button class="btn btn-primary">✅ <?= e(t('cart.checkout')) ?> →</button>

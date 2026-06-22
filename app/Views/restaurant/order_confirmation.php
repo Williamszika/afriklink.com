@@ -35,10 +35,10 @@ $waText = rawurlencode(
 
     <ul class="cart-lines confirm-lines">
         <?php foreach ($items as $it): ?>
-            <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e((string) $it['title']) ?></span> <strong><?= e(format_price((int) $it['line_total_cents'], $cur)) ?></strong></li>
+            <li class="cart-line"><span><?= (int) $it['qty'] ?>× <?= e((string) $it['title']) ?></span> <strong><?= e(format_price_local((int) $it['line_total_cents'], $cur)) ?></strong></li>
         <?php endforeach; ?>
     </ul>
-    <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong><?= e(format_price((int) $order['subtotal_cents'], $cur)) ?></strong></p>
+    <p class="cart-total-row"><span><?= e(t('rorder.total')) ?></span> <strong><?= e(format_price_local((int) $order['subtotal_cents'], $cur)) ?></strong></p>
     <p class="hint"><?= e(t('resto.service.' . $order['service'])) ?> · <?= e((string) $order['client_name']) ?></p>
     <?php if ($term !== ''): ?>
         <p class="hint"><?= e(t('shop.f.payment_terms')) ?> : <strong><?= e(t('shop.payterm.' . $term)) ?></strong></p>

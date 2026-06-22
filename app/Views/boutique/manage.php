@@ -198,7 +198,7 @@ $publicPath = '/boutique/' . $boutique['slug'];
                                     <?php if (!empty($p['pinned'])): ?><span class="badge badge-pin">📌 <?= e(t('product.pinned')) ?></span><?php endif; ?>
                                 </p>
                                 <p class="product-row-meta">
-                                    <strong><?= e(format_price((int) $p['price_cents'], $cur)) ?></strong>
+                                    <strong><?= e(format_price_local((int) $p['price_cents'], $cur)) ?></strong>
                                     · <?= $p['stock'] === null ? e(t('product.stock_unlimited')) : e(t('product.stock_n', ['n' => (int) $p['stock']])) ?>
                                 </p>
                                 <?php $fc = $forecasts[(int) $p['id']] ?? null; ?>
@@ -268,7 +268,7 @@ $publicPath = '/boutique/' . $boutique['slug'];
                                     <?php if ($nt > 0): ?>
                                         <?= e(t('ship.zone.tiers_n', ['n' => $nt])) ?>
                                     <?php else: ?>
-                                        <?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?>
+                                        <?= e(format_price_local((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?>
                                     <?php endif; ?>
                                     <?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?>
                                 </span>
@@ -358,7 +358,7 @@ $publicPath = '/boutique/' . $boutique['slug'];
                     <?php foreach ($discounts as $d): $on = ($d['status'] ?? '') === 'active'; ?>
                         <li class="promo-item<?= $on ? '' : ' is-off' ?>">
                             <span class="promo-code-tag"><?= e((string) $d['code']) ?></span>
-                            <span class="muted"><?= $d['type'] === 'amount' ? e(format_price((int) $d['value'], $cur)) : (int) $d['value'] . ' %' ?><?php if (!empty($d['min_order_cents'])): ?> · <?= e(t('promo.min_short', ['amount' => format_price((int) $d['min_order_cents'], $cur)])) ?><?php endif; ?> · <?= (int) ($d['uses'] ?? 0) ?> <?= e(t('promo.uses')) ?></span>
+                            <span class="muted"><?= $d['type'] === 'amount' ? e(format_price_local((int) $d['value'], $cur)) : (int) $d['value'] . ' %' ?><?php if (!empty($d['min_order_cents'])): ?> · <?= e(t('promo.min_short', ['amount' => format_price((int) $d['min_order_cents'], $cur)])) ?><?php endif; ?> · <?= (int) ($d['uses'] ?? 0) ?> <?= e(t('promo.uses')) ?></span>
                             <form method="post" action="<?= e(url('/boutique/promotions/' . $d['id'] . '/statut')) ?>" class="inline-form">
                                 <?= csrf_field() ?>
                                 <button class="link-button" name="action" value="<?= $on ? 'disable' : 'enable' ?>"><?= e(t($on ? 'promo.disable' : 'promo.enable')) ?></button>

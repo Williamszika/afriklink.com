@@ -50,7 +50,7 @@ $keepPct = $keep_pct ?? '1,5';
                                         <span><?= e((string) $p['name']) ?></span>
                                     </span>
                                 </td>
-                                <td class="num"><?= e(format_price((int) $p['price_cents'], $cur)) ?></td>
+                                <td class="num"><?= e(format_price_local((int) $p['price_cents'], $cur)) ?></td>
                                 <td>
                                     <label class="switch-row">
                                         <input type="checkbox" name="enabled[<?= $pid ?>]" value="1" <?= $isOn ? 'checked' : '' ?>>
@@ -59,7 +59,7 @@ $keepPct = $keep_pct ?? '1,5';
                                 <td class="num">
                                     <input class="aff-vp-rate" type="number" name="rate[<?= $pid ?>]" min="<?= e(number_format(affiliate_min_rate_bps() / 100, 1, '.', '')) ?>" max="<?= e(number_format($maxBps / 100, 0, '.', '')) ?>" step="0.5" value="<?= e($val) ?>" inputmode="decimal"> %
                                 </td>
-                                <td class="num"><?= e(format_price($earn, $cur)) ?></td>
+                                <td class="num"><?= e(format_price_local($earn, $cur)) ?></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>

@@ -16,7 +16,7 @@
                 <?php foreach ($list as $w): ?>
                     <li class="ann-row ann-row--pending">
                         <div class="ann-row-main">
-                            <strong><?= e(format_price((int) $w['amount_cents'], (string) $w['currency'])) ?></strong>
+                            <strong><?= e(format_price_local((int) $w['amount_cents'], (string) $w['currency'])) ?></strong>
                             <span class="muted">— <?= e((string) ($w['seller_name'] ?? '')) ?> · <?= e(t('wallet.method.' . $w['method'])) ?> :
                                 <code><?= e((string) $w['destination']) ?></code> · <?= e(date('d/m/Y H:i', strtotime((string) $w['created_at']))) ?></span>
                         </div>

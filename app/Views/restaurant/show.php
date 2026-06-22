@@ -36,8 +36,8 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                 </p>
                 <div class="resto-info-strip">
                     <?php if (!empty($resto['prep_minutes'])): ?><span><?= icon('clock', ['size' => 14]) ?> ~<?= (int) $resto['prep_minutes'] ?> min</span><?php endif; ?>
-                    <?php if (!empty($resto['delivery_fee_cents'])): ?><span><?= icon('truck', ['size' => 14]) ?> <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></span><?php endif; ?>
-                    <?php if (!empty($resto['delivery_min_cents'])): ?><span><?= icon('receipt', ['size' => 14]) ?> <?= e(t('resto.f.delivery_min')) ?> <?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></span><?php endif; ?>
+                    <?php if (!empty($resto['delivery_fee_cents'])): ?><span><?= icon('truck', ['size' => 14]) ?> <?= e(format_price_local((int) $resto['delivery_fee_cents'], $cur)) ?></span><?php endif; ?>
+                    <?php if (!empty($resto['delivery_min_cents'])): ?><span><?= icon('receipt', ['size' => 14]) ?> <?= e(t('resto.f.delivery_min')) ?> <?= e(format_price_local((int) $resto['delivery_min_cents'], $cur)) ?></span><?php endif; ?>
                     <?php if ($hoursLabel !== ''): ?><span><?= icon('clock', ['size' => 14]) ?> <?= e($hoursLabel) ?></span><?php endif; ?>
                 </div>
                 <?= render_partial('partials/share_row', ['share_url' => $shopUrl, 'share_text' => t('resto.share_text', ['name' => (string) $resto['name']])]) ?>
@@ -118,18 +118,18 @@ $catsWithItems = array_values(array_filter($categories, static fn ($c) => !empty
                     <?php if ($hoursLabel !== ''): ?><dt><?= e(t('resto.f.hours')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= e($hoursLabel) ?></dd><?php endif; ?>
                     <?php if (!empty($resto['address'])): ?><dt><?= e(t('resto.f.address')) ?></dt><dd><?= icon('pin', ['size' => 15]) ?> <?= e((string) $resto['address']) ?></dd><?php endif; ?>
                     <?php if (!empty($resto['prep_minutes'])): ?><dt><?= e(t('resto.f.prep')) ?></dt><dd><?= icon('clock', ['size' => 15]) ?> <?= (int) $resto['prep_minutes'] ?> min</dd><?php endif; ?>
-                    <?php if (!empty($resto['delivery_fee_cents'])): ?><dt><?= e(t('resto.f.delivery_fee')) ?></dt><dd><?= icon('truck', ['size' => 15]) ?> <?= e(format_price((int) $resto['delivery_fee_cents'], $cur)) ?></dd><?php endif; ?>
+                    <?php if (!empty($resto['delivery_fee_cents'])): ?><dt><?= e(t('resto.f.delivery_fee')) ?></dt><dd><?= icon('truck', ['size' => 15]) ?> <?= e(format_price_local((int) $resto['delivery_fee_cents'], $cur)) ?></dd><?php endif; ?>
                     <?php if (!empty($delivery_areas)): ?>
                         <dt><?= e(t('darea.title')) ?></dt>
                         <dd>
                             <ul class="ship-zones-public">
                                 <?php foreach ($delivery_areas as $z): ?>
-                                    <li><strong><?= e((string) $z['name']) ?></strong> — <?= e(format_price((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></li>
+                                    <li><strong><?= e((string) $z['name']) ?></strong> — <?= e(format_price_local((int) $z['fee_cents'], $cur)) ?><?php if (!empty($z['free_above_cents'])): ?> · <?= e(t('ship.zone.free_above', ['amount' => format_price((int) $z['free_above_cents'], $cur)])) ?><?php endif; ?><?php if (!empty($z['delay'])): ?> · <?= e(t('shop.prep.' . $z['delay'])) ?><?php endif; ?></li>
                                 <?php endforeach; ?>
                             </ul>
                         </dd>
                     <?php endif; ?>
-                    <?php if (!empty($resto['delivery_min_cents'])): ?><dt><?= e(t('resto.f.delivery_min')) ?></dt><dd><?= e(format_price((int) $resto['delivery_min_cents'], $cur)) ?></dd><?php endif; ?>
+                    <?php if (!empty($resto['delivery_min_cents'])): ?><dt><?= e(t('resto.f.delivery_min')) ?></dt><dd><?= e(format_price_local((int) $resto['delivery_min_cents'], $cur)) ?></dd><?php endif; ?>
                 </dl>
                 <?php if ($wa !== ''): ?>
                     <a class="btn btn-ghost btn-block btn-wa" rel="noopener" target="_blank" href="https://wa.me/<?= e($wa) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('resto.order_whatsapp')) ?></a>

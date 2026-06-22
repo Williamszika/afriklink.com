@@ -29,7 +29,7 @@
                         $full   = $link !== '' ? ($target !== '' ? $link . '?to=' . rawurlencode($target) : $link) : '';
                         $earn   = empty($r['earnings'])
                             ? '0'
-                            : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price($c, $cur), $r['earnings'], array_keys($r['earnings'])));
+                            : implode(' · ', array_map(static fn (int $c, string $cur): string => format_price_local($c, $cur), $r['earnings'], array_keys($r['earnings'])));
                         ?>
                         <tr>
                             <td>

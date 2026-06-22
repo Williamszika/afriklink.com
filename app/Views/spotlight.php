@@ -48,7 +48,7 @@ $empty = $products === [] && $annonces === [] && $boutiques === [];
                             <span class="promo-badge"><?= e(t('ads.badge')) ?></span>
                         </span>
                         <span class="product-card-name"><?= e((string) $p['name']) ?></span>
-                        <span class="product-card-price"><?= e(format_price((int) $p['price_cents'], (string) $p['currency'])) ?></span>
+                        <span class="product-card-price"><?= e(format_price_local((int) $p['price_cents'], (string) $p['currency'])) ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -66,7 +66,7 @@ $empty = $products === [] && $annonces === [] && $boutiques === [];
                             <span class="promo-badge"><?= e(t('ads.badge')) ?></span>
                         </span>
                         <span class="product-card-name"><?= e((string) $a['title']) ?></span>
-                        <span class="product-card-price"><?= e(format_price((int) $a['price_cents'], (string) $a['currency'])) ?></span>
+                        <span class="product-card-price"><?= e(format_price_local((int) $a['price_cents'], (string) $a['currency'])) ?></span>
                     </a>
                 <?php endforeach; ?>
             </div>

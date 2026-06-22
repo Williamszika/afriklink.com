@@ -71,7 +71,7 @@ $slideCount = count($dealSlides);
                 <div class="afk-ad__text">
                     <span class="afk-ad__eyebrow">⚡ <?= e(t('carousel.deal')) ?><?= $pct > 0 ? ' · −' . $pct . '%' : '' ?></span>
                     <h2 class="afk-ad__title"><?= e(mb_strimwidth((string) $p['name'], 0, 58, '…')) ?></h2>
-                    <div class="afk-ad__price"><span class="afk-ad__now"><?= e(format_price($now, $cur)) ?></span><?php if ($old !== null): ?> <span class="afk-ad__old"><?= e(format_price($old, $cur)) ?></span><?php endif; ?></div>
+                    <div class="afk-ad__price"><span class="afk-ad__now"><?= e(format_price_local($now, $cur)) ?></span><?php if ($old !== null): ?> <span class="afk-ad__old"><?= e(format_price_local($old, $cur)) ?></span><?php endif; ?></div>
                     <span class="afk-btn afk-btn--gold afk-btn--lg"><?= e(t('carousel.shop')) ?></span>
                 </div>
                 <div class="afk-ad__media">

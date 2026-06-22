@@ -35,7 +35,7 @@ use App\Services\CloudinaryService;
                             </span>
                         </p>
                         <p class="listing-row-meta">
-                            <strong><?= e(format_price((int) $l['price_cents'], (string) $l['currency'])) ?></strong>
+                            <strong><?= e(format_price_local((int) $l['price_cents'], (string) $l['currency'])) ?></strong>
                             · <?= e(t('listing.cat.' . $l['category'])) ?>
                             <?php if (!empty($l['city'])): ?> · <?= e((string) $l['city']) ?><?php endif; ?>
                             <?php if (!empty($l['video_public_id'])): ?> · 🎬<?php endif; ?>
