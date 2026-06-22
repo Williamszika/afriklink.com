@@ -6880,3 +6880,67 @@ document.addEventListener('click', function (ev) {
     }, { threshold: 0.12 });
     els.forEach(function (e) { io.observe(e); });
 })();
+
+/* ------------------------------------------------------------------ */
+/* Caisse multi-étapes : un seul formulaire affiché étape par étape    */
+/* (Suivant / Précédent). Amélioration progressive : sans JS, toutes   */
+/* les étapes restent visibles et le formulaire reste soumettable.      */
+/* ------------------------------------------------------------------ */
+(function () {
+    var form = document.querySelector('[data-checkout-wizard]');
+    if (!form) { return; }
+    var steps = Array.prototype.slice.call(form.querySelectorAll('[data-step]'));
+    if (steps.length < 2) { return; }
+    var dots = Array.prototype.slice.call(form.querySelectorAll('[data-wiz-dot]'));
+    var cur = 0;
+
+    function show(i) {
+        cur = Math.max(0, Math.min(i, steps.length - 1));
+        steps.forEach(function (s, idx) { s.hidden = idx !== cur; });
+        dots.forEach(function (d, idx) {
+            d.classList.toggle('is-active', idx === cur);
+            d.classList.toggle('is-done', idx < cur);
+        });
+        var top = form.getBoundingClientRect().top + window.pageYOffset - 80;
+        window.scrollTo({ top: top < 0 ? 0 : top, behavior: 'smooth' });
+    }
+
+    function validStep(i) {
+        var ok = true;
+        steps[i].querySelectorAll('input, select, textarea').forEach(function (f) {
+            if (f.disabled || f.type === 'hidden') { return; }
+            if (!f.checkValidity()) { if (ok) { f.reportValidity(); } ok = false; }
+        });
+        if (!ok) { return false; }
+        var contacts = steps[i].querySelectorAll('[data-wiz-contact]');
+        if (contacts.length) {
+            var any = false;
+            contacts.forEach(function (c) { if ((c.value || '').trim() !== '') { any = true; } });
+            if (!any) {
+                var first = contacts[0];
+                first.setCustomValidity(form.getAttribute('data-contact-msg') || 'Required');
+                first.reportValidity();
+                first.setCustomValidity('');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    form.querySelectorAll('[data-wiz-next]').forEach(function (b) {
+        b.addEventListener('click', function () { if (validStep(cur)) { show(cur + 1); } });
+    });
+    form.querySelectorAll('[data-wiz-prev]').forEach(function (b) {
+        b.addEventListener('click', function () { show(cur - 1); });
+    });
+
+    var mm = form.querySelector('[data-mm-block]');
+    function syncMM() {
+        var sel = form.querySelector('input[name="payment_method"]:checked');
+        if (mm) { mm.hidden = !(sel && sel.value === 'mobile_money'); }
+    }
+    form.querySelectorAll('[data-pay-method]').forEach(function (r) { r.addEventListener('change', syncMM); });
+    syncMM();
+
+    show(0);
+})();

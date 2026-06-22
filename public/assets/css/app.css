@@ -2848,3 +2848,20 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .caisse-step + .caisse-step { margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
 .caisse-step__h { display:flex; align-items:center; gap:9px; margin:0 0 6px; font-size:1.02rem; }
 .caisse-step__n { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:#14502E; color:#fff; font-size:.82rem; font-weight:800; flex:none; }
+
+/* Caisse — assistant multi-étapes : barre de progression + navigation */
+.wiz-progress { display:flex; gap:8px; list-style:none; padding:0; margin:2px 0 16px; }
+.wiz-progress li { flex:1; display:flex; align-items:center; gap:7px; font-size:.78rem; color:var(--muted); min-width:0; }
+.wiz-dot__n { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; flex:none; border-radius:50%; border:2px solid var(--border); background:#fff; font-weight:800; font-size:.78rem; color:var(--muted); }
+.wiz-dot__t { line-height:1.15; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.wiz-progress li.is-active { color:var(--ink); font-weight:700; }
+.wiz-progress li.is-active .wiz-dot__n { border-color:#14502E; background:#14502E; color:#fff; }
+.wiz-progress li.is-done .wiz-dot__n { border-color:#14502E; background:#e7f4ec; color:#14502E; }
+.wiz-nav { display:flex; gap:10px; margin-top:18px; }
+.wiz-nav .btn-block { width:100%; }
+.wiz-nav .btn:not(.btn-block) { flex:1; }
+@media (max-width:520px) { .wiz-dot__t { display:none; } .wiz-progress li { flex:none; } .wiz-progress { gap:12px; } }
+@media (max-width:760px) {
+  .caisse-form .wiz-nav { position:sticky; bottom:0; background:var(--card,#fff); padding:10px 0 8px; box-shadow:0 -6px 16px -10px rgba(12,46,28,.4); z-index:5; }
+  .caisse-form .wiz-nav .btn-lg[type="submit"] { position:static; box-shadow:none; }
+}

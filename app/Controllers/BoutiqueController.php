@@ -1103,6 +1103,11 @@ final class BoutiqueController
         $phone = trim((string) input_string('client_phone', ''));
         $email = trim((string) input_string('client_email', ''));
         $address = trim((string) input_string('client_address', ''));
+        // Adresse détaillée (assistant caisse) : ville, complément, code postal —
+        // composés dans client_address pour rester lisibles côté vendeur.
+        $city   = mb_substr(trim((string) input_string('client_city', '')), 0, 80);
+        $addr2  = mb_substr(trim((string) input_string('client_address2', '')), 0, 120);
+        $postal = mb_substr(trim((string) input_string('client_postal', '')), 0, 16);
         // Position partagée par le client (GPS du navigateur) — pour une livraison précise.
         $lat = filter_var((string) input_string('geo_lat', ''), FILTER_VALIDATE_FLOAT);
         $lng = filter_var((string) input_string('geo_lng', ''), FILTER_VALIDATE_FLOAT);
@@ -1191,7 +1196,7 @@ final class BoutiqueController
             'client_name'  => $name,
             'client_phone' => $phone !== '' ? $phone : null,
             'client_email' => $email !== '' ? $email : null,
-            'client_address' => $address !== '' ? mb_substr($address, 0, 220) : null,
+            'client_address' => ($fullAddr = trim(implode(', ', array_filter([$address, $addr2, trim($postal . ' ' . $city)])))) !== '' ? mb_substr($fullAddr, 0, 220) : null,
             'dest_country'   => $destCountry,
             'geo_lat'        => $hasGeo ? round($lat, 6) : null,
             'geo_lng'        => $hasGeo ? round($lng, 6) : null,
