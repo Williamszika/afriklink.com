@@ -575,6 +575,19 @@ $dotHtml = static function (array $hexes): string {
                             <?= render_partial('partials/cart_stepper', ['id' => (string) $product['public_id'], 'size' => '', 'name' => (string) $product['name'], 'price' => $pEff, 'add_label' => t('bcart.add_to_cart'), 'qty' => \App\Services\Cart::qty((int) $boutique['id'], (string) $product['public_id'])]) ?>
                         <?php endif; ?>
                     </div>
+                    <?php
+                    // Logos des moyens de paiement (mappés sur ce que le vendeur accepte) + badge sécurité.
+                    $brandMap = ['card' => ['visa', 'mastercard', 'amex'], 'paypal' => ['paypal'], 'apple_pay' => ['applepay'], 'google_pay' => ['googlepay'], 'mobile_money' => ['orange_money', 'mtn', 'wave', 'moov']];
+                    $ficheBrands = [];
+                    foreach ($payMethods as $m) {
+                        foreach ($brandMap[$m] ?? [] as $bd) {
+                            $ficheBrands[] = $bd;
+                        }
+                    }
+                    ?>
+                    <?php if ($ficheBrands !== []): ?>
+                        <?= render_partial('partials/payment_strip', ['only' => $ficheBrands, 'label' => false, 'secure' => true, 'compact' => true]) ?>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <div class="product-wish-line">
                     <?= render_partial('partials/wish_heart', ['pid' => (string) $product['public_id']]) ?>
