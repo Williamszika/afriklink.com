@@ -199,6 +199,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
                 </form>
             </div>
         </div>
+        <?= render_partial('partials/payment_strip', ['label' => true, 'secure' => true]) ?>
         <p class="footer-bottom">&copy; <?= date('Y') ?> <?= e(config('app.name', 'Afriklink')) ?></p>
     </div>
 </footer>

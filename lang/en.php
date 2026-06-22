@@ -992,6 +992,8 @@ return [
     'pay.providers_title' => 'Available providers',
     'pay.your_choice' => 'your choice',
     'pay.recommended' => 'Recommended for your country',
+    'pay.accepted' => 'Accepted payment methods',
+    'pay.secure' => '100% secure payment',
     'pay.env_hint' => 'A provider turns “Ready” as soon as its API keys are added to the environment variables.',
     'pay.run_test' => 'Run a test payment',
     'pay.run_test_hint' => 'A test payment will be created via: :provider.',

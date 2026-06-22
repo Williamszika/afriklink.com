@@ -144,6 +144,7 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             <input type="text" id="cl-note" name="note" maxlength="500" value="<?= old('note') ?>" placeholder="<?= e(t('order.f.note_ph')) ?>">
             <label for="cl-promo">🏷️ <?= e(t('promo.label')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
             <input type="text" id="cl-promo" name="promo_code" maxlength="40" value="<?= old('promo_code') ?>" placeholder="<?= e(t('promo.ph')) ?>" autocapitalize="characters">
+            <?= render_partial('partials/payment_strip', ['label' => false, 'secure' => true, 'compact' => true]) ?>
             <button type="submit" class="btn btn-primary btn-block btn-lg"<?= $belowMin ? ' disabled' : '' ?>>✅ <?= e(t('caisse.validate')) ?></button>
         </form>
     </div>

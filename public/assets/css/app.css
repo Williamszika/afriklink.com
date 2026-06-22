@@ -2804,3 +2804,18 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .region-suggest__flag { font-size:1.1rem; line-height:1; }
 .region-suggest__actions { display:inline-flex; gap:8px; flex-shrink:0; }
 .region-suggest .btn-sm { padding:4px 12px; }
+
+/* Bandeau « moyens de paiement acceptés » + badge sécurité (façon grandes plateformes) */
+.pay-strip { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px 14px; margin:14px 0 6px; }
+.pay-strip__label { font-size:.8rem; font-weight:600; color:var(--muted); }
+.pay-strip__tiles { display:flex; flex-wrap:wrap; gap:7px; }
+.pay-tile { display:inline-flex; align-items:center; justify-content:center; width:46px; height:30px; padding:3px 5px; background:#fff; border:1px solid #e6e8ec; border-radius:6px; box-shadow:0 1px 2px rgba(16,24,40,.06); }
+.pay-tile svg { max-width:100%; max-height:100%; display:block; }
+.pay-secure { display:inline-flex; align-items:center; gap:5px; font-size:.82rem; font-weight:700; color:#14502E; }
+.pay-secure svg { color:#1c7a44; }
+.pay-strip--compact { margin:10px 0; gap:6px 10px; }
+.pay-strip--compact .pay-tile { width:40px; height:26px; }
+.site-footer .pay-strip { border-top:1px solid rgba(255,255,255,.12); padding-top:16px; margin-top:18px; }
+.site-footer .pay-strip__label { color:rgba(255,255,255,.72); }
+.site-footer .pay-secure { color:#cfe9d8; }
+.site-footer .pay-secure svg { color:#7fd0a0; }
