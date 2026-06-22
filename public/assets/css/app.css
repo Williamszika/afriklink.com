@@ -2833,3 +2833,18 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 @media (max-width: 760px) {
   .caisse-form .btn-lg[type="submit"] { position: sticky; bottom: 8px; z-index:5; box-shadow: 0 8px 22px -6px rgba(12,46,28,.5); }
 }
+
+/* Caisse — étapes numérotées + récap avec vignettes produit */
+.cart-lines { gap: 10px; }
+.cart-line { display:flex; align-items:center; justify-content:flex-start; gap:10px; }
+.cart-line__thumb { flex:none; width:48px; height:48px; border-radius:9px; overflow:hidden; border:1px solid var(--border); background:var(--bg,#f4f6f5); display:grid; place-items:center; }
+.cart-line__thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.cart-line__ph { color:var(--muted); }
+.cart-line__body { flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.cart-line__title { line-height:1.25; }
+.cart-line__unit { font-size:.8rem; }
+.cart-line__total { white-space:nowrap; }
+.caisse-eta { font-size:.82rem; color:#14502E; font-weight:600; margin:3px 0 0; }
+.caisse-step + .caisse-step { margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+.caisse-step__h { display:flex; align-items:center; gap:9px; margin:0 0 6px; font-size:1.02rem; }
+.caisse-step__n { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:#14502E; color:#fff; font-size:.82rem; font-weight:800; flex:none; }

@@ -1027,9 +1027,13 @@ final class BoutiqueController
         foreach ($fulfillments as $m) {
             $shipMap[$m] = $this->shippingFor($boutique, $m, $total, $destCountry);
         }
+        $lineImages = \App\Models\Product::mainPhotos(array_values(array_filter(
+            array_map(static fn (array $l): int => (int) ($l['product_id'] ?? 0), $lines)
+        )));
         view('boutique/caisse', [
             'boutique'     => $boutique,
             'lines'        => $lines,
+            'line_images'  => $lineImages,
             'total'        => $total,
             'ship_map'     => $shipMap,
             'shipping_zones' => $zones,
