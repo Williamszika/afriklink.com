@@ -18,6 +18,7 @@ final class AddressController
         view('addresses', [
             'addresses'  => UserAddress::forUser($uid),
             'countries'  => countries_list(),
+            'prefill'    => detected_geo(),
             'page_title' => t('addr.title'),
         ]);
     }
@@ -30,6 +31,7 @@ final class AddressController
         $line1 = trim((string) input_string('line1', ''));
         $city  = trim((string) input_string('city', ''));
         $cc    = whitelist(strtoupper((string) input_string('country_code', '')), array_keys(config('countries', [])), null);
+        $postal = trim((string) input_string('postal_code', ''));
         if (mb_strlen($name) < 2) {
             $errors['recipient_name'] = t('addr.err_name');
         }
@@ -54,13 +56,19 @@ final class AddressController
             'line2'        => input_string('line2', ''),
             'city'         => $city,
             'region'       => input_string('region', ''),
-            'postal_code'  => input_string('postal_code', ''),
+            'postal_code'  => $postal,
             'country_code' => $cc,
             'phone'        => input_string('phone', ''),
             'is_default'   => (string) input_string('is_default', '') !== '',
         ]);
         clear_old();
-        flash('success', t('addr.saved'));
+        // Contrôle de cohérence (hors-ligne) : prévient sans bloquer si le code
+        // postal ne correspond pas au format du pays choisi.
+        if (postal_issue($cc, $postal)) {
+            flash('warning', t('addr.warn_postal'));
+        } else {
+            flash('success', t('addr.saved'));
+        }
         redirect('/mes-adresses');
     }
 

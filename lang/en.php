@@ -605,6 +605,7 @@ return [
     'addr.delete_confirm'    => 'Delete this address?',
     'addr.deleted'           => 'Address deleted.',
     'addr.saved'             => 'Address saved.',
+    'addr.warn_postal'       => 'Address saved — please check the postal code: it does not seem to match the selected country.',
     'addr.add_title'         => 'Add an address',
     'addr.recipient'         => 'Recipient',
     'addr.label'             => 'Label',

@@ -1,5 +1,6 @@
 <?php
-/** @var list<array> $addresses  @var array $countries */
+/** @var list<array> $addresses  @var array $countries  @var array $prefill */
+$prefill = $prefill ?? [];
 ?>
 <section class="container narrow">
     <div class="page-head">
@@ -60,7 +61,7 @@
         <div class="grid-2">
             <div>
                 <label for="ad-city"><?= e(t('addr.city')) ?></label>
-                <input type="text" id="ad-city" name="city" maxlength="128" required value="<?= old('city') ?>">
+                <input type="text" id="ad-city" name="city" maxlength="128" required value="<?= old('city') ?: e((string) ($prefill['city'] ?? '')) ?>">
                 <?php if (has_error('city')): ?><p class="field-error"><?= e(error('city')) ?></p><?php endif; ?>
             </div>
             <div>
@@ -74,7 +75,7 @@
                 <select id="ad-cc" name="country_code" required>
                     <option value=""><?= e(t('addr.country_ph')) ?></option>
                     <?php foreach ($countries as $code => $c): ?>
-                        <option value="<?= e((string) $code) ?>"><?= e(country_name((string) $code)) ?></option>
+                        <option value="<?= e((string) $code) ?>" <?= (old('country_code') ?: ($prefill['country_code'] ?? '')) === $code ? 'selected' : '' ?>><?= e(country_name((string) $code)) ?></option>
                     <?php endforeach; ?>
                 </select>
                 <?php if (has_error('country_code')): ?><p class="field-error"><?= e(error('country_code')) ?></p><?php endif; ?>

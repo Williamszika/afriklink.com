@@ -605,6 +605,7 @@ return [
     'addr.delete_confirm'    => 'Supprimer cette adresse ?',
     'addr.deleted'           => 'Adresse supprimée.',
     'addr.saved'             => 'Adresse enregistrée.',
+    'addr.warn_postal'       => 'Adresse enregistrée — vérifiez le code postal : il ne semble pas correspondre au pays choisi.',
     'addr.add_title'         => 'Ajouter une adresse',
     'addr.recipient'         => 'Destinataire',
     'addr.label'             => 'Libellé',

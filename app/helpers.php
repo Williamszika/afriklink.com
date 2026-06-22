@@ -466,6 +466,33 @@ function countries_list(): array
     return $out;
 }
 
+/**
+ * Contrôle de cohérence HORS-LIGNE : le code postal correspond-il au format
+ * connu du pays ? Renvoie true si un PROBLÈME est détecté (code fourni + pays à
+ * format connu + ne correspond pas). false sinon (vide, ou pays sans format
+ * postal standard — fréquent en Afrique : on ne juge pas). La vérification fine
+ * « adresse ↔ ville ↔ pays » nécessite un géocodage (service à brancher).
+ */
+function postal_issue(?string $cc, ?string $postal): bool
+{
+    $postal = trim((string) $postal);
+    if ($postal === '') {
+        return false;
+    }
+    $cc = strtoupper(trim((string) $cc));
+    static $pat = [
+        'FR' => '/^\d{5}$/', 'DE' => '/^\d{5}$/', 'ES' => '/^\d{5}$/', 'IT' => '/^\d{5}$/',
+        'US' => '/^\d{5}(-\d{4})?$/', 'BE' => '/^\d{4}$/', 'CH' => '/^\d{4}$/', 'AT' => '/^\d{4}$/',
+        'DK' => '/^\d{4}$/', 'NO' => '/^\d{4}$/', 'LU' => '/^\d{4}$/', 'PT' => '/^\d{4}-\d{3}$/',
+        'NL' => '/^\d{4}\s?[A-Za-z]{2}$/', 'PL' => '/^\d{2}-\d{3}$/', 'SE' => '/^\d{3}\s?\d{2}$/',
+        'GB' => '/^[A-Za-z]{1,2}\d[A-Za-z\d]?\s?\d[A-Za-z]{2}$/',
+    ];
+    if (!isset($pat[$cc])) {
+        return false;
+    }
+    return preg_match($pat[$cc], $postal) !== 1;
+}
+
 /* ------------------------------------------------------------------ */
 /* Legal regime (country-aware compliance: DE / EU / CI / INTL)        */
 /* ------------------------------------------------------------------ */
