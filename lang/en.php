@@ -606,6 +606,8 @@ return [
     'addr.deleted'           => 'Address deleted.',
     'addr.saved'             => 'Address saved.',
     'addr.warn_postal'       => 'Address saved — please check the postal code: it does not seem to match the selected country.',
+    'addr.warn_country'      => 'Address saved — the city ":city" appears to be in :resolved, not :country. Please check.',
+    'addr.geo_credit'        => 'Address verification provided by OpenStreetMap.',
     'addr.add_title'         => 'Add an address',
     'addr.recipient'         => 'Recipient',
     'addr.label'             => 'Label',

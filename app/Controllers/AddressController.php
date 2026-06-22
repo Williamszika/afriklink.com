@@ -62,9 +62,17 @@ final class AddressController
             'is_default'   => (string) input_string('is_default', '') !== '',
         ]);
         clear_old();
-        // Contrôle de cohérence (hors-ligne) : prévient sans bloquer si le code
-        // postal ne correspond pas au format du pays choisi.
-        if (postal_issue($cc, $postal)) {
+        // Contrôle de cohérence (best-effort, ne bloque jamais) : géocodage de la
+        // ville pour vérifier qu'elle se situe dans le pays choisi, puis format du
+        // code postal. Avertit le client sans empêcher l'enregistrement.
+        $geo = \App\Services\AddressCheck::cityCountry($city, (string) $cc);
+        if ($geo['status'] === 'mismatch') {
+            flash('warning', t('addr.warn_country', [
+                'city'     => $city,
+                'resolved' => country_name((string) ($geo['resolved_cc'] ?? '')),
+                'country'  => country_name((string) $cc),
+            ]));
+        } elseif (postal_issue($cc, $postal)) {
             flash('warning', t('addr.warn_postal'));
         } else {
             flash('success', t('addr.saved'));

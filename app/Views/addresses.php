@@ -91,4 +91,7 @@ $prefill = $prefill ?? [];
         </label>
         <button type="submit" class="btn btn-primary"><?= e(t('addr.add_btn')) ?></button>
     </form>
+    <?php if (\App\Services\AddressCheck::enabled()): ?>
+        <p class="muted addr-geo-credit" style="font-size:.78rem;margin-top:10px">🗺️ <?= e(t('addr.geo_credit')) ?></p>
+    <?php endif; ?>
 </section>

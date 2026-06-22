@@ -606,6 +606,8 @@ return [
     'addr.deleted'           => 'Adresse supprimée.',
     'addr.saved'             => 'Adresse enregistrée.',
     'addr.warn_postal'       => 'Adresse enregistrée — vérifiez le code postal : il ne semble pas correspondre au pays choisi.',
+    'addr.warn_country'      => 'Adresse enregistrée — la ville « :city » semble se situer en :resolved, pas en :country. Vérifiez.',
+    'addr.geo_credit'        => 'Vérification d’adresse fournie par OpenStreetMap.',
     'addr.add_title'         => 'Ajouter une adresse',
     'addr.recipient'         => 'Destinataire',
     'addr.label'             => 'Libellé',
