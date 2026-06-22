@@ -1526,6 +1526,14 @@ return [
     'contact.ph.instagram' => 'Pseudo Instagram, ex. @maboutique',
     'contact.ph.tiktok' => 'Pseudo TikTok, ex. @maboutique',
     'geo.chip_title' => 'Votre position détectée — cliquez pour l’actualiser précisément',
+    // Bandeau « passer dans la langue/devise du pays détecté »
+    'geo.suggest.aria' => 'Suggestion de région',
+    'geo.suggest.intro' => 'Vous semblez être en :place.',
+    'geo.suggest.both' => 'Afficher le site en :lang et les prix en :cur ?',
+    'geo.suggest.lang' => 'Afficher le site en :lang ?',
+    'geo.suggest.cur' => 'Afficher les prix en :cur ?',
+    'geo.suggest.yes' => 'Oui',
+    'geo.suggest.keep' => 'Non merci',
 
     // Explorer (page d'attente)
     'explore.title' => 'Explorer Afriklink',

@@ -1526,6 +1526,14 @@ return [
     'contact.ph.instagram' => 'Instagram username, e.g. @myshop',
     'contact.ph.tiktok' => 'TikTok username, e.g. @myshop',
     'geo.chip_title' => 'Your detected location — click to refresh it precisely',
+    // "Switch to your country's language/currency" banner
+    'geo.suggest.aria' => 'Region suggestion',
+    'geo.suggest.intro' => 'You appear to be in :place.',
+    'geo.suggest.both' => 'Show the site in :lang and prices in :cur?',
+    'geo.suggest.lang' => 'Show the site in :lang?',
+    'geo.suggest.cur' => 'Show prices in :cur?',
+    'geo.suggest.yes' => 'Yes',
+    'geo.suggest.keep' => 'No thanks',
 
     // Explore (waiting page)
     'explore.title' => 'Explore Afriklink',

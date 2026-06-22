@@ -289,6 +289,40 @@ final class HomeController
         back('/');
     }
 
+    /**
+     * Suggestion régionale : applique la langue + devise du pays détecté
+     * (action « appliquer ») ou mémorise le refus (action « ignorer »), puis
+     * revient sur la page. Pose un cookie region_hint pour ne plus re-proposer.
+     */
+    public function region(Request $request): void
+    {
+        $action = (string) $request->param('action', '');
+        $base   = ['path' => '/', 'secure' => request_is_https(), 'httponly' => true, 'samesite' => 'Lax'];
+
+        if ($action === 'appliquer') {
+            $lang = (string) input_string('lang', '');
+            $cur  = strtoupper((string) input_string('cur', ''));
+            if (in_array($lang, config('app.locales', ['fr', 'en']), true)) {
+                setcookie('locale', $lang, ['expires' => time() + 31536000] + $base);
+            }
+            if (in_array($cur, config('app.currencies', ['EUR']), true)) {
+                setcookie('currency', $cur, ['expires' => time() + 31536000] + $base);
+            }
+            setcookie('region_hint', 'applied', ['expires' => time() + 31536000] + $base);
+        } elseif ($action === 'ignorer') {
+            // Refus mémorisé ~30 jours : on pourra re-proposer plus tard.
+            setcookie('region_hint', 'kept', ['expires' => time() + 2592000] + $base);
+        } else {
+            abort(404);
+        }
+
+        $to = trim((string) input_string('to', '/'));
+        if ($to === '' || $to[0] !== '/' || str_starts_with($to, '//') || preg_match('/[\x00-\x1f]/', $to)) {
+            $to = '/';
+        }
+        redirect(mb_substr($to, 0, 300));
+    }
+
     /** Plan du site (sitemap.xml) : vitrines, produits, restaurants et annonces publiés. */
     public function sitemap(Request $request): void
     {

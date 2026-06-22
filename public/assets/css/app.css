@@ -2797,3 +2797,10 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 [dir="rtl"] .legal-back, [dir="rtl"] .crumb { text-align: right; }
 /* Pied de page : colonnes en flex, auto-inversées ; liens alignés à droite */
 [dir="rtl"] .footer-nav { text-align: right; }
+
+/* Bandeau « passer dans la langue/devise de votre pays » (suggestion régionale) */
+.region-suggest { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:9px 16px; background:#fff8e9; border-bottom:1px solid #f0dcae; padding:9px 18px; font-size:.92rem; color:var(--ink); }
+.region-suggest__text { display:inline-flex; align-items:center; gap:8px; max-width:760px; }
+.region-suggest__flag { font-size:1.1rem; line-height:1; }
+.region-suggest__actions { display:inline-flex; gap:8px; flex-shrink:0; }
+.region-suggest .btn-sm { padding:4px 12px; }
