@@ -1413,7 +1413,7 @@ return [
     'ann.read_more' => 'En savoir plus',
     'seller.nav.wallet' => 'Portefeuille',
     'wallet.title' => 'Mon portefeuille',
-    'wallet.intro' => 'Votre argent encaissé par la plateforme. Retrait possible dès l’équivalent de 20 000 XOF.',
+    'wallet.intro' => 'Votre argent encaissé par la plateforme. Retrait possible dès :min.',
     'wallet.gains_title' => 'Mes gains',
     'wallet.gains_total' => 'Chiffre d’affaires',
     'wallet.gains_month' => 'Ce mois-ci',

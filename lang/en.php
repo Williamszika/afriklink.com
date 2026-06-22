@@ -1413,7 +1413,7 @@ return [
     'ann.read_more' => 'Read more',
     'seller.nav.wallet' => 'Wallet',
     'wallet.title' => 'My wallet',
-    'wallet.intro' => 'Your money collected by the platform. Withdrawal available from the equivalent of 20,000 XOF.',
+    'wallet.intro' => 'Your money collected by the platform. Withdrawal available from :min.',
     'wallet.gains_title' => 'My earnings',
     'wallet.gains_total' => 'Total revenue',
     'wallet.gains_month' => 'This month',

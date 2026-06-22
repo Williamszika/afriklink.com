@@ -1384,7 +1384,7 @@ return [
     'ann.read_more' => 'Lees meer',
     'seller.nav.wallet' => 'Portemonnee',
     'wallet.title' => 'Mijn portemonnee',
-    'wallet.intro' => 'Uw geld dat door het platform is geïnd. Uitbetaling mogelijk vanaf het equivalent van 20.000 XOF.',
+    'wallet.intro' => 'Uw geld dat door het platform is geïnd. Uitbetaling mogelijk vanaf :min.',
     'wallet.gains_title' => 'Mijn inkomsten',
     'wallet.gains_total' => 'Totale omzet',
     'wallet.gains_month' => 'Deze maand',

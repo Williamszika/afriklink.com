@@ -163,7 +163,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
                                 <li>
                                     <span class="cockpit-order-id"><strong>#<?= e(strtoupper(substr((string) $o['public_id'], 0, 6))) ?></strong> · <?= e((string) $o['client_name']) ?></span>
                                     <span class="cockpit-order-right">
-                                        <?= e(format_price_local((int) $o['total_cents'], (string) $o['currency'])) ?>
+                                        <?= e(format_price_owner((int) $o['total_cents'], (string) $o['currency'])) ?>
                                         <span class="ann-status ann-status--<?= e($rst === 'delivered' ? 'approved' : ($rst === 'cancelled' ? 'rejected' : 'pending')) ?>"><?= e(t('order.status.' . $rst)) ?></span>
                                     </span>
                                 </li>

@@ -1389,7 +1389,7 @@ return [
     'ann.read_more' => 'Leggi di più',
     'seller.nav.wallet' => 'Portafoglio',
     'wallet.title' => 'Il mio portafoglio',
-    'wallet.intro' => 'Il tuo denaro incassato dalla piattaforma. Prelievo disponibile a partire dall’equivalente di 20.000 XOF.',
+    'wallet.intro' => 'Il tuo denaro incassato dalla piattaforma. Prelievo disponibile a partire da :min.',
     'wallet.gains_title' => 'I miei guadagni',
     'wallet.gains_total' => 'Fatturato totale',
     'wallet.gains_month' => 'Questo mese',

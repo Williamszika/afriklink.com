@@ -2688,18 +2688,17 @@ function format_price_local(int $cents, string $currency): string
 }
 
 /**
- * Montant d'argent qui APPARTIENT au visiteur (portefeuille, revenus du
- * tableau de bord) : affiché d'ABORD dans SA devise locale détectée, avec la
- * devise réelle d'encaissement en repère « ≈ » : « 18,30 € ≈ 12 000 F CFA ».
- * C'est l'inverse de format_price_local() (côté acheteur, la devise de la
- * boutique reste en principal). Le versement reste réalisé dans la devise
- * d'origine — la conversion locale est indicative. Si les devises coïncident
- * (ou s'il manque un taux), affichage épuré dans la devise d'origine.
+ * Montant affiché dans la SEULE devise locale du visiteur (celle de son pays),
+ * pour SES propres écrans (tableau de bord, portefeuille) : « 1 905,61 € ».
+ * Convertit depuis la devise d'origine si besoin et n'affiche AUCUNE devise
+ * étrangère — chaque pays voit sa monnaie. Repli sur la devise d'origine si
+ * elle coïncide déjà avec la devise locale ou faute de taux. Le versement reste
+ * réalisé dans la devise d'origine ; la conversion locale est indicative.
  */
 function format_price_owner(int $cents, string $currency): string
 {
     $local = format_price_approx($cents, $currency); // converti en devise locale, '' si identique/sans taux
-    return $local !== '' ? $local . ' ≈ ' . format_price($cents, $currency) : format_price($cents, $currency);
+    return $local !== '' ? $local : format_price($cents, $currency);
 }
 
 /** Send a redirect and stop execution. */

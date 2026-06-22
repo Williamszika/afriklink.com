@@ -18,24 +18,20 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
     <div class="seller-main">
         <div class="seller-head">
             <h1>💰 <?= e(t('wallet.title')) ?></h1>
-            <p class="muted"><?= e(t('wallet.intro')) ?></p>
+            <p class="muted"><?= e(t('wallet.intro', ['min' => format_price_owner($threshold_cents, $currency)])) ?></p>
         </div>
 
         <!-- Solde retirable -->
         <div class="panel wallet-balance">
             <div class="wallet-balance-top">
                 <span class="muted"><?= e(t('wallet.balance')) ?></span>
-                <?php $balLocal = format_price_approx($balance_cents, $currency); ?>
-                <strong class="wallet-amount-big"><?= e($balLocal !== '' ? $balLocal : format_price($balance_cents, $currency)) ?></strong>
-                <?php if ($balLocal !== ''): ?>
-                    <span class="price-approx">≈&nbsp;<?= e(format_price($balance_cents, $currency)) ?></span>
-                <?php endif; ?>
+                <strong class="wallet-amount-big"><?= e(format_price_owner($balance_cents, $currency)) ?></strong>
             </div>
             <?php if ($can_withdraw): ?>
                 <?php $pm = (string) ($payout['payout_method'] ?? ''); $pd = (string) ($payout['payout_destination'] ?? ''); ?>
                 <form method="post" action="<?= e(url('/vendeur/portefeuille/retrait')) ?>" class="wallet-form">
                     <?= csrf_field() ?>
-                    <p class="hint"><?= e(t('wallet.withdraw_full', ['amount' => format_price($balance_cents, $currency)])) ?></p>
+                    <p class="hint"><?= e(t('wallet.withdraw_full', ['amount' => format_price_owner($balance_cents, $currency)])) ?></p>
                     <div class="grid-2">
                         <div>
                             <label for="wd-method"><?= e(t('wallet.method')) ?></label>
@@ -52,7 +48,7 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
                     <button type="submit" class="btn btn-primary"><?= e(t('wallet.request')) ?></button>
                 </form>
             <?php else: ?>
-                <p class="hint wallet-threshold">🔒 <?= e(t('wallet.threshold_note', ['min' => format_price($threshold_cents, $currency)])) ?></p>
+                <p class="hint wallet-threshold">🔒 <?= e(t('wallet.threshold_note', ['min' => format_price_owner($threshold_cents, $currency)])) ?></p>
             <?php endif; ?>
         </div>
 
@@ -107,7 +103,7 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
                     <?php foreach ($withdrawals as $w): $st = (string) $w['status']; ?>
                         <li class="order-row">
                             <div class="order-row-main">
-                                <span class="order-shop"><?= e(format_price_local((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
+                                <span class="order-shop"><?= e(format_price_owner((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
                                 <span class="muted order-meta"><?= e(t('wallet.method.' . $w['method'])) ?> · <?= e(date('d/m/Y', strtotime((string) $w['created_at']))) ?></span>
                             </div>
                             <span class="ann-status ann-status--<?= e($st === 'paid' ? 'approved' : ($st === 'rejected' ? 'rejected' : 'pending')) ?>"><?= e(t('wallet.status.' . $st)) ?></span>
@@ -126,7 +122,7 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
                     <?php foreach ($entries as $en): $isCredit = ($en['type'] ?? '') === 'credit'; ?>
                         <li class="wallet-entry">
                             <span class="wallet-entry-label"><?= e(t('wallet.source.' . $en['source'])) ?> <span class="muted">· <?= e(date('d/m/Y', strtotime((string) $en['created_at']))) ?></span></span>
-                            <strong class="wallet-amount <?= $isCredit ? 'is-credit' : 'is-debit' ?>"><?= $isCredit ? '+' : '−' ?> <?= e(format_price_local((int) $en['amount_cents'], (string) $en['currency'])) ?></strong>
+                            <strong class="wallet-amount <?= $isCredit ? 'is-credit' : 'is-debit' ?>"><?= $isCredit ? '+' : '−' ?> <?= e(format_price_owner((int) $en['amount_cents'], (string) $en['currency'])) ?></strong>
                         </li>
                     <?php endforeach; ?>
                 </ul>

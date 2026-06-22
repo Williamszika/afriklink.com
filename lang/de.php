@@ -1389,7 +1389,7 @@ return [
     'ann.read_more' => 'Mehr lesen',
     'seller.nav.wallet' => 'Wallet',
     'wallet.title' => 'Meine Wallet',
-    'wallet.intro' => 'Ihr von der Plattform eingezogenes Geld. Auszahlung ab dem Gegenwert von 20.000 XOF möglich.',
+    'wallet.intro' => 'Ihr von der Plattform eingezogenes Geld. Auszahlung ab :min möglich.',
     'wallet.gains_title' => 'Meine Einnahmen',
     'wallet.gains_total' => 'Gesamtumsatz',
     'wallet.gains_month' => 'Diesen Monat',

@@ -1389,7 +1389,7 @@ return [
     'ann.read_more' => 'Leer más',
     'seller.nav.wallet' => 'Monedero',
     'wallet.title' => 'Mi monedero',
-    'wallet.intro' => 'Su dinero cobrado por la plataforma. Retiro disponible a partir del equivalente a 20 000 XOF.',
+    'wallet.intro' => 'Su dinero cobrado por la plataforma. Retiro disponible a partir de :min.',
     'wallet.gains_title' => 'Mis ingresos',
     'wallet.gains_total' => 'Ingresos totales',
     'wallet.gains_month' => 'Este mes',

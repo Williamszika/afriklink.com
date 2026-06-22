@@ -1389,7 +1389,7 @@ return [
     'ann.read_more' => 'اقرأ المزيد',
     'seller.nav.wallet' => 'المحفظة',
     'wallet.title' => 'محفظتي',
-    'wallet.intro' => 'أموالك المحصَّلة من قبل المنصة. السحب متاح ابتداءً من ما يعادل 20,000 XOF.',
+    'wallet.intro' => 'أموالك المحصَّلة من قبل المنصة. السحب متاح ابتداءً من :min.',
     'wallet.gains_title' => 'أرباحي',
     'wallet.gains_total' => 'إجمالي الإيرادات',
     'wallet.gains_month' => 'هذا الشهر',

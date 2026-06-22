@@ -1389,7 +1389,7 @@ return [
     'ann.read_more' => 'Ler mais',
     'seller.nav.wallet' => 'Carteira',
     'wallet.title' => 'A minha carteira',
-    'wallet.intro' => 'O seu dinheiro cobrado pela plataforma. Levantamento disponível a partir do equivalente a 20 000 XOF.',
+    'wallet.intro' => 'O seu dinheiro cobrado pela plataforma. Levantamento disponível a partir de :min.',
     'wallet.gains_title' => 'Os meus ganhos',
     'wallet.gains_total' => 'Receita total',
     'wallet.gains_month' => 'Este mês',
