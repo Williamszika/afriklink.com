@@ -93,15 +93,15 @@ if ($delivery_delay !== '') {
                 <?php if (empty($me)): ?>
                     <p class="hint caisse-guest">👤 <?= e(t('caisse.guest_hint')) ?> <a href="<?= e(url('/login')) ?>"><?= e(t('caisse.guest_login')) ?></a></p>
                 <?php endif; ?>
-                <label for="cl-name"><?= e(t('order.f.client')) ?></label>
+                <label for="cl-name"><?= e(t('caisse.f.name')) ?></label>
                 <input type="text" id="cl-name" name="client_name" maxlength="80" required value="<?= old('client_name') ?: e((string) ($me['full_name'] ?? '')) ?>" placeholder="<?= e(t('order.f.client_ph')) ?>">
                 <?php if (has_error('client_name')): ?><p class="field-error"><?= e(error('client_name')) ?></p><?php endif; ?>
                 <p class="hint"><?= e(t('order.f.contact_hint')) ?></p>
                 <?php if (has_error('contact')): ?><p class="field-error"><?= e(error('contact')) ?></p><?php endif; ?>
-                <label for="cl-phone"><?= e(t('order.f.phone')) ?></label>
+                <label for="cl-phone"><?= e(t('caisse.f.phone')) ?></label>
                 <input type="tel" id="cl-phone" name="client_phone" maxlength="22" value="<?= old('client_phone') ?: e((string) ($me['phone'] ?? '')) ?>" placeholder="+221 …" data-wiz-contact>
                 <?php if (has_error('client_phone')): ?><p class="field-error"><?= e(error('client_phone')) ?></p><?php endif; ?>
-                <label for="cl-email"><?= e(t('order.f.email')) ?></label>
+                <label for="cl-email"><?= e(t('caisse.f.email')) ?></label>
                 <input type="email" id="cl-email" name="client_email" maxlength="120" value="<?= old('client_email') ?: e((string) ($me['email'] ?? '')) ?>" placeholder="<?= e(t('order.f.email_ph')) ?>" data-wiz-contact>
                 <?php if (has_error('client_email')): ?><p class="field-error"><?= e(error('client_email')) ?></p><?php endif; ?>
                 <div class="wiz-nav"><button type="button" class="btn btn-primary btn-block" data-wiz-next><?= e(t('wiz.next')) ?> →</button></div>
@@ -110,7 +110,7 @@ if ($delivery_delay !== '') {
             <!-- Étape 2 — Réception (adresse + type de livraison) -->
             <section class="caisse-step" data-step="2">
                 <h3 class="caisse-step__h"><span class="caisse-step__n">2</span> <?= e(t('caisse.step_receive')) ?></h3>
-                <label for="cl-country"><?= e(t('field.country')) ?></label>
+                <label for="cl-country"><?= e(t('caisse.f.country')) ?></label>
                 <select id="cl-country" name="dest_country" data-dest-country>
                     <option value=""><?= e(t('field.choose')) ?></option>
                     <?php foreach (($countries ?? []) as $code => $cn): ?>
@@ -118,7 +118,7 @@ if ($delivery_delay !== '') {
                     <?php endforeach; ?>
                 </select>
                 <?php if (has_error('dest_country')): ?><p class="field-error"><?= e(error('dest_country')) ?></p><?php endif; ?>
-                <label for="cl-city"><?= e(t('field.city')) ?></label>
+                <label for="cl-city"><?= e(t('caisse.f.city')) ?></label>
                 <input type="text" id="cl-city" name="client_city" maxlength="80" value="<?= old('client_city') ?: e($prefillCity) ?>" placeholder="<?= e(t('field.city')) ?>">
                 <label for="cl-addr"><?= e(t('caisse.addr_main')) ?></label>
                 <input type="text" id="cl-addr" name="client_address" maxlength="180" value="<?= old('client_address') ?: e($savedAddr) ?>" placeholder="<?= e(t('caisse.addr_main_ph')) ?>"
@@ -126,7 +126,7 @@ if ($delivery_delay !== '') {
                 <?php if (has_error('client_address')): ?><p class="field-error"><?= e(error('client_address')) ?></p><?php endif; ?>
                 <label for="cl-addr2"><?= e(t('caisse.addr_extra')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <input type="text" id="cl-addr2" name="client_address2" maxlength="120" value="<?= old('client_address2') ?>" placeholder="<?= e(t('caisse.addr_extra_ph')) ?>">
-                <label for="cl-postal"><?= e(t('field.postal')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+                <label for="cl-postal"><?= e(t('caisse.f.postal')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <input type="text" id="cl-postal" name="client_postal" maxlength="16" value="<?= old('client_postal') ?>" placeholder="<?= e(t('field.postal')) ?>" autocomplete="postal-code">
                 <?= render_partial('partials/share_location') ?>
                 <?php if ($fulfillments): ?>
