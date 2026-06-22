@@ -79,7 +79,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
             $revBars = array_map(static fn (array $p): array => [
                 'value' => (int) $p['cents'],
                 'label' => (string) (int) date('j', strtotime((string) $p['date'])),
-                'title' => date('d/m', strtotime((string) $p['date'])) . ' · ' . format_price_local((int) $p['cents'], $gc),
+                'title' => date('d/m', strtotime((string) $p['date'])) . ' · ' . format_price_owner((int) $p['cents'], $gc),
             ], (array) ($dash['revenue_by_day'] ?? []));
             $topProducts = (array) ($dash['top_products'] ?? []);
             $lowStock    = (array) ($dash['low_stock'] ?? []);
@@ -94,7 +94,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
                     <div class="cockpit-rev-head">
                         <div>
                             <span class="muted"><?= e(t('seller.cockpit.revenue_month')) ?></span>
-                            <strong class="cockpit-rev-amount"><?= e(format_price_local($revCur, $gc)) ?></strong>
+                            <strong class="cockpit-rev-amount"><?= e(format_price_owner($revCur, $gc)) ?></strong>
                             <?php if ($revPrev > 0 || $revCur > 0): ?>
                                 <span class="rev-delta <?= $revDelta >= 0 ? 'is-up' : 'is-down' ?>"><?= $revDelta >= 0 ? '▲' : '▼' ?> <?= abs($revDelta) ?> %</span>
                                 <span class="rev-delta-cap"><?= e(t('seller.cockpit.vs_last_month')) ?></span>
@@ -122,7 +122,7 @@ $pending     = (int) ($dash['pending'] ?? 0);
                                 <li class="top-bar">
                                     <span class="top-bar-rank"><?= $i + 1 ?></span>
                                     <span class="top-bar-main">
-                                        <span class="top-bar-info"><span class="top-bar-name"><?= e((string) $tp['name']) ?></span><span class="top-bar-val"><?= (int) $tp['units'] ?>× · <?= e(format_price_local((int) $tp['cents'], $gc)) ?></span></span>
+                                        <span class="top-bar-info"><span class="top-bar-name"><?= e((string) $tp['name']) ?></span><span class="top-bar-val"><?= (int) $tp['units'] ?>× · <?= e(format_price_owner((int) $tp['cents'], $gc)) ?></span></span>
                                         <span class="top-bar-track"><span class="top-bar-fill" style="width:<?= $pct ?>%"></span></span>
                                     </span>
                                 </li>

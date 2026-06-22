@@ -9,7 +9,7 @@ $payout = $payout ?? [];
 $dayBars = array_map(static fn (array $p): array => [
     'value' => (int) $p['cents'],
     'label' => (string) (int) date('j', strtotime((string) $p['date'])),
-    'title' => date('d/m', strtotime((string) $p['date'])) . ' · ' . format_price_local((int) $p['cents'], $gc),
+    'title' => date('d/m', strtotime((string) $p['date'])) . ' · ' . format_price_owner((int) $p['cents'], $gc),
 ], $gains_by_day);
 $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'], $gains_by_shop));
 ?>
@@ -25,9 +25,10 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
         <div class="panel wallet-balance">
             <div class="wallet-balance-top">
                 <span class="muted"><?= e(t('wallet.balance')) ?></span>
-                <strong class="wallet-amount-big"><?= e(format_price($balance_cents, $currency)) ?></strong>
-                <?php $approx = format_price_approx($balance_cents, $currency); if ($approx !== ''): ?>
-                    <span class="price-approx">≈&nbsp;<?= e($approx) ?></span>
+                <?php $balLocal = format_price_approx($balance_cents, $currency); ?>
+                <strong class="wallet-amount-big"><?= e($balLocal !== '' ? $balLocal : format_price($balance_cents, $currency)) ?></strong>
+                <?php if ($balLocal !== ''): ?>
+                    <span class="price-approx">≈&nbsp;<?= e(format_price($balance_cents, $currency)) ?></span>
                 <?php endif; ?>
             </div>
             <?php if ($can_withdraw): ?>
@@ -60,11 +61,11 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
             <h2 class="panel-title">📈 <?= e(t('wallet.gains_title')) ?></h2>
             <div class="gains-stats">
                 <div class="gains-stat">
-                    <span class="gains-stat-val"><?= e(format_price_local((int) $gains_summary['total_cents'], $gc)) ?></span>
+                    <span class="gains-stat-val"><?= e(format_price_owner((int) $gains_summary['total_cents'], $gc)) ?></span>
                     <span class="gains-stat-lbl"><?= e(t('wallet.gains_total')) ?></span>
                 </div>
                 <div class="gains-stat">
-                    <span class="gains-stat-val"><?= e(format_price_local((int) $gains_summary['month_cents'], $gc)) ?></span>
+                    <span class="gains-stat-val"><?= e(format_price_owner((int) $gains_summary['month_cents'], $gc)) ?></span>
                     <span class="gains-stat-lbl"><?= e(t('wallet.gains_month')) ?></span>
                 </div>
                 <div class="gains-stat">
@@ -90,7 +91,7 @@ $shopTotal = array_sum(array_map(static fn (array $s): int => (int) $s['cents'],
                         <li class="provenance-row">
                             <div class="provenance-head">
                                 <span><?= $s['kind'] === 'restaurant' ? icon('utensils', ['size' => 15]) : icon('store', ['size' => 15]) ?> <strong><?= e((string) $s['label']) ?></strong></span>
-                                <span class="provenance-amount"><?= e(format_price_local((int) $s['cents'], $gc)) ?> <span class="muted">· <?= $pct ?>%</span></span>
+                                <span class="provenance-amount"><?= e(format_price_owner((int) $s['cents'], $gc)) ?> <span class="muted">· <?= $pct ?>%</span></span>
                             </div>
                             <div class="provenance-track"><div class="provenance-fill provenance-fill--<?= e($s['kind']) ?>" style="width:<?= $pct ?>%"></div></div>
                         </li>
