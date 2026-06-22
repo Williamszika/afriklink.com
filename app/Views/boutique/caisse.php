@@ -11,6 +11,10 @@ $minOrder = (int) ($boutique['min_order_cents'] ?? 0);
 $belowMin = $minOrder > 0 && $total < $minOrder;
 $lineImages = $line_images ?? [];
 $prefillCity = (string) (detected_geo()['city'] ?? '');
+// Pays + ville détectés → préremplis ET verrouillés (déverrouillables). On ne
+// verrouille qu'à la 1re présentation (pas après une erreur où le client a édité).
+$lockGeo = old('dest_country') === '' && old('client_city') === ''
+    && ($dest_country ?? '') !== '' && $prefillCity !== '';
 // Délai de livraison : clé i18n si connue (same_day, 1_3…), sinon texte libre du vendeur.
 $delayLabel = '';
 if ($delivery_delay !== '') {
@@ -111,15 +115,19 @@ if ($delivery_delay !== '') {
             <section class="caisse-step" data-step="2">
                 <h3 class="caisse-step__h"><span class="caisse-step__n">2</span> <?= e(t('caisse.step_receive')) ?></h3>
                 <label for="cl-country"><?= e(t('caisse.f.country')) ?></label>
-                <select id="cl-country" name="dest_country" data-dest-country>
+                <select id="cl-country" data-dest-country class="<?= $lockGeo ? 'locked-field is-locked' : '' ?>"<?= $lockGeo ? ' disabled aria-disabled="true" tabindex="-1"' : ' name="dest_country"' ?>>
                     <option value=""><?= e(t('field.choose')) ?></option>
                     <?php foreach (($countries ?? []) as $code => $cn): ?>
                         <option value="<?= e((string) $code) ?>" <?= (old('dest_country') ?: ($dest_country ?? '')) === $code ? 'selected' : '' ?>><?= e((string) $cn) ?></option>
                     <?php endforeach; ?>
                 </select>
+                <?php if ($lockGeo): ?><input type="hidden" name="dest_country" id="cl-country_value" value="<?= e((string) ($dest_country ?? '')) ?>"><?php endif; ?>
                 <?php if (has_error('dest_country')): ?><p class="field-error"><?= e(error('dest_country')) ?></p><?php endif; ?>
                 <label for="cl-city"><?= e(t('caisse.f.city')) ?></label>
-                <input type="text" id="cl-city" name="client_city" maxlength="80" value="<?= old('client_city') ?: e($prefillCity) ?>" placeholder="<?= e(t('field.city')) ?>">
+                <input type="text" id="cl-city" name="client_city" maxlength="80" value="<?= old('client_city') ?: e($prefillCity) ?>" placeholder="<?= e(t('field.city')) ?>"<?= $lockGeo ? ' readonly class="is-locked"' : '' ?>>
+                <?php if ($lockGeo): ?>
+                    <p class="hint geo-lock-note" data-geo-lock-note>🔒 <?= e(t('geo.locked')) ?> <button type="button" class="link-button" data-geo-unlock>— <?= e(t('geo.unlock')) ?></button></p>
+                <?php endif; ?>
                 <label for="cl-addr"><?= e(t('caisse.addr_main')) ?></label>
                 <input type="text" id="cl-addr" name="client_address" maxlength="180" value="<?= old('client_address') ?: e($savedAddr) ?>" placeholder="<?= e(t('caisse.addr_main_ph')) ?>"
                        data-require-radio="fulfillment" data-require-when="local,international">

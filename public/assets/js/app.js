@@ -6944,3 +6944,27 @@ document.addEventListener('click', function (ev) {
 
     show(0);
 })();
+
+/* Caisse : déverrouiller le pays + la ville (préremplis depuis la géoloc). */
+(function () {
+    var form = document.querySelector('[data-checkout-wizard]');
+    if (!form) { return; }
+    var btn = form.querySelector('[data-geo-unlock]');
+    if (!btn) { return; }
+    btn.addEventListener('click', function () {
+        var sel = form.querySelector('#cl-country');
+        if (sel) {
+            sel.disabled = false;
+            sel.removeAttribute('tabindex');
+            sel.removeAttribute('aria-disabled');
+            sel.classList.remove('is-locked', 'locked-field');
+            sel.name = 'dest_country';
+        }
+        var hid = form.querySelector('#cl-country_value');
+        if (hid) { hid.disabled = true; }
+        var city = form.querySelector('#cl-city');
+        if (city) { city.removeAttribute('readonly'); city.classList.remove('is-locked'); }
+        var note = form.querySelector('[data-geo-lock-note]');
+        if (note) { note.hidden = true; }
+    });
+})();
