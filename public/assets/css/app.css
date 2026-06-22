@@ -2819,3 +2819,17 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .site-footer .pay-strip__label { color:rgba(255,255,255,.72); }
 .site-footer .pay-secure { color:#cfe9d8; }
 .site-footer .pay-secure svg { color:#7fd0a0; }
+
+/* Caisse — améliorations : récap collant (desktop), bouton collant (mobile),
+   sélection d'opérateur mobile money, micro-rassurance. */
+@media (min-width: 761px) { .caisse-cart { position: sticky; top: 76px; } }
+.pay-operators { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.op-chip { display:inline-flex; position:relative; }
+.op-chip input { position:absolute; opacity:0; width:0; height:0; }
+.op-chip span { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border:1.5px solid var(--border); border-radius:999px; font-size:.85rem; font-weight:600; cursor:pointer; background:#fff; transition:.15s ease; }
+.op-chip input:checked + span { border-color:#14502E; background:#e7f4ec; color:#14502E; }
+.op-chip input:focus-visible + span { outline:2px solid #14502E; outline-offset:2px; }
+.caisse-reassure { font-size:.82rem; color:var(--muted); text-align:center; margin:12px 0 8px; }
+@media (max-width: 760px) {
+  .caisse-form .btn-lg[type="submit"] { position: sticky; bottom: 8px; z-index:5; box-shadow: 0 8px 22px -6px rgba(12,46,28,.5); }
+}

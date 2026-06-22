@@ -1205,6 +1205,8 @@ return [
     'caisse.subtotal' => 'Sous-total',
     'caisse.country_methods' => 'Payable dans votre pays :',
     'caisse.card' => 'Carte bancaire',
+    'caisse.choose_operator' => 'Choisissez votre moyen —',
+    'caisse.reassure' => '✓ Vendeur vérifié · 🔒 Paiement sécurisé · Vous validez avant d’être débité',
     'caisse.shipping' => 'Livraison',
     'caisse.free' => 'Offerte',
     'caisse.validate_order' => 'Valider la commande',

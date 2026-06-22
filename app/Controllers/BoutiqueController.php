@@ -1174,6 +1174,13 @@ final class BoutiqueController
             }
             $discount = \App\Models\Discount::reductionFor($discountRow, $subtotal);
         }
+        // Note client + opérateur mobile money choisi (préfixé, visible par le vendeur).
+        $orderNote = mb_substr((string) input_string('note', ''), 0, 500);
+        $payOp = mb_substr((string) preg_replace('/[^\p{L}\p{N} .\-]/u', '', (string) input_string('payment_operator', '')), 0, 24);
+        if ($payOp !== '' && $paymentMethod === 'mobile_money') {
+            $orderNote = trim('[' . $payOp . '] ' . $orderNote);
+        }
+        $orderNote = $orderNote !== '' ? mb_substr($orderNote, 0, 540) : null;
         $publicId = Order::createCart([
             'boutique_id'  => (int) $boutique['id'],
             'user_id'      => (int) $boutique['user_id'],
@@ -1184,7 +1191,7 @@ final class BoutiqueController
             'dest_country'   => $destCountry,
             'geo_lat'        => $hasGeo ? round($lat, 6) : null,
             'geo_lng'        => $hasGeo ? round($lng, 6) : null,
-            'note'           => mb_substr((string) input_string('note', ''), 0, 500) ?: null,
+            'note'           => $orderNote,
             'fulfillment'    => $fulfillment,
             'payment_term'   => $paymentTerm,
             'payment_method' => $paymentMethod,

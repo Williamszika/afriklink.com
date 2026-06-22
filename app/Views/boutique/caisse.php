@@ -9,6 +9,14 @@ $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' 
 $firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments[0]] ?? 0) : 0;
 $minOrder = (int) ($boutique['min_order_cents'] ?? 0);
 $belowMin = $minOrder > 0 && $total < $minOrder;
+// Délai de livraison : clé i18n si connue (same_day, 1_3…), sinon texte libre du vendeur.
+$delayLabel = '';
+if ($delivery_delay !== '') {
+    $delayLabel = t('shop.prep.' . $delivery_delay);
+    if ($delayLabel === 'shop.prep.' . $delivery_delay) {
+        $delayLabel = $delivery_delay;
+    }
+}
 ?>
 <section class="caisse">
     <h1 class="caisse-title">🧾 <?= e(t('caisse.title', ['shop' => (string) $boutique['name']])) ?></h1>
@@ -50,7 +58,7 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             <div class="caisse-totals" data-ship-calc data-subtotal="<?= (int) $total ?>" data-cur-int="<?= currency_is_integer($cur) ? '1' : '0' ?>" data-cur-sym="<?= e($curSym) ?>" data-zones="<?= e($zonesJson) ?>"<?= $fxAttr ?>>
                 <p class="cart-total-row"><span><?= e(t('caisse.subtotal')) ?></span> <strong><?= e(format_price($total, $cur)) ?><?php $sa = format_price_approx($total, $cur); if ($sa !== ''): ?> <span class="price-approx" title="<?= e(t('price.approx_title')) ?>">≈&nbsp;<?= e($sa) ?></span><?php endif; ?></strong></p>
                 <?php if ($fulfillments): ?>
-                    <p class="cart-total-row"><span><?= e(t('caisse.shipping')) ?><?php if ($delivery_delay !== ''): ?> · <span class="muted"><?= e(t('shop.prep.' . $delivery_delay)) ?></span><?php endif; ?></span>
+                    <p class="cart-total-row"><span><?= e(t('caisse.shipping')) ?><?php if ($delayLabel !== ''): ?> · <span class="muted"><?= e($delayLabel) ?></span><?php endif; ?></span>
                         <strong data-ship-amount data-free="<?= e(t('caisse.free')) ?>"><?= $firstFee > 0 ? e(format_price($firstFee, $cur)) : e(t('caisse.free')) ?></strong></p>
                 <?php endif; ?>
                 <p class="cart-total-row caisse-total"><span><?= e(t('rorder.total')) ?></span> <strong data-grand-total><?= e(format_price($total + $firstFee, $cur)) ?></strong><?php if ($fxAttr !== ''): $ga = format_price_approx($total + $firstFee, $cur); ?> <span class="price-approx" data-grand-approx title="<?= e(t('price.approx_title')) ?>"><?= $ga !== '' ? e('≈ ' . $ga) : '' ?></span><?php endif; ?></p>
@@ -109,11 +117,13 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
                 if ($buyerCc === '') { $buyerCc = detect_country_code(); }
                 $ccMobile = country_mobile_money($buyerCc);
             ?>
-                <div class="pay-country">
-                    <p class="hint pay-country-label"><?= e(t('caisse.country_methods')) ?><?php if ($buyerCc !== ''): ?> <?= flag_emoji($buyerCc) ?> <?= e(country_name($buyerCc)) ?><?php endif; ?></p>
-                    <div class="pay-country-badges">
-                        <?php foreach ($ccMobile as $op): ?><span class="pay-country-badge">📱 <?= e($op) ?></span><?php endforeach; ?>
-                        <span class="pay-country-badge pay-country-badge--card">💳 <?= e(t('caisse.card')) ?></span>
+                <div class="pay-country" data-mm-block>
+                    <p class="hint pay-country-label"><?= e(t('caisse.choose_operator')) ?><?php if ($buyerCc !== ''): ?> <?= flag_emoji($buyerCc) ?> <?= e(country_name($buyerCc)) ?><?php endif; ?></p>
+                    <div class="pay-operators">
+                        <?php foreach ($ccMobile as $i => $op): ?>
+                            <label class="op-chip"><input type="radio" name="payment_operator" value="<?= e($op) ?>" <?= $i === 0 ? 'checked' : '' ?>><span>📱 <?= e($op) ?></span></label>
+                        <?php endforeach; ?>
+                        <label class="op-chip"><input type="radio" name="payment_operator" value="<?= e(t('caisse.card')) ?>"<?= $ccMobile === [] ? ' checked' : '' ?>><span>💳 <?= e(t('caisse.card')) ?></span></label>
                     </div>
                 </div>
             <?php endif; ?>
@@ -145,6 +155,7 @@ $belowMin = $minOrder > 0 && $total < $minOrder;
             <label for="cl-promo">🏷️ <?= e(t('promo.label')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
             <input type="text" id="cl-promo" name="promo_code" maxlength="40" value="<?= old('promo_code') ?>" placeholder="<?= e(t('promo.ph')) ?>" autocapitalize="characters">
             <?= render_partial('partials/payment_strip', ['label' => false, 'secure' => true, 'compact' => true]) ?>
+            <p class="caisse-reassure"><?= e(t('caisse.reassure')) ?></p>
             <button type="submit" class="btn btn-primary btn-block btn-lg"<?= $belowMin ? ' disabled' : '' ?>>✅ <?= e(t('caisse.validate')) ?></button>
         </form>
     </div>

@@ -1205,6 +1205,8 @@ return [
     'caisse.subtotal' => 'Subtotal',
     'caisse.country_methods' => 'Payable in your country:',
     'caisse.card' => 'Bank card',
+    'caisse.choose_operator' => 'Choose your method —',
+    'caisse.reassure' => '✓ Verified seller · 🔒 Secure payment · You confirm before being charged',
     'caisse.shipping' => 'Shipping',
     'caisse.free' => 'Free',
     'caisse.validate_order' => 'Place the order',
