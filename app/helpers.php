@@ -2701,6 +2701,42 @@ function format_price_owner(int $cents, string $currency): string
     return $local !== '' ? $local : format_price($cents, $currency);
 }
 
+/**
+ * Total de gains éventuellement MULTI-DEVISES (tableau devise => centimes)
+ * converti et affiché en UN SEUL montant dans la devise locale du visiteur
+ * (« 6,52 € »). Pour les écrans « mon argent » (gains d'affiliation…) : plutôt
+ * que « 1 000 F CFA · 5 € », on additionne dans la monnaie locale. Repli : si un
+ * taux manque pour une devise, on affiche le détail par devise d'origine.
+ * @param array<string,int> $byCurrency
+ */
+function format_money_total_local(array $byCurrency): string
+{
+    if ($byCurrency === []) {
+        return format_price(0, current_currency());
+    }
+    $local = strtoupper(current_currency());
+    $sum   = 0;
+    foreach ($byCurrency as $cur => $cents) {
+        $cur   = strtoupper((string) $cur);
+        $cents = (int) $cents;
+        if ($cur === $local) {
+            $sum += $cents;
+            continue;
+        }
+        $conv = \App\Services\ExchangeRates::convert($cents, $cur, $local);
+        if ($conv === null) {
+            // Aucune conversion possible : on retombe sur le détail par devise.
+            $parts = [];
+            foreach ($byCurrency as $c => $v) {
+                $parts[] = format_price((int) $v, (string) $c);
+            }
+            return implode(' · ', $parts);
+        }
+        $sum += $conv;
+    }
+    return format_price($sum, current_currency());
+}
+
 /** Send a redirect and stop execution. */
 function redirect(string $path, int $status = 302): never
 {

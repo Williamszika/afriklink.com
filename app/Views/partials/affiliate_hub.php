@@ -212,7 +212,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                 <?php if (empty($stats['earnings'])): ?>
                     0
                 <?php else: ?>
-                    <?= e(implode(' · ', array_map(static fn (int $c, string $cur): string => format_price_local($c, $cur), $stats['earnings'], array_keys($stats['earnings'])))) ?>
+                    <?= e(format_money_total_local($stats['earnings'])) ?>
                 <?php endif; ?>
             </div>
             <div class="lbl"><?= e(t('aff.earnings')) ?></div>
@@ -233,7 +233,7 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
             <div class="aff-wallet">
                 <div class="aff-wallet-balance">
                     <span class="lbl"><?= e(t('aff.wallet_balance')) ?></span>
-                    <strong class="aff-wallet-amount"><?= e(format_price_local((int) $wallet['balance'], (string) $wallet['currency'])) ?></strong>
+                    <strong class="aff-wallet-amount"><?= e(format_price_owner((int) $wallet['balance'], (string) $wallet['currency'])) ?></strong>
                 </div>
                 <?php if (!empty($wallet['can'])): ?>
                     <?php if (!empty($wallet['providers'])): $cn = country_name((string) ($wallet['country'] ?? '')); ?>
@@ -255,14 +255,14 @@ $effRateLabel = rtrim(rtrim(number_format(affiliate_platform_keep_pct(), 1, ',',
                         <button type="submit" class="btn btn-primary btn-sm"><?= e(t('wallet.request')) ?></button>
                     </form>
                 <?php else: ?>
-                    <p class="hint"><?= e(t('aff.wallet_threshold', ['min' => format_price((int) $wallet['threshold'], (string) $wallet['currency'])])) ?></p>
+                    <p class="hint"><?= e(t('aff.wallet_threshold', ['min' => format_price_owner((int) $wallet['threshold'], (string) $wallet['currency'])])) ?></p>
                 <?php endif; ?>
             </div>
             <?php if (!empty($wallet['withdrawals'])): ?>
                 <ul class="aff-wd-list">
                     <?php foreach (array_slice($wallet['withdrawals'], 0, 3) as $w): ?>
                         <li>
-                            <span><?= e(format_price_local((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
+                            <span><?= e(format_price_owner((int) $w['amount_cents'], (string) $w['currency'])) ?></span>
                             <span class="badge <?= ($w['status'] ?? '') === 'paid' ? 'badge-ok' : 'badge-muted' ?>"><?= e(t('wallet.status.' . ($w['status'] ?? 'pending'))) ?></span>
                         </li>
                     <?php endforeach; ?>
