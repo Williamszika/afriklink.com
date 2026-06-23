@@ -3,7 +3,7 @@
 $cuisines = config('restaurant.cuisines', []);
 $services = config('restaurant.services', []);
 $currencies = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
-$selCur = old('currency') ?: (string) ($user['preferred_currency'] ?? 'XOF');
+$selCur = old('currency') ?: ((currency_for_country((string) (detected_geo()['country_code'] ?? '')) ?? '') ?: (string) ($user['preferred_currency'] ?? 'XOF'));
 $autoGeo = detected_geo();
 ?>
 <section class="auth-card auth-card--wide">

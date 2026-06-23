@@ -149,7 +149,8 @@ $baseUrl = preg_replace('#^https?://#', '', $baseUrl);
 
             <label for="shop-cur"><?= e(t('shop.f.currency')) ?></label>
             <select id="shop-cur" name="currency">
-                <?php $selCur = old('currency') ?: (string) ($s2['currency'] ?? ($user['preferred_currency'] ?? 'EUR')); ?>
+                <?php $geoCur = currency_for_country((string) (detected_geo()['country_code'] ?? '')) ?? ''; ?>
+                <?php $selCur = old('currency') ?: (string) ($s2['currency'] ?? ($geoCur ?: ($user['preferred_currency'] ?? 'EUR'))); ?>
                 <?php foreach ($currencies as $cur): ?>
                     <option value="<?= e($cur) ?>" <?= $selCur === $cur ? 'selected' : '' ?>><?= e($cur) ?></option>
                 <?php endforeach; ?>
