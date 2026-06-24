@@ -861,6 +861,9 @@ final class BoutiqueController
         // existent, ils remplacent le tarif fixe + franco pour cette zone.
         $tierRows = [];
         foreach (preg_split('/\r\n|\r|\n/', (string) input_string('tiers', '')) ?: [] as $line) {
+            if (count($tierRows) >= 20) {
+                break; // plafond : 20 paliers par zone (anti-JSON démesuré)
+            }
             $line = trim((string) $line);
             if ($line === '' || !str_contains($line, ':')) {
                 continue;

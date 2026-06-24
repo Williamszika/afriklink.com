@@ -123,9 +123,9 @@ final class Kyc
                 'fn' => $firstName, 'fn2' => $firstName, 'ln' => $lastName, 'ln2' => $lastName,
             ]);
 
-            $sid = (int) $pdo->query(
-                'SELECT id FROM kyc_submissions WHERE user_id = ' . $userId . ' AND level = ' . $level
-            )->fetchColumn();
+            $sel = $pdo->prepare('SELECT id FROM kyc_submissions WHERE user_id = :u AND level = :l');
+            $sel->execute(['u' => $userId, 'l' => $level]);
+            $sid = (int) $sel->fetchColumn();
 
             // Remplace les pièces de cette soumission.
             $pdo->prepare('DELETE FROM kyc_documents WHERE submission_id = :sid')->execute(['sid' => $sid]);

@@ -26,9 +26,26 @@ final class Review
                 status      VARCHAR(12) NOT NULL DEFAULT \'approved\',
                 created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_reviews_product (product_id, status, id),
-                KEY idx_reviews_boutique (boutique_id, status)
+                KEY idx_reviews_boutique (boutique_id, status),
+                UNIQUE KEY uniq_review_pu (product_id, user_id)
             )'
         );
+        // Index unique sur les tables EXISTANTES (best-effort). MySQL considère
+        // les NULL comme distincts → n'empêche pas les avis invités/sans produit.
+        // Un seul contrôle (information_schema) puis ALTER si absent.
+        try {
+            $hasUniq = db()->query(
+                "SELECT 1 FROM information_schema.STATISTICS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'reviews'
+                    AND INDEX_NAME = 'uniq_review_pu' LIMIT 1"
+            )->fetchColumn();
+            if ($hasUniq === false) {
+                db()->exec('ALTER TABLE reviews ADD UNIQUE KEY uniq_review_pu (product_id, user_id)');
+            }
+        } catch (\Throwable) {
+            // doublons préexistants ou information_schema indisponible : le
+            // contrôle applicatif hasReviewed reste la barrière principale.
+        }
         // Colonnes ajoutées après coup (best-effort, comme partout en prod durcie).
         $cols = [
             'verified' => 'ADD COLUMN verified TINYINT(1) NOT NULL DEFAULT 0 AFTER comment',
@@ -117,20 +134,39 @@ final class Review
                 'photos' => $photosJson,
                 'verified' => !empty($d['verified']) ? 1 : 0,
             ]);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // Doublon (index unique : l'utilisateur a déjà noté ce produit) — on
+            // n'en crée pas un second et on ne casse pas l'appelant.
+            if (self::isDuplicate($e)) {
+                return '';
+            }
             // Repli si la colonne « photos » n'est pas encore provisionnée en prod.
-            db()->prepare(
-                'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, verified, status)
-                 VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, :verified, \'approved\')'
-            )->execute([
-                'pid' => $pid, 'bid' => $d['boutique_id'], 'prod' => $d['product_id'] ?? null,
-                'uid' => $d['user_id'] ?? null, 'name' => mb_substr((string) $d['author_name'], 0, 80),
-                'rating' => max(1, min(5, (int) $d['rating'])),
-                'comment' => $d['comment'] !== null && $d['comment'] !== '' ? mb_substr((string) $d['comment'], 0, 1000) : null,
-                'verified' => !empty($d['verified']) ? 1 : 0,
-            ]);
+            try {
+                db()->prepare(
+                    'INSERT INTO reviews (public_id, boutique_id, product_id, user_id, author_name, rating, comment, verified, status)
+                     VALUES (:pid, :bid, :prod, :uid, :name, :rating, :comment, :verified, \'approved\')'
+                )->execute([
+                    'pid' => $pid, 'bid' => $d['boutique_id'], 'prod' => $d['product_id'] ?? null,
+                    'uid' => $d['user_id'] ?? null, 'name' => mb_substr((string) $d['author_name'], 0, 80),
+                    'rating' => max(1, min(5, (int) $d['rating'])),
+                    'comment' => $d['comment'] !== null && $d['comment'] !== '' ? mb_substr((string) $d['comment'], 0, 1000) : null,
+                    'verified' => !empty($d['verified']) ? 1 : 0,
+                ]);
+            } catch (\Throwable $e2) {
+                if (self::isDuplicate($e2)) {
+                    return '';
+                }
+                throw $e2;
+            }
         }
         return $pid;
+    }
+
+    /** L'erreur correspond-elle à une violation de clé unique (doublon) ? */
+    private static function isDuplicate(\Throwable $e): bool
+    {
+        return (string) $e->getCode() === '23000'
+            || str_contains($e->getMessage(), 'Duplicate entry');
     }
 
     /** Cet utilisateur a-t-il déjà laissé un avis sur ce produit ? (1 avis / produit) */

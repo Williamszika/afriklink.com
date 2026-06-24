@@ -94,10 +94,19 @@ final class UserAddress
 
     public static function setDefault(int $id, int $userId): void
     {
+        $pdo = db();
         try {
-            db()->prepare('UPDATE user_addresses SET is_default = 0 WHERE user_id = :u')->execute(['u' => $userId]);
-            db()->prepare('UPDATE user_addresses SET is_default = 1 WHERE id = :id AND user_id = :u')->execute(['id' => $id, 'u' => $userId]);
+            // ATOMIQUE : on retire l'ancien défaut PUIS on pose le nouveau dans la
+            // même transaction — sans cela, un échec entre les deux laisserait le
+            // compte SANS adresse par défaut.
+            $pdo->beginTransaction();
+            $pdo->prepare('UPDATE user_addresses SET is_default = 0 WHERE user_id = :u')->execute(['u' => $userId]);
+            $pdo->prepare('UPDATE user_addresses SET is_default = 1 WHERE id = :id AND user_id = :u')->execute(['id' => $id, 'u' => $userId]);
+            $pdo->commit();
         } catch (\Throwable) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
         }
     }
 

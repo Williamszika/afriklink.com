@@ -1130,6 +1130,7 @@ final class ProductController
             $nuances = (array) ($_POST['var_nuance'] ?? []);
             $allowNuance = beauty_nuances();
             foreach ($names as $i => $nm) {
+                if (count($rows) >= 50) { break; } // plafond : 50 déclinaisons (anti-POST forgé)
                 $name = mb_substr(trim((string) $nm), 0, 60);
                 if ($name === '') { continue; }
                 $key = mb_strtolower($name);
@@ -1155,6 +1156,7 @@ final class ProductController
             $colors = (array) ($_POST['var_color'] ?? []);
             $hexes  = (array) ($_POST['var_hex'] ?? []); // perruque : pastille couleur par déclinaison
             foreach ($sizes as $i => $sz) {
+                if (count($rows) >= 50) { break; } // plafond : 50 déclinaisons (anti-POST forgé)
                 $size  = mb_substr(trim((string) $sz), 0, 60);
                 $color = mb_substr(trim((string) ($colors[$i] ?? '')), 0, 60);
                 $stockRaw = trim((string) ($stocks[$i] ?? ''));

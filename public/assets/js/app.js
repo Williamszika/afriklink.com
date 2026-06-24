@@ -7018,7 +7018,10 @@ document.addEventListener('click', function (ev) {
             var row = document.createElement('div');
             row.className = 'agnes-actions';
             data.links.forEach(function (l) {
-                if (!l || !l.url) { return; }
+                // Défense en profondeur : on n'accepte qu'une URL http(s) absolue
+                // (le serveur ne renvoie que des liens internes construits par url()).
+                // Bloque tout javascript:/data: même si la réponse était détournée.
+                if (!l || !l.url || !/^https?:\/\//i.test(l.url)) { return; }
                 var a = document.createElement('a');
                 a.className = 'agnes-action';
                 a.href = l.url; a.textContent = l.label || l.url;

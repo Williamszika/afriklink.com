@@ -150,11 +150,27 @@ final class HomeController
             }
         }
 
-        $payload = [
-            'app'            => 'ok',
-            'db'             => $db,
-            'session_driver' => config('app.session_driver'),
-        ];
+        // L'info DÉTAILLÉE (pile technique, état mail/média/paiement…) est un
+        // vecteur de reconnaissance : réservée au STAFF ou à un appelant porteur
+        // du secret CRON (Authorization: Bearer). Les sondes de disponibilité
+        // anonymes ne voient que {app, db} + leur propre diagnostic de rôle.
+        $authHdr    = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
+        $bearer     = str_starts_with($authHdr, 'Bearer ') ? substr($authHdr, 7) : '';
+        $cronSecret = trim((string) ($_ENV['CRON_SECRET'] ?? ''));
+        $detailed   = is_staff() || ($cronSecret !== '' && $bearer !== '' && hash_equals($cronSecret, $bearer));
+
+        $payload = ['app' => 'ok', 'db' => $db];
+        // Diagnostic « suis-je admin ? » : chacun voit SON propre rôle/e-mail
+        // (masqué) — jamais celui d'autrui.
+        $cu = current_user();
+        $payload['you_are_staff'] = $cu === null ? 'non_connecté' : is_staff();
+        if ($cu !== null && trim((string) ($cu['email'] ?? '')) !== '') {
+            $payload['your_login_email'] = self::maskEmail((string) $cu['email']);
+        }
+        if (!$detailed) {
+            json_response($payload); // appelant anonyme / non-staff : strict minimum
+        }
+        $payload['session_driver'] = config('app.session_driver');
         if ($hint !== null) {
             $payload['db_hint'] = $hint; // safe category, no secrets
         }
@@ -195,17 +211,8 @@ final class HomeController
         // Relecteurs KYC configurés (nombre seulement, jamais les adresses).
         $payload['staff_emails'] = count(config('app.admin_emails', []));
 
-        // Diagnostic « suis-je admin ? » : l'appelant CONNECTÉ voit s'il est staff
-        // (is_staff compare son e-mail à ADMIN_EMAILS), avec son e-mail masqué pour
-        // comparer à ce qui a été saisi dans ADMIN_EMAILS. Aucune fuite : seul le
-        // visiteur connecté voit sa propre adresse (masquée), jamais celle des autres.
-        $payload['you_are_staff'] = is_staff();
-        $cu = current_user();
-        if ($cu !== null && trim((string) ($cu['email'] ?? '')) !== '') {
-            $payload['your_login_email'] = self::maskEmail((string) $cu['email']);
-        } elseif ($cu === null) {
-            $payload['you_are_staff'] = 'non_connecté';
-        }
+        // (Le diagnostic de rôle « you_are_staff » est déjà posé plus haut, et
+        // visible de tous pour leur propre compte ; ici on est en mode détaillé.)
 
         // /health?mail_test=1 — real send to the configured sender's own address
         // (never an arbitrary recipient), throttled to 3/hour per IP.
