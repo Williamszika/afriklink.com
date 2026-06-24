@@ -164,6 +164,7 @@ return [
     ['POST', '/messages/contacter',       [MessageController::class, 'contactUser'], ['auth', 'csrf', 'throttle:msg,40,3600']],
     ['GET',  '/messages/{id}',            [MessageController::class, 'thread'], ['auth']],
     ['POST', '/messages/{id}/repondre',   [MessageController::class, 'reply'],  ['auth', 'csrf', 'throttle:msg,60,3600']],
+    ['POST', '/messages/{id}/bloquer',    [MessageController::class, 'block'],  ['auth', 'csrf', 'throttle:msg,40,3600']],
 
     // Encaissement en ligne (ossature multi-fournisseurs + simulation testable)
     ['GET',  '/paiement/tester',              [PaymentController::class, 'tester'],           ['auth']],

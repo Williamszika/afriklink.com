@@ -115,26 +115,48 @@ final class Conversation
     public static function findOrCreateDirect(int $initiatorId, int $targetId, ?string $subject): array
     {
         self::ensureTables();
-        $stmt = db()->prepare(
-            'SELECT * FROM conversations
-              WHERE boutique_id IS NULL AND product_id IS NULL
-                AND ( (buyer_id = :a AND seller_id = :b) OR (buyer_id = :b2 AND seller_id = :a2) )
-              LIMIT 1'
-        );
-        $stmt->execute(['a' => $initiatorId, 'b' => $targetId, 'b2' => $targetId, 'a2' => $initiatorId]);
-        $row = $stmt->fetch();
-        if ($row !== false) {
-            return $row;
+        $pdo = db();
+        // Verrou applicatif sur la PAIRE TRIÉE : sérialise les créations
+        // concurrentes (double envoi / double-clic) afin de ne jamais créer deux
+        // fils directs en double pour le même couple de membres.
+        $lock = 'afk_dm_' . min($initiatorId, $targetId) . '_' . max($initiatorId, $targetId);
+        $got  = 0;
+        try {
+            $lk = $pdo->prepare('SELECT GET_LOCK(:k, 5)');
+            $lk->execute(['k' => $lock]);
+            $got = (int) $lk->fetchColumn();
+        } catch (\Throwable) {
+            $got = 0;
         }
-        $pid = uuid();
-        db()->prepare(
-            'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
-             VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
-        )->execute([
-            'pid' => $pid, 'b' => $initiatorId, 's' => $targetId,
-            'subj' => $subject !== null && $subject !== '' ? mb_substr($subject, 0, 150) : null,
-        ]);
-        return self::findByPublicId($pid) ?? [];
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT * FROM conversations
+                  WHERE boutique_id IS NULL AND product_id IS NULL
+                    AND ( (buyer_id = :a AND seller_id = :b) OR (buyer_id = :b2 AND seller_id = :a2) )
+                  LIMIT 1'
+            );
+            $stmt->execute(['a' => $initiatorId, 'b' => $targetId, 'b2' => $targetId, 'a2' => $initiatorId]);
+            $row = $stmt->fetch();
+            if ($row !== false) {
+                return $row;
+            }
+            $pid = uuid();
+            $pdo->prepare(
+                'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
+                 VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
+            )->execute([
+                'pid' => $pid, 'b' => $initiatorId, 's' => $targetId,
+                'subj' => $subject !== null && $subject !== '' ? mb_substr($subject, 0, 150) : null,
+            ]);
+            return self::findByPublicId($pid) ?? [];
+        } finally {
+            if ($got === 1) {
+                try {
+                    $pdo->prepare('SELECT RELEASE_LOCK(:k)')->execute(['k' => $lock]);
+                } catch (\Throwable) {
+                }
+            }
+        }
     }
     public static function post(int $conversationId, int $senderId, string $body): int
     {

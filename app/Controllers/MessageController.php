@@ -43,6 +43,11 @@ final class MessageController
             'conv'       => $conv,
             'messages'   => Conversation::messages((int) $conv['id']),
             'other_name' => Conversation::displayName($otherUser['full_name'] ?? null, $otherUser['nickname'] ?? null),
+            // État de blocage : 'i_blocked' = j'ai bloqué l'autre (je peux
+            // débloquer) ; 'blocked' = blocage dans un sens ou l'autre (pas
+            // d'envoi possible).
+            'i_blocked'  => \App\Models\UserBlock::has($uid, $otherId),
+            'blocked'    => \App\Models\UserBlock::between($uid, $otherId),
         ]);
     }
 
@@ -58,6 +63,10 @@ final class MessageController
         $back     = '/boutique/' . $boutique['slug'];
         if ($sellerId === $uid) {
             flash('error', t('msg.err_self'));
+            redirect($back);
+        }
+        if (\App\Models\UserBlock::between($uid, $sellerId)) {
+            flash('error', t('msg.err_blocked'));
             redirect($back);
         }
 
@@ -105,7 +114,10 @@ final class MessageController
         $listingPid = (string) input_string('listing', '');
         if ($listingPid !== '') {
             $listing = \App\Models\Listing::findByPublicId($listingPid);
-            if ($listing !== null) {
+            // Le contexte « annonce » n'est retenu que si l'annonce appartient
+            // bien à la personne contactée — sinon n'importe quel pid pourrait
+            // imposer un sujet/retour trompeur (annonce d'autrui).
+            if ($listing !== null && (int) ($listing['user_id'] ?? 0) === $targetId) {
                 $subject = (string) ($listing['title'] ?? '');
                 $back    = '/annonce/' . $listingPid;
             }
@@ -113,6 +125,10 @@ final class MessageController
 
         if ($targetId === $uid) {
             flash('error', t('msg.err_self'));
+            redirect($back);
+        }
+        if (\App\Models\UserBlock::between($uid, $targetId)) {
+            flash('error', t('msg.err_blocked'));
             redirect($back);
         }
         $body = trim((string) input_string('body', ''));
@@ -134,13 +150,37 @@ final class MessageController
         if ($conv === null || !Conversation::isParticipant($conv, $uid)) {
             abort(404);
         }
+        $other = (int) $conv['buyer_id'] === $uid ? (int) $conv['seller_id'] : (int) $conv['buyer_id'];
+        if (\App\Models\UserBlock::between($uid, $other)) {
+            flash('error', t('msg.err_blocked'));
+            redirect('/messages/' . $conv['public_id']);
+        }
         $body = trim((string) input_string('body', ''));
         if (mb_strlen($body) >= 2) {
             Conversation::post((int) $conv['id'], $uid, $body);
-            $other = (int) $conv['buyer_id'] === $uid ? (int) $conv['seller_id'] : (int) $conv['buyer_id'];
             $this->notify($other, $uid, (string) $conv['public_id']);
         } else {
             flash('error', t('msg.err_empty'));
+        }
+        redirect('/messages/' . $conv['public_id']);
+    }
+
+    /** Bloque ou débloque l'autre membre d'une conversation (anti-harcèlement). */
+    public function block(Request $request): void
+    {
+        $uid  = (int) current_user_id();
+        $conv = Conversation::findByPublicId((string) $request->param('id', ''));
+        if ($conv === null || !Conversation::isParticipant($conv, $uid)) {
+            abort(404);
+        }
+        $other  = (int) $conv['buyer_id'] === $uid ? (int) $conv['seller_id'] : (int) $conv['buyer_id'];
+        $action = whitelist((string) input_string('action', 'block'), ['block', 'unblock'], 'block');
+        if ($action === 'unblock') {
+            \App\Models\UserBlock::unblock($uid, $other);
+            flash('success', t('msg.unblock_done'));
+        } else {
+            \App\Models\UserBlock::block($uid, $other);
+            flash('success', t('msg.block_done'));
         }
         redirect('/messages/' . $conv['public_id']);
     }
