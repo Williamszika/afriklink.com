@@ -91,6 +91,52 @@ final class Discount
         }
     }
 
+    /**
+     * Un code promo n'est utilisable QU'UNE FOIS par acheteur (identifié par son
+     * compte, sinon son e-mail, sinon son téléphone). Sans ce contrôle, le même
+     * client pourrait réutiliser le code indéfiniment (le compteur global
+     * max_uses ne limite pas par personne). On regarde s'il porte déjà une
+     * commande non annulée avec ce code sur cette boutique.
+     */
+    public static function buyerAlreadyUsed(int $boutiqueId, string $code, ?int $buyerUserId, string $email, string $phone): bool
+    {
+        $code = trim($code);
+        if ($code === '') {
+            return false;
+        }
+        $conds = [];
+        $args  = ['b' => $boutiqueId, 'c' => $code];
+        if ($buyerUserId !== null && $buyerUserId > 0) {
+            $conds[] = 'buyer_user_id = :u';
+            $args['u'] = $buyerUserId;
+        }
+        $email = trim($email);
+        if ($email !== '') {
+            $conds[] = 'client_email = :e';
+            $args['e'] = $email;
+        }
+        $phone = trim($phone);
+        if ($phone !== '') {
+            $conds[] = 'client_phone = :p';
+            $args['p'] = $phone;
+        }
+        if ($conds === []) {
+            return false; // aucun identifiant acheteur → impossible de corréler
+        }
+        try {
+            $stmt = db()->prepare(
+                "SELECT 1 FROM orders
+                  WHERE boutique_id = :b AND discount_code = :c AND status <> 'cancelled'
+                    AND (" . implode(' OR ', $conds) . ')
+                  LIMIT 1'
+            );
+            $stmt->execute($args);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable) {
+            return false; // en cas d'erreur, ne jamais bloquer l'achat
+        }
+    }
+
     /** Montant de réduction (centimes) appliqué à un sous-total, borné au sous-total. */
     public static function reductionFor(array $discount, int $subtotalCents): int
     {

@@ -575,6 +575,51 @@ final class Order
     }
 
     /**
+     * Détecte une commande quasi identique TRÈS récente du même acheteur sur la
+     * même boutique (même total) — parade au double-clic / double-soumission qui
+     * créerait deux commandes. Fenêtre courte pour éviter de fusionner par erreur
+     * deux achats réellement distincts. Renvoie le public_id existant, ou null.
+     */
+    public static function findRecentDuplicate(int $boutiqueId, ?int $buyerUserId, string $email, string $phone, int $totalCents, int $withinSeconds = 60): ?string
+    {
+        $conds = [];
+        $args  = ['b' => $boutiqueId, 't' => $totalCents];
+        if ($buyerUserId !== null && $buyerUserId > 0) {
+            $conds[] = 'buyer_user_id = :u';
+            $args['u'] = $buyerUserId;
+        }
+        $email = trim($email);
+        if ($email !== '') {
+            $conds[] = 'client_email = :e';
+            $args['e'] = $email;
+        }
+        $phone = trim($phone);
+        if ($phone !== '') {
+            $conds[] = 'client_phone = :p';
+            $args['p'] = $phone;
+        }
+        if ($conds === []) {
+            return null; // acheteur non identifiable → pas de déduplication possible
+        }
+        $win = max(10, min(600, $withinSeconds)); // borne sûre, interpolée (jamais liée)
+        try {
+            $stmt = db()->prepare(
+                "SELECT public_id FROM orders
+                  WHERE boutique_id = :b AND total_cents = :t AND source = 'online'
+                    AND status <> 'cancelled'
+                    AND created_at >= (NOW() - INTERVAL {$win} SECOND)
+                    AND (" . implode(' OR ', $conds) . ")
+                  ORDER BY id DESC LIMIT 1"
+            );
+            $stmt->execute($args);
+            $v = $stmt->fetchColumn();
+            return $v !== false ? (string) $v : null;
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
      * Unités vendues par produit sur les $days derniers jours (commandes non
      * annulées) — base de la prévision de stock / réassort.
      * @param list<int> $productIds

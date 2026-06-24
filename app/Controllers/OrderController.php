@@ -146,6 +146,20 @@ final class OrderController
         if ($action === null) {
             abort(404);
         }
+        // Intégrité « payer avant livraison » : on n'EXPÉDIE ni ne LIVRE pas une
+        // commande EN LIGNE dont le règlement en ligne DÛ (totalité pour
+        // before_delivery, acompte pour deposit) n'a pas été encaissé. Sans ce
+        // garde-fou, la condition de paiement serait contournable côté vendeur.
+        // Les commandes « à la livraison » (montant en ligne dû = 0) ne sont pas
+        // concernées et restent expédiables normalement.
+        if (in_array($action, ['ship', 'deliver'], true)
+            && (string) ($order['source'] ?? '') === 'online'
+            && Order::amountDue($order) > 0
+            && (string) ($order['payment_status'] ?? 'unpaid') !== 'paid') {
+            flash('error', t('order.must_be_paid'));
+            $back = whitelist((string) input_string('retour', 'a_traiter'), array_keys(self::FILTERS), 'a_traiter');
+            redirect('/vendeur/commandes?filtre=' . $back);
+        }
         $to = Order::applyAction((int) $order['id'], (string) $order['status'], $action);
         if ($to === null) {
             flash('error', t('order.bad_transition'));

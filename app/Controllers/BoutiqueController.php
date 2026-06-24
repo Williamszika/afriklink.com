@@ -1257,6 +1257,12 @@ final class BoutiqueController
                 flash('error', t('promo.invalid'));
                 redirect('/boutique/' . $boutique['slug'] . '/caisse');
             }
+            // Un code n'est utilisable qu'une fois par acheteur (compte/e-mail/tél).
+            if (\App\Models\Discount::buyerAlreadyUsed((int) $boutique['id'], (string) $discountRow['code'], current_user_id(), $email, $phone)) {
+                keep_old($_POST);
+                flash('error', t('promo.already_used'));
+                redirect('/boutique/' . $boutique['slug'] . '/caisse');
+            }
             $discount = \App\Models\Discount::reductionFor($discountRow, $subtotal);
         }
         // Note client + opérateur mobile money choisi (préfixé, visible par le vendeur).
@@ -1266,6 +1272,17 @@ final class BoutiqueController
             $orderNote = trim('[' . $payOp . '] ' . $orderNote);
         }
         $orderNote = $orderNote !== '' ? mb_substr($orderNote, 0, 540) : null;
+        // Idempotence : un double-clic / une re-soumission ne doit pas créer deux
+        // commandes identiques. Si l'acheteur a déjà passé, dans les dernières
+        // secondes, une commande au même total sur cette boutique, on le renvoie
+        // vers celle-ci au lieu d'en créer une seconde.
+        $grandTotal = max(0, $subtotal + $shipping - $discount);
+        $dupRef = Order::findRecentDuplicate((int) $boutique['id'], current_user_id(), $email, $phone, $grandTotal, 60);
+        if ($dupRef !== null) {
+            unset($_SESSION['caisse'][(int) $boutique['id']]);
+            \App\Services\Cart::clearBoutique((int) $boutique['id']);
+            redirect('/boutique/commande/' . $dupRef);
+        }
         $publicId = Order::createCart([
             'boutique_id'  => (int) $boutique['id'],
             'user_id'      => (int) $boutique['user_id'],
@@ -1356,6 +1373,17 @@ final class BoutiqueController
         $order = \App\Models\Order::findByPublicId((string) $request->param('ref', ''));
         if ($order === null) {
             abort(404);
+        }
+        // Commande rattachée à un COMPTE acheteur : son récapitulatif (PII —
+        // nom/adresse/téléphone) n'est visible que par l'acheteur OU le vendeur
+        // (orders.user_id). Les commandes INVITÉ gardent l'URL-capacité (UUID).
+        $buyerId  = (int) ($order['buyer_user_id'] ?? 0);
+        $sellerId = (int) ($order['user_id'] ?? 0);
+        if ($buyerId > 0) {
+            $uid = current_user_id();
+            if ($uid !== $buyerId && $uid !== $sellerId) {
+                abort(404);
+            }
         }
         $boutique = null;
         try {
