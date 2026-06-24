@@ -2848,6 +2848,18 @@ function back(string $fallback = '/'): never
     redirect($fallback);
 }
 
+/**
+ * En-têtes pour une page qui porte (ou a porté) un SECRET dans l'URL — jeton de
+ * réinitialisation, de vérification d'e-mail… Empêche la mise en cache de la
+ * réponse (navigateur, proxy) et supprime toute fuite du jeton via Referer.
+ */
+function no_store_secret_headers(): void
+{
+    header('Cache-Control: no-store, private, max-age=0');
+    header('Pragma: no-cache');
+    header('Referrer-Policy: no-referrer');
+}
+
 /** Send a JSON response and stop. */
 function json_response(mixed $data, int $status = 200): never
 {

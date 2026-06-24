@@ -242,7 +242,18 @@ final class AuthController
 
     public function showReset(Request $request): void
     {
-        view('auth/reset', ['token' => (string) ($_GET['token'] ?? '')]);
+        // On SORT le jeton de l'URL dès l'arrivée. S'il est présent en query
+        // (lien e-mail), on le mémorise en session puis on redirige vers une URL
+        // PROPRE (sans jeton) : il disparaît aussitôt de la barre d'adresse, de
+        // l'historique et de tout Referer. Le formulaire le repose ensuite en
+        // champ caché (corps de la requête POST, jamais journalisé).
+        $qtoken = (string) ($_GET['token'] ?? '');
+        if ($qtoken !== '') {
+            $_SESSION['pw_reset_token'] = $qtoken;
+            redirect('/reset-password');
+        }
+        no_store_secret_headers();
+        view('auth/reset', ['token' => (string) ($_SESSION['pw_reset_token'] ?? '')]);
     }
 
     public function reset(Request $request): void
@@ -260,14 +271,18 @@ final class AuthController
         }
         if ($errors !== []) {
             set_errors($errors);
-            redirect('/reset-password?token=' . urlencode($token));
+            // On garde le jeton en SESSION (pas dans l'URL) pour le réessai.
+            $_SESSION['pw_reset_token'] = $token;
+            redirect('/reset-password');
         }
 
         $userId = PasswordReset::consume($token);
         if ($userId === null) {
+            unset($_SESSION['pw_reset_token']);
             flash('error', t('flash.invalid_token'));
             redirect('/forgot-password');
         }
+        unset($_SESSION['pw_reset_token']);
 
         User::updatePassword($userId, password_hash($password, password_algo()));
         AuditLog::record($userId, 'auth.password_reset', 'user', $userId, [], $request->ipBinary());
@@ -279,6 +294,8 @@ final class AuthController
 
     public function verifyEmail(Request $request): void
     {
+        // Jeton à usage unique consommé immédiatement : pas de cache ni de Referer.
+        no_store_secret_headers();
         $token  = (string) ($_GET['token'] ?? '');
         $userId = EmailVerification::consume($token);
 
