@@ -84,6 +84,20 @@ $waText     = rawurlencode(t('listing.wa_text', ['title' => (string) $listing['t
                         <p class="muted hint"><?= e(t('dashboard.member_since')) ?> <?= e(substr((string) ($seller['created_at'] ?? ''), 0, 10)) ?></p>
                     </div>
                 </div>
+                <?php if (!$is_owner && !empty($seller['public_id'])): ?>
+                    <?php if (current_user_id() !== null): ?>
+                        <form method="post" action="<?= e(url('/messages/contacter')) ?>" class="seller-contact-form" data-submit-once>
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="to" value="<?= e((string) $seller['public_id']) ?>">
+                            <input type="hidden" name="listing" value="<?= e((string) $listing['public_id']) ?>">
+                            <label class="sr-only" for="msg-body"><?= e(t('msg.contact_label')) ?></label>
+                            <textarea id="msg-body" name="body" rows="3" maxlength="2000" required placeholder="<?= e(t('msg.contact_ph')) ?>"></textarea>
+                            <button type="submit" class="btn btn-primary btn-block"><?= icon('chat', ['size' => 16]) ?> <?= e(t('msg.contact_send')) ?></button>
+                        </form>
+                    <?php else: ?>
+                        <p class="hint"><a href="<?= e(url('/login')) ?>"><?= e(t('msg.login_to_contact')) ?></a></p>
+                    <?php endif; ?>
+                <?php endif; ?>
             </div>
         </div>
     </div>

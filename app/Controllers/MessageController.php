@@ -85,6 +85,48 @@ final class MessageController
         redirect('/messages/' . $conv['public_id']);
     }
 
+    /**
+     * Messagerie D'UTILISATEUR À UTILISATEUR : un membre écrit directement à un
+     * autre (p.ex. depuis une annonce). Conversation directe, hors boutique.
+     * Texte uniquement ; le destinataire est prévenu (cloche + e-mail).
+     */
+    public function contactUser(Request $request): void
+    {
+        $uid    = (int) current_user_id();
+        $target = User::findByPublicId((string) input_string('to', ''));
+        if ($target === null) {
+            abort(404);
+        }
+        $targetId = (int) $target['id'];
+
+        // Contexte facultatif : prise de contact depuis une annonce (sujet + retour).
+        $subject = null;
+        $back    = '/messages';
+        $listingPid = (string) input_string('listing', '');
+        if ($listingPid !== '') {
+            $listing = \App\Models\Listing::findByPublicId($listingPid);
+            if ($listing !== null) {
+                $subject = (string) ($listing['title'] ?? '');
+                $back    = '/annonce/' . $listingPid;
+            }
+        }
+
+        if ($targetId === $uid) {
+            flash('error', t('msg.err_self'));
+            redirect($back);
+        }
+        $body = trim((string) input_string('body', ''));
+        if (mb_strlen($body) < 2) {
+            flash('error', t('msg.err_empty'));
+            redirect($back);
+        }
+        $conv = Conversation::findOrCreateDirect($uid, $targetId, $subject);
+        Conversation::post((int) $conv['id'], $uid, $body);
+        $this->notify($targetId, $uid, (string) $conv['public_id'], $body);
+        flash('success', t('msg.sent'));
+        redirect('/messages/' . $conv['public_id']);
+    }
+
     public function reply(Request $request): void
     {
         $uid  = (int) current_user_id();

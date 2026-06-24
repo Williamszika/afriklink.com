@@ -74,7 +74,36 @@ final class Conversation
         return self::findByPublicId($pid) ?? [];
     }
 
-    /** Ajoute un message et met à jour l'aperçu + la date. Renvoie l'id du message. */
+    /**
+     * Conversation DIRECTE entre deux membres (hors boutique/produit), pour la
+     * messagerie d'utilisateur à utilisateur. Insensible au sens : (A→B) et
+     * (B→A) partagent le même fil. Crée si besoin (initiateur = buyer_id).
+     * @return array
+     */
+    public static function findOrCreateDirect(int $initiatorId, int $targetId, ?string $subject): array
+    {
+        self::ensureTables();
+        $stmt = db()->prepare(
+            'SELECT * FROM conversations
+              WHERE boutique_id IS NULL AND product_id IS NULL
+                AND ( (buyer_id = :a AND seller_id = :b) OR (buyer_id = :b2 AND seller_id = :a2) )
+              LIMIT 1'
+        );
+        $stmt->execute(['a' => $initiatorId, 'b' => $targetId, 'b2' => $targetId, 'a2' => $initiatorId]);
+        $row = $stmt->fetch();
+        if ($row !== false) {
+            return $row;
+        }
+        $pid = uuid();
+        db()->prepare(
+            'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
+             VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
+        )->execute([
+            'pid' => $pid, 'b' => $initiatorId, 's' => $targetId,
+            'subj' => $subject !== null && $subject !== '' ? mb_substr($subject, 0, 150) : null,
+        ]);
+        return self::findByPublicId($pid) ?? [];
+    }
     public static function post(int $conversationId, int $senderId, string $body): int
     {
         self::ensureTables();

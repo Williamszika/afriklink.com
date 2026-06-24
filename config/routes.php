@@ -161,6 +161,7 @@ return [
     ['POST', '/notifications/lus',        [NotificationController::class, 'markAll'], ['auth', 'csrf']],
     ['GET',  '/messages',                 [MessageController::class, 'inbox'],  ['auth']],
     ['POST', '/messages/demarrer',        [MessageController::class, 'start'],  ['auth', 'csrf', 'throttle:msg,40,3600']],
+    ['POST', '/messages/contacter',       [MessageController::class, 'contactUser'], ['auth', 'csrf', 'throttle:msg,40,3600']],
     ['GET',  '/messages/{id}',            [MessageController::class, 'thread'], ['auth']],
     ['POST', '/messages/{id}/repondre',   [MessageController::class, 'reply'],  ['auth', 'csrf', 'throttle:msg,60,3600']],
 
