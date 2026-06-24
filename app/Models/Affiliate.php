@@ -184,7 +184,7 @@ final class Affiliate
      * Opt-in : seules les boutiques ayant activé leur programme reversent une commission,
      * au taux qu'elles ont fixé.
      */
-    public static function attribute(string $orderPublicId, int $boutiqueId, int $sellerUserId, array $lines, int $subtotalCents, string $currency): void
+    public static function attribute(string $orderPublicId, int $boutiqueId, int $sellerUserId, array $lines, int $subtotalCents, string $currency, ?string $buyerEmail = null, ?string $buyerPhone = null): void
     {
         $code   = trim((string) ($_COOKIE[self::COOKIE] ?? ''));
         $target = trim((string) ($_COOKIE[self::COOKIE_TGT] ?? ''));
@@ -195,13 +195,24 @@ final class Affiliate
         self::cookie('', time() - 3600, self::COOKIE_TGT); // consomme le cookie cible
         $affiliateId = self::userIdForCode($code);
         if ($affiliateId === null || $affiliateId === $sellerUserId || $affiliateId === current_user_id()) {
-            return; // lien inconnu, auto-parrainage (vendeur), ou ACHETEUR = apporteur
+            return; // lien inconnu, auto-parrainage (vendeur), ou ACHETEUR connecté = apporteur
         }
         // L'affiliation est réservée aux particuliers : un vendeur (professionnel)
         // n'apporte pas de commission — les gains sont distribués par particulier.
         $affiliate = User::findById($affiliateId);
-        if (($affiliate['account_type'] ?? '') === 'professionnel') {
+        if ($affiliate === null || ($affiliate['account_type'] ?? '') === 'professionnel') {
             return;
+        }
+        // Anti auto-parrainage INVITÉ : un apporteur NON connecté ne peut pas se
+        // créditer en commandant avec SES propres coordonnées. Le contrôle
+        // current_user_id() ci-dessus ne couvre que l'acheteur connecté ; ici on
+        // compare l'e-mail/téléphone saisis à la caisse à ceux du compte apporteur.
+        $be = mb_strtolower(trim((string) $buyerEmail));
+        $bp = normalize_phone((string) $buyerPhone);
+        $ae = mb_strtolower(trim((string) ($affiliate['email'] ?? '')));
+        $ap = normalize_phone((string) ($affiliate['phone'] ?? ''));
+        if (($be !== '' && $be === $ae) || ($bp !== '' && $bp === $ap)) {
+            return; // l'apporteur est aussi l'acheteur (coordonnées identiques)
         }
         // Commission PAR PRODUIT : somme des (R − part plateforme) des articles affiliés.
         // Le taux R est fixé par le vendeur et retranché de SA part : pas de plafond ici.

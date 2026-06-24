@@ -540,7 +540,10 @@ final class Order
         $conds = [];
         $args  = ['p' => $productId];
         if ($userId !== null && $userId > 0) {
-            $conds[] = 'o.user_id = :u';
+            // L'ACHETEUR connecté (buyer_user_id), JAMAIS o.user_id qui pointe le
+            // VENDEUR (propriétaire de la boutique) : sans cela un vendeur pourrait
+            // « avoir acheté » ses propres produits et les noter lui-même.
+            $conds[] = 'o.buyer_user_id = :u';
             $args['u'] = $userId;
         }
         $email = trim((string) $email);

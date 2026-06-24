@@ -1302,7 +1302,7 @@ final class BoutiqueController
         \App\Services\Cart::clearBoutique((int) $boutique['id']); // vide aussi le panier persistant
         AuditLog::record((int) $boutique['user_id'], 'order.placed', 'boutique', (int) $boutique['id'], ['order' => $publicId], $request->ipBinary());
         // Affiliation : créditer l'apporteur si le visiteur vient d'un lien /r/{code} (one-shot, hors auto-parrainage).
-        \App\Models\Affiliate::attribute($publicId, (int) $boutique['id'], (int) $boutique['user_id'], $lines, $subtotal, $cur);
+        \App\Models\Affiliate::attribute($publicId, (int) $boutique['id'], (int) $boutique['user_id'], $lines, $subtotal, $cur, $email, $phone);
 
         // Notifications (best-effort, n'empêchent jamais la commande) :
         // le vendeur reçoit l'alerte « nouvelle commande », le client une confirmation.

@@ -162,7 +162,13 @@ final class AuthController
         }
 
         $user = $identifier !== '' ? User::findByEmailOrPhone($identifier) : null;
-        $ok   = $user !== null && password_verify($password, $user['password_hash']);
+        // Anti-énumération par chronométrage : on exécute TOUJOURS un
+        // password_verify, même quand le compte n'existe pas, contre un haché
+        // factice de MÊME algorithme/coût. Sans cela, le chemin « compte
+        // inconnu » répond plus vite et trahit les e-mails/numéros enregistrés.
+        $hash = is_string($user['password_hash'] ?? null) && $user['password_hash'] !== ''
+            ? (string) $user['password_hash'] : self::dummyHash();
+        $ok   = password_verify($password, $hash) && $user !== null;
 
         LoginAttempt::record($lockKey !== '' ? $lockKey : null, $request->ipBinary(), $ok);
 
@@ -349,6 +355,20 @@ final class AuthController
     }
 
     /* ---- Helpers ------------------------------------------------ */
+
+    /**
+     * Haché « leurre » de même algorithme/coût que les vrais, calculé une seule
+     * fois par processus. Sert à équilibrer le temps de réponse de la connexion
+     * quand le compte n'existe pas (anti-énumération par chronométrage).
+     */
+    private static function dummyHash(): string
+    {
+        static $h = null;
+        if ($h === null) {
+            $h = password_hash('afriklink-timing-equalizer', password_algo());
+        }
+        return $h;
+    }
 
     private function sendVerificationEmail(array $user): void
     {
