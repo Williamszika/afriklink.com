@@ -769,6 +769,7 @@ return [
     'flash.logged_in'           => 'Ha iniciado sesión.',
     'flash.logged_out'          => 'Ha cerrado sesión.',
     'flash.invalid_credentials' => 'Correo o contraseña incorrectos.',
+    'flash.login_locked' => 'Demasiados intentos de inicio de sesión. Inténtalo de nuevo en unos minutos.',
     'flash.account_suspended'   => 'Esta cuenta está suspendida. Contacte con soporte.',
     'flash.reset_sent'          => 'Si existe una cuenta para esta dirección, se ha enviado un enlace de restablecimiento.',
     'flash.reset_ok'            => 'Contraseña actualizada. Ya puede iniciar sesión.',

@@ -775,6 +775,7 @@ return [
     'flash.logged_in'           => 'Vous êtes connecté:fe.',
     'flash.logged_out'          => 'Vous êtes déconnecté:fe.',
     'flash.invalid_credentials' => 'E-mail ou mot de passe incorrect.',
+    'flash.login_locked' => 'Trop de tentatives de connexion. Réessayez dans quelques minutes.',
     'flash.account_suspended'   => 'Ce compte est suspendu. Contactez le support.',
     'flash.reset_sent'          => 'Si un compte existe pour cette adresse, un lien de réinitialisation a été envoyé.',
     'flash.reset_ok'            => 'Mot de passe mis à jour. Vous pouvez vous connecter.',

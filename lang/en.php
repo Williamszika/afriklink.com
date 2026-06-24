@@ -775,6 +775,7 @@ return [
     'flash.logged_in'           => 'You are logged in.',
     'flash.logged_out'          => 'You are logged out.',
     'flash.invalid_credentials' => 'Incorrect email or password.',
+    'flash.login_locked' => 'Too many login attempts. Please try again in a few minutes.',
     'flash.account_suspended'   => 'This account is suspended. Contact support.',
     'flash.reset_sent'          => 'If an account exists for this address, a reset link has been sent.',
     'flash.reset_ok'            => 'Password updated. You can now log in.',

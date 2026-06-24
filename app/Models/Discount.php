@@ -110,7 +110,12 @@ final class Discount
     public static function recordUse(int $id): void
     {
         try {
-            db()->prepare('UPDATE discounts SET uses = uses + 1 WHERE id = :id')->execute(['id' => $id]);
+            // Incrément ATOMIQUE borné : le compteur ne peut jamais dépasser
+            // max_uses, même sous des commandes concurrentes (anti-TOCTOU).
+            db()->prepare(
+                'UPDATE discounts SET uses = uses + 1
+                  WHERE id = :id AND (max_uses IS NULL OR uses < max_uses)'
+            )->execute(['id' => $id]);
         } catch (\Throwable) {
         }
     }

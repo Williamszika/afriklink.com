@@ -140,6 +140,22 @@ final class AuthController
         $identifier = (string) (input_string('identifier') ?? '');
         $password   = (string) ($_POST['password'] ?? '');
 
+        // Verrouillage par COMPTE (en plus de la limite par IP) : après trop
+        // d'échecs récents sur CET identifiant, on bloque temporairement — robuste
+        // même si l'IP est usurpée. Fenêtre glissante : auto-expire toute seule.
+        if ($identifier !== '') {
+            try {
+                if (LoginAttempt::recentFailures($identifier, 900) >= 10) {
+                    AuditLog::record(null, 'auth.login_locked', 'user', null, ['id' => $identifier], $request->ipBinary());
+                    keep_old($_POST);
+                    flash('error', t('flash.login_locked'));
+                    redirect('/login');
+                }
+            } catch (\Throwable) {
+                // Table indisponible : on ne bloque pas (le mot de passe protège).
+            }
+        }
+
         $user = $identifier !== '' ? User::findByEmailOrPhone($identifier) : null;
         $ok   = $user !== null && password_verify($password, $user['password_hash']);
 

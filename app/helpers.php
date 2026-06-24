@@ -2837,10 +2837,12 @@ function redirect(string $path, int $status = 302): never
 /** Redirect back to the referring page (or a fallback). */
 function back(string $fallback = '/'): never
 {
-    $ref = $_SERVER['HTTP_REFERER'] ?? '';
-    // Only honour same-host referrers to avoid open-redirects.
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-    if ($ref !== '' && $host !== '' && str_contains($ref, $host)) {
+    $ref  = (string) ($_SERVER['HTTP_REFERER'] ?? '');
+    // N'honore le Referer QUE si son HÔTE correspond EXACTEMENT à l'hôte courant
+    // (comparaison d'hôte, et non de sous-chaîne) → pas d'open-redirect.
+    $host    = (string) preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? ''));
+    $refHost = (string) parse_url($ref, PHP_URL_HOST);
+    if ($ref !== '' && $host !== '' && $refHost !== '' && strcasecmp($refHost, $host) === 0) {
         redirect($ref);
     }
     redirect($fallback);

@@ -764,6 +764,7 @@ return [
     'flash.logged_in'           => 'U bent ingelogd.',
     'flash.logged_out'          => 'U bent uitgelogd.',
     'flash.invalid_credentials' => 'Onjuist e-mailadres of wachtwoord.',
+    'flash.login_locked' => 'Te veel inlogpogingen. Probeer het over enkele minuten opnieuw.',
     'flash.account_suspended'   => 'Dit account is geschorst. Neem contact op met de support.',
     'flash.reset_sent'          => 'Als er een account bestaat voor dit adres, is er een herstellink verzonden.',
     'flash.reset_ok'            => 'Wachtwoord bijgewerkt. U kunt nu inloggen.',

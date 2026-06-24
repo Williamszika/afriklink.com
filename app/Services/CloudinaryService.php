@@ -309,12 +309,23 @@ final class CloudinaryService
         if (!is_array($data) || ($data['public_id'] ?? '') !== $publicId) {
             return null;
         }
+        // Allowlist de FORMAT (vérité serveur) : rejette tout format inattendu
+        // — notamment SVG/HTML (vecteur XSS potentiel) ou conteneurs exotiques.
+        // L'appelant ne mémorise alors pas ce fichier.
+        $format  = strtolower((string) ($data['format'] ?? ''));
+        $allowed = $resourceType === 'video'
+            ? ['mp4', 'mov', 'webm', 'ogg', 'm4v']
+            : ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if ($format === '' || !in_array($format, $allowed, true)) {
+            self::$lastError = 'format_not_allowed';
+            return null;
+        }
         return [
             'width'    => isset($data['width']) ? (int) $data['width'] : null,
             'height'   => isset($data['height']) ? (int) $data['height'] : null,
             'bytes'    => (int) ($data['bytes'] ?? 0),
             'duration' => isset($data['duration']) ? (float) $data['duration'] : null,
-            'format'   => (string) ($data['format'] ?? ''),
+            'format'   => $format,
         ];
     }
 

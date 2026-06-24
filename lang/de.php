@@ -769,6 +769,7 @@ return [
     'flash.logged_in'           => 'Sie sind angemeldet.',
     'flash.logged_out'          => 'Sie sind abgemeldet.',
     'flash.invalid_credentials' => 'E-Mail oder Passwort falsch.',
+    'flash.login_locked' => 'Zu viele Anmeldeversuche. Bitte versuchen Sie es in einigen Minuten erneut.',
     'flash.account_suspended'   => 'Dieses Konto ist gesperrt. Kontaktieren Sie den Support.',
     'flash.reset_sent'          => 'Falls für diese Adresse ein Konto existiert, wurde ein Link zum Zurücksetzen gesendet.',
     'flash.reset_ok'            => 'Passwort aktualisiert. Sie können sich jetzt anmelden.',

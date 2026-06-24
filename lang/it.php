@@ -769,6 +769,7 @@ return [
     'flash.logged_in'           => 'Hai effettuato l’accesso.',
     'flash.logged_out'          => 'Hai effettuato la disconnessione.',
     'flash.invalid_credentials' => 'Email o password non corretti.',
+    'flash.login_locked' => 'Troppi tentativi di accesso. Riprova tra qualche minuto.',
     'flash.account_suspended'   => 'Questo account è sospeso. Contatta l’assistenza.',
     'flash.reset_sent'          => 'Se esiste un account per questo indirizzo, è stato inviato un link di reimpostazione.',
     'flash.reset_ok'            => 'Password aggiornata. Ora puoi accedere.',

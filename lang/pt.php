@@ -769,6 +769,7 @@ return [
     'flash.logged_in'           => 'Sessão iniciada.',
     'flash.logged_out'          => 'Sessão terminada.',
     'flash.invalid_credentials' => 'E-mail ou palavra-passe incorretos.',
+    'flash.login_locked' => 'Demasiadas tentativas de início de sessão. Tente novamente dentro de alguns minutos.',
     'flash.account_suspended'   => 'Esta conta está suspensa. Contacte o apoio.',
     'flash.reset_sent'          => 'Se existir uma conta para este endereço, foi enviada uma ligação de reposição.',
     'flash.reset_ok'            => 'Palavra-passe atualizada. Já pode iniciar sessão.',

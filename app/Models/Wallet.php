@@ -157,27 +157,50 @@ final class Wallet
     public static function requestWithdrawal(int $userId, string $method, string $destination): ?string
     {
         self::ensureTables();
-        $cur     = self::currencyFor($userId);
-        $balance = self::balanceCents($userId);
-        if ($balance <= 0 || $balance < self::thresholdCents($cur)) {
-            return null;
-        }
         $method = in_array($method, ['mobile_money', 'bank'], true) ? $method : 'mobile_money';
-        $pid = uuid();
-        $pdo = db();
-        $pdo->beginTransaction();
+        $pdo  = db();
+        $lock = 'afk_wallet_' . $userId;
+        // Verrou applicatif PAR UTILISATEUR : sérialise les demandes de retrait
+        // concurrentes. Sans lui, deux requêtes simultanées lisent le même solde
+        // et le retirent chacune → double versement. Le solde est ensuite
+        // RECALCULÉ sous le verrou (source de vérité au moment du débit).
         try {
-            $pdo->prepare(
-                'INSERT INTO wallet_withdrawals (public_id, user_id, amount_cents, currency, method, destination)
-                 VALUES (:p, :u, :a, :c, :m, :d)'
-            )->execute(['p' => $pid, 'u' => $userId, 'a' => $balance, 'c' => $cur, 'm' => $method, 'd' => mb_substr($destination, 0, 160)]);
-            self::debit($userId, $balance, $cur, 'withdrawal', $pid);
-            $pdo->commit();
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
-            return null;
+            $lk = $pdo->prepare('SELECT GET_LOCK(:k, 5)');
+            $lk->execute(['k' => $lock]);
+            $got = (int) $lk->fetchColumn();
+        } catch (\Throwable) {
+            $got = 0;
         }
-        return $pid;
+        if ($got !== 1) {
+            return null; // impossible de sérialiser → on refuse plutôt que risquer un double retrait
+        }
+        try {
+            $cur     = self::currencyFor($userId);
+            $balance = self::balanceCents($userId); // recalculé SOUS le verrou
+            if ($balance <= 0 || $balance < self::thresholdCents($cur)) {
+                return null;
+            }
+            $pid = uuid();
+            $pdo->beginTransaction();
+            try {
+                $pdo->prepare(
+                    'INSERT INTO wallet_withdrawals (public_id, user_id, amount_cents, currency, method, destination)
+                     VALUES (:p, :u, :a, :c, :m, :d)'
+                )->execute(['p' => $pid, 'u' => $userId, 'a' => $balance, 'c' => $cur, 'm' => $method, 'd' => mb_substr($destination, 0, 160)]);
+                self::debit($userId, $balance, $cur, 'withdrawal', $pid);
+                $pdo->commit();
+            } catch (\Throwable $e) {
+                $pdo->rollBack();
+                return null;
+            }
+            return $pid;
+        } finally {
+            try {
+                $rl = $pdo->prepare('SELECT RELEASE_LOCK(:k)');
+                $rl->execute(['k' => $lock]);
+            } catch (\Throwable) {
+            }
+        }
     }
 
     /** @return list<array> demandes de retrait d'un vendeur */

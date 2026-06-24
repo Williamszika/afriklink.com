@@ -194,8 +194,8 @@ final class Affiliate
         self::cookie('', time() - 3600);                   // consomme le cookie code
         self::cookie('', time() - 3600, self::COOKIE_TGT); // consomme le cookie cible
         $affiliateId = self::userIdForCode($code);
-        if ($affiliateId === null || $affiliateId === $sellerUserId) {
-            return; // lien inconnu ou auto-parrainage
+        if ($affiliateId === null || $affiliateId === $sellerUserId || $affiliateId === current_user_id()) {
+            return; // lien inconnu, auto-parrainage (vendeur), ou ACHETEUR = apporteur
         }
         // L'affiliation est réservée aux particuliers : un vendeur (professionnel)
         // n'apporte pas de commission — les gains sont distribués par particulier.
@@ -305,7 +305,9 @@ final class Affiliate
             }
             return $amountCents - $deduction;
         } catch (\Throwable) {
-            return $normalSeller;
+            // En cas d'erreur de calcul : on crédite le vendeur du montant PLEIN
+            // (pas de déduction), plutôt que de planter et ne rien lui verser.
+            return $amountCents;
         }
     }
 
