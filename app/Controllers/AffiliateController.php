@@ -79,7 +79,7 @@ final class AffiliateController
             $data['dir_mains']    = Product::mainPhotos(array_map(static fn (array $p): int => (int) $p['id'], $products));
             $cc = (string) ($user['country_code'] ?? '');
             $data['wallet']       = [
-                'balance'     => Wallet::balanceCents($uid),
+                'balance'     => Wallet::balanceCents($uid, $cur),
                 'currency'    => $cur,
                 'threshold'   => Wallet::thresholdCents($cur),
                 'can'         => Wallet::canWithdraw($uid),

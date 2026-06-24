@@ -24,7 +24,7 @@ final class WalletController
         $cur  = Wallet::currencyFor($uid, $this->shopCurrency($uid));
         view('vendeur/wallet', [
             'active'          => 'portefeuille',
-            'balance_cents'   => Wallet::balanceCents($uid),
+            'balance_cents'   => Wallet::balanceCents($uid, $cur),
             'currency'        => $cur,
             'threshold_cents' => Wallet::thresholdCents($cur),
             'can_withdraw'    => Wallet::canWithdraw($uid),

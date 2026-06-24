@@ -25,11 +25,16 @@ final class PaymentSettlement
     public static function confirm(array $payment, string $providerRef = ''): bool
     {
         $ref = (string) ($payment['public_id'] ?? '');
-        if ($ref === '' || ($payment['status'] ?? '') === 'paid') {
-            return false; // idempotent : déjà confirmé (ou référence absente)
+        if ($ref === '') {
+            return false;
         }
-
-        Payment::setStatus($ref, 'paid', $providerRef);
+        // Idempotence ATOMIQUE : on revendique le statut « payé » en base. Si une
+        // autre livraison de webhook (CinetPay sans dédup, ou 2 événements Stripe)
+        // l'a déjà revendiqué, on s'arrête ICI → un SEUL crédit de portefeuille.
+        // (Remplace l'ancienne vérification sur un instantané périmé.)
+        if (!Payment::claimPaid($ref, $providerRef)) {
+            return false;
+        }
 
         $orderId = (int) ($payment['order_id'] ?? 0);
         $kind    = (string) ($payment['kind'] ?? 'boutique');

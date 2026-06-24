@@ -117,7 +117,7 @@ final class AdCampaign
         if ($billing === 'wallet') {
             $walCur = Wallet::currencyFor($userId, (string) ($boutique['currency'] ?? 'XOF'));
             $price  = ExchangeRates::convert($base, self::baseCurrency(), $walCur) ?? $base;
-            if (Wallet::balanceCents($userId) < $price) {
+            if (Wallet::balanceCents($userId, $walCur) < $price) {
                 return ['ok' => false, 'code' => 'insufficient'];
             }
             Wallet::debit($userId, $price, $walCur, 'ad_campaign', null);

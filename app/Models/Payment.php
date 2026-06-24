@@ -126,4 +126,29 @@ final class Payment
         }
         $stmt->execute($args);
     }
+
+    /**
+     * Revendication ATOMIQUE du statut « payé ». Passe la ligne à 'paid'
+     * UNIQUEMENT si elle ne l'était pas déjà, et renvoie true seulement pour
+     * l'appel qui a EFFECTIVEMENT opéré la transition. Garde d'idempotence : si
+     * plusieurs livraisons de webhook (CinetPay sans déduplication, ou deux
+     * événements Stripe pour le même paiement) arrivent en parallèle, une seule
+     * obtient true → un seul crédit de portefeuille.
+     */
+    public static function claimPaid(string $ref, string $providerRef = ''): bool
+    {
+        if ($ref === '') {
+            return false;
+        }
+        $stmt = db()->prepare(
+            'UPDATE payments SET status = :s' . ($providerRef !== '' ? ', provider_ref = :pr' : '') . "
+              WHERE public_id = :r AND status <> 'paid'"
+        );
+        $args = ['s' => 'paid', 'r' => $ref];
+        if ($providerRef !== '') {
+            $args['pr'] = $providerRef;
+        }
+        $stmt->execute($args);
+        return $stmt->rowCount() === 1;
+    }
 }

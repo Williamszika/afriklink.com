@@ -88,28 +88,45 @@ final class Wallet
         ]);
     }
 
-    /** Solde courant en centimes (Σ crédits − Σ débits). */
-    public static function balanceCents(int $userId): int
+    /**
+     * Solde courant en centimes (Σ crédits − Σ débits). Si $currency est fourni,
+     * compte UNIQUEMENT cette devise (jamais d'addition inter-devises : XOF et
+     * EUR ne s'additionnent pas — sinon un solde serait gonflé au taux de change).
+     */
+    public static function balanceCents(int $userId, ?string $currency = null): int
     {
         try {
             self::ensureTables();
-            $stmt = db()->prepare(
-                "SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount_cents ELSE -amount_cents END), 0)
-                   FROM wallet_entries WHERE user_id = :u"
-            );
-            $stmt->execute(['u' => $userId]);
+            $sql  = "SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount_cents ELSE -amount_cents END), 0)
+                       FROM wallet_entries WHERE user_id = :u";
+            $args = ['u' => $userId];
+            if ($currency !== null) {
+                $sql .= ' AND currency = :c';
+                $args['c'] = strtoupper(substr($currency, 0, 3));
+            }
+            $stmt = db()->prepare($sql);
+            $stmt->execute($args);
             return (int) $stmt->fetchColumn();
         } catch (\Throwable) {
             return 0;
         }
     }
 
-    /** Devise du portefeuille = celle de la dernière écriture (sinon défaut). */
+    /**
+     * Devise PRINCIPALE du portefeuille = celle qui détient le plus gros solde
+     * (et non la dernière écriture). Sert de devise de retrait/comparaison —
+     * jamais une somme mélangée de plusieurs devises.
+     */
     public static function currencyFor(int $userId, string $fallback = 'XOF'): string
     {
         try {
             self::ensureTables();
-            $stmt = db()->prepare('SELECT currency FROM wallet_entries WHERE user_id = :u ORDER BY id DESC LIMIT 1');
+            $stmt = db()->prepare(
+                "SELECT currency,
+                        SUM(CASE WHEN type='credit' THEN amount_cents ELSE -amount_cents END) AS bal
+                   FROM wallet_entries WHERE user_id = :u
+                  GROUP BY currency ORDER BY bal DESC LIMIT 1"
+            );
             $stmt->execute(['u' => $userId]);
             $c = $stmt->fetchColumn();
             return $c ? strtoupper((string) $c) : strtoupper($fallback);
@@ -146,7 +163,7 @@ final class Wallet
     public static function canWithdraw(int $userId): bool
     {
         $cur = self::currencyFor($userId);
-        return self::balanceCents($userId) >= self::thresholdCents($cur);
+        return self::balanceCents($userId, $cur) >= self::thresholdCents($cur);
     }
 
     /**
@@ -176,7 +193,7 @@ final class Wallet
         }
         try {
             $cur     = self::currencyFor($userId);
-            $balance = self::balanceCents($userId); // recalculé SOUS le verrou
+            $balance = self::balanceCents($userId, $cur); // SOUS le verrou, DEVISE principale uniquement
             if ($balance <= 0 || $balance < self::thresholdCents($cur)) {
                 return null;
             }
