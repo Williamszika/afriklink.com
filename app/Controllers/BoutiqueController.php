@@ -734,6 +734,43 @@ final class BoutiqueController
         redirect('/boutique/gerer');
     }
 
+    /**
+     * Transporteurs proposés au client (niveau 1) : le vendeur coche, par scope
+     * (international / local UE / local CI), les transporteurs qu'il accepte et
+     * fixe un tarif pour chacun. On ne garde que les couples (transporteur, scope)
+     * réellement valides du catalogue. Stocké en JSON sur la boutique.
+     */
+    public function updateCarriers(Request $request): void
+    {
+        $user = $this->sellerOrRedirect();
+        $boutique = Boutique::findByUserId((int) $user['id']);
+        if ($boutique === null) {
+            redirect('/boutique/creer');
+        }
+        $currency = (string) ($boutique['currency'] ?? 'EUR');
+        $catalog  = (array) config('delivery.carriers', []);
+        $car      = (array) ($_POST['car'] ?? []);
+        $carfee   = (array) ($_POST['carfee'] ?? []);
+        $out = [];
+        foreach (['intl', 'eu', 'ci'] as $scope) {
+            foreach ((array) ($car[$scope] ?? []) as $c => $on) {
+                $c = (string) $c;
+                // Le transporteur doit exister ET déclarer ce scope dans le catalogue.
+                if (!isset($catalog[$c]) || !in_array($scope, (array) ($catalog[$c]['scopes'] ?? []), true)) {
+                    continue;
+                }
+                $fee = (int) parse_price_to_cents((string) ($carfee[$scope][$c] ?? '0'), $currency);
+                $out[] = ['c' => $c, 'scope' => $scope, 'fee' => max(0, $fee)];
+            }
+        }
+        Boutique::updateConfig(
+            (int) $boutique['id'],
+            ['delivery_carriers' => $out !== [] ? json_encode($out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null]
+        );
+        flash('success', t('shop.carriers_saved'));
+        redirect('/boutique/gerer#carriers');
+    }
+
     /** Le vendeur crée un code promo (pourcentage ou montant) pour sa boutique. */
     public function createDiscount(Request $request): void
     {
@@ -1027,6 +1064,11 @@ final class BoutiqueController
         foreach ($fulfillments as $m) {
             $shipMap[$m] = $this->shippingFor($boutique, $m, $total, $destCountry);
         }
+        // Niveau 1 : transporteurs proposés par la boutique pour la situation de
+        // l'acheteur (local UE, local CI, ou international). S'il y en a, le client
+        // choisit son transporteur (tarif fixe) au lieu du mode générique.
+        $carrierScope   = delivery_scope_for($boutique, $destCountry !== '' ? $destCountry : null);
+        $carrierOptions = shop_carrier_options($boutique, $carrierScope);
         $lineImages = \App\Models\Product::mainPhotos(array_values(array_filter(
             array_map(static fn (array $l): int => (int) ($l['product_id'] ?? 0), $lines)
         )));
@@ -1038,6 +1080,8 @@ final class BoutiqueController
             'ship_map'     => $shipMap,
             'shipping_zones' => $zones,
             'dest_country' => $destCountry,
+            'carrier_scope'   => $carrierScope,
+            'carrier_options' => $carrierOptions,
             'countries'    => countries_list(),
             'delivery_delay' => (string) ($boutique['delivery_delay'] ?? ''),
             'preview'      => $boutique['status'] !== 'published',
@@ -1112,10 +1156,31 @@ final class BoutiqueController
         $lat = filter_var((string) input_string('geo_lat', ''), FILTER_VALIDATE_FLOAT);
         $lng = filter_var((string) input_string('geo_lng', ''), FILTER_VALIDATE_FLOAT);
         $hasGeo = $lat !== false && $lng !== false && $lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180;
+        // Destination (pays) — déterminée tôt car elle conditionne le choix du transporteur.
+        $destCountry = whitelist(strtoupper((string) input_string('dest_country', '')), array_keys(config('countries', [])), null);
         $methods = array_values(array_filter(explode(',', (string) ($boutique['delivery_methods'] ?? ''))));
-        $fulfillment = $methods !== []
-            ? whitelist((string) input_string('fulfillment', ''), $methods, $methods[0])
-            : null;
+        // Niveau 1 : le client peut choisir un TRANSPORTEUR (« carrier:<clé> ») parmi
+        // ceux que la boutique propose pour sa situation (local UE / local CI / intl).
+        // Sinon, mode de livraison générique classique.
+        $rawFulfillment = (string) input_string('fulfillment', '');
+        $carrier    = null;
+        $carrierFee = 0;
+        if (str_starts_with($rawFulfillment, 'carrier:')) {
+            $scope = delivery_scope_for($boutique, $destCountry);
+            foreach (shop_carrier_options($boutique, $scope) as $opt) {
+                if ($opt['c'] === substr($rawFulfillment, 8)) {
+                    $carrier    = $opt['c'];
+                    $carrierFee = (int) $opt['fee'];
+                    break;
+                }
+            }
+            // Transporteur = expédition → on force un mode « livraison » (adresse requise).
+            $fulfillment = $scope === 'intl' ? 'international' : 'local';
+        } else {
+            $fulfillment = $methods !== []
+                ? whitelist($rawFulfillment, $methods, $methods[0])
+                : null;
+        }
         // Condition de paiement choisie par le client, parmi celles proposées par la boutique.
         $terms = array_values(array_filter(explode(',', (string) ($boutique['payment_terms'] ?? ''))));
         $paymentTerm = $terms !== []
@@ -1157,19 +1222,24 @@ final class BoutiqueController
         $subtotal = array_sum(array_map(static fn (array $l): int => $l['qty'] * $l['unit_price_cents'], $lines));
         // Frais de livraison : par ZONE selon le pays de destination si la boutique en
         // a défini ; le serveur fait foi (jamais le frais envoyé par le client).
-        $destCountry = whitelist(strtoupper((string) input_string('dest_country', '')), array_keys(config('countries', [])), null);
-        $quote = $this->shippingQuote($boutique, $fulfillment, $subtotal, $destCountry);
-        if (!empty($quote['needs_country'])) {
-            keep_old($_POST);
-            set_errors(['dest_country' => t('ship.zone.err_choose_country')]);
-            redirect('/boutique/' . $boutique['slug'] . '/caisse');
+        // $destCountry est déjà déterminé plus haut (il conditionne le transporteur).
+        if ($carrier !== null) {
+            // Transporteur choisi par le client : tarif FIXE défini par le vendeur.
+            $shipping = max(0, (int) $carrierFee);
+        } else {
+            $quote = $this->shippingQuote($boutique, $fulfillment, $subtotal, $destCountry);
+            if (!empty($quote['needs_country'])) {
+                keep_old($_POST);
+                set_errors(['dest_country' => t('ship.zone.err_choose_country')]);
+                redirect('/boutique/' . $boutique['slug'] . '/caisse');
+            }
+            if (empty($quote['deliverable'])) {
+                keep_old($_POST);
+                flash('error', t('ship.zone.not_deliverable'));
+                redirect('/boutique/' . $boutique['slug'] . '/caisse');
+            }
+            $shipping = (int) $quote['fee'];
         }
-        if (empty($quote['deliverable'])) {
-            keep_old($_POST);
-            flash('error', t('ship.zone.not_deliverable'));
-            redirect('/boutique/' . $boutique['slug'] . '/caisse');
-        }
-        $shipping = (int) $quote['fee'];
         // Code promo (optionnel) : revalidé côté serveur sur cette boutique.
         $promoCode = trim((string) input_string('promo_code', ''));
         $discount = 0;
@@ -1209,6 +1279,14 @@ final class BoutiqueController
             'discount_code'  => $discountRow !== null ? (string) $discountRow['code'] : null,
             'currency'       => $cur,
         ], $lines);
+        // Le client a choisi son transporteur : on le mémorise sur la commande
+        // (le vendeur n'aura plus qu'à coller le numéro de suivi à l'expédition).
+        if ($carrier !== null) {
+            $placed = Order::findByPublicId($publicId);
+            if ($placed !== null) {
+                Order::setShipment((int) $placed['id'], $carrier, null, null);
+            }
+        }
         if ($discountRow !== null) {
             \App\Models\Discount::recordUse((int) $discountRow['id']);
         }

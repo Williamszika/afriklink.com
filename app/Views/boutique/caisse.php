@@ -6,7 +6,16 @@ $me = $me ?? [];
 $savedAddr = isset($saved_address) && is_array($saved_address) ? \App\Models\UserAddress::oneLine($saved_address) : '';
 $cur = (string) $boutique['currency'];
 $curSym = ['EUR' => '€', 'USD' => '$', 'GBP' => '£', 'XOF' => 'F CFA', 'NGN' => '₦'][$cur] ?? $cur;
-$firstFee = ($fulfillments[0] ?? null) !== null ? (int) ($ship_map[$fulfillments[0]] ?? 0) : 0;
+// Transporteurs proposés (niveau 1) : s'ils existent, ils remplacent les modes
+// « livraison » génériques (local/international) ; le client choisit son transporteur.
+$carrierOpts  = $carrier_options ?? [];
+$shippedModes = ['local', 'international'];
+$shownMethods = $carrierOpts !== []
+    ? array_values(array_filter($fulfillments, static fn (string $m): bool => !in_array($m, $shippedModes, true)))
+    : $fulfillments;
+$firstFee = $shownMethods !== []
+    ? (int) ($ship_map[$shownMethods[0]] ?? 0)
+    : ($carrierOpts !== [] ? (int) $carrierOpts[0]['fee'] : 0);
 $minOrder = (int) ($boutique['min_order_cents'] ?? 0);
 $belowMin = $minOrder > 0 && $total < $minOrder;
 $lineImages = $line_images ?? [];
@@ -137,13 +146,18 @@ if ($delivery_delay !== '') {
                 <label for="cl-postal"><?= e(t('caisse.f.postal')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
                 <input type="text" id="cl-postal" name="client_postal" maxlength="16" value="<?= old('client_postal') ?>" placeholder="<?= e(t('field.postal')) ?>" autocomplete="postal-code">
                 <?= render_partial('partials/share_location') ?>
-                <?php if ($fulfillments): ?>
-                    <label class="caisse-deliv-label"><?= e(t('bcart.fulfillment')) ?></label>
+                <?php if ($shownMethods || $carrierOpts): ?>
+                    <label class="caisse-deliv-label"><?= e($carrierOpts ? t('caisse.carrier_label') : t('bcart.fulfillment')) ?></label>
                     <div class="lang-checks">
-                        <?php foreach ($fulfillments as $i => $mth): ?>
-                            <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" data-fee="<?= (int) ($ship_map[$mth] ?? 0) ?>" <?= $i === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
+                        <?php $fi = 0; ?>
+                        <?php foreach ($shownMethods as $mth): ?>
+                            <label class="check-pill"><input type="radio" name="fulfillment" value="<?= e($mth) ?>" data-fee="<?= (int) ($ship_map[$mth] ?? 0) ?>" <?= $fi++ === 0 ? 'checked' : '' ?>><span><?= e(t('shop.method.' . $mth)) ?></span></label>
+                        <?php endforeach; ?>
+                        <?php foreach ($carrierOpts as $opt): ?>
+                            <label class="check-pill check-pill--carrier"><input type="radio" name="fulfillment" value="carrier:<?= e($opt['c']) ?>" data-fee="<?= (int) $opt['fee'] ?>" data-carrier <?= $fi++ === 0 ? 'checked' : '' ?>><span><?= e($opt['label']) ?> <strong>· <?= e(format_price((int) $opt['fee'], $cur)) ?></strong></span></label>
                         <?php endforeach; ?>
                     </div>
+                    <?php if ($carrierOpts): ?><p class="hint caisse-carrier-hint"><?= icon('truck', ['size' => 14]) ?> <?= e(t('caisse.carrier_hint')) ?></p><?php endif; ?>
                 <?php endif; ?>
                 <div class="wiz-nav">
                     <button type="button" class="btn btn-ghost" data-wiz-prev>← <?= e(t('wiz.prev')) ?></button>

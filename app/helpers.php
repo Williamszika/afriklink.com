@@ -832,6 +832,95 @@ function carrier_tracking_url(?string $carrier, ?string $number): ?string
     return str_replace('{tracking}', rawurlencode($number), $tpl);
 }
 
+/**
+ * Région de livraison d'un pays : 'eu' (Union européenne / Europe), 'ci'
+ * (Côte d'Ivoire & zone franc CFA Ouest), ou '' (autre / inconnu). Sert à
+ * décider quels transporteurs proposer (local UE, local CI, ou international).
+ */
+function delivery_region(?string $cc): string
+{
+    $cc = strtoupper(trim((string) $cc));
+    if ($cc === '') {
+        return '';
+    }
+    static $ci = ['CI', 'BJ', 'BF', 'GW', 'ML', 'NE', 'SN', 'TG'];
+    if (in_array($cc, $ci, true)) {
+        return 'ci';
+    }
+    return \App\Services\GeoService::continentOf($cc) === 'europe' ? 'eu' : '';
+}
+
+/**
+ * Scope transporteur applicable entre l'acheteur et la boutique :
+ *   'eu'   → livraison locale dans l'UE (acheteur et boutique en UE),
+ *   'ci'   → livraison locale en Côte d'Ivoire (les deux côté CI),
+ *   'intl' → international (régions différentes, p.ex. UE ↔ CI, ou inconnu).
+ */
+function delivery_scope_for(array $boutique, ?string $buyerCc): string
+{
+    $shop  = delivery_region((string) ($boutique['country_code'] ?? ''));
+    $buyer = delivery_region($buyerCc);
+    if ($buyer !== '' && $shop !== '' && $buyer === $shop) {
+        return $shop;
+    }
+    return 'intl';
+}
+
+/** Catalogue des transporteurs pour un scope ('eu'|'ci'|'intl'). @return array<string,array> clé => définition */
+function carriers_for_scope(string $scope): array
+{
+    $out = [];
+    foreach ((array) config('delivery.carriers', []) as $key => $c) {
+        if (in_array($scope, (array) ($c['scopes'] ?? []), true)) {
+            $out[(string) $key] = $c;
+        }
+    }
+    return $out;
+}
+
+/** Transporteurs ACTIVÉS par la boutique (décodés du JSON delivery_carriers). @return list<array{c:string,scope:string,fee:int}> */
+function shop_carriers(array $boutique): array
+{
+    $raw = (string) ($boutique['delivery_carriers'] ?? '');
+    if ($raw === '') {
+        return [];
+    }
+    $list = json_decode($raw, true);
+    if (!is_array($list)) {
+        return [];
+    }
+    $valid = array_keys((array) config('delivery.carriers', []));
+    $out = [];
+    foreach ($list as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $c     = (string) ($row['c'] ?? '');
+        $scope = (string) ($row['scope'] ?? '');
+        if (!in_array($c, $valid, true) || !in_array($scope, ['eu', 'ci', 'intl'], true)) {
+            continue;
+        }
+        $out[] = ['c' => $c, 'scope' => $scope, 'fee' => max(0, (int) ($row['fee'] ?? 0))];
+    }
+    return $out;
+}
+
+/**
+ * Options de transporteur à présenter au CLIENT au paiement pour un scope donné
+ * (transporteurs activés par la boutique ∩ scope applicable), avec libellé + tarif.
+ * @return list<array{c:string,label:string,fee:int}>
+ */
+function shop_carrier_options(array $boutique, string $scope): array
+{
+    $out = [];
+    foreach (shop_carriers($boutique) as $row) {
+        if ($row['scope'] === $scope) {
+            $out[] = ['c' => $row['c'], 'label' => carrier_label($row['c']), 'fee' => (int) $row['fee']];
+        }
+    }
+    return $out;
+}
+
 /** Initiales pour l'avatar par défaut (« AD » pour « Awa Diop »). */
 function user_initials(array $user): string
 {

@@ -2865,3 +2865,14 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
   .caisse-form .wiz-nav { position:sticky; bottom:0; background:var(--card,#fff); padding:10px 0 8px; box-shadow:0 -6px 16px -10px rgba(12,46,28,.4); z-index:5; }
   .caisse-form .wiz-nav .btn-lg[type="submit"] { position:static; box-shadow:none; }
 }
+
+/* ----- Transporteurs : config vendeur (grille) + choix au paiement ----- */
+.carrier-group { border: 1px solid #e7e0d0; border-radius: 12px; padding: 10px 14px 12px; margin: 0 0 12px; }
+.carrier-group > legend { font-weight: 600; padding: 0 6px; font-size: .92rem; color: #14502E; }
+.carrier-rows { display: flex; flex-direction: column; gap: 8px; }
+.carrier-row { display: flex; align-items: center; gap: 10px; }
+.carrier-row__name { flex: 1 1 auto; }
+.carrier-row__fee { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.carrier-row__fee .input-sm { width: 96px; text-align: right; }
+.caisse-carrier-hint { margin-top: 6px; }
+.check-pill--carrier strong { font-weight: 600; white-space: nowrap; }

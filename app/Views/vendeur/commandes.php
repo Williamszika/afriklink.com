@@ -170,9 +170,10 @@ $cur = (string) ($boutique['currency'] ?? 'EUR');
                                     <?php elseif ($st === 'confirmed'): ?>
                                         <?php if (($o['source'] ?? '') === 'online'): ?>
                                             <div class="ship-fields">
+                                                <?php $selCarrier = (string) ($o['carrier'] ?? '') !== '' ? (string) $o['carrier'] : (string) config('delivery.default', 'other'); ?>
                                                 <select name="carrier" class="input-sm" aria-label="<?= e(t('order.ship.carrier')) ?>">
                                                     <?php foreach (delivery_carriers() as $ck => $clabel): ?>
-                                                        <option value="<?= e($ck) ?>"<?= $ck === config('delivery.default', 'other') ? ' selected' : '' ?>><?= e($clabel) ?></option>
+                                                        <option value="<?= e($ck) ?>"<?= $ck === $selCarrier ? ' selected' : '' ?>><?= e($clabel) ?></option>
                                                     <?php endforeach; ?>
                                                 </select>
                                                 <input type="text" name="tracking_number" class="input-sm" maxlength="64"

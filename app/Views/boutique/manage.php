@@ -322,6 +322,42 @@ $publicPath = '/boutique/' . $boutique['slug'];
             </details>
         </div>
 
+        <!-- Transporteurs proposés au client (niveau 1 : le client choisit + tarif fixe) -->
+        <?php
+        $shopCar = shop_carriers($boutique);
+        $carMap = [];
+        foreach ($shopCar as $rc) { $carMap[$rc['scope'] . ':' . $rc['c']] = (int) $rc['fee']; }
+        $carScopes = ['intl' => t('carrier.scope.intl'), 'eu' => t('carrier.scope.eu'), 'ci' => t('carrier.scope.ci')];
+        $curInt = currency_is_integer($cur);
+        ?>
+        <div class="panel" id="carriers">
+            <h2 class="panel-title"><?= icon('truck', ['size' => 18]) ?> <?= e(t('shop.carriers_title')) ?></h2>
+            <p class="muted"><?= e(t('shop.carriers_lead')) ?></p>
+            <form method="post" action="<?= e(url('/boutique/livraison/transporteurs')) ?>" data-submit-once>
+                <?= csrf_field() ?>
+                <?php foreach ($carScopes as $scope => $scopeLabel): ?>
+                    <fieldset class="carrier-group">
+                        <legend><?= e($scopeLabel) ?></legend>
+                        <div class="carrier-rows">
+                            <?php foreach (carriers_for_scope($scope) as $ck => $cdef): $key = $scope . ':' . $ck; $on = isset($carMap[$key]); ?>
+                                <label class="carrier-row">
+                                    <input type="checkbox" name="car[<?= e($scope) ?>][<?= e($ck) ?>]" value="1"<?= $on ? ' checked' : '' ?>>
+                                    <span class="carrier-row__name"><?= e(carrier_label($ck)) ?></span>
+                                    <span class="carrier-row__fee">
+                                        <input type="text" inputmode="decimal" name="carfee[<?= e($scope) ?>][<?= e($ck) ?>]" class="input-sm"
+                                               value="<?= $on ? e(number_format($carMap[$key] / 100, $curInt ? 0 : 2, '.', '')) : '' ?>"
+                                               placeholder="<?= e(t('shop.carriers_fee_ph')) ?>">
+                                        <span class="muted"><?= e($cur) ?></span>
+                                    </span>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </fieldset>
+                <?php endforeach; ?>
+                <button type="submit" class="btn btn-primary btn-sm"><?= e(t('shop.carriers_save')) ?></button>
+            </form>
+        </div>
+
         <!-- Promotions / codes promo -->
         <div class="panel" id="promos">
             <h2 class="panel-title">🏷️ <?= e(t('promo.title')) ?></h2>

@@ -284,6 +284,7 @@ return [
     ['POST', '/boutique/promotions/{id}/statut',  [BoutiqueController::class, 'toggleDiscount'], ['auth', 'csrf']],
     ['POST', '/boutique/livraison/zones',             [BoutiqueController::class, 'createShippingZone'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['POST', '/boutique/livraison/zones/{zid}/suppr', [BoutiqueController::class, 'deleteShippingZone'], ['auth', 'csrf']],
+    ['POST', '/boutique/livraison/transporteurs',     [BoutiqueController::class, 'updateCarriers'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
     ['GET',  '/boutique/{slug}',         [BoutiqueController::class, 'show'],    []],

@@ -2194,7 +2194,8 @@ document.addEventListener('click', function (ev) {
         if (!radios.length) { return; }
         function update() {
             var sel = document.querySelector('input[name="' + name + '"]:checked');
-            input.required = !!(sel && vals.indexOf(sel.value) !== -1);
+            // Un transporteur choisi (data-carrier) = une expédition → adresse requise.
+            input.required = !!(sel && (vals.indexOf(sel.value) !== -1 || sel.hasAttribute('data-carrier')));
         }
         radios.forEach(function (r) { r.addEventListener('change', update); });
         update();

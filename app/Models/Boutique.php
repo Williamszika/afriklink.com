@@ -155,6 +155,17 @@ final class Boutique
             }
         }
         try {
+            db()->query('SELECT delivery_carriers FROM boutiques LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                // Niveau 1 « choix du transporteur par le client » : liste JSON des
+                // transporteurs proposés + tarif, p.ex. [{"c":"dhl","scope":"intl","fee":1500000}].
+                db()->exec('ALTER TABLE boutiques ADD COLUMN delivery_carriers TEXT NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        try {
             db()->query('SELECT return_policy FROM boutiques LIMIT 1');
         } catch (\Throwable) {
             try {
@@ -620,7 +631,7 @@ final class Boutique
     {
         self::ensureTable();
         // Liste blanche stricte (noms de colonnes sûrs, jamais d'entrée client).
-        $allowed = ['announcement', 'is_vacation', 'vacation_until', 'open_hours', 'min_order_cents', 'accent_color', 'hours_json', 'orders_within_hours'];
+        $allowed = ['announcement', 'is_vacation', 'vacation_until', 'open_hours', 'min_order_cents', 'accent_color', 'hours_json', 'orders_within_hours', 'delivery_carriers'];
         // Une colonne par requête : si une colonne récente n'est pas encore
         // provisionnée en prod (schéma non migré faute de droits DDL), seule
         // CELLE-LÀ échoue — les autres (couleur d'accent, annonce…) sont bien
