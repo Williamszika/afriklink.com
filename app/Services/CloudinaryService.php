@@ -22,6 +22,15 @@ final class CloudinaryService
     public const FOLDER = 'afriklink';
 
     /**
+     * Plafonds de TAILLE (octets) — vérité SERVEUR. Un fichier qui les dépasse
+     * est refusé à la vérification (jamais mémorisé) ET supprimé de Cloudinary :
+     * la validation côté navigateur (contournable) n'est jamais la seule barrière.
+     */
+    public const MAX_IMAGE_BYTES = 15728640;   // 15 Mo (photo haute résolution)
+    public const MAX_VIDEO_BYTES = 209715200;  // 200 Mo
+    public const MAX_KYC_BYTES   = 15728640;   // 15 Mo (pièce d'identité)
+
+    /**
      * Nom du cloud Cloudinary du projet. PAS un secret : il figure dans toutes
      * les URLs publiques de diffusion (res.cloudinary.com/<cloud>/…). Servi en
      * secours si CLOUDINARY_CLOUD_NAME / CLOUDINARY_URL ne le fournissent pas.
@@ -253,8 +262,16 @@ final class CloudinaryService
         if (!is_array($data) || ($data['public_id'] ?? '') !== $publicId) {
             return null;
         }
+        // Plafond de taille (vérité serveur) : on refuse ET on supprime la pièce
+        // trop lourde — pas de stockage d'un fichier qui dépasse la limite.
+        $bytes = (int) ($data['bytes'] ?? 0);
+        if ($bytes <= 0 || $bytes > self::MAX_KYC_BYTES) {
+            self::$lastError = 'file_too_large';
+            self::destroyKyc($publicId);
+            return null;
+        }
         return [
-            'bytes'   => (int) ($data['bytes'] ?? 0),
+            'bytes'   => $bytes,
             'format'  => (string) ($data['format'] ?? ''),
             'version' => (int) ($data['version'] ?? 0),
         ];
@@ -320,10 +337,19 @@ final class CloudinaryService
             self::$lastError = 'format_not_allowed';
             return null;
         }
+        // Plafond de TAILLE (vérité serveur) : au-delà, on refuse le fichier ET on
+        // le supprime de Cloudinary (l'appelant ne le mémorise donc jamais).
+        $bytes    = (int) ($data['bytes'] ?? 0);
+        $maxBytes = $resourceType === 'video' ? self::MAX_VIDEO_BYTES : self::MAX_IMAGE_BYTES;
+        if ($bytes <= 0 || $bytes > $maxBytes) {
+            self::$lastError = 'file_too_large';
+            self::destroy($resourceType, $publicId);
+            return null;
+        }
         return [
             'width'    => isset($data['width']) ? (int) $data['width'] : null,
             'height'   => isset($data['height']) ? (int) $data['height'] : null,
-            'bytes'    => (int) ($data['bytes'] ?? 0),
+            'bytes'    => $bytes,
             'duration' => isset($data['duration']) ? (float) $data['duration'] : null,
             'format'   => $format,
         ];

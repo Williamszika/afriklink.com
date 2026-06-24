@@ -35,4 +35,10 @@ return [
     'history_max' => (int) env('ASSISTANT_HISTORY_MAX', 12),
     // Longueur max d'un message utilisateur (garde-fou coût / abus).
     'input_max'   => (int) env('ASSISTANT_INPUT_MAX', 1500),
+
+    // Plafond GLOBAL d'appels LLM par heure pour TOUTE la plateforme (et non par
+    // IP) : borne dure de la facture Anthropic face à une attaque distribuée.
+    // Au-delà, l'assistant reste disponible via la base de connaissances. 0 =
+    // pas de plafond global (déconseillé en production).
+    'global_hourly_max' => (int) env('ASSISTANT_GLOBAL_HOURLY_MAX', 600),
 ];

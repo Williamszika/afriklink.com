@@ -912,8 +912,12 @@ final class BoutiqueController
             abort(404);
         }
         $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
+        // Plafond anti-abus : un panier client est limité à 50 lignes distinctes.
+        // Sans cela, un POST forgé de millions d'entrées force autant de
+        // validations/requêtes (DoS mémoire + base).
+        $raw = is_array($raw) ? array_slice($raw, 0, 50) : [];
         $entries = [];
-        foreach (is_array($raw) ? $raw : [] as $e) {
+        foreach ($raw as $e) {
             $id = (string) ($e['id'] ?? '');
             if ($id !== '') {
                 $entries[] = ['id' => $id, 'qty' => max(1, min(99, (int) ($e['qty'] ?? 0))), 'len' => max(0, min(10000, (int) ($e['len'] ?? 0)))];

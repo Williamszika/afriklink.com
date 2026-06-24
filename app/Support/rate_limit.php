@@ -19,9 +19,16 @@ declare(strict_types=1);
  * @param string $key        identifiant du seau (ex. "login:" . ip ou user id + route)
  * @param int    $max        nombre max de hits par fenêtre
  * @param int    $windowSecs durée de la fenêtre en secondes
+ * @param bool   $failOpen   comportement si la base est injoignable. true
+ *                           (défaut) = on AUTORISE (disponibilité prioritaire :
+ *                           login, recherche…). false = on REFUSE — à utiliser
+ *                           pour les points d'API qui COÛTENT de l'argent (appel
+ *                           LLM, envoi Cloudinary) : sans base, un attaquant ne
+ *                           doit pas pouvoir contourner la limite et faire flamber
+ *                           la facture.
  * @return bool  true si autorisé, false si limite atteinte
  */
-function rate_limit_ok(string $key, int $max, int $windowSecs): bool
+function rate_limit_ok(string $key, int $max, int $windowSecs, bool $failOpen = true): bool
 {
     $key = substr($key, 0, 191);
     $now = new DateTimeImmutable('now');
@@ -72,8 +79,10 @@ function rate_limit_ok(string $key, int $max, int $windowSecs): bool
         if ($pdo instanceof PDO && $pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        // En cas d'erreur, ne pas bloquer l'utilisateur légitime — mais logger.
+        // En cas d'erreur : logger, puis appliquer la politique demandée.
+        // Points sensibles à la disponibilité → fail-open ; points qui coûtent
+        // (LLM, envoi média) → fail-closed (on refuse plutôt que laisser abuser).
         error_log('rate_limit error: ' . $ex->getMessage());
-        return true;
+        return $failOpen;
     }
 }

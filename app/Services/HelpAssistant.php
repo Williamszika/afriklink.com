@@ -57,7 +57,8 @@ final class HelpAssistant
         if ($message === '') {
             return ['text' => '', 'screens' => [], 'links' => [], 'mode' => 'empty'];
         }
-        if (self::isConfigured() && (string) config('assistant.provider', 'anthropic') === 'anthropic') {
+        if (self::isConfigured() && (string) config('assistant.provider', 'anthropic') === 'anthropic'
+            && self::withinGlobalBudget()) {
             $ai = self::viaAnthropic($message, $history, $ctx);
             if ($ai !== null) {
                 return $ai + ['mode' => 'ai'];
@@ -65,6 +66,22 @@ final class HelpAssistant
         }
         // Repli base de connaissances (toujours disponible).
         return self::fromKnowledgeBase($message, (string) ($ctx['locale'] ?? 'fr')) + ['mode' => 'kb'];
+    }
+
+    /**
+     * Garde-fou de COÛT GLOBAL : plafonne le nombre d'appels LLM par heure pour
+     * TOUTE la plateforme (et non par IP). Une attaque distribuée sur de
+     * nombreuses IP ne peut donc pas faire flamber la facture Anthropic.
+     * Fail-CLOSED : base injoignable → on n'appelle PAS le LLM (repli base de
+     * connaissances). L'assistant reste utile dans tous les cas.
+     */
+    private static function withinGlobalBudget(): bool
+    {
+        $max = max(0, (int) config('assistant.global_hourly_max', 600));
+        if ($max === 0) {
+            return true; // 0 = pas de plafond global
+        }
+        return rate_limit_ok('agnes:llm:global', $max, 3600, false);
     }
 
     /** Captures autorisées (déclarées dans la base) — évite toute référence arbitraire. */

@@ -88,7 +88,9 @@ final class HomeController
     {
         $cats      = config('listings.categories', []);
         $countries = \App\Models\Product::searchCountries();
-        $page  = max(1, (int) input_string('page', '1'));
+        // Page bornée : un OFFSET arbitrairement grand (page=1e6) force MySQL à
+        // parcourir des millions de lignes — DoS à bon marché. 200 pages = large.
+        $page  = max(1, min(200, (int) input_string('page', '1')));
         $limit = 24;
         $f = [
             'q'        => trim((string) input_string('q', '')),
