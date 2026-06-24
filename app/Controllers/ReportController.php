@@ -35,7 +35,10 @@ final class ReportController
             $request->ipBinary()
         );
         try {
-            StorefrontAlert::notifyAdmins($row, $user, (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ''));
+            // IP de CONFIANCE (Request::ip n'honore X-Forwarded-For/CF que depuis
+            // un proxy de confiance) — sans cela l'IP montrée aux admins serait
+            // entièrement falsifiable par l'auteur du signalement.
+            StorefrontAlert::notifyAdmins($row, $user, $request->ip());
         } catch (\Throwable) {
             // l'accusé de réception reste affiché même si l'e-mail admin échoue
         }

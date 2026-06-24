@@ -151,7 +151,7 @@ final class AuthController
         if ($lockKey !== '') {
             try {
                 if (LoginAttempt::recentFailures($lockKey, 900) >= 10) {
-                    AuditLog::record(null, 'auth.login_locked', 'user', null, ['id' => $identifier], $request->ipBinary());
+                    AuditLog::record(null, 'auth.login_locked', 'user', null, ['id' => audit_identifier_token($identifier)], $request->ipBinary());
                     keep_old($_POST);
                     flash('error', t('flash.login_locked'));
                     redirect('/login');
@@ -173,7 +173,7 @@ final class AuthController
         LoginAttempt::record($lockKey !== '' ? $lockKey : null, $request->ipBinary(), $ok);
 
         if (!$ok) {
-            AuditLog::record(null, 'auth.login_failed', 'user', null, ['id' => $identifier], $request->ipBinary());
+            AuditLog::record(null, 'auth.login_failed', 'user', null, ['id' => audit_identifier_token($identifier)], $request->ipBinary());
             keep_old($_POST);
             flash('error', t('flash.invalid_credentials'));
             redirect('/login');

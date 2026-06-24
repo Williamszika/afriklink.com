@@ -37,6 +37,13 @@ final class AdminKycController
     /** Flux binaire d'une pièce — accès relecteur uniquement (StaffMiddleware). */
     public function document(Request $request): void
     {
+        // Garde-fou anti-MOISSON : un relecteur consulte des pièces au fil de la
+        // modération, pas par centaines. On borne le débit par relecteur — un
+        // compte staff compromis ne peut pas aspirer en masse les pièces
+        // d'identité (chaque accès reste par ailleurs journalisé ci-dessous).
+        if (!rate_limit_ok('kycdoc:' . current_user_id(), 150, 3600)) {
+            abort(429, t('error.too_many_requests'));
+        }
         $doc = Kyc::findDocument((int) $request->param('id', '0'));
         if ($doc === null) {
             abort(404);

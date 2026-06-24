@@ -227,10 +227,12 @@ final class CronController
     private function authorize(): void
     {
         $secret = trim((string) ($_ENV['CRON_SECRET'] ?? ''));
-        $key    = (string) (input_string('key', '') ?? '');
+        // Secret accepté UNIQUEMENT via l'en-tête « Authorization: Bearer … » —
+        // jamais en query string (?key=), qui finirait dans les journaux d'accès
+        // (Vercel/Cloudflare), le Referer et l'historique. Vercel Cron envoie cet
+        // en-tête automatiquement ; un planificateur externe doit faire de même.
         $auth   = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
-        $bearer = str_starts_with($auth, 'Bearer ') ? substr($auth, 7) : '';
-        $given  = $key !== '' ? $key : $bearer;
+        $given  = str_starts_with($auth, 'Bearer ') ? substr($auth, 7) : '';
         if ($secret === '' || $given === '' || !hash_equals($secret, $given)) {
             abort(404);
         }

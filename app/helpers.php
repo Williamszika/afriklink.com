@@ -954,6 +954,23 @@ function normalize_phone(string $raw): string
     return $digits === '' ? '' : '+' . $digits;
 }
 
+/**
+ * Jeton d'AUDIT d'un identifiant de connexion (e-mail/téléphone) saisi lors d'un
+ * ÉCHEC : non réversible mais STABLE (même identifiant → même jeton). Permet de
+ * corréler les tentatives (brute-force sur un même compte) SANS stocker en clair
+ * des e-mails sondés — ni un mot de passe éventuellement tapé par erreur dans le
+ * champ identifiant. Dérivé d'APP_KEY (comme le chiffrement).
+ */
+function audit_identifier_token(string $raw): string
+{
+    $raw = mb_strtolower(trim($raw));
+    if ($raw === '') {
+        return '';
+    }
+    $key = (string) config('app.key', '');
+    return 'id:' . substr(hash_hmac('sha256', $raw, $key !== '' ? $key : 'afriklink-audit'), 0, 16);
+}
+
 /** URL slug : minuscules, accents retirés, séparés par des tirets. */
 function slugify(string $text): string
 {
