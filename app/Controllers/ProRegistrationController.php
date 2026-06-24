@@ -98,7 +98,7 @@ final class ProRegistrationController
         $userId = User::create([
             'email'              => $email,
             'phone'              => $phone,
-            'password_hash'      => password_hash($password, PASSWORD_DEFAULT),
+            'password_hash'      => password_hash($password, password_algo()),
             'role'               => 'vendor',
             'account_type'       => 'professionnel', // valeur exacte de l'ENUM users.account_type
             'full_name'          => $fullName,

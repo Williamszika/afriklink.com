@@ -80,7 +80,7 @@ final class MessageController
         }
         $conv = Conversation::findOrCreate($uid, $sellerId, (int) $boutique['id'], $productId, $subject);
         Conversation::post((int) $conv['id'], $uid, $body);
-        $this->notify($sellerId, $uid, (string) $conv['public_id'], $body);
+        $this->notify($sellerId, $uid, (string) $conv['public_id']);
         flash('success', t('msg.sent'));
         redirect('/messages/' . $conv['public_id']);
     }
@@ -122,7 +122,7 @@ final class MessageController
         }
         $conv = Conversation::findOrCreateDirect($uid, $targetId, $subject);
         Conversation::post((int) $conv['id'], $uid, $body);
-        $this->notify($targetId, $uid, (string) $conv['public_id'], $body);
+        $this->notify($targetId, $uid, (string) $conv['public_id']);
         flash('success', t('msg.sent'));
         redirect('/messages/' . $conv['public_id']);
     }
@@ -138,7 +138,7 @@ final class MessageController
         if (mb_strlen($body) >= 2) {
             Conversation::post((int) $conv['id'], $uid, $body);
             $other = (int) $conv['buyer_id'] === $uid ? (int) $conv['seller_id'] : (int) $conv['buyer_id'];
-            $this->notify($other, $uid, (string) $conv['public_id'], $body);
+            $this->notify($other, $uid, (string) $conv['public_id']);
         } else {
             flash('error', t('msg.err_empty'));
         }
@@ -146,11 +146,14 @@ final class MessageController
     }
 
     /** Prévient le destinataire : notification (cloche) + e-mail. Ne bloque jamais l'envoi. */
-    private function notify(int $recipientId, int $senderId, string $convPublicId, string $body): void
+    private function notify(int $recipientId, int $senderId, string $convPublicId): void
     {
         $from = User::findById($senderId) ?? [];
         $name = Conversation::displayName($from['full_name'] ?? null, $from['nickname'] ?? null);
-        \App\Models\Notification::push($recipientId, 'message', t('notif.msg', ['name' => $name]), $body, '/messages/' . $convPublicId);
+        // Le contenu du message ne quitte JAMAIS la table chiffrée : la
+        // notification (cloche) et l'e-mail invitent seulement à ouvrir la
+        // discussion — aucun extrait en clair stocké/envoyé.
+        \App\Models\Notification::push($recipientId, 'message', t('notif.msg', ['name' => $name]), '', '/messages/' . $convPublicId);
         try {
             $to    = User::findById($recipientId) ?? [];
             $email = trim((string) ($to['email'] ?? ''));
@@ -159,8 +162,6 @@ final class MessageController
             }
             $link = url('/messages/' . $convPublicId);
             $html = '<p>' . e(t('msg.mail_intro', ['name' => $name])) . '</p>'
-                . '<blockquote style="border-left:3px solid #ccc;padding-left:10px;color:#444">'
-                . nl2br(e(mb_substr($body, 0, 300))) . '</blockquote>'
                 . '<p><a href="' . e($link) . '">' . e(t('msg.mail_cta')) . '</a></p>';
             MailService::send($email, t('msg.mail_subject'), $html);
         } catch (\Throwable) {

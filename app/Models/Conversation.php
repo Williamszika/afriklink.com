@@ -22,7 +22,7 @@ final class Conversation
                 boutique_id    BIGINT UNSIGNED NULL,
                 product_id     BIGINT UNSIGNED NULL,
                 subject        VARCHAR(150) NULL,
-                last_body      VARCHAR(200) NULL,
+                last_body      VARCHAR(1024) NULL,
                 last_sender_id BIGINT UNSIGNED NULL,
                 last_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 buyer_read_at  DATETIME NULL,
@@ -37,11 +37,43 @@ final class Conversation
                 id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 conversation_id BIGINT UNSIGNED NOT NULL,
                 sender_id       BIGINT UNSIGNED NOT NULL,
-                body            VARCHAR(2000) NOT NULL,
+                body            TEXT NOT NULL,
                 created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 KEY idx_msg_conv (conversation_id, id)
             )'
         );
+        self::migrateColumns();
+    }
+
+    /**
+     * Élargit les colonnes existantes (le chiffrement produit des blobs plus
+     * longs que le texte clair). Idempotent et vérifié une seule fois par requête.
+     */
+    private static function migrateColumns(): void
+    {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+        try {
+            $bodyType = db()->query(
+                "SELECT DATA_TYPE FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'messages' AND COLUMN_NAME = 'body'"
+            )->fetchColumn();
+            if ($bodyType !== false && strtolower((string) $bodyType) !== 'text') {
+                ddl_safe('ALTER TABLE messages MODIFY body TEXT NOT NULL');
+            }
+            $lbLen = db()->query(
+                "SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'conversations' AND COLUMN_NAME = 'last_body'"
+            )->fetchColumn();
+            if ($lbLen !== false && (int) $lbLen < 1024) {
+                ddl_safe('ALTER TABLE conversations MODIFY last_body VARCHAR(1024) NULL');
+            }
+        } catch (\Throwable) {
+            // information_schema indisponible : on ignore (les CREATE neufs sont déjà corrects).
+        }
     }
 
     /** Trouve la conversation (acheteur, vendeur, produit) ou la crée. @return array */
@@ -108,10 +140,12 @@ final class Conversation
     {
         self::ensureTables();
         $body = mb_substr(trim($body), 0, 2000);
+        // Chiffrement AU REPOS : le corps et l'aperçu sont stockés chiffrés ; une
+        // fuite de la base ne révèle rien sans APP_KEY.
         db()->prepare('INSERT INTO messages (conversation_id, sender_id, body) VALUES (:c, :s, :b)')
-            ->execute(['c' => $conversationId, 's' => $senderId, 'b' => $body]);
+            ->execute(['c' => $conversationId, 's' => $senderId, 'b' => \App\Services\Crypto::encrypt($body)]);
         $id = (int) db()->lastInsertId();
-        // L'expéditeur a « lu » sa propre conversation ; aperçu mis à jour.
+        // L'expéditeur a « lu » sa propre conversation ; aperçu (chiffré) mis à jour.
         db()->prepare(
             'UPDATE conversations
                 SET last_body = :lb, last_sender_id = :sid, last_at = NOW(),
@@ -119,7 +153,7 @@ final class Conversation
                     seller_read_at = CASE WHEN seller_id = :sid3 THEN NOW() ELSE seller_read_at END
               WHERE id = :c'
         )->execute([
-            'lb' => mb_substr($body, 0, 200), 'sid' => $senderId,
+            'lb' => \App\Services\Crypto::encrypt(mb_substr($body, 0, 160)), 'sid' => $senderId,
             'sid2' => $senderId, 'sid3' => $senderId, 'c' => $conversationId,
         ]);
         return $id;
@@ -153,7 +187,14 @@ final class Conversation
                   ORDER BY c.last_at DESC LIMIT 100'
             );
             $stmt->execute(['u' => $userId, 'u2' => $userId]);
-            return $stmt->fetchAll() ?: [];
+            $rows = $stmt->fetchAll() ?: [];
+            foreach ($rows as &$r) {
+                if (isset($r['last_body'])) {
+                    $r['last_body'] = \App\Services\Crypto::decrypt((string) $r['last_body']);
+                }
+            }
+            unset($r);
+            return $rows;
         } catch (\Throwable) {
             return [];
         }
@@ -165,7 +206,12 @@ final class Conversation
         try {
             $stmt = db()->prepare('SELECT * FROM messages WHERE conversation_id = :c ORDER BY id ASC LIMIT 500');
             $stmt->execute(['c' => $conversationId]);
-            return $stmt->fetchAll() ?: [];
+            $rows = $stmt->fetchAll() ?: [];
+            foreach ($rows as &$r) {
+                $r['body'] = \App\Services\Crypto::decrypt((string) ($r['body'] ?? ''));
+            }
+            unset($r);
+            return $rows;
         } catch (\Throwable) {
             return [];
         }

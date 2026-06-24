@@ -96,7 +96,7 @@ final class AuthController
         $userId = User::create([
             'email'              => $email,
             'phone'              => $phone,
-            'password_hash'      => password_hash($password, PASSWORD_DEFAULT),
+            'password_hash'      => password_hash($password, password_algo()),
             'role'               => 'user',
             'account_type'       => 'particulier',
             'full_name'          => $fullName,
@@ -158,8 +158,8 @@ final class AuthController
         }
 
         // Upgrade the hash if the algorithm/cost has changed since signup.
-        if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
-            User::updatePassword((int) $user['id'], password_hash($password, PASSWORD_DEFAULT));
+        if (password_needs_rehash($user['password_hash'], password_algo())) {
+            User::updatePassword((int) $user['id'], password_hash($password, password_algo()));
         }
 
         login_user((int) $user['id']); // regenerates session id
@@ -248,7 +248,7 @@ final class AuthController
             redirect('/forgot-password');
         }
 
-        User::updatePassword($userId, password_hash($password, PASSWORD_DEFAULT));
+        User::updatePassword($userId, password_hash($password, password_algo()));
         AuditLog::record($userId, 'auth.password_reset', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.reset_ok'));
         redirect('/login');

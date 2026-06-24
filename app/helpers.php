@@ -2985,6 +2985,18 @@ function has_error(string $key): bool
 /* Authentication                                                      */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Algorithme de hachage de mot de passe le PLUS FORT disponible : Argon2id si
+ * le build PHP le supporte, sinon bcrypt (PASSWORD_DEFAULT). À utiliser pour
+ * tous les password_hash()/password_needs_rehash() : les hachages bcrypt
+ * existants restent vérifiables et se mettent à niveau vers Argon2id à la
+ * prochaine connexion (via password_needs_rehash).
+ */
+function password_algo(): string|int
+{
+    return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_DEFAULT;
+}
+
 /** The currently authenticated user (array) or null. Cached per request. */
 function current_user(): ?array
 {

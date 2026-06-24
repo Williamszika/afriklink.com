@@ -105,7 +105,7 @@ final class DemoSeeder
             'Yao Kouassi', 'Carla Santos', 'Ibrahim Cissé', 'Hannah Schmidt',
         ];
         $shopsPerSeller = [6, 5, 5, 4, 4, 4, 4, 3, 3, 3, 3, 3, 2, 1]; // somme = 50
-        $pwd = password_hash('demo1234', PASSWORD_DEFAULT);
+        $pwd = password_hash('demo1234', password_algo());
         $sellerIds = [];
         foreach ($sellerNames as $i => $name) {
             $sellerIds[] = User::create([
@@ -209,7 +209,7 @@ final class DemoSeeder
     {
         self::purge();
         $count = max(1, min(2, $count));
-        $pwd   = password_hash('demo1234', PASSWORD_DEFAULT);
+        $pwd   = password_hash('demo1234', password_algo());
         $tpl   = self::productTemplates();
         // [label, catégorie, ville, pays, continent, devise]
         $picks = [

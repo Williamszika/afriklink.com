@@ -96,7 +96,7 @@ final class ProfileController
             redirect($this->accountReturnPath() . '#sec-password');
         }
 
-        User::updatePassword($userId, password_hash($new, PASSWORD_DEFAULT));
+        User::updatePassword($userId, password_hash($new, password_algo()));
         AuditLog::record($userId, 'auth.password_changed', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.password_changed'));
         redirect($this->accountReturnPath());
