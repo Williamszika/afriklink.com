@@ -2876,3 +2876,49 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .carrier-row__fee .input-sm { width: 96px; text-align: right; }
 .caisse-carrier-hint { margin-top: 6px; }
 .check-pill--carrier strong { font-weight: 600; white-space: nowrap; }
+
+/* ===================== Agnès — assistant d'aide du site ===================== */
+.agnes { position: fixed; right: 16px; bottom: 16px; z-index: 1000; font-size: .95rem; }
+[dir="rtl"] .agnes { right: auto; left: 16px; }
+.agnes-toggle { display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
+  background: #14502E; color: #FAF4E6; padding: 11px 16px; border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(20,80,46,.35); font-weight: 600; }
+.agnes-toggle:hover { background: #0f3d23; }
+.agnes-toggle-ava { font-size: 1.15rem; line-height: 1; }
+.agnes-panel { position: absolute; right: 0; bottom: calc(100% + 10px); width: 350px; max-width: calc(100vw - 32px);
+  background: #fff; border: 1px solid #e7e0d0; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 16px 44px rgba(0,0,0,.22); display: flex; flex-direction: column; max-height: 76vh; }
+[dir="rtl"] .agnes-panel { right: auto; left: 0; }
+.agnes-head { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: linear-gradient(135deg,#14502E,#1f7a5d); color: #fff; padding: 12px 14px; }
+.agnes-head-id { display: flex; align-items: center; gap: 10px; }
+.agnes-ava { font-size: 1.5rem; line-height: 1; }
+.agnes-head-id strong { display: block; line-height: 1.1; }
+.agnes-sub { display: block; font-size: .74rem; opacity: .85; }
+.agnes-close { background: rgba(255,255,255,.15); color: #fff; border: none; cursor: pointer;
+  width: 28px; height: 28px; border-radius: 8px; font-size: 1rem; }
+.agnes-close:hover { background: rgba(255,255,255,.28); }
+.agnes-log { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #FAF7EF; flex: 1 1 auto; }
+.agnes-msg { max-width: 88%; padding: 9px 12px; border-radius: 14px; line-height: 1.4; white-space: pre-wrap; word-wrap: break-word; }
+.agnes-msg.bot { background: #fff; border: 1px solid #ece5d6; align-self: flex-start; border-bottom-left-radius: 4px; }
+.agnes-msg.user { background: #14502E; color: #FAF4E6; align-self: flex-end; border-bottom-right-radius: 4px; }
+.agnes-msg.thinking { opacity: .6; font-style: italic; }
+.agnes-shot { align-self: flex-start; max-width: 88%; border: 1px solid #e0d8c6; border-radius: 12px; overflow: hidden; display: block; }
+.agnes-shot img { display: block; width: 290px; max-width: 100%; height: auto; }
+.agnes-actions { display: flex; flex-wrap: wrap; gap: 6px; align-self: flex-start; }
+.agnes-action { background: #C7922E; color: #1b1b1b; text-decoration: none; padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: .85rem; }
+.agnes-action:hover { background: #b07f23; color: #fff; }
+.agnes-suggest { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border-top: 1px solid #efe8d9; background: #fff; }
+.agnes-chip { background: #f1ead9; border: 1px solid #e2d8bf; color: #14502E; cursor: pointer; padding: 6px 11px; border-radius: 999px; font-size: .82rem; }
+.agnes-chip:hover { background: #e7dcc1; }
+.agnes-form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #efe8d9; background: #fff; }
+.agnes-form input { flex: 1 1 auto; border: 1px solid #d9cfb6; border-radius: 999px; padding: 9px 14px; font: inherit; }
+.agnes-form input:focus { outline: 2px solid #1f7a5d; border-color: #1f7a5d; }
+@media (max-width: 480px) { .agnes-panel { width: calc(100vw - 24px); } .agnes-toggle-txt { display: none; } }
+
+/* Centre d'aide (page /aide) */
+.help-center-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 16px; }
+.help-card { border: 1px solid #e7e0d0; border-radius: 14px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+.help-card img { width: 100%; height: auto; display: block; border-bottom: 1px solid #efe8d9; }
+.help-card-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; }
+.help-card-body p { margin: 0; line-height: 1.5; }

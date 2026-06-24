@@ -451,6 +451,7 @@ final class BoutiqueController
         $banners  = Boutique::banners((int) $boutique['id']);
         $ogImage  = $banners[0] ?? ($boutique['logo_public_id'] ?? null);
         view('boutique/show', [
+            'hide_assistant' => true, // la page boutique a déjà son assistant d'achat
             'boutique' => $boutique,
             'banners'  => $banners,
             'seller'   => User::findById((int) $boutique['user_id']) ?? [],
@@ -520,6 +521,7 @@ final class BoutiqueController
         $canReview = $viewerId > 0 && Order::hasDeliveredPurchase((int) $product['id'], $viewerId, (string) ($cu['email'] ?? ''), (string) ($cu['phone'] ?? ''));
         $hasReviewed = $viewerId > 0 && Review::hasReviewed((int) $product['id'], $viewerId);
         view('boutique/product', [
+            'hide_assistant' => true, // la page produit a déjà son assistant d'achat
             'boutique' => $boutique,
             'product'  => $product,
             'can_review'   => $canReview,

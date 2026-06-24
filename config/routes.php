@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Controllers\AboutController;
+use App\Controllers\AssistantController;
 use App\Controllers\AffiliateController;
 use App\Controllers\LegalController;
 use App\Controllers\TrustController;
@@ -57,6 +58,9 @@ return [
     // ---- Public -------------------------------------------------------
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
     ['GET',  '/explorer',          [HomeController::class, 'explore'],        []],
+    // Agnès — assistant d'aide du site : endpoint de chat + centre d'aide.
+    ['POST', '/agnes',             [AssistantController::class, 'message'],   ['csrf', 'throttle:agnes,40,3600']],
+    ['GET',  '/aide',              [AssistantController::class, 'center'],     []],
     ['GET',  '/mise-en-avant',     [HomeController::class, 'spotlight'],      []],
     ['GET',  '/sp/{pid}',          [HomeController::class, 'sponsoredClick'], ['throttle:spclick,300,3600']],
     ['GET',  '/sitemap.xml',       [HomeController::class, 'sitemap'],        ['throttle:sitemap,60,3600']],

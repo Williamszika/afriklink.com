@@ -208,6 +208,7 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
 <?php if ($user !== null && empty($user['email']) && (string) ($_COOKIE['nl_seen'] ?? '') !== '1'): ?>
     <?= render_partial('partials/newsletter_popup') ?>
 <?php endif; ?>
+<?php if (empty($hide_assistant)): ?><?= render_partial('partials/agnes') ?><?php endif; ?>
 <script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>
 </html>
