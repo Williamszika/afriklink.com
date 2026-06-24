@@ -1412,6 +1412,13 @@ final class BoutiqueController
         // Le reçu n'est délivré au CLIENT qu'une fois la commande payée ; le vendeur
         // (propriétaire) peut toujours le consulter pour ses dossiers.
         $isOwner = auth_check() && $boutique !== null && (int) ($boutique['user_id'] ?? 0) === current_user_id();
+        // Commande rattachée à un COMPTE acheteur : la facture (nom + adresse +
+        // téléphone = PII) n'est visible que par le vendeur OU l'acheteur connecté.
+        // Commande INVITÉ (sans compte) : on garde l'URL-capacité (UUID) du reçu.
+        $buyerId = (int) ($order['buyer_user_id'] ?? 0);
+        if ($buyerId > 0 && !$isOwner && current_user_id() !== $buyerId) {
+            abort(404);
+        }
         if (!$isOwner && (string) ($order['payment_status'] ?? '') !== 'paid') {
             flash('info', t('invoice.not_paid_yet'));
             redirect('/boutique/commande/' . $order['public_id']);

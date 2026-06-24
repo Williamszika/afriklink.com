@@ -276,8 +276,15 @@ final class Wallet
             return false;
         }
         $status = $action === 'paid' ? 'paid' : 'rejected';
-        db()->prepare('UPDATE wallet_withdrawals SET status = :s, processed_by = :by, processed_at = NOW() WHERE id = :id')
-            ->execute(['s' => $status, 'by' => $adminId, 'id' => $id]);
+        // Revendication ATOMIQUE : on ne traite QUE si la ligne est encore
+        // « pending ». Anti double-traitement : deux clics / deux admins ne
+        // peuvent pas re-créditer le remboursement deux fois.
+        $upd = db()->prepare("UPDATE wallet_withdrawals SET status = :s, processed_by = :by, processed_at = NOW()
+                               WHERE id = :id AND status = 'pending'");
+        $upd->execute(['s' => $status, 'by' => $adminId, 'id' => $id]);
+        if ($upd->rowCount() !== 1) {
+            return false; // déjà traité par un appel concurrent
+        }
         if ($status === 'rejected') {
             // On rend l'argent au vendeur (annulation de la réservation).
             self::credit((int) $w['user_id'], (int) $w['amount_cents'], (string) $w['currency'], 'reversal', (string) $w['public_id']);

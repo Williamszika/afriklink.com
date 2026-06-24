@@ -139,13 +139,18 @@ final class AuthController
     {
         $identifier = (string) (input_string('identifier') ?? '');
         $password   = (string) ($_POST['password'] ?? '');
+        // Clé CANONIQUE pour le verrouillage : un compte TÉLÉPHONE saisi avec des
+        // espaces/tirets différents doit tomber dans le MÊME compteur (sinon le
+        // verrouillage est contournable). E-mail → minuscule ; téléphone → chiffres.
+        $lockKey = $identifier === '' ? ''
+            : (str_contains($identifier, '@') ? mb_strtolower(trim($identifier)) : normalize_phone($identifier));
 
         // Verrouillage par COMPTE (en plus de la limite par IP) : après trop
         // d'échecs récents sur CET identifiant, on bloque temporairement — robuste
         // même si l'IP est usurpée. Fenêtre glissante : auto-expire toute seule.
-        if ($identifier !== '') {
+        if ($lockKey !== '') {
             try {
-                if (LoginAttempt::recentFailures($identifier, 900) >= 10) {
+                if (LoginAttempt::recentFailures($lockKey, 900) >= 10) {
                     AuditLog::record(null, 'auth.login_locked', 'user', null, ['id' => $identifier], $request->ipBinary());
                     keep_old($_POST);
                     flash('error', t('flash.login_locked'));
@@ -159,7 +164,7 @@ final class AuthController
         $user = $identifier !== '' ? User::findByEmailOrPhone($identifier) : null;
         $ok   = $user !== null && password_verify($password, $user['password_hash']);
 
-        LoginAttempt::record($identifier !== '' ? $identifier : null, $request->ipBinary(), $ok);
+        LoginAttempt::record($lockKey !== '' ? $lockKey : null, $request->ipBinary(), $ok);
 
         if (!$ok) {
             AuditLog::record(null, 'auth.login_failed', 'user', null, ['id' => $identifier], $request->ipBinary());
