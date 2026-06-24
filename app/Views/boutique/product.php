@@ -81,6 +81,10 @@ if (is_array($pCiAttr) && is_array($pCiAttr['color_images'] ?? null)) {
 // bicolore (« Rouge/Noir »). Rien n'est affiché pour une capacité (« 256 Go »),
 // ce qui sépare visuellement un axe couleur d'un axe capacité.
 $dotHtml = static function (array $hexes): string {
+    // On ne garde que de VRAIES couleurs hex (#abc … #aabbccdd) : empêche toute
+    // injection CSS dans l'attribut style, même si la donnée vient du vendeur
+    // (e() bloque la sortie d'attribut, pas l'injection CSS à l'intérieur).
+    $hexes = array_values(array_filter($hexes, static fn ($h): bool => is_string($h) && preg_match('/^#[0-9a-fA-F]{3,8}$/', $h) === 1));
     if ($hexes === []) { return ''; }
     if (count($hexes) === 1) {
         return '<span class="chip-dot" style="background:' . e($hexes[0]) . '"></span>';

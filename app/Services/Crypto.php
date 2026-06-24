@@ -51,6 +51,9 @@ final class Crypto
     public static function encrypt(string $plain, string $domain = 'messages'): string
     {
         if ($plain === '' || !self::configured()) {
+            if ($plain !== '' && !self::configured()) {
+                self::warnUnconfigured(); // alerte (prod) : écriture EN CLAIR faute d'APP_KEY
+            }
             return $plain;
         }
         $key = self::key($domain);
@@ -112,5 +115,22 @@ final class Crypto
     public static function isEncrypted(string $value): bool
     {
         return str_starts_with($value, self::PREFIX);
+    }
+
+    /**
+     * En PRODUCTION, journalise une alerte (une seule fois) si du contenu sensible
+     * doit être stocké alors que le chiffrement est inactif (APP_KEY absente) :
+     * évite qu'une fenêtre d'écriture en clair passe inaperçue.
+     */
+    private static function warnUnconfigured(): void
+    {
+        static $warned = false;
+        if ($warned) {
+            return;
+        }
+        $warned = true;
+        if ((string) config('app.env', 'production') !== 'local' && function_exists('log_message')) {
+            log_message('critical', 'Crypto: APP_KEY absente — contenu sensible stocké EN CLAIR (chiffrement inactif).');
+        }
     }
 }
