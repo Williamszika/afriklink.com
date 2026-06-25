@@ -416,12 +416,35 @@ final class CloudinaryService
 
     /* ---- URLs de diffusion (CDN) --------------------------------- */
 
-    /** Image recadrée/optimisée (q_auto + f_auto = compression automatique). */
-    public static function imageUrl(string $publicId, int $w, int $h): string
+    /**
+     * Image recadrée/optimisée (q_auto + f_auto = compression automatique).
+     *
+     * $clean = true demande le NETTOYAGE AUTO (détourage IA + fond neutre) — mais
+     * il ne s'applique QUE si config('media.autoclean') est vrai, ce qui exige
+     * l'add-on Cloudinary « AI Background Removal ». Par défaut ($clean=false ou
+     * option éteinte) : comportement strictement identique à avant. À réserver aux
+     * photos de PRODUIT boutique (jamais logos/bannières ni annonces génériques).
+     */
+    public static function imageUrl(string $publicId, int $w, int $h, bool $clean = false): string
     {
+        $cloud = rawurlencode(self::cloudName());
+        if ($clean && (bool) config('media.autoclean', false)) {
+            // Hex sûr (sans #) ; repli sur un gris clair de catalogue.
+            $bg = preg_replace('/[^0-9A-Fa-f]/', '', (string) config('media.autoclean_bg', 'eef1f5'));
+            $bg = $bg !== '' ? $bg : 'eef1f5';
+            // 1) détourage IA  2) fond neutre + cadrage SANS rogner (c_pad).
+            return sprintf(
+                'https://res.cloudinary.com/%s/image/upload/e_background_removal/b_rgb:%s,c_pad,w_%d,h_%d,q_auto,f_auto/%s',
+                $cloud,
+                $bg,
+                $w,
+                $h,
+                $publicId
+            );
+        }
         return sprintf(
             'https://res.cloudinary.com/%s/image/upload/c_fill,w_%d,h_%d,q_auto,f_auto/%s',
-            rawurlencode(self::cloudName()),
+            $cloud,
             $w,
             $h,
             $publicId

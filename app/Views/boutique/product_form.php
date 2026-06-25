@@ -3955,6 +3955,13 @@ $fmtP = static function ($cents) use ($cur): string {
                 <label class="btn btn-ghost btn-sm" for="product-photo-input">📁 <?= e(t('listing.btn.choose_files')) ?></label>
             </div>
             <p class="hint"><?= e(t('product.f.photos_hint')) ?></p>
+            <ul class="photo-guide" aria-label="<?= e(t('product.photo_guide.title')) ?>">
+                <li class="photo-guide-title"><?= e(t('product.photo_guide.title')) ?></li>
+                <li>🧺 <?= e(t('product.photo_guide.steam')) ?></li>
+                <li>⬜ <?= e(t('product.photo_guide.plain_bg')) ?></li>
+                <li>🪟 <?= e(t('product.photo_guide.light')) ?></li>
+                <li>🎯 <?= e(t('product.photo_guide.center')) ?></li>
+            </ul>
             <input type="file" id="product-photo-input" class="file-hidden" accept="image/jpeg,image/png,image/webp" multiple>
         </div>
         <div class="upload-previews" id="product-previews">

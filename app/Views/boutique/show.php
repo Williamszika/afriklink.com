@@ -163,7 +163,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                             <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $pr['public_id'])) ?>">
                                 <span class="product-card-img">
                                     <?php if ($m !== null): ?>
-                                        <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy">
+                                        <img src="<?= e(CloudinaryService::imageUrl($m, 320, 320, true)) ?>" alt="" loading="lazy">
                                     <?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                                     <?php if (!empty($pr['pinned'])): ?><span class="pin-badge" title="<?= e(t('product.pinned')) ?>"><?= icon('pin', ['size' => 14]) ?></span><?php endif; ?>
                                     <?php if (\App\Models\Product::isPromoted($pr)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>

@@ -70,9 +70,9 @@ if (is_array($pCiAttr) && is_array($pCiAttr['color_images'] ?? null)) {
             $cId = (string) $cId;
             if ($cId === '') { continue; }
             $colorImages[(string) $cName][] = [
-                'full'  => CloudinaryService::imageUrl($cId, 1100, 825),
-                'zoom'  => CloudinaryService::imageUrl($cId, 1400, 1050),
-                'thumb' => CloudinaryService::imageUrl($cId, 120, 90),
+                'full'  => CloudinaryService::imageUrl($cId, 1100, 825, true),
+                'zoom'  => CloudinaryService::imageUrl($cId, 1400, 1050, true),
+                'thumb' => CloudinaryService::imageUrl($cId, 120, 90, true),
             ];
         }
     }
@@ -102,11 +102,11 @@ $dotHtml = static function (array $hexes): string {
     <p class="muted"><a href="<?= e(url('/boutique/' . $boutique['slug'])) ?>">← <?= e((string) $boutique['name']) ?></a><?php if (!empty($product['collection'])): ?> <span class="crumb-sep" aria-hidden="true">›</span> <span class="crumb-rayon"><?= e((string) $product['collection']) ?></span><?php endif; ?></p>
 
     <div class="listing-layout">
-        <?php $fulls = array_map(static fn ($ph) => CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1400, 1050), $photos); ?>
+        <?php $fulls = array_map(static fn ($ph) => CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1400, 1050, true), $photos); ?>
         <div class="listing-media" data-gallery data-photos="<?= e((string) json_encode(array_values($fulls), JSON_UNESCAPED_SLASHES)) ?>">
             <?php if ($main !== null): ?>
                 <button type="button" class="listing-main-zoom" data-zoom-open data-zoom-hover data-index="0" aria-label="<?= e(t('product.zoom')) ?>">
-                    <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($main, 1100, 825)) ?>" alt="<?= e((string) $product['name']) ?>" width="880" height="660">
+                    <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($main, 1100, 825, true)) ?>" alt="<?= e((string) $product['name']) ?>" width="880" height="660">
                     <span class="zoom-hint" aria-hidden="true"><?= icon('search', ['size' => 16]) ?></span>
                 </button>
             <?php elseif (!$hasVideo): ?>
@@ -115,8 +115,8 @@ $dotHtml = static function (array $hexes): string {
             <?php if (count($photos) > 1): ?>
                 <div class="listing-thumbs">
                     <?php foreach ($photos as $i => $ph): ?>
-                        <button type="button" class="thumb" data-index="<?= (int) $i ?>" data-gallery-full="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1100, 825)) ?>">
-                            <img src="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 120, 90)) ?>" alt="" loading="lazy" width="120" height="90">
+                        <button type="button" class="thumb" data-index="<?= (int) $i ?>" data-gallery-full="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 1100, 825, true)) ?>">
+                            <img src="<?= e(CloudinaryService::imageUrl((string) $ph['cloud_public_id'], 120, 90, true)) ?>" alt="" loading="lazy" width="120" height="90">
                         </button>
                     <?php endforeach; ?>
                 </div>
@@ -798,7 +798,7 @@ $dotHtml = static function (array $hexes): string {
                 <?php foreach ($related as $rp): $rm = $related_mains[(int) $rp['id']] ?? null; ?>
                     <a class="product-card" href="<?= e(url('/boutique/' . $boutique['slug'] . '/p/' . $rp['public_id'])) ?>">
                         <span class="product-card-img">
-                            <?php if ($rm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($rm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
+                            <?php if ($rm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($rm, 320, 320, true)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                         </span>
                         <span class="product-card-name"><?= e((string) $rp['name']) ?></span>
                         <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $rp['price_cents'], 'cur' => $cur]) ?></span>
