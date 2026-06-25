@@ -680,6 +680,8 @@ return [
     'cam.max_s'                   => ':max s max — la registrazione si interrompe automaticamente',
     'listing.field.whatsapp_optin'=> 'Mostra il mio pulsante WhatsApp sull’annuncio',
     'listing.field.whatsapp_hint' => 'Gli acquirenti possono contattarti direttamente. Il tuo numero resta nascosto sulla pagina; viene mostrato solo il pulsante.',
+    'listing.field.clean_bg' => 'Scontornare lo sfondo delle mie foto (oggetto)',
+    'listing.field.clean_bg_hint' => 'Ideale per un capo, un telefono, un oggetto. Da evitare per un\'auto, una casa o una scena. Si applica solo se l\'opzione è attiva sulla piattaforma.',
     'listing.submit'              => 'Pubblica annuncio',
     'listing.mine_title'          => 'I miei annunci',
     'listing.mine_empty'          => 'Non hai ancora annunci.',

@@ -680,6 +680,8 @@ return [
     'cam.max_s'                   => 'máx. :max s — a gravação para automaticamente',
     'listing.field.whatsapp_optin'=> 'Mostrar o meu botão de WhatsApp no anúncio',
     'listing.field.whatsapp_hint' => 'Os compradores podem contactá-lo diretamente. O seu número permanece oculto na página; só aparece o botão.',
+    'listing.field.clean_bg' => 'Recortar o fundo das minhas fotos (objeto)',
+    'listing.field.clean_bg_hint' => 'Ideal para uma peça, um telemóvel, um objeto. Evita para um carro, uma casa ou uma cena. Só se aplica se a opção estiver ativada na plataforma.',
     'listing.submit'              => 'Publicar anúncio',
     'listing.mine_title'          => 'Os meus anúncios',
     'listing.mine_empty'          => 'Ainda não tem anúncios.',

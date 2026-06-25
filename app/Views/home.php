@@ -136,7 +136,7 @@ $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
         <?php foreach ($products as $p): $pm = $product_mains[(int) $p['id']] ?? null; ?>
             <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
                 <span class="product-card-img">
-                    <?php if ($pm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($pm, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
+                    <?php if ($pm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($pm, 320, 320, true)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
                     <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                 </span>
                 <span class="product-card-name"><?= e(tr_content('product', (int) $p['id'], 'name', (string) $p['name'])) ?></span>
@@ -155,7 +155,7 @@ $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
         <?php foreach ($promo_annonces as $a): $am = $promo_annonce_mains[(int) $a['id']] ?? null; ?>
             <a class="product-card" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
                 <span class="product-card-img">
-                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('tag') ?></span><?php endif; ?>
+                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320, !empty($a['clean_bg']))) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('tag') ?></span><?php endif; ?>
                     <span class="promo-badge"><?= e(t('ads.badge')) ?></span>
                 </span>
                 <span class="product-card-name"><?= e((string) $a['title']) ?></span>
@@ -204,7 +204,7 @@ $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
         <?php foreach ($annonces as $a): $am = $annonce_mains[(int) $a['id']] ?? null; ?>
             <a class="product-card" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
                 <span class="product-card-img">
-                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('tag') ?></span><?php endif; ?>
+                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320, !empty($a['clean_bg']))) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('tag') ?></span><?php endif; ?>
                     <?php if (\App\Models\Listing::isPromoted($a)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                 </span>
                 <span class="product-card-name"><?= e((string) $a['title']) ?></span>

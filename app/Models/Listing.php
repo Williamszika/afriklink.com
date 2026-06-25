@@ -29,6 +29,7 @@ final class Listing
                 country_code    CHAR(2) NULL,
                 city            VARCHAR(120) NULL,
                 whatsapp_optin  TINYINT(1) NOT NULL DEFAULT 0,
+                clean_bg        TINYINT(1) NOT NULL DEFAULT 0,
                 status          VARCHAR(16) NOT NULL DEFAULT \'active\',
                 video_public_id VARCHAR(255) NULL,
                 video_duration  DECIMAL(6,2) NULL,
@@ -49,6 +50,27 @@ final class Listing
                 KEY idx_photos_listing (listing_id, position)
             )'
         );
+        self::migrateClean();
+    }
+
+    /** Migration idempotente : option de détourage du fond par annonce. */
+    private static function migrateClean(): void
+    {
+        static $done = false;
+        if ($done) {
+            return;
+        }
+        $done = true;
+        try {
+            db()->query('SELECT clean_bg FROM listings LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE listings ADD COLUMN clean_bg TINYINT(1) NOT NULL DEFAULT 0');
+            } catch (\Throwable) {
+                // pas de droits DDL (prod) : la migration SQL s'en charge ; en
+                // attendant, clean_bg est traité comme 0 partout (lecture sûre).
+            }
+        }
     }
 
     /**
@@ -110,7 +132,26 @@ final class Listing
             throw $e;
         }
 
+        // Option détourage : posée À PART, hors transaction (jamais bloquante).
+        if (!empty($data['clean_bg'])) {
+            self::setCleanBg($listingId, true);
+        }
+
         return $publicId;
+    }
+
+    /**
+     * Pose l'option de détourage du fond d'une annonce. Best-effort : si la
+     * colonne n'est pas encore migrée en prod (pas de droits DDL), l'échec est
+     * avalé — jamais bloquant (clean_bg reste 0 par défaut, lecture sûre).
+     */
+    public static function setCleanBg(int $id, bool $on): void
+    {
+        try {
+            db()->prepare('UPDATE listings SET clean_bg = :v WHERE id = :id')
+                ->execute(['v' => $on ? 1 : 0, 'id' => $id]);
+        } catch (\Throwable) {
+        }
     }
 
     public static function findByPublicId(string $publicId): ?array

@@ -680,6 +680,8 @@ return [
     'cam.max_s'                   => 'max. :max Sek. – Aufnahme stoppt automatisch',
     'listing.field.whatsapp_optin'=> 'Meinen WhatsApp-Button in der Anzeige anzeigen',
     'listing.field.whatsapp_hint' => 'Käufer können Sie direkt kontaktieren. Ihre Nummer bleibt auf der Seite verborgen; nur der Button wird angezeigt.',
+    'listing.field.clean_bg' => 'Hintergrund meiner Fotos freistellen (Einzelobjekt)',
+    'listing.field.clean_bg_hint' => 'Ideal für Kleidung, Handy, Einzelobjekt. Nicht für Auto, Wohnung oder Szene. Wirkt nur, wenn die Option auf der Plattform aktiviert ist.',
     'listing.submit'              => 'Anzeige veröffentlichen',
     'listing.mine_title'          => 'Meine Anzeigen',
     'listing.mine_empty'          => 'Sie haben noch keine Anzeigen.',

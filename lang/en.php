@@ -686,6 +686,8 @@ return [
     'cam.max_s'                   => ':max s max — recording stops automatically',
     'listing.field.whatsapp_optin'=> 'Show my WhatsApp button on the listing',
     'listing.field.whatsapp_hint' => 'Buyers can contact you directly. Your number stays hidden on the page; only the button shows.',
+    'listing.field.clean_bg' => 'Clean up my photo backgrounds (single object)',
+    'listing.field.clean_bg_hint' => 'Great for a garment, a phone, a single item. Avoid for a car, a home or a scene. Applies only when the option is enabled on the platform.',
     'listing.submit'              => 'Publish listing',
     'listing.mine_title'          => 'My listings',
     'listing.mine_empty'          => 'You have no listings yet.',

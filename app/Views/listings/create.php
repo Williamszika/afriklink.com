@@ -97,12 +97,24 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
                 <button type="button" class="btn btn-ghost btn-sm" id="open-photo-camera">📷 <?= e(t('listing.btn.take_photo')) ?></button>
             </div>
             <p class="hint"><?= e(t('listing.field.photos_hint')) ?></p>
+            <ul class="photo-guide" aria-label="<?= e(t('product.photo_guide.title')) ?>">
+                <li class="photo-guide-title"><?= e(t('product.photo_guide.title')) ?></li>
+                <li>🧺 <?= e(t('product.photo_guide.steam')) ?></li>
+                <li>⬜ <?= e(t('product.photo_guide.plain_bg')) ?></li>
+                <li>🪟 <?= e(t('product.photo_guide.light')) ?></li>
+                <li>🎯 <?= e(t('product.photo_guide.center')) ?></li>
+            </ul>
             <input type="file" id="photo-input" class="file-hidden" accept="image/*" multiple>
             <input type="file" id="photo-camera" class="file-hidden" accept="image/*" capture="environment">
         </div>
         <div class="upload-previews" id="photo-previews"></div>
         <?php if (has_error('photos')): ?><p class="field-error"><?= e(error('photos')) ?></p><?php endif; ?>
         <p class="field-error" id="photo-error" hidden></p>
+        <label class="check-row">
+            <input type="checkbox" name="clean_bg" value="1" <?= old('clean_bg') === '1' ? 'checked' : '' ?>>
+            <span><?= e(t('listing.field.clean_bg')) ?></span>
+        </label>
+        <p class="hint"><?= e(t('listing.field.clean_bg_hint')) ?></p>
 
         <!-- Vidéo : fichier, caméra ou glisser-déposer -->
         <label><?= e(t('listing.field.video', ['max' => $maxVideoS])) ?></label>

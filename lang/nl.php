@@ -675,6 +675,8 @@ return [
     'cam.max_s'                   => 'max. :max s — de opname stopt automatisch',
     'listing.field.whatsapp_optin'=> 'Toon mijn WhatsApp-knop op de advertentie',
     'listing.field.whatsapp_hint' => 'Kopers kunnen rechtstreeks contact met u opnemen. Uw nummer blijft verborgen op de pagina; alleen de knop is zichtbaar.',
+    'listing.field.clean_bg' => 'Achtergrond van mijn foto\'s verwijderen (object)',
+    'listing.field.clean_bg_hint' => 'Ideaal voor kleding, telefoon, één voorwerp. Vermijd bij een auto, woning of scène. Werkt alleen als de optie op het platform is ingeschakeld.',
     'listing.submit'              => 'Advertentie publiceren',
     'listing.mine_title'          => 'Mijn advertenties',
     'listing.mine_empty'          => 'U heeft nog geen advertenties.',

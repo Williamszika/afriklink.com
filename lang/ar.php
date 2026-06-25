@@ -680,6 +680,8 @@ return [
     'cam.max_s'                   => ':max ثانية كحدّ أقصى — يتوقف التسجيل تلقائياً',
     'listing.field.whatsapp_optin'=> 'أظهِر زر WhatsApp الخاص بي على الإعلان',
     'listing.field.whatsapp_hint' => 'يمكن للمشترين التواصل معك مباشرة. يبقى رقمك مخفياً على الصفحة؛ ويظهر الزر فقط.',
+    'listing.field.clean_bg' => 'إزالة خلفية صوري (منتج مفرد)',
+    'listing.field.clean_bg_hint' => 'مثالي لقطعة ملابس أو هاتف أو منتج. تجنّبه للسيارة أو المنزل أو المشهد. يُطبَّق فقط عند تفعيل الخيار على المنصة.',
     'listing.submit'              => 'نشر الإعلان',
     'listing.mine_title'          => 'إعلاناتي',
     'listing.mine_empty'          => 'ليس لديك إعلانات بعد.',

@@ -37,7 +37,7 @@ final class CompareController
                 'url'   => url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']),
                 'name'  => (string) $p['name'],
                 'price' => format_price((int) $p['price_cents'], (string) $p['currency']),
-                'main'  => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80) : null,
+                'main'  => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80, true) : null,
             ];
         }
         header('Content-Type: text/html; charset=utf-8');

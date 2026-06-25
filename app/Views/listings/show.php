@@ -22,18 +22,19 @@ $waText     = rawurlencode(t('listing.wa_text', ['title' => (string) $listing['t
 
     <div class="listing-layout">
         <div class="listing-media">
+            <?php $lc = !empty($listing['clean_bg']); // détourage choisi par l'annonceur ?>
             <?php if ($listing['status'] === 'sold'): ?>
                 <span class="sold-ribbon"><?= e(t('listing.status.sold')) ?></span>
             <?php endif; ?>
             <?php if ($mainPhoto !== null): ?>
-                <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($mainPhoto, 880, 660)) ?>"
+                <img id="listing-main-photo" src="<?= e(CloudinaryService::imageUrl($mainPhoto, 880, 660, $lc)) ?>"
                      alt="<?= e((string) $listing['title']) ?>" width="880" height="660">
             <?php endif; ?>
             <?php if (count($photos) > 1 || $hasVideo): ?>
                 <div class="listing-thumbs">
                     <?php foreach ($photos as $i => $photo): ?>
-                        <button type="button" class="thumb" data-gallery-full="<?= e(CloudinaryService::imageUrl((string) $photo['cloud_public_id'], 880, 660)) ?>">
-                            <img src="<?= e(CloudinaryService::imageUrl((string) $photo['cloud_public_id'], 120, 90)) ?>" alt="" loading="lazy" width="120" height="90">
+                        <button type="button" class="thumb" data-gallery-full="<?= e(CloudinaryService::imageUrl((string) $photo['cloud_public_id'], 880, 660, $lc)) ?>">
+                            <img src="<?= e(CloudinaryService::imageUrl((string) $photo['cloud_public_id'], 120, 90, $lc)) ?>" alt="" loading="lazy" width="120" height="90">
                         </button>
                     <?php endforeach; ?>
                 </div>

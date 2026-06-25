@@ -76,7 +76,7 @@ $qs = static fn (array $over): string => http_build_query(array_merge($baseParam
                 <div class="product-card-wrap">
                     <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
                         <span class="product-card-img">
-                            <?php if ($m !== null): ?><img src="<?= e(CloudinaryService::imageUrl($m, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
+                            <?php if ($m !== null): ?><img src="<?= e(CloudinaryService::imageUrl($m, 320, 320, true)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true">📦</span><?php endif; ?>
                             <?php if (Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
                         </span>
                         <span class="product-card-name"><?= e(tr_content('product', (int) $p['id'], 'name', (string) $p['name'])) ?></span>

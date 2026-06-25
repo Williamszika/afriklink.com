@@ -22,7 +22,7 @@ use App\Services\CloudinaryService;
                 <div class="panel listing-row">
                     <a class="listing-thumb" href="<?= e(url('/annonce/' . $l['public_id'])) ?>">
                         <?php if ($main !== null): ?>
-                            <img src="<?= e(CloudinaryService::imageUrl($main, 160, 120)) ?>" alt="" loading="lazy" width="160" height="120">
+                            <img src="<?= e(CloudinaryService::imageUrl($main, 160, 120, !empty($l['clean_bg']))) ?>" alt="" loading="lazy" width="160" height="120">
                         <?php else: ?>
                             <span class="listing-thumb-empty" aria-hidden="true">🏷️</span>
                         <?php endif; ?>

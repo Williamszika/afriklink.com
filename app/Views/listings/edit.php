@@ -77,6 +77,13 @@ $user = current_user() ?? [];
             </label>
         <?php endif; ?>
 
+        <label class="check-row">
+            <input type="checkbox" name="clean_bg" value="1"
+                <?= (old('clean_bg') === '1' || (old('clean_bg') === '' && !empty($listing['clean_bg']))) ? 'checked' : '' ?>>
+            <span><?= e(t('listing.field.clean_bg')) ?></span>
+        </label>
+        <p class="hint"><?= e(t('listing.field.clean_bg_hint')) ?></p>
+
         <?php if ($photos !== []): ?>
             <label><?= e(t('listing.edit_photos_note')) ?></label>
             <div class="upload-previews">

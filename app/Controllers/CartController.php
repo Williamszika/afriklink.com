@@ -67,7 +67,7 @@ final class CartController
                 'url'  => url('/boutique/' . $p['boutique_slug'] . '/p/' . $pid),
                 'name' => (string) $p['name'],
                 'sub'  => $qty . '× ' . format_price(product_effective_unit_cents($p, (int) $p['price_cents']), (string) $p['currency']),
-                'main' => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80) : null,
+                'main' => $m !== null ? \App\Services\CloudinaryService::imageUrl($m, 80, 80, true) : null,
             ];
             if (count($items) >= 6) {
                 break;

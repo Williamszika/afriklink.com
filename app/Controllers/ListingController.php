@@ -100,6 +100,9 @@ final class ListingController
             'country_code'    => strtoupper((string) ($user['country_code'] ?? '')) ?: null,
             'city'            => $data['city'],
             'whatsapp_optin'  => $data['whatsapp_optin'] && !empty($user['phone']),
+            // Détourage du fond demandé par l'annonceur (objets posés). Sans effet
+            // tant que MEDIA_AUTOCLEAN n'est pas activé (add-on Cloudinary).
+            'clean_bg'        => input_string('clean_bg', '') === '1',
             'video_public_id' => $videoId,
             'video_duration'  => $videoDuration,
         ], $photos);
@@ -179,6 +182,7 @@ final class ListingController
             'city'           => $data['city'],
             'whatsapp_optin' => $data['whatsapp_optin'] && !empty($user['phone']),
         ]);
+        Listing::setCleanBg((int) $listing['id'], input_string('clean_bg', '') === '1');
 
         AuditLog::record((int) current_user_id(), 'listing.updated', 'listing', (int) $listing['id'], [], $request->ipBinary());
         clear_old();
