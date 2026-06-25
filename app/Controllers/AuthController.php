@@ -151,6 +151,10 @@ final class AuthController
         if ($lockKey !== '') {
             try {
                 if (LoginAttempt::recentFailures($lockKey, 900) >= 10) {
+                    // Égalise le temps de réponse du chemin « verrouillé » avec un
+                    // login normal (un haché est toujours vérifié) — anti-oracle de
+                    // chronométrage qui révélerait qu'un compte est verrouillé.
+                    password_verify($password, self::dummyHash());
                     AuditLog::record(null, 'auth.login_locked', 'user', null, ['id' => audit_identifier_token($identifier)], $request->ipBinary());
                     keep_old($_POST);
                     flash('error', t('flash.login_locked'));

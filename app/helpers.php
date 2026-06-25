@@ -968,7 +968,13 @@ function audit_identifier_token(string $raw): string
         return '';
     }
     $key = (string) config('app.key', '');
-    return 'id:' . substr(hash_hmac('sha256', $raw, $key !== '' ? $key : 'afriklink-audit'), 0, 16);
+    if ($key === '') {
+        // Pas de clé d'application → pas de jeton (on n'utilise JAMAIS de clé de
+        // repli publique : sinon un HMAC pré-calculable dé-anonymiserait les
+        // identifiants sondés dans le journal d'audit).
+        return '';
+    }
+    return 'id:' . substr(hash_hmac('sha256', $raw, $key), 0, 16);
 }
 
 /** URL slug : minuscules, accents retirés, séparés par des tirets. */

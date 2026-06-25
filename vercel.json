@@ -9,7 +9,7 @@
     }
   },
   "routes": [
-    { "src": "/assets/(.*)", "dest": "/public/assets/$1" },
+    { "src": "/assets/(.*)", "dest": "/public/assets/$1", "headers": { "X-Content-Type-Options": "nosniff", "Strict-Transport-Security": "max-age=31536000; includeSubDomains" } },
     { "src": "/(.*)", "dest": "/api/index.php" }
   ],
   "crons": [

@@ -215,9 +215,11 @@ final class HomeController
         // visible de tous pour leur propre compte ; ici on est en mode détaillé.)
 
         // /health?mail_test=1 — real send to the configured sender's own address
-        // (never an arbitrary recipient), throttled to 3/hour per IP.
+        // (never an arbitrary recipient). Reached only by staff/Bearer (detailed
+        // mode), throttled to 6/hour per IP and FAIL-CLOSED (cost-bearing: if the
+        // limiter DB is down we refuse rather than allow quota-burn).
         if (($_GET['mail_test'] ?? '') === '1') {
-            if (!rate_limit_ok('mailtest:' . $request->ip(), 6, 3600)) {
+            if (!rate_limit_ok('mailtest:' . $request->ip(), 6, 3600, false)) {
                 $payload['mail']['test'] = 'throttled';
             } elseif ($from === '') {
                 $payload['mail']['test'] = 'failed: MAIL_FROM manquant';

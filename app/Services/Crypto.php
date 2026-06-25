@@ -41,6 +41,7 @@ final class Crypto
     /** Clé 32 octets dérivée de APP_KEY, séparée par domaine. */
     private static function key(string $domain): string
     {
+        self::warnWeakKey();
         return hash_hmac('sha256', 'crypto.' . $domain . '.v1', self::appKey(), true);
     }
 
@@ -131,6 +132,26 @@ final class Crypto
         $warned = true;
         if ((string) config('app.env', 'production') !== 'local' && function_exists('log_message')) {
             log_message('critical', 'Crypto: APP_KEY absente — contenu sensible stocké EN CLAIR (chiffrement inactif).');
+        }
+    }
+
+    /**
+     * Alerte (une seule fois) si APP_KEY est présente mais TROP COURTE (< 16
+     * caractères → chiffrement faible/brute-forçable). On NE désactive PAS le
+     * chiffrement : un chiffrement faible reste préférable au stockage en clair.
+     */
+    private static function warnWeakKey(): void
+    {
+        static $warned = false;
+        if ($warned) {
+            return;
+        }
+        $warned = true;
+        $k = self::appKey();
+        if ($k !== '' && strlen($k) < 16
+            && (string) config('app.env', 'production') !== 'local'
+            && function_exists('log_message')) {
+            log_message('critical', 'Crypto: APP_KEY trop courte (< 16 caractères) — chiffrement faible, renforcez APP_KEY.');
         }
     }
 }

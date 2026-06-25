@@ -65,7 +65,7 @@ return [
     ['GET',  '/sp/{pid}',          [HomeController::class, 'sponsoredClick'], ['throttle:spclick,300,3600']],
     ['GET',  '/sitemap.xml',       [HomeController::class, 'sitemap'],        ['throttle:sitemap,60,3600']],
     ['GET',  '/robots.txt',        [HomeController::class, 'robots'],         []],
-    ['GET',  '/health',            [HomeController::class, 'health'],         []],
+    ['GET',  '/health',            [HomeController::class, 'health'],         ['throttle:health,30,60']],
     ['GET',  '/lang/{locale}',     [HomeController::class, 'switchLanguage'], []],
     ['GET',  '/devise/{currency}', [HomeController::class, 'switchCurrency'], ['throttle:cur,60,3600']],
     ['GET',  '/region/{action}',   [HomeController::class, 'region'],         ['throttle:cur,60,3600']],

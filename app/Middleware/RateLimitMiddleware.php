@@ -19,11 +19,21 @@ final class RateLimitMiddleware implements Middleware
     ) {
     }
 
+    /**
+     * Seaux dont chaque requête COÛTE de l'argent (appel LLM, signature d'envoi
+     * Cloudinary) : ils basculent en FAIL-CLOSED — si la base de limitation est
+     * injoignable, on REFUSE plutôt que de laisser un attaquant contourner la
+     * limite et faire flamber la facture. Les autres restent fail-open
+     * (disponibilité prioritaire : login, recherche…).
+     */
+    private const FAIL_CLOSED = ['agnes', 'sign'];
+
     public function handle(Request $request): void
     {
-        $key = $this->bucket . ':' . $request->ip();
+        $key      = $this->bucket . ':' . $request->ip();
+        $failOpen = !in_array($this->bucket, self::FAIL_CLOSED, true);
 
-        if (!rate_limit_ok($key, $this->max, $this->windowSeconds)) {
+        if (!rate_limit_ok($key, $this->max, $this->windowSeconds, $failOpen)) {
             header('Retry-After: ' . $this->windowSeconds);
             abort(429, t('error.too_many_requests'));
         }

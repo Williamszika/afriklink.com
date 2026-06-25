@@ -428,6 +428,7 @@ final class CloudinaryService
     public static function imageUrl(string $publicId, int $w, int $h, bool $clean = false): string
     {
         $cloud = rawurlencode(self::cloudName());
+        $pid   = self::safePublicId($publicId);
         if ($clean && (bool) config('media.autoclean', false)) {
             // Hex sûr (sans #) ; repli sur un gris clair de catalogue.
             $bg = preg_replace('/[^0-9A-Fa-f]/', '', (string) config('media.autoclean_bg', 'eef1f5'));
@@ -439,7 +440,7 @@ final class CloudinaryService
                 $bg,
                 $w,
                 $h,
-                $publicId
+                $pid
             );
         }
         return sprintf(
@@ -447,8 +448,19 @@ final class CloudinaryService
             $cloud,
             $w,
             $h,
-            $publicId
+            $pid
         );
+    }
+
+    /**
+     * Encode chaque segment d'un public_id pour la diffusion CDN : neutralise par
+     * construction tout méta-caractère de transformation (virgule, deux-points…)
+     * même si un futur appelant passait une valeur non vérifiée. Sûreté en
+     * profondeur — les valeurs stockées sont déjà filtrées par verifyAsset.
+     */
+    private static function safePublicId(string $publicId): string
+    {
+        return implode('/', array_map('rawurlencode', explode('/', $publicId)));
     }
 
     /** Vidéo MP4 H.264 en qualité automatique (compatible partout). */
@@ -457,7 +469,7 @@ final class CloudinaryService
         return sprintf(
             'https://res.cloudinary.com/%s/video/upload/q_auto,f_mp4,vc_h264/%s.mp4',
             rawurlencode(self::cloudName()),
-            $publicId
+            self::safePublicId($publicId)
         );
     }
 
@@ -469,7 +481,7 @@ final class CloudinaryService
             rawurlencode(self::cloudName()),
             $w,
             (int) round($w * 3 / 4),
-            $publicId
+            self::safePublicId($publicId)
         );
     }
 
@@ -484,6 +496,11 @@ final class CloudinaryService
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT        => 15,
                 CURLOPT_USERPWD        => self::apiKey() . ':' . self::apiSecret(),
+                // Durcissement SSRF : HTTPS uniquement, et on ne suit aucune
+                // redirection (l'API Admin Cloudinary ne redirige pas).
+                CURLOPT_FOLLOWLOCATION => false,
+                CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
             ];
             if ($method === 'POST') {
                 $opts[CURLOPT_POST] = true;

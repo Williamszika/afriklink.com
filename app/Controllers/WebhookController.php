@@ -131,6 +131,14 @@ final class WebhookController
                     // 3. Contrôle du montant (anti-falsification).
                     $stripeAmt = (int) ($obj['amount_total'] ?? ($obj['amount_received'] ?? ($obj['amount'] ?? 0)));
                     $cur  = strtoupper((string) ($obj['currency'] ?? $payment['currency']));
+                    // La DEVISE doit correspondre à celle attendue (défense en
+                    // profondeur : un même montant entier dans une AUTRE devise ne
+                    // doit jamais valider le paiement).
+                    if ($cur !== strtoupper((string) ($payment['currency'] ?? ''))) {
+                        AuditLog::record((int) ($payment['user_id'] ?? 0), 'payment.currency_mismatch', 'payment',
+                            (int) $payment['id'], ['expected' => (string) ($payment['currency'] ?? ''), 'got' => $cur], null);
+                        break; // accepté (200) pour ne pas boucler, mais NON confirmé
+                    }
                     $ours = StripeProvider::fromStripeAmount($stripeAmt, $cur);
                     if ($stripeAmt > 0 && $ours !== (int) $payment['amount_cents']) {
                         AuditLog::record((int) ($payment['user_id'] ?? 0), 'payment.amount_mismatch', 'payment',
