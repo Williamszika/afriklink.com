@@ -97,6 +97,10 @@ final class ProfileController
         }
 
         User::updatePassword($userId, password_hash($new, password_algo()));
+        // Invalide les AUTRES sessions actives ; on garde CELLE-CI en y reposant la
+        // nouvelle époque et en régénérant l'identifiant de session.
+        $_SESSION['pw_epoch'] = User::bumpSessionEpoch($userId);
+        session_regenerate_id(true);
         AuditLog::record($userId, 'auth.password_changed', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.password_changed'));
         redirect($this->accountReturnPath());

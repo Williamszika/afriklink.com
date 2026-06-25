@@ -117,10 +117,33 @@ final class AdCampaign
         if ($billing === 'wallet') {
             $walCur = Wallet::currencyFor($userId, (string) ($boutique['currency'] ?? 'XOF'));
             $price  = ExchangeRates::convert($base, self::baseCurrency(), $walCur) ?? $base;
-            if (Wallet::balanceCents($userId, $walCur) < $price) {
-                return ['ok' => false, 'code' => 'insufficient'];
+            // Débit SÉRIALISÉ par le MÊME verrou applicatif que les retraits :
+            // sans lui, N achats simultanés lisent le même solde et débitent
+            // chacun → portefeuille négatif (placements pub financés à découvert).
+            $pdo  = db();
+            $lock = 'afk_wallet_' . $userId;
+            $got  = 0;
+            try {
+                $lk = $pdo->prepare('SELECT GET_LOCK(:k, 5)');
+                $lk->execute(['k' => $lock]);
+                $got = (int) $lk->fetchColumn();
+            } catch (\Throwable) {
+                $got = 0;
             }
-            Wallet::debit($userId, $price, $walCur, 'ad_campaign', null);
+            if ($got !== 1) {
+                return ['ok' => false, 'code' => 'insufficient']; // pas sérialisable → on refuse
+            }
+            try {
+                if (Wallet::balanceCents($userId, $walCur) < $price) {
+                    return ['ok' => false, 'code' => 'insufficient'];
+                }
+                Wallet::debit($userId, $price, $walCur, 'ad_campaign', null);
+            } finally {
+                try {
+                    $pdo->prepare('SELECT RELEASE_LOCK(:k)')->execute(['k' => $lock]);
+                } catch (\Throwable) {
+                }
+            }
         }
 
         // Montant enregistré = prix du forfait en devise de référence (revenu net

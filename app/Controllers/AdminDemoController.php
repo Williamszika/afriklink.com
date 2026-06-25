@@ -25,6 +25,9 @@ final class AdminDemoController
 
     public function seed(Request $request): void
     {
+        if (!is_admin()) {
+            abort(404);
+        }
         $res = DemoSeeder::seedSmall(2);
         AuditLog::record((int) current_user_id(), 'demo.seed_small', 'demo', null, $res, $request->ipBinary());
         flash('success', sprintf('%d boutique(s) et %d produit(s) de démo créés.', $res['boutiques'], $res['products']));
@@ -33,6 +36,10 @@ final class AdminDemoController
 
     public function purge(Request $request): void
     {
+        // Outil DESTRUCTEUR (DELETE) → admin STRICT, jamais un simple modérateur.
+        if (!is_admin()) {
+            abort(404);
+        }
         $n = DemoSeeder::purge();
         AuditLog::record((int) current_user_id(), 'demo.purge', 'demo', null, ['boutiques' => $n], $request->ipBinary());
         flash('success', sprintf('Démo retirée : %d boutique(s) supprimée(s).', $n));

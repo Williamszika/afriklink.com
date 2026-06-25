@@ -1300,6 +1300,15 @@ final class BoutiqueController
             \App\Services\Cart::clearBoutique((int) $boutique['id']);
             redirect('/boutique/commande/' . $dupRef);
         }
+        // Coupon : on RÉSERVE l'usage AVANT de créer la commande (revendication
+        // atomique bornée). Si le quota max_uses vient d'être atteint par un
+        // paiement concurrent, on refuse le code plutôt que d'accorder la
+        // réduction une fois de trop (faille de concurrence).
+        if ($discountRow !== null && !\App\Models\Discount::recordUse((int) $discountRow['id'])) {
+            keep_old($_POST);
+            flash('error', t('promo.exhausted'));
+            redirect('/boutique/' . $boutique['slug'] . '/caisse');
+        }
         $publicId = Order::createCart([
             'boutique_id'  => (int) $boutique['id'],
             'user_id'      => (int) $boutique['user_id'],
@@ -1326,9 +1335,6 @@ final class BoutiqueController
             if ($placed !== null) {
                 Order::setShipment((int) $placed['id'], $carrier, null, null);
             }
-        }
-        if ($discountRow !== null) {
-            \App\Models\Discount::recordUse((int) $discountRow['id']);
         }
         // Rattache l'achat au compte de l'acheteur s'il est connecté (sinon = invité).
         if (($buyerId = current_user_id()) !== null) {

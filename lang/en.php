@@ -2253,6 +2253,7 @@ return [
     'promo.err_value' => 'Invalid discount value.',
     'promo.invalid' => 'Invalid or expired promo code.',
     'promo.already_used' => 'This promo code has already been used with this account.',
+    'promo.exhausted' => 'This promo code just reached its usage limit.',
     'promo.label' => 'Promo code',
     'promo.ph' => 'Your code',
     'seller.nav.pos' => 'Point of sale',

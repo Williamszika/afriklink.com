@@ -152,17 +152,25 @@ final class Discount
         return max(0, min($subtotalCents, $reduction));
     }
 
-    /** Incrémente le compteur d'utilisations (après une commande validée). */
-    public static function recordUse(int $id): void
+    /**
+     * RÉSERVE une utilisation (incrément atomique borné). Renvoie true si un
+     * créneau a bien été pris, false si le quota max_uses est déjà atteint.
+     * À appeler comme GARDE avant de créer la commande remisée : ainsi deux
+     * paiements concurrents ne peuvent pas obtenir la réduction au-delà du quota
+     * (le compteur ET le nombre de commandes remisées restent bornés).
+     */
+    public static function recordUse(int $id): bool
     {
         try {
-            // Incrément ATOMIQUE borné : le compteur ne peut jamais dépasser
-            // max_uses, même sous des commandes concurrentes (anti-TOCTOU).
-            db()->prepare(
+            $stmt = db()->prepare(
                 'UPDATE discounts SET uses = uses + 1
                   WHERE id = :id AND (max_uses IS NULL OR uses < max_uses)'
-            )->execute(['id' => $id]);
+            );
+            $stmt->execute(['id' => $id]);
+            return $stmt->rowCount() >= 1;
         } catch (\Throwable) {
+            // En cas d'erreur (table indisponible) : on n'empêche pas l'achat.
+            return true;
         }
     }
 

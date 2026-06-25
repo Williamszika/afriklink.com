@@ -291,6 +291,9 @@ final class AuthController
         unset($_SESSION['pw_reset_token']);
 
         User::updatePassword($userId, password_hash($password, password_algo()));
+        // Toute session encore ouverte avec l'ancien mot de passe est invalidée
+        // (un attaquant qui détenait une session ne reste pas connecté).
+        User::bumpSessionEpoch($userId);
         AuditLog::record($userId, 'auth.password_reset', 'user', $userId, [], $request->ipBinary());
         flash('success', t('flash.reset_ok'));
         redirect('/login');

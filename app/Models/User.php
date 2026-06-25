@@ -123,6 +123,48 @@ final class User
         }
     }
 
+    /** Compteur de versions de session (colonne à la volée) : incrémenté à chaque
+     *  changement de mot de passe pour invalider les AUTRES sessions actives. */
+    private static function ensureSessionEpoch(): void
+    {
+        try {
+            db()->query('SELECT session_epoch FROM users LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE users ADD COLUMN session_epoch INT UNSIGNED NOT NULL DEFAULT 0');
+            } catch (\Throwable) {
+                // pas de droits DDL (prod) : la migration SQL s'en charge ; en
+                // attendant, l'époque vaut 0 partout (lecture sûre, fonction inerte).
+            }
+        }
+    }
+
+    /** Époque de session courante d'un compte (0 si non migrée). */
+    public static function sessionEpoch(int $id): int
+    {
+        self::ensureSessionEpoch();
+        try {
+            $stmt = db()->prepare('SELECT session_epoch FROM users WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $id]);
+            $v = $stmt->fetchColumn();
+            return $v === false ? 0 : (int) $v;
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /** Invalide toutes les AUTRES sessions du compte (changement de mot de passe).
+     *  Renvoie la nouvelle époque (à reposer dans la session de l'acteur courant). */
+    public static function bumpSessionEpoch(int $id): int
+    {
+        self::ensureSessionEpoch();
+        try {
+            db()->prepare('UPDATE users SET session_epoch = session_epoch + 1 WHERE id = :id')->execute(['id' => $id]);
+        } catch (\Throwable) {
+        }
+        return self::sessionEpoch($id);
+    }
+
     public static function markEmailVerified(int $id): void
     {
         $stmt = db()->prepare(

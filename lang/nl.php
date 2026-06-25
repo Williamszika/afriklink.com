@@ -2227,6 +2227,7 @@ return [
     'promo.err_value' => 'Ongeldige kortingswaarde.',
     'promo.invalid' => 'Ongeldige of verlopen kortingscode.',
     'promo.already_used' => 'Deze promotiecode is al gebruikt met dit account.',
+    'promo.exhausted' => 'Deze promotiecode heeft net zijn gebruikslimiet bereikt.',
     'promo.label' => 'Kortingscode',
     'promo.ph' => 'Uw code',
     'seller.nav.pos' => 'Kassa',

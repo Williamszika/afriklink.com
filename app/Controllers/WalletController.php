@@ -63,18 +63,26 @@ final class WalletController
         redirect('/vendeur/portefeuille');
     }
 
-    /** Back-office (staff) : retraits en attente de versement. */
+    /** Back-office : retraits en attente de versement. Réservé aux ADMINS. */
     public function adminIndex(Request $request): void
     {
+        // Mouvement d'argent réel → admin STRICT (pas un simple modérateur), même
+        // si la route est déjà gardée « staff ».
+        if (!is_admin()) {
+            abort(404);
+        }
         view('admin/withdrawals', [
             'list'       => Wallet::pendingWithdrawals(),
             'page_title' => t('wallet.admin_title'),
         ]);
     }
 
-    /** Marque un retrait « versé » (paid) ou « rejeté » (recrédite le solde). */
+    /** Marque un retrait « versé » (paid) ou « rejeté » (recrédite le solde). Admin strict. */
     public function adminProcess(Request $request): void
     {
+        if (!is_admin()) {
+            abort(404);
+        }
         $id     = (int) $request->param('id', '0');
         $action = whitelist((string) input_string('action', ''), ['paid', 'reject'], null);
         if ($action === null || Wallet::findWithdrawal($id) === null) {

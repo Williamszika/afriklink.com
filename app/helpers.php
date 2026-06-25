@@ -3052,6 +3052,14 @@ function current_user(): ?array
         unset($_SESSION['user_id']);
         return $user = null;
     }
+    // Invalidation des AUTRES sessions après un changement de mot de passe : si
+    // l'époque mémorisée dans CETTE session ne correspond plus à celle du compte,
+    // la session est périmée → déconnexion. (0 === 0 par défaut : aucun effet
+    // tant que la colonne n'est pas migrée, ni pour les sessions déjà ouvertes.)
+    if ((int) ($_SESSION['pw_epoch'] ?? 0) !== (int) ($found['session_epoch'] ?? 0)) {
+        unset($_SESSION['user_id'], $_SESSION['pw_epoch']);
+        return $user = null;
+    }
     return $user = $found;
 }
 
@@ -3102,6 +3110,9 @@ function login_user(int $userId): void
 {
     session_regenerate_id(true);
     $_SESSION['user_id'] = $userId;
+    // Époque de session du compte : sert à invalider cette session si le mot de
+    // passe change plus tard depuis un autre appareil.
+    $_SESSION['pw_epoch'] = \App\Models\User::sessionEpoch($userId);
     $_SESSION['__created'] = time();
 }
 

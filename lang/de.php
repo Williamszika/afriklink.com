@@ -2232,6 +2232,7 @@ return [
     'promo.err_value' => 'Ungültiger Rabattwert.',
     'promo.invalid' => 'Ungültiger oder abgelaufener Aktionscode.',
     'promo.already_used' => 'Dieser Promo-Code wurde mit diesem Konto bereits verwendet.',
+    'promo.exhausted' => 'Dieser Promo-Code hat soeben sein Nutzungslimit erreicht.',
     'promo.label' => 'Aktionscode',
     'promo.ph' => 'Ihr Code',
     'seller.nav.pos' => 'Kasse',
