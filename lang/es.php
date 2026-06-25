@@ -510,6 +510,7 @@ return [
     'buyer.cancel_cta'       => 'Cancelar mi pedido',
     'buyer.cancel_confirm'   => '¿Cancelar este pedido?',
     'buyer.cancel_done'      => 'Su pedido se ha cancelado.',
+    'buyer.cancel_paid_blocked' => 'Este pedido ya está pagado: solicita un reembolso al vendedor por mensajería (la cancelación directa no es posible).',
     'buyer.cancel_too_late'  => 'Este pedido ya se ha enviado y no puede cancelarse.',
     'buyer.return_cta'       => 'Solicitar una devolución',
     'buyer.return_confirm'   => '¿Solicitar una devolución de este pedido?',

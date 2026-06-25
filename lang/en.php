@@ -513,6 +513,7 @@ return [
     'buyer.cancel_cta'       => 'Cancel my order',
     'buyer.cancel_confirm'   => 'Cancel this order?',
     'buyer.cancel_done'      => 'Your order has been cancelled.',
+    'buyer.cancel_paid_blocked' => 'This order is already paid: request a refund from the seller via messaging (direct cancellation isn\'t possible).',
     'buyer.cancel_too_late'  => 'This order has already shipped and can no longer be cancelled.',
     'buyer.return_cta'       => 'Request a return',
     'buyer.return_confirm'   => 'Request a return for this order?',

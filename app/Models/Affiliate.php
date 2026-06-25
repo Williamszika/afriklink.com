@@ -304,8 +304,21 @@ final class Affiliate
                 }
                 // Lignes NON affiliées : aucune commission, le vendeur garde 100 %.
             }
-            // Livraison / divers : aucune commission non plus.
+            // PRORATA d'encaissement : pour un terme « acompte » (deposit), seule une
+            // FRACTION du total est encaissée EN LIGNE (le reste est réglé hors
+            // plateforme, à la livraison). On ne déduit/verse la commission qu'au
+            // prorata de ce que la plateforme a RÉELLEMENT encaissé — sinon on
+            // paierait l'apporteur sur de l'argent jamais reçu (faille HIGH).
+            $orderTotal = self::orderTotalCents($orderId);
+            if ($orderTotal > 0 && $amountCents < $orderTotal) {
+                $deduction = (int) floor($deduction * $amountCents / $orderTotal);
+                $affiliate = (int) floor($affiliate * $amountCents / $orderTotal);
+            }
+            // Bornes de sûreté : la déduction n'excède jamais l'encaissé, et la
+            // commission apporteur n'excède jamais la déduction (part plateforme ≥ 0,
+            // conservation vendeur + apporteur + plateforme = montant encaissé).
             $deduction = min($amountCents, max(0, $deduction));
+            $affiliate = min(max(0, $affiliate), $deduction);
             // Crédit de l'apporteur, une seule fois (idempotent).
             if ($affiliate > 0 && $conv['paid_out_at'] === null) {
                 $lock = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NOW(), commission_cents = :c WHERE id = :id AND paid_out_at IS NULL');
@@ -319,6 +332,18 @@ final class Affiliate
             // En cas d'erreur de calcul : on crédite le vendeur du montant PLEIN
             // (pas de déduction), plutôt que de planter et ne rien lui verser.
             return $amountCents;
+        }
+    }
+
+    /** Total (centimes) d'une commande boutique — base du prorata d'encaissement. */
+    private static function orderTotalCents(int $orderId): int
+    {
+        try {
+            $st = db()->prepare('SELECT total_cents FROM orders WHERE id = :id LIMIT 1');
+            $st->execute(['id' => $orderId]);
+            return (int) $st->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
         }
     }
 

@@ -165,6 +165,11 @@ final class OrderController
             flash('error', t('order.bad_transition'));
         } else {
             AuditLog::record((int) $user['id'], 'order.' . $action, 'order', (int) $order['id'], [], $request->ipBinary());
+            // Annulation par le vendeur → on restaure le stock réservé (gaté sur la
+            // transition réussie ci-dessus, donc pas de double restauration).
+            if ($action === 'cancel') {
+                Order::restoreStock((int) $order['id']);
+            }
             flash('success', t('order.status_flash', ['status' => t('order.status.' . $to)]));
             // Expédition : le vendeur peut joindre un transporteur + un numéro de
             // suivi (facultatifs). On en déduit le lien de suivi cliquable, puis on

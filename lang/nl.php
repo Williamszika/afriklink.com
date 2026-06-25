@@ -505,6 +505,7 @@ return [
     'buyer.cancel_cta'       => 'Mijn bestelling annuleren',
     'buyer.cancel_confirm'   => 'Deze bestelling annuleren?',
     'buyer.cancel_done'      => 'Uw bestelling is geannuleerd.',
+    'buyer.cancel_paid_blocked' => 'Deze bestelling is al betaald: vraag een terugbetaling aan de verkoper via berichten (direct annuleren is niet mogelijk).',
     'buyer.cancel_too_late'  => 'Deze bestelling is al verzonden en kan niet meer worden geannuleerd.',
     'buyer.return_cta'       => 'Een retour aanvragen',
     'buyer.return_confirm'   => 'Een retour aanvragen voor deze bestelling?',

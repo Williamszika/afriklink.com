@@ -510,6 +510,7 @@ return [
     'buyer.cancel_cta'       => 'Meine Bestellung stornieren',
     'buyer.cancel_confirm'   => 'Diese Bestellung stornieren?',
     'buyer.cancel_done'      => 'Ihre Bestellung wurde storniert.',
+    'buyer.cancel_paid_blocked' => 'Diese Bestellung ist bereits bezahlt: Fordere über die Nachrichten eine Rückerstattung beim Verkäufer an (direkte Stornierung nicht möglich).',
     'buyer.cancel_too_late'  => 'Diese Bestellung wurde bereits versandt und kann nicht mehr storniert werden.',
     'buyer.return_cta'       => 'Rücksendung beantragen',
     'buyer.return_confirm'   => 'Eine Rücksendung für diese Bestellung beantragen?',

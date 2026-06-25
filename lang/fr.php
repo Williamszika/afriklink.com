@@ -513,6 +513,7 @@ return [
     'buyer.cancel_cta'       => 'Annuler ma commande',
     'buyer.cancel_confirm'   => 'Annuler cette commande ?',
     'buyer.cancel_done'      => 'Votre commande a été annulée.',
+    'buyer.cancel_paid_blocked' => 'Cette commande est déjà payée : demandez un remboursement au vendeur via la messagerie (l\'annulation directe n\'est pas possible).',
     'buyer.cancel_too_late'  => 'Cette commande est déjà expédiée et ne peut plus être annulée.',
     'buyer.return_cta'       => 'Demander un retour',
     'buyer.return_confirm'   => 'Demander le retour de cette commande ?',

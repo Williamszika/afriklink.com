@@ -987,7 +987,21 @@ final class BoutiqueController
             flash('error', t('buyer.cancel_too_late'));
             redirect('/boutique/commande/' . $order['public_id']);
         }
-        Order::applyAction((int) $order['id'], $status, 'cancel');
+        // Commande déjà PAYÉE en ligne : pas d'auto-annulation terminale par
+        // l'acheteur (sinon l'argent reste capturé sans remboursement). On
+        // l'oriente vers une demande de remboursement traitée par le vendeur.
+        if ((string) ($order['payment_status'] ?? 'unpaid') === 'paid') {
+            flash('error', t('buyer.cancel_paid_blocked'));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        $to = Order::applyAction((int) $order['id'], $status, 'cancel');
+        if ($to === null) {
+            flash('error', t('order.bad_transition'));
+            redirect('/boutique/commande/' . $order['public_id']);
+        }
+        // Annulation effective → on restaure le stock réservé (gaté sur la
+        // transition réussie : une 2ᵉ annulation renvoie null et ne re-crédite pas).
+        Order::restoreStock((int) $order['id']);
         $this->notifySellerOrderEvent($order, 'cancelled');
         flash('success', t('buyer.cancel_done'));
         redirect('/boutique/commande/' . $order['public_id']);

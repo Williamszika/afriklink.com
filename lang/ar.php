@@ -510,6 +510,7 @@ return [
     'buyer.cancel_cta'       => 'إلغاء طلبي',
     'buyer.cancel_confirm'   => 'إلغاء هذا الطلب؟',
     'buyer.cancel_done'      => 'تم إلغاء طلبك.',
+    'buyer.cancel_paid_blocked' => 'هذا الطلب مدفوع بالفعل: اطلب استرداد المبلغ من البائع عبر الرسائل (الإلغاء المباشر غير ممكن).',
     'buyer.cancel_too_late'  => 'تم شحن هذا الطلب بالفعل ولم يعد بالإمكان إلغاؤه.',
     'buyer.return_cta'       => 'طلب إرجاع',
     'buyer.return_confirm'   => 'طلب إرجاع لهذا الطلب؟',

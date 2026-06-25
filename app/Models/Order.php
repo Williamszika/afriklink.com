@@ -822,6 +822,38 @@ final class Order
     }
 
     /**
+     * Restaure le stock réservé par une commande (produit + variante), à
+     * n'appeler QUE lors d'une annulation effective. On ne touche pas aux stocks
+     * « illimités » (NULL). À gater sur une transition réussie (applyAction !==
+     * null) pour ne pas re-créditer le stock deux fois sur une double annulation.
+     */
+    public static function restoreStock(int $orderId): void
+    {
+        try {
+            $items = self::items($orderId);
+        } catch (\Throwable) {
+            return;
+        }
+        try {
+            $incP = db()->prepare('UPDATE products SET stock = stock + :q WHERE id = :id AND stock IS NOT NULL');
+            $incV = db()->prepare('UPDATE product_variants SET stock = stock + :q WHERE id = :id AND stock IS NOT NULL');
+            foreach ($items as $it) {
+                $qty = max(1, (int) ($it['qty'] ?? 0));
+                $pid = (int) ($it['product_id'] ?? 0);
+                $vid = (int) ($it['variant_id'] ?? 0);
+                if ($pid > 0) {
+                    $incP->execute(['q' => $qty, 'id' => $pid]);
+                }
+                if ($vid > 0) {
+                    $incV->execute(['q' => $qty, 'id' => $vid]);
+                }
+            }
+        } catch (\Throwable) {
+            // best-effort : ne jamais bloquer l'annulation pour un échec de stock
+        }
+    }
+
+    /**
      * Renseigne le transporteur + le numéro de suivi (+ lien) à l'expédition.
      * Best-effort : si les colonnes de suivi ne sont pas encore provisionnées,
      * l'expédition reste possible (le statut, lui, est déjà passé à « expédiée »).

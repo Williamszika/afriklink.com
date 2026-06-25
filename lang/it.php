@@ -510,6 +510,7 @@ return [
     'buyer.cancel_cta'       => 'Annulla il mio ordine',
     'buyer.cancel_confirm'   => 'Annullare questo ordine?',
     'buyer.cancel_done'      => 'Il tuo ordine è stato annullato.',
+    'buyer.cancel_paid_blocked' => 'Questo ordine è già pagato: richiedi un rimborso al venditore tramite messaggi (l\'annullamento diretto non è possibile).',
     'buyer.cancel_too_late'  => 'Questo ordine è già stato spedito e non può più essere annullato.',
     'buyer.return_cta'       => 'Richiedi un reso',
     'buyer.return_confirm'   => 'Richiedere un reso per questo ordine?',
