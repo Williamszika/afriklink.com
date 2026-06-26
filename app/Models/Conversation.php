@@ -28,8 +28,10 @@ final class Conversation
                 buyer_read_at  DATETIME NULL,
                 seller_read_at DATETIME NULL,
                 created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                pair_key       VARCHAR(40) NULL,
                 KEY idx_conv_buyer (buyer_id, last_at),
-                KEY idx_conv_seller (seller_id, last_at)
+                KEY idx_conv_seller (seller_id, last_at),
+                UNIQUE KEY uniq_dm_pair (pair_key)
             )'
         );
         ddl_safe(
@@ -70,6 +72,23 @@ final class Conversation
             )->fetchColumn();
             if ($lbLen !== false && (int) $lbLen < 1024) {
                 ddl_safe('ALTER TABLE conversations MODIFY last_body VARCHAR(1024) NULL');
+            }
+            // Anti-doublon des fils DIRECTS : colonne pair_key (« min-max » des deux
+            // membres, NULL pour les fils boutique/produit → MySQL autorise plusieurs
+            // NULL, pas de collision) + index UNIQUE.
+            $hasPair = db()->query(
+                "SELECT 1 FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'conversations' AND COLUMN_NAME = 'pair_key' LIMIT 1"
+            )->fetchColumn();
+            if ($hasPair === false) {
+                ddl_safe('ALTER TABLE conversations ADD COLUMN pair_key VARCHAR(40) NULL');
+            }
+            $hasIdx = db()->query(
+                "SELECT 1 FROM information_schema.STATISTICS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'conversations' AND INDEX_NAME = 'uniq_dm_pair' LIMIT 1"
+            )->fetchColumn();
+            if ($hasIdx === false) {
+                ddl_safe('ALTER TABLE conversations ADD UNIQUE KEY uniq_dm_pair (pair_key)');
             }
         } catch (\Throwable) {
             // information_schema indisponible : on ignore (les CREATE neufs sont déjà corrects).
@@ -129,26 +148,46 @@ final class Conversation
             $got = 0;
         }
         try {
-            $stmt = $pdo->prepare(
-                'SELECT * FROM conversations
-                  WHERE boutique_id IS NULL AND product_id IS NULL
-                    AND ( (buyer_id = :a AND seller_id = :b) OR (buyer_id = :b2 AND seller_id = :a2) )
-                  LIMIT 1'
-            );
-            $stmt->execute(['a' => $initiatorId, 'b' => $targetId, 'b2' => $targetId, 'a2' => $initiatorId]);
-            $row = $stmt->fetch();
+            // Recherche de la conversation directe existante (insensible au sens).
+            $sel = static function () use ($pdo, $initiatorId, $targetId) {
+                $st = $pdo->prepare(
+                    'SELECT * FROM conversations
+                      WHERE boutique_id IS NULL AND product_id IS NULL
+                        AND ( (buyer_id = :a AND seller_id = :b) OR (buyer_id = :b2 AND seller_id = :a2) )
+                      LIMIT 1'
+                );
+                $st->execute(['a' => $initiatorId, 'b' => $targetId, 'b2' => $targetId, 'a2' => $initiatorId]);
+                return $st->fetch();
+            };
+            $row = $sel();
             if ($row !== false) {
                 return $row;
             }
-            $pid = uuid();
-            $pdo->prepare(
-                'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
-                 VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
-            )->execute([
-                'pid' => $pid, 'b' => $initiatorId, 's' => $targetId,
-                'subj' => $subject !== null && $subject !== '' ? mb_substr($subject, 0, 150) : null,
-            ]);
-            return self::findByPublicId($pid) ?? [];
+            $pid     = uuid();
+            $subj    = $subject !== null && $subject !== '' ? mb_substr($subject, 0, 150) : null;
+            $pairKey = min($initiatorId, $targetId) . '-' . max($initiatorId, $targetId);
+            try {
+                // pair_key UNIQUE : même si le verrou n'a pas été obtenu (timeout),
+                // une 2ᵉ création concurrente pour la MÊME paire échoue en base →
+                // on récupère alors la conversation gagnante (jamais de doublon).
+                $pdo->prepare(
+                    'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at, pair_key)
+                     VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW(), :pk)'
+                )->execute(['pid' => $pid, 'b' => $initiatorId, 's' => $targetId, 'subj' => $subj, 'pk' => $pairKey]);
+                return self::findByPublicId($pid) ?? [];
+            } catch (\Throwable) {
+                // Soit doublon (course gagnée par une autre requête) → on renvoie
+                // l'existante ; soit colonne pair_key non migrée → insert hérité.
+                $row = $sel();
+                if ($row !== false) {
+                    return $row;
+                }
+                $pdo->prepare(
+                    'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
+                     VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
+                )->execute(['pid' => $pid, 'b' => $initiatorId, 's' => $targetId, 'subj' => $subj]);
+                return self::findByPublicId($pid) ?? [];
+            }
         } finally {
             if ($got === 1) {
                 try {

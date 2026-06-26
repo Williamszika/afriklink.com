@@ -33,8 +33,10 @@ function send_security_headers(): void
         ? ' https://challenges.cloudflare.com' : '';
     $csp = implode('; ', [
         "default-src 'self'",
-        // blob: : aperçus locaux avant envoi (photos/vidéo d'annonce)
-        "img-src 'self' data: blob: https:",
+        // blob: : aperçus locaux avant envoi (photos/vidéo d'annonce). Images
+        // limitées à NOTRE origine + Cloudinary (au lieu de « tout https ») :
+        // réduit la surface d'exfiltration/beaconing par image.
+        "img-src 'self' data: blob: https://res.cloudinary.com",
         "style-src 'self' 'unsafe-inline'",
         "script-src 'self' https://js.stripe.com" . $turnstile,
         "frame-src https://js.stripe.com https://hooks.stripe.com" . $turnstile,
