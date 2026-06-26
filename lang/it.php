@@ -2233,6 +2233,7 @@ return [
     'promo.invalid' => 'Codice promozionale non valido o scaduto.',
     'promo.already_used' => 'Questo codice promozionale è già stato utilizzato con questo account.',
     'promo.exhausted' => 'Questo codice promozionale ha appena raggiunto il limite di utilizzo.',
+    'promo.login_required' => 'Accedi per usare un codice promozionale.',
     'promo.label' => 'Codice promozionale',
     'promo.ph' => 'Il tuo codice',
     'seller.nav.pos' => 'Punto vendita',

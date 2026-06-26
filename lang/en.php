@@ -2254,6 +2254,7 @@ return [
     'promo.invalid' => 'Invalid or expired promo code.',
     'promo.already_used' => 'This promo code has already been used with this account.',
     'promo.exhausted' => 'This promo code just reached its usage limit.',
+    'promo.login_required' => 'Log in to use a promo code.',
     'promo.label' => 'Promo code',
     'promo.ph' => 'Your code',
     'seller.nav.pos' => 'Point of sale',

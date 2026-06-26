@@ -41,7 +41,7 @@ final class ProductController
         $created = Product::findByPublicId($publicId);
         if ($created !== null) {
             $stock = $this->syncVariants((int) $created['id'], $b, $data['stock'], (int) $data['price_cents']);
-            Product::setStock((int) $created['id'], $stock);
+            Product::setStock((int) $created['id'], $stock, (int) $b['id']);
             Product::setCollection((int) $created['id'], $data['collection'] ?? null);
         }
         AuditLog::record((int) current_user_id(), 'product.created', 'product', null, ['public_id' => $publicId], $request->ipBinary());
@@ -82,7 +82,7 @@ final class ProductController
         }
         // Variantes : réécrites depuis le formulaire ; products.stock recalé sur leur somme.
         $stock = $this->syncVariants((int) $p['id'], $b, $data['stock'], (int) $data['price_cents']);
-        Product::setStock((int) $p['id'], $stock);
+        Product::setStock((int) $p['id'], $stock, (int) $b['id']);
         $nowIn = $stock === null || $stock > 0;
         AuditLog::record((int) current_user_id(), 'product.updated', 'product', (int) $p['id'], [], $request->ipBinary());
 
@@ -148,13 +148,13 @@ final class ProductController
             foreach (Product::photos((int) $p['id']) as $ph) {
                 CloudinaryService::destroy('image', (string) $ph['cloud_public_id']);
             }
-            Product::delete((int) $p['id']);
+            Product::delete((int) $p['id'], (int) $b['id']);
             flash('success', t('product.deleted_flash'));
         } elseif ($action === 'pin' || $action === 'unpin') {
-            Product::setPinned((int) $p['id'], $action === 'pin');
+            Product::setPinned((int) $p['id'], $action === 'pin', (int) $b['id']);
             flash('success', t($action === 'pin' ? 'product.pinned_flash' : 'product.unpinned_flash'));
         } else {
-            Product::setStatus((int) $p['id'], $action === 'activate' ? 'active' : 'hidden');
+            Product::setStatus((int) $p['id'], $action === 'activate' ? 'active' : 'hidden', (int) $b['id']);
             flash('success', t('product.status_flash'));
         }
         AuditLog::record((int) current_user_id(), 'product.' . $action, 'product', (int) $p['id'], [], $request->ipBinary());

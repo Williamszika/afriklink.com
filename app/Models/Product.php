@@ -384,12 +384,14 @@ final class Product
     }
 
     /** Épingle (ou retire) un produit en tête de la vitrine du vendeur. */
-    public static function setPinned(int $id, bool $pinned): void
+    public static function setPinned(int $id, bool $pinned, ?int $boutiqueId = null): void
     {
         self::migrate();
         try {
-            db()->prepare('UPDATE products SET pinned = :p WHERE id = :id')
-                ->execute(['p' => $pinned ? 1 : 0, 'id' => $id]);
+            $sql  = 'UPDATE products SET pinned = :p WHERE id = :id' . ($boutiqueId !== null ? ' AND boutique_id = :b' : '');
+            $args = ['p' => $pinned ? 1 : 0, 'id' => $id];
+            if ($boutiqueId !== null) { $args['b'] = $boutiqueId; }
+            db()->prepare($sql)->execute($args);
         } catch (\Throwable) {
         }
     }
@@ -843,22 +845,38 @@ final class Product
         }
     }
 
-    public static function setStatus(int $id, string $status): void
+    public static function setStatus(int $id, string $status, ?int $boutiqueId = null): void
     {
-        db()->prepare('UPDATE products SET status = :s WHERE id = :id')->execute(['s' => $status, 'id' => $id]);
+        $sql  = 'UPDATE products SET status = :s WHERE id = :id' . ($boutiqueId !== null ? ' AND boutique_id = :b' : '');
+        $args = ['s' => $status, 'id' => $id];
+        if ($boutiqueId !== null) { $args['b'] = $boutiqueId; }
+        db()->prepare($sql)->execute($args);
     }
 
     /** Cale le stock total du produit (= somme des variantes ; null = illimité). */
-    public static function setStock(int $id, ?int $stock): void
+    public static function setStock(int $id, ?int $stock, ?int $boutiqueId = null): void
     {
         try {
-            db()->prepare('UPDATE products SET stock = :s WHERE id = :id')->execute(['s' => $stock, 'id' => $id]);
+            $sql  = 'UPDATE products SET stock = :s WHERE id = :id' . ($boutiqueId !== null ? ' AND boutique_id = :b' : '');
+            $args = ['s' => $stock, 'id' => $id];
+            if ($boutiqueId !== null) { $args['b'] = $boutiqueId; }
+            db()->prepare($sql)->execute($args);
         } catch (\Throwable) {
         }
     }
 
-    public static function delete(int $id): void
+    public static function delete(int $id, ?int $boutiqueId = null): void
     {
+        // Sûreté en profondeur : si une boutique est fournie, on ne supprime QUE
+        // si le produit lui appartient (aucune suppression cross-boutique même si
+        // un appelant futur oubliait le contrôle d'autorisation).
+        if ($boutiqueId !== null) {
+            $own = db()->prepare('SELECT 1 FROM products WHERE id = :id AND boutique_id = :b LIMIT 1');
+            $own->execute(['id' => $id, 'b' => $boutiqueId]);
+            if ($own->fetchColumn() === false) {
+                return;
+            }
+        }
         db()->prepare('DELETE FROM product_photos WHERE product_id = :id')->execute(['id' => $id]);
         db()->prepare('DELETE FROM products WHERE id = :id')->execute(['id' => $id]);
     }

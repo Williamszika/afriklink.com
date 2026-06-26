@@ -63,7 +63,14 @@ final class PaymentSettlement
                 }
                 \App\Models\Wallet::credit($sellerId, $sellerCredit, $currency, 'sale', $ref);
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // Échec du crédit APRÈS la revendication « payé » : jamais un
+            // double-crédit, mais un éventuel SOUS-crédit du vendeur. On
+            // JOURNALISE en critique (réconciliation manuelle) au lieu d'avaler
+            // l'erreur en silence.
+            if (function_exists('log_message')) {
+                log_message('critical', 'PaymentSettlement: crédit portefeuille échoué pour ' . $ref . ' — ' . $e->getMessage());
+            }
         }
 
         // Alerte vendeur (in-app) — best-effort, ne bloque jamais.

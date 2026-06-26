@@ -1268,6 +1268,13 @@ final class BoutiqueController
         $discount = 0;
         $discountRow = null;
         if ($promoCode !== '') {
+            // Code promo réservé aux COMPTES : sans connexion, la limite « 1 par
+            // client » serait contournable avec des coordonnées jetables (invité).
+            if (current_user_id() === null) {
+                keep_old($_POST);
+                flash('error', t('promo.login_required'));
+                redirect('/boutique/' . $boutique['slug'] . '/caisse');
+            }
             $discountRow = \App\Models\Discount::findValidCode((int) $boutique['id'], $promoCode);
             if ($discountRow === null) {
                 keep_old($_POST);

@@ -184,7 +184,12 @@ final class AuthController
         }
 
         if (($user['status'] ?? '') !== 'active') {
-            flash('error', t('flash.account_suspended'));
+            // Message GÉNÉRIQUE (identique à un mauvais mot de passe) : on ne révèle
+            // pas qu'un mot de passe CORRECT vise un compte suspendu (oracle). Le
+            // cas reste journalisé pour le suivi admin.
+            AuditLog::record((int) $user['id'], 'auth.login_suspended', 'user', (int) $user['id'], [], $request->ipBinary());
+            keep_old($_POST);
+            flash('error', t('flash.invalid_credentials'));
             redirect('/login');
         }
 

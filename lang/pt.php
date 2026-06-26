@@ -2233,6 +2233,7 @@ return [
     'promo.invalid' => 'Código promocional inválido ou expirado.',
     'promo.already_used' => 'Este código promocional já foi utilizado com esta conta.',
     'promo.exhausted' => 'Este código promocional acabou de atingir o limite de utilização.',
+    'promo.login_required' => 'Inicia sessão para usar um código promocional.',
     'promo.label' => 'Código promocional',
     'promo.ph' => 'O seu código',
     'seller.nav.pos' => 'Ponto de venda',
