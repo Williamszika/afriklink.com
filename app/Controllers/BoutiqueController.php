@@ -1316,25 +1316,33 @@ final class BoutiqueController
             flash('error', t('promo.exhausted'));
             redirect('/boutique/' . $boutique['slug'] . '/caisse');
         }
-        $publicId = Order::createCart([
-            'boutique_id'  => (int) $boutique['id'],
-            'user_id'      => (int) $boutique['user_id'],
-            'client_name'  => $name,
-            'client_phone' => $phone !== '' ? $phone : null,
-            'client_email' => $email !== '' ? $email : null,
-            'client_address' => ($fullAddr = trim(implode(', ', array_filter([$address, $addr2, trim($postal . ' ' . $city)])))) !== '' ? mb_substr($fullAddr, 0, 220) : null,
-            'dest_country'   => $destCountry,
-            'geo_lat'        => $hasGeo ? round($lat, 6) : null,
-            'geo_lng'        => $hasGeo ? round($lng, 6) : null,
-            'note'           => $orderNote,
-            'fulfillment'    => $fulfillment,
-            'payment_term'   => $paymentTerm,
-            'payment_method' => $paymentMethod,
-            'shipping_cents' => $shipping,
-            'discount_cents' => $discount,
-            'discount_code'  => $discountRow !== null ? (string) $discountRow['code'] : null,
-            'currency'       => $cur,
-        ], $lines);
+        try {
+            $publicId = Order::createCart([
+                'boutique_id'  => (int) $boutique['id'],
+                'user_id'      => (int) $boutique['user_id'],
+                'client_name'  => $name,
+                'client_phone' => $phone !== '' ? $phone : null,
+                'client_email' => $email !== '' ? $email : null,
+                'client_address' => ($fullAddr = trim(implode(', ', array_filter([$address, $addr2, trim($postal . ' ' . $city)])))) !== '' ? mb_substr($fullAddr, 0, 220) : null,
+                'dest_country'   => $destCountry,
+                'geo_lat'        => $hasGeo ? round($lat, 6) : null,
+                'geo_lng'        => $hasGeo ? round($lng, 6) : null,
+                'note'           => $orderNote,
+                'fulfillment'    => $fulfillment,
+                'payment_term'   => $paymentTerm,
+                'payment_method' => $paymentMethod,
+                'shipping_cents' => $shipping,
+                'discount_cents' => $discount,
+                'discount_code'  => $discountRow !== null ? (string) $discountRow['code'] : null,
+                'currency'       => $cur,
+            ], $lines);
+        } catch (\App\Exceptions\OutOfStockException) {
+            // Rupture de stock survenue PENDANT la commande (vente concurrente) :
+            // pas de survente — on renvoie le client à la caisse avec un message.
+            keep_old($_POST);
+            flash('error', t('order.out_of_stock'));
+            redirect('/boutique/' . $boutique['slug'] . '/caisse');
+        }
         // Le client a choisi son transporteur : on le mémorise sur la commande
         // (le vendeur n'aura plus qu'à coller le numéro de suivi à l'expédition).
         if ($carrier !== null) {

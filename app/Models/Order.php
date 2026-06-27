@@ -248,9 +248,18 @@ final class Order
                 ]);
                 if (!empty($l['variant_id'])) {
                     $decV->execute(['qtyv' => $l['qty'], 'qminv' => $l['qty'], 'vid' => (int) $l['variant_id']]);
+                    // Décrément STRICT (comme le POS) : 0 ligne touchée ET stock
+                    // fini = rupture pendant la commande → on annule (anti-survente).
+                    // Le rollback + la propagation sont gérés par le catch ci-dessous.
+                    if ($decV->rowCount() === 0 && !self::isUnlimited('product_variants', (int) $l['variant_id'])) {
+                        throw new \App\Exceptions\OutOfStockException();
+                    }
                 }
                 if (!empty($l['product_id'])) {
                     $dec->execute(['qty' => $l['qty'], 'qmin' => $l['qty'], 'pid' => (int) $l['product_id']]);
+                    if (empty($l['variant_id']) && $dec->rowCount() === 0 && !self::isUnlimited('products', (int) $l['product_id'])) {
+                        throw new \App\Exceptions\OutOfStockException();
+                    }
                 }
             }
             $low = self::detectLowStock($pdo, $lines);
@@ -803,7 +812,16 @@ final class Order
         if ($to === null) {
             return null;
         }
-        db()->prepare('UPDATE orders SET status = :s WHERE id = :id')->execute(['s' => $to, 'id' => $id]);
+        // Transition ATOMIQUE : on ne bascule QUE si la commande est ENCORE dans
+        // l'état attendu (AND status = :cur). rowCount()===1 garantit UNE seule
+        // transition gagnante — deux requêtes concurrentes (double-clic / rejeu
+        // CSRF) ne peuvent plus « réussir » toutes les deux, ce qui empêche une
+        // double restauration de stock à l'annulation.
+        $stmt = db()->prepare('UPDATE orders SET status = :s WHERE id = :id AND status = :cur');
+        $stmt->execute(['s' => $to, 'id' => $id, 'cur' => $current]);
+        if ($stmt->rowCount() !== 1) {
+            return null; // déjà transité par un appel concurrent
+        }
         // Horodatage d'expédition / livraison — best-effort : la colonne peut ne
         // pas encore être provisionnée en prod, ce qui ne doit jamais bloquer le
         // changement de statut (déjà appliqué ci-dessus).

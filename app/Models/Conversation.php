@@ -175,17 +175,28 @@ final class Conversation
                      VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW(), :pk)'
                 )->execute(['pid' => $pid, 'b' => $initiatorId, 's' => $targetId, 'subj' => $subj, 'pk' => $pairKey]);
                 return self::findByPublicId($pid) ?? [];
-            } catch (\Throwable) {
-                // Soit doublon (course gagnée par une autre requête) → on renvoie
-                // l'existante ; soit colonne pair_key non migrée → insert hérité.
+            } catch (\Throwable $e) {
+                // Course gagnée par une autre requête (doublon) → on renvoie l'existante.
                 $row = $sel();
                 if ($row !== false) {
                     return $row;
                 }
-                $pdo->prepare(
-                    'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
-                     VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
-                )->execute(['pid' => $pid, 'b' => $initiatorId, 's' => $targetId, 'subj' => $subj]);
+                // Colonne pair_key non migrée (SQLSTATE 42S22) → insert hérité SANS
+                // pair_key. Toute AUTRE erreur (transitoire, colonne présente) → on
+                // reprend AVEC pair_key, protégé par l'index unique : on n'émet jamais
+                // de ligne à pair_key NULL qui pourrait créer un doublon.
+                $colMissing = ($e instanceof \PDOException) && ($e->getCode() === '42S22');
+                if ($colMissing) {
+                    $pdo->prepare(
+                        'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at)
+                         VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW())'
+                    )->execute(['pid' => $pid, 'b' => $initiatorId, 's' => $targetId, 'subj' => $subj]);
+                } else {
+                    $pdo->prepare(
+                        'INSERT INTO conversations (public_id, buyer_id, seller_id, boutique_id, product_id, subject, last_at, pair_key)
+                         VALUES (:pid, :b, :s, NULL, NULL, :subj, NOW(), :pk)'
+                    )->execute(['pid' => $pid, 'b' => $initiatorId, 's' => $targetId, 'subj' => $subj, 'pk' => $pairKey]);
+                }
                 return self::findByPublicId($pid) ?? [];
             }
         } finally {

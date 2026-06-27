@@ -292,7 +292,7 @@ final class CloudinaryService
             rawurlencode(self::cloudName()),
             $sig,
             $version,
-            $publicId,
+            self::safePublicId($publicId), // no-op pour un public_id KYC valide ; sûr sinon
             $format
         );
     }
@@ -398,6 +398,10 @@ final class CloudinaryService
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_TIMEOUT        => 20,
+                // Durcissement SSRF (cohérent avec request()) : HTTPS only, pas de redirection.
+                CURLOPT_FOLLOWLOCATION => false,
+                CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
             ]);
             $body   = curl_exec($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);

@@ -88,6 +88,10 @@ final class MessageController
             redirect($back);
         }
         $conv = Conversation::findOrCreate($uid, $sellerId, (int) $boutique['id'], $productId, $subject);
+        if (empty($conv['id'])) { // création impossible (panne base) : pas de message orphelin
+            flash('error', t('msg.err_failed'));
+            redirect($back);
+        }
         Conversation::post((int) $conv['id'], $uid, $body);
         $this->notify($sellerId, $uid, (string) $conv['public_id']);
         flash('success', t('msg.sent'));
@@ -137,6 +141,10 @@ final class MessageController
             redirect($back);
         }
         $conv = Conversation::findOrCreateDirect($uid, $targetId, $subject);
+        if (empty($conv['id'])) {
+            flash('error', t('msg.err_failed'));
+            redirect($back);
+        }
         Conversation::post((int) $conv['id'], $uid, $body);
         $this->notify($targetId, $uid, (string) $conv['public_id']);
         flash('success', t('msg.sent'));
