@@ -23,7 +23,7 @@ final class ExchangeRates
         if ($from === $to) {
             return $cents;
         }
-        $rates = (array) config('currencies.per_eur', []);
+        $rates = self::ratesMap();
         $rf = isset($rates[$from]) ? (float) $rates[$from] : 0.0;
         $rt = isset($rates[$to]) ? (float) $rates[$to] : 0.0;
         if ($rf <= 0.0 || $rt <= 0.0) {
@@ -47,7 +47,7 @@ final class ExchangeRates
         if ($from === $to) {
             return 1.0;
         }
-        $rates = (array) config('currencies.per_eur', []);
+        $rates = self::ratesMap();
         $rf = isset($rates[$from]) ? (float) $rates[$from] : 0.0;
         $rt = isset($rates[$to]) ? (float) $rates[$to] : 0.0;
         if ($rf <= 0.0 || $rt <= 0.0) {
@@ -59,7 +59,40 @@ final class ExchangeRates
     /** Un taux existe-t-il pour cette paire ? */
     public static function available(string $from, string $to): bool
     {
-        $rates = (array) config('currencies.per_eur', []);
+        $rates = self::ratesMap();
         return ($rates[strtoupper(trim($from))] ?? 0) > 0 && ($rates[strtoupper(trim($to))] ?? 0) > 0;
+    }
+
+    /**
+     * Carte des taux (devise → unités par EUR) : valeurs par défaut de
+     * config/currencies.php, SURCHARGÉES par les taux rafraîchis en base
+     * (currency_rates) quand ils existent. Repli silencieux sur la config si la
+     * table est absente / la base injoignable. Mémoïsé par requête. La base
+     * (EUR = 1) est toujours réaffirmée ; les parités fixes XOF/XAF ne sont
+     * jamais écrites par le rafraîchissement, donc conservées telles quelles.
+     */
+    private static function ratesMap(): array
+    {
+        static $map = null;
+        if ($map !== null) {
+            return $map;
+        }
+        $out = [];
+        foreach ((array) config('currencies.per_eur', []) as $k => $v) {
+            $out[strtoupper((string) $k)] = (float) $v;
+        }
+        try {
+            foreach (db()->query('SELECT code, per_eur FROM currency_rates')->fetchAll() ?: [] as $r) {
+                $c   = strtoupper((string) ($r['code'] ?? ''));
+                $val = (float) ($r['per_eur'] ?? 0);
+                if ($c !== '' && $val > 0) {
+                    $out[$c] = $val;
+                }
+            }
+        } catch (\Throwable) {
+            // table absente / base injoignable : on garde les taux de config.
+        }
+        $out['EUR'] = 1.0; // base, toujours
+        return $map = $out;
     }
 }

@@ -368,13 +368,164 @@ final class CronController
     {
         $this->authorize();
         $out = [
-            'menage' => self::runQuietly(fn (): array => $this->cleanupInternal()),
-            'avis'   => self::runQuietly(fn (): array => $this->reviewRemindersInternal()),
+            'menage'    => self::runQuietly(fn (): array => $this->cleanupInternal()),
+            'avis'      => self::runQuietly(fn (): array => $this->reviewRemindersInternal()),
+            'commandes' => self::runQuietly(fn (): array => $this->orderRemindersInternal()),
         ];
         if (date('N') === '1') { // lundi
             $out['digest'] = self::runQuietly(fn (): array => $this->sellerDigestInternal());
         }
         json_response(['ok' => true, 'ran' => $out]);
+    }
+
+    /** RAPPEL COMMANDES NON CONFIRMÉES : vendeur prévenu si une commande 'new'
+     *  vient de dépasser 24 h sans être confirmée (1 rappel, sans harcèlement). */
+    public function orderReminders(Request $request): void
+    {
+        $this->authorize();
+        json_response($this->orderRemindersInternal());
+    }
+
+    /** @return array{checked:int,sent:int} */
+    private function orderRemindersInternal(): array
+    {
+        $sent = 0; $checked = 0;
+        try {
+            // Vendeurs dont une commande 'new' (online) vient de franchir 24 h
+            // (fenêtre 24→48 h) → 1 rappel ; l'âge la sort ensuite de la fenêtre,
+            // donc pas de relance quotidienne sur la même commande.
+            $rows = db()->query(
+                "SELECT DISTINCT o.user_id
+                   FROM orders o
+                  WHERE o.source = 'online' AND o.status = 'new'
+                    AND o.created_at <  (NOW() - INTERVAL 24 HOUR)
+                    AND o.created_at >= (NOW() - INTERVAL 48 HOUR)
+                  LIMIT 1000"
+            )->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return ['checked' => 0, 'sent' => 0];
+        }
+        foreach ($rows as $r) {
+            $checked++;
+            $uid     = (int) $r['user_id'];
+            $pending = self::scalar("SELECT COUNT(*) FROM orders WHERE user_id = :u AND source = 'online' AND status = 'new'", ['u' => $uid]);
+            if ($pending === 0) {
+                continue; // déjà tout confirmé entre-temps
+            }
+            $user  = \App\Models\User::findById($uid);
+            $email = trim((string) ($user['email'] ?? ''));
+            if ($email === '') {
+                continue;
+            }
+            $html = render_partial('emails/base', [
+                'subject'   => t('mail.order_reminder.subject'),
+                'preheader' => t('mail.order_reminder.intro', ['n' => $pending]),
+                'heading'   => '📦 ' . e(t('mail.order_reminder.subject')),
+                'intro'     => e(t('mail.order_reminder.intro', ['n' => $pending])),
+                'cta_url'   => url('/vendeur/commandes'),
+                'cta_label' => t('mail.order_reminder.cta'),
+                'accent'    => 'gold',
+            ]);
+            try {
+                if (MailService::send($email, t('mail.order_reminder.subject'), $html)) {
+                    $sent++;
+                }
+            } catch (\Throwable) {
+            }
+        }
+        return ['checked' => $checked, 'sent' => $sent];
+    }
+
+    /** RAFRAÎCHISSEMENT DES TAUX : met à jour les devises FLOTTANTES (jamais les
+     *  parités fixes EUR/XOF/XAF) depuis une API gratuite, en base. */
+    public function refreshRates(Request $request): void
+    {
+        $this->authorize();
+        json_response($this->refreshRatesInternal());
+    }
+
+    /** @return array<string,mixed> */
+    private function refreshRatesInternal(): array
+    {
+        // Base EUR ; couvre le F CFA. Surcouchable via RATES_API_URL.
+        $endpoint = (string) ($_ENV['RATES_API_URL'] ?? 'https://open.er-api.com/v6/latest/EUR');
+        // On ne rafraîchit JAMAIS les parités fixes (EUR base, XOF/XAF pegés).
+        $fixed  = ['EUR', 'XOF', 'XAF'];
+        $wanted = array_diff(
+            array_map('strtoupper', array_keys((array) config('currencies.per_eur', []))),
+            $fixed
+        );
+        if ($wanted === []) {
+            return ['ok' => true, 'updated' => 0];
+        }
+        $body = self::httpGet($endpoint);
+        if ($body === null) {
+            return ['ok' => false, 'error' => 'fetch'];
+        }
+        $data  = json_decode($body, true);
+        $rates = is_array($data) ? ($data['rates'] ?? $data['conversion_rates'] ?? []) : [];
+        if (!is_array($rates) || $rates === []) {
+            return ['ok' => false, 'error' => 'parse'];
+        }
+        self::ensureRatesTable();
+        $upd  = 0;
+        try {
+            $stmt = db()->prepare(
+                'INSERT INTO currency_rates (code, per_eur, updated_at) VALUES (:c, :r, NOW())
+                 ON DUPLICATE KEY UPDATE per_eur = VALUES(per_eur), updated_at = NOW()'
+            );
+        } catch (\Throwable) {
+            return ['ok' => false, 'error' => 'db'];
+        }
+        foreach ($wanted as $code) {
+            $val = isset($rates[$code]) ? (float) $rates[$code] : 0.0;
+            if ($val <= 0) {
+                continue;
+            }
+            try {
+                $stmt->execute(['c' => $code, 'r' => $val]);
+                $upd++;
+            } catch (\Throwable) {
+            }
+        }
+        return ['ok' => true, 'updated' => $upd];
+    }
+
+    private static function ensureRatesTable(): void
+    {
+        ddl_safe(
+            'CREATE TABLE IF NOT EXISTS currency_rates (
+                code       CHAR(3) NOT NULL PRIMARY KEY,
+                per_eur    DECIMAL(18,6) NOT NULL,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )'
+        );
+    }
+
+    /** GET HTTPS simple (taux de change) — HTTPS only, sans redirection, borné. */
+    private static function httpGet(string $url): ?string
+    {
+        if (!function_exists('curl_init')) {
+            return null;
+        }
+        try {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER  => true,
+                CURLOPT_CONNECTTIMEOUT  => 5,
+                CURLOPT_TIMEOUT         => 12,
+                CURLOPT_FOLLOWLOCATION  => false,
+                CURLOPT_PROTOCOLS       => CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
+                CURLOPT_USERAGENT       => 'AfrikaLink/1.0',
+            ]);
+            $body = curl_exec($ch);
+            $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            curl_close($ch);
+            return ($code >= 200 && $code < 300 && is_string($body) && $body !== '') ? $body : null;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /** DELETE/UPDATE de ménage best-effort → nb de lignes, ou 'skip' si indisponible. */

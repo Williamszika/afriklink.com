@@ -139,6 +139,8 @@ return [
     ['GET',  '/cron/menage',            [CronController::class, 'cleanup'],           ['throttle:cron,120,3600']],
     ['GET',  '/cron/relance-avis',      [CronController::class, 'reviewReminders'],   ['throttle:cron,120,3600']],
     ['GET',  '/cron/digest-vendeur',    [CronController::class, 'sellerDigest'],      ['throttle:cron,120,3600']],
+    ['GET',  '/cron/relance-commandes', [CronController::class, 'orderReminders'],    ['throttle:cron,120,3600']],
+    ['GET',  '/cron/taux',              [CronController::class, 'refreshRates'],      ['throttle:cron,120,3600']],
     ['GET',  '/cron/quotidien',         [CronController::class, 'daily'],             ['throttle:cron,120,3600']],
     ['GET',  '/mes-adresses',          [AddressController::class, 'index'],      ['auth']],
     ['POST', '/mes-adresses',          [AddressController::class, 'store'],      ['auth', 'csrf', 'throttle:addr,40,3600']],
