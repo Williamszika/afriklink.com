@@ -92,7 +92,13 @@ final class ExchangeRates
         } catch (\Throwable) {
             // table absente / base injoignable : on garde les taux de config.
         }
-        $out['EUR'] = 1.0; // base, toujours
+        // Parités FIXES réaffirmées APRÈS la surcouche base : ni une ligne en base
+        // (insérée à la main), ni un bug futur ne peuvent fausser l'EUR (base) ni
+        // le franc CFA (XOF/XAF, légalement pegés à 655,957). Repris de la config.
+        $cfg = (array) config('currencies.per_eur', []);
+        $out['EUR'] = 1.0;
+        $out['XOF'] = isset($cfg['XOF']) ? (float) $cfg['XOF'] : 655.957;
+        $out['XAF'] = isset($cfg['XAF']) ? (float) $cfg['XAF'] : 655.957;
         return $map = $out;
     }
 }

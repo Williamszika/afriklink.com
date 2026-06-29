@@ -66,7 +66,7 @@ final class DemoSeeder
         $bids = self::demoBoutiqueIds();
         $owners = [];
         if ($bids !== []) {
-            $binp = implode(',', $bids);
+            $binp = implode(',', array_map('intval', $bids));
             $owners = array_map('intval', $pdo->query("SELECT DISTINCT user_id FROM boutiques WHERE id IN ($binp) AND user_id IS NOT NULL")->fetchAll(\PDO::FETCH_COLUMN) ?: []);
             $pdo->exec("DELETE FROM product_variants WHERE boutique_id IN ($binp)");
             $pdo->exec("DELETE FROM product_photos WHERE product_id IN (SELECT id FROM products WHERE boutique_id IN ($binp))");
@@ -80,13 +80,17 @@ final class DemoSeeder
         }
         // 3) Comptes propriétaires de boutiques de test : supprimés UNIQUEMENT s'ils ne
         // possèdent plus aucune boutique, et JAMAIS s'ils sont staff (garde-fou).
+        $cntStmt   = $pdo->prepare('SELECT COUNT(*) FROM boutiques WHERE user_id = :id');
+        $emailStmt = $pdo->prepare('SELECT email FROM users WHERE id = :id');
+        $delStmt   = $pdo->prepare('DELETE FROM users WHERE id = :id');
         foreach ($owners as $oid) {
             if ($oid <= 0) { continue; }
-            $still = (int) $pdo->query("SELECT COUNT(*) FROM boutiques WHERE user_id = $oid")->fetchColumn();
-            if ($still > 0) { continue; }
-            $email = (string) ($pdo->query("SELECT email FROM users WHERE id = $oid")->fetchColumn() ?: '');
+            $cntStmt->execute(['id' => $oid]);
+            if ((int) $cntStmt->fetchColumn() > 0) { continue; }
+            $emailStmt->execute(['id' => $oid]);
+            $email = (string) ($emailStmt->fetchColumn() ?: '');
             if ($email !== '' && is_staff(['email' => $email])) { continue; }
-            try { $pdo->exec("DELETE FROM users WHERE id = $oid"); } catch (\Throwable) {}
+            try { $delStmt->execute(['id' => $oid]); } catch (\Throwable) {}
         }
         return count($bids);
     }

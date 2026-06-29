@@ -3,6 +3,11 @@
 
 RewriteEngine On
 
+# Transmettre l'en-tête Authorization à PHP (Apache/FPM ne le peuple pas par
+# défaut) → indispensable pour l'authentification Bearer des crons sur Hostinger.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Forcer HTTPS (en complément de Cloudflare)
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !=https

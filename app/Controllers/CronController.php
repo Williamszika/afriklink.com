@@ -320,12 +320,17 @@ final class CronController
         } catch (\Throwable) {
             return ['checked' => 0, 'sent' => 0];
         }
+        // Pré-agrégation en 3 requêtes GROUP BY (au lieu de 3 PAR boutique) :
+        // supprime le N+1 et tout risque de timeout sur un grand parc de boutiques.
+        $newMap   = self::countMap("SELECT boutique_id, COUNT(*) c FROM orders WHERE status = 'new' GROUP BY boutique_id");
+        $salesMap = self::countMap("SELECT boutique_id, COUNT(*) c FROM orders WHERE status <> 'cancelled' AND created_at >= (NOW() - INTERVAL 7 DAY) GROUP BY boutique_id");
+        $lowMap   = self::countMap("SELECT boutique_id, COUNT(*) c FROM products WHERE status = 'active' AND stock IS NOT NULL AND stock <= 3 GROUP BY boutique_id");
         foreach ($shops as $shop) {
             $checked++;
             $bid = (int) $shop['id'];
-            $newCount = self::scalar("SELECT COUNT(*) FROM orders WHERE boutique_id = :b AND status = 'new'", ['b' => $bid]);
-            $sales7   = self::scalar("SELECT COUNT(*) FROM orders WHERE boutique_id = :b AND status <> 'cancelled' AND created_at >= (NOW() - INTERVAL 7 DAY)", ['b' => $bid]);
-            $lowStock = self::scalar("SELECT COUNT(*) FROM products WHERE boutique_id = :b AND status = 'active' AND stock IS NOT NULL AND stock <= 3", ['b' => $bid]);
+            $newCount = $newMap[$bid] ?? 0;
+            $sales7   = $salesMap[$bid] ?? 0;
+            $lowStock = $lowMap[$bid] ?? 0;
             if ($newCount === 0 && $sales7 === 0 && $lowStock === 0) {
                 continue; // rien à dire : pas d'e-mail (anti-bruit)
             }
@@ -479,9 +484,24 @@ final class CronController
         } catch (\Throwable) {
             return ['ok' => false, 'error' => 'db'];
         }
+        // Valeurs de référence (config) pour la BANDE DE PLAUSIBILITÉ.
+        $defaults = [];
+        foreach ((array) config('currencies.per_eur', []) as $k => $v) {
+            $defaults[strtoupper((string) $k)] = (float) $v;
+        }
+        $rejected = [];
         foreach ($wanted as $code) {
             $val = isset($rates[$code]) ? (float) $rates[$code] : 0.0;
-            if ($val <= 0) {
+            if (!is_finite($val) || $val <= 0) {
+                continue;
+            }
+            // Anti-EMPOISONNEMENT : on refuse un taux qui s'écarte de plus de ×10
+            // (ou ÷10) de la référence config. Un taux absurde (API détournée /
+            // réponse corrompue) toucherait l'achat de pub débité du portefeuille
+            // et le seuil de retrait — on le rejette plutôt que de l'écrire.
+            $ref = $defaults[$code] ?? 0.0;
+            if ($ref > 0.0 && ($val > $ref * 10.0 || $val < $ref / 10.0)) {
+                $rejected[] = $code;
                 continue;
             }
             try {
@@ -490,7 +510,7 @@ final class CronController
             } catch (\Throwable) {
             }
         }
-        return ['ok' => true, 'updated' => $upd];
+        return ['ok' => true, 'updated' => $upd, 'rejected' => $rejected];
     }
 
     private static function ensureRatesTable(): void
@@ -545,6 +565,12 @@ final class CronController
         $fails = self::scalar("SELECT COUNT(*) FROM login_attempts WHERE success = 0 AND created_at > (NOW() - INTERVAL {$win} MINUTE)", []);
         if ($fails < $threshold) {
             return ['ok' => true, 'fails' => $fails, 'alerted' => false];
+        }
+        // COOLDOWN : une seule alerte par fenêtre (réutilise la table rate_limits).
+        // Un appel répété — ou un secret CRON fuité — ne peut plus re-spammer les
+        // admins (et le cron horaire ne renvoie pas tant que le pic persiste).
+        if (!rate_limit_ok('security_alert', 1, $win * 60)) {
+            return ['ok' => true, 'fails' => $fails, 'alerted' => false, 'cooldown' => true];
         }
         // Au-delà du seuil : on alerte (chiffres agrégés seulement, jamais les
         // identifiants en clair). Le verrouillage par compte + la limite par IP
@@ -624,6 +650,19 @@ final class CronController
         }
     }
 
+    /** @return array<int,int> boutique_id => count, depuis un SELECT … GROUP BY boutique_id. */
+    private static function countMap(string $sql): array
+    {
+        $out = [];
+        try {
+            foreach (db()->query($sql)->fetchAll() ?: [] as $r) {
+                $out[(int) $r['boutique_id']] = (int) $r['c'];
+            }
+        } catch (\Throwable) {
+        }
+        return $out;
+    }
+
     private static function boutiqueName(int $boutiqueId): string
     {
         try {
@@ -666,7 +705,10 @@ final class CronController
         // jamais en query string (?key=), qui finirait dans les journaux d'accès
         // (Vercel/Cloudflare), le Referer et l'historique. Vercel Cron envoie cet
         // en-tête automatiquement ; un planificateur externe doit faire de même.
-        $auth   = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
+        // Apache/PHP-FPM ne peuple pas toujours HTTP_AUTHORIZATION ; on accepte
+        // aussi REDIRECT_HTTP_AUTHORIZATION (rempli par la règle .htaccess) afin
+        // que les crons fonctionnent aussi sur Hostinger, pas seulement Vercel.
+        $auth   = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? ''));
         $given  = str_starts_with($auth, 'Bearer ') ? substr($auth, 7) : '';
         if ($secret === '' || $given === '' || !hash_equals($secret, $given)) {
             abort(404);
