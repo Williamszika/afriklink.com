@@ -224,6 +224,217 @@ final class CronController
         return $t . url('/admin');
     }
 
+    /* ---- Routines ajoutées ------------------------------------------ */
+
+    /** MÉNAGE : purge des données expirées + expiration des mises en avant. */
+    public function cleanup(Request $request): void
+    {
+        $this->authorize();
+        json_response(['ok' => true, 'cleaned' => $this->cleanupInternal()]);
+    }
+
+    /** @return array<string,int|string> nb de lignes nettoyées par table */
+    private function cleanupInternal(): array
+    {
+        return [
+            'rate_limits'         => self::safeExec('DELETE FROM rate_limits WHERE window_start < (NOW() - INTERVAL 2 DAY)'),
+            'password_resets'     => self::safeExec('DELETE FROM password_resets WHERE used_at IS NOT NULL OR expires_at < (NOW() - INTERVAL 1 DAY)'),
+            'email_verifications' => self::safeExec('DELETE FROM email_verifications WHERE verified_at IS NOT NULL OR expires_at < (NOW() - INTERVAL 1 DAY)'),
+            'abandoned_carts'     => self::safeExec('DELETE FROM abandoned_carts WHERE updated_at < (NOW() - INTERVAL 60 DAY)'),
+            'report_tokens'       => self::safeExec('DELETE FROM storefront_report_tokens WHERE used_at IS NOT NULL OR created_at < (NOW() - INTERVAL 30 DAY)'),
+            'sessions'            => self::safeExec('DELETE FROM sessions WHERE last_activity < (UNIX_TIMESTAMP() - 1209600)'),
+            'ads_expired'         => self::safeExec("UPDATE ad_campaigns SET status = 'expired' WHERE status = 'active' AND ends_at IS NOT NULL AND ends_at < NOW()"),
+        ];
+    }
+
+    /** RELANCE D'AVIS : commande livrée il y a ~3 j, sans avis → e-mail acheteur. */
+    public function reviewReminders(Request $request): void
+    {
+        $this->authorize();
+        json_response($this->reviewRemindersInternal());
+    }
+
+    /** @return array{checked:int,sent:int} */
+    private function reviewRemindersInternal(): array
+    {
+        $sent = 0; $checked = 0;
+        try {
+            // Fenêtre d'un jour (livré il y a 3→4 j) : chaque commande n'est
+            // candidate qu'une seule fois (le cron tourne chaque jour) → 1 relance max.
+            $rows = db()->query(
+                "SELECT o.id, o.public_id, o.boutique_id, o.buyer_user_id
+                   FROM orders o
+                  WHERE o.source = 'online' AND o.status = 'delivered' AND o.buyer_user_id > 0
+                    AND o.delivered_at IS NOT NULL
+                    AND o.delivered_at <  (NOW() - INTERVAL 3 DAY)
+                    AND o.delivered_at >= (NOW() - INTERVAL 4 DAY)
+                  ORDER BY o.id DESC LIMIT 300"
+            )->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return ['checked' => 0, 'sent' => 0]; // delivered_at non provisionné : on s'abstient
+        }
+        foreach ($rows as $o) {
+            $checked++;
+            $buyerId = (int) $o['buyer_user_id'];
+            if (self::buyerReviewedOrder($buyerId, (int) $o['id'])) {
+                continue; // a déjà laissé un avis : pas de relance
+            }
+            $user  = \App\Models\User::findById($buyerId);
+            $email = trim((string) ($user['email'] ?? ''));
+            if ($email === '') {
+                continue;
+            }
+            $shop = self::boutiqueName((int) $o['boutique_id']);
+            $html = render_partial('emails/base', [
+                'subject'   => t('mail.review_reminder.subject'),
+                'preheader' => t('mail.review_reminder.intro', ['shop' => $shop]),
+                'heading'   => '🌟 ' . e(t('mail.review_reminder.subject')),
+                'intro'     => e(t('mail.review_reminder.intro', ['shop' => $shop])),
+                'cta_url'   => url('/boutique/commande/' . $o['public_id'] . '#avis'),
+                'cta_label' => t('mail.review_reminder.cta'),
+                'accent'    => 'gold',
+            ]);
+            try {
+                if (MailService::send($email, t('mail.review_reminder.subject'), $html)) {
+                    $sent++;
+                }
+            } catch (\Throwable) {
+            }
+        }
+        return ['checked' => $checked, 'sent' => $sent];
+    }
+
+    /** DIGEST VENDEUR : récap hebdo (commandes à traiter, ventes 7 j, stock bas). */
+    public function sellerDigest(Request $request): void
+    {
+        $this->authorize();
+        json_response($this->sellerDigestInternal());
+    }
+
+    /** @return array{checked:int,sent:int} */
+    private function sellerDigestInternal(): array
+    {
+        $sent = 0; $checked = 0;
+        try {
+            $shops = db()->query("SELECT id, user_id FROM boutiques WHERE status = 'published' ORDER BY id ASC LIMIT 2000")->fetchAll() ?: [];
+        } catch (\Throwable) {
+            return ['checked' => 0, 'sent' => 0];
+        }
+        foreach ($shops as $shop) {
+            $checked++;
+            $bid = (int) $shop['id'];
+            $newCount = self::scalar("SELECT COUNT(*) FROM orders WHERE boutique_id = :b AND status = 'new'", ['b' => $bid]);
+            $sales7   = self::scalar("SELECT COUNT(*) FROM orders WHERE boutique_id = :b AND status <> 'cancelled' AND created_at >= (NOW() - INTERVAL 7 DAY)", ['b' => $bid]);
+            $lowStock = self::scalar("SELECT COUNT(*) FROM products WHERE boutique_id = :b AND status = 'active' AND stock IS NOT NULL AND stock <= 3", ['b' => $bid]);
+            if ($newCount === 0 && $sales7 === 0 && $lowStock === 0) {
+                continue; // rien à dire : pas d'e-mail (anti-bruit)
+            }
+            $user  = \App\Models\User::findById((int) $shop['user_id']);
+            $email = trim((string) ($user['email'] ?? ''));
+            if ($email === '') {
+                continue;
+            }
+            $lines = '';
+            if ($newCount > 0) { $lines .= '<li>' . e(t('mail.digest.line_new', ['n' => $newCount])) . '</li>'; }
+            if ($sales7 > 0)   { $lines .= '<li>' . e(t('mail.digest.line_sales', ['n' => $sales7])) . '</li>'; }
+            if ($lowStock > 0) { $lines .= '<li>' . e(t('mail.digest.line_lowstock', ['n' => $lowStock])) . '</li>'; }
+            $html = render_partial('emails/base', [
+                'subject'   => t('mail.digest.subject'),
+                'preheader' => t('mail.digest.intro'),
+                'heading'   => '📊 ' . e(t('mail.digest.subject')),
+                'intro'     => e(t('mail.digest.intro')),
+                'body'      => '<ul style="padding-left:18px;margin:6px 0 14px;line-height:1.8">' . $lines . '</ul>',
+                'cta_url'   => url('/vendeur'),
+                'cta_label' => t('mail.digest.cta'),
+                'accent'    => 'forest',
+            ]);
+            try {
+                if (MailService::send($email, t('mail.digest.subject'), $html)) {
+                    $sent++;
+                }
+            } catch (\Throwable) {
+            }
+        }
+        return ['checked' => $checked, 'sent' => $sent];
+    }
+
+    /**
+     * MASTER QUOTIDIEN : enchaîne les routines journalières en UN seul appel —
+     * pratique sur Vercel gratuit (2 crons max). Le digest vendeur ne part que le
+     * lundi. Sur Hostinger, on peut au contraire planifier chaque endpoint
+     * séparément pour un réglage fin (voir .env.example).
+     */
+    public function daily(Request $request): void
+    {
+        $this->authorize();
+        $out = [
+            'menage' => self::runQuietly(fn (): array => $this->cleanupInternal()),
+            'avis'   => self::runQuietly(fn (): array => $this->reviewRemindersInternal()),
+        ];
+        if (date('N') === '1') { // lundi
+            $out['digest'] = self::runQuietly(fn (): array => $this->sellerDigestInternal());
+        }
+        json_response(['ok' => true, 'ran' => $out]);
+    }
+
+    /** DELETE/UPDATE de ménage best-effort → nb de lignes, ou 'skip' si indisponible. */
+    private static function safeExec(string $sql): int|string
+    {
+        try {
+            $stmt = db()->prepare($sql);
+            $stmt->execute();
+            return $stmt->rowCount();
+        } catch (\Throwable) {
+            return 'skip';
+        }
+    }
+
+    private static function scalar(string $sql, array $args): int
+    {
+        try {
+            $stmt = db()->prepare($sql);
+            $stmt->execute($args);
+            return (int) $stmt->fetchColumn();
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    private static function boutiqueName(int $boutiqueId): string
+    {
+        try {
+            $stmt = db()->prepare('SELECT name FROM boutiques WHERE id = :id LIMIT 1');
+            $stmt->execute(['id' => $boutiqueId]);
+            return (string) ($stmt->fetchColumn() ?: 'AfrikaLink');
+        } catch (\Throwable) {
+            return 'AfrikaLink';
+        }
+    }
+
+    private static function buyerReviewedOrder(int $buyerId, int $orderId): bool
+    {
+        try {
+            $stmt = db()->prepare(
+                'SELECT 1 FROM reviews r JOIN order_items oi ON oi.product_id = r.product_id
+                  WHERE oi.order_id = :o AND r.user_id = :u LIMIT 1'
+            );
+            $stmt->execute(['o' => $orderId, 'u' => $buyerId]);
+            return $stmt->fetchColumn() !== false;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /** @return array|string résultat de la routine, ou 'error' si elle a échoué. */
+    private static function runQuietly(callable $fn): array|string
+    {
+        try {
+            return $fn();
+        } catch (\Throwable) {
+            return 'error';
+        }
+    }
+
     private function authorize(): void
     {
         $secret = trim((string) ($_ENV['CRON_SECRET'] ?? ''));
