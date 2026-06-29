@@ -371,6 +371,8 @@ final class CronController
             'menage'    => self::runQuietly(fn (): array => $this->cleanupInternal()),
             'avis'      => self::runQuietly(fn (): array => $this->reviewRemindersInternal()),
             'commandes' => self::runQuietly(fn (): array => $this->orderRemindersInternal()),
+            'securite'  => self::runQuietly(fn (): array => $this->securityAlertInternal()),
+            'annonces'  => self::runQuietly(fn (): array => $this->expireListingsInternal()),
         ];
         if (date('N') === '1') { // lundi
             $out['digest'] = self::runQuietly(fn (): array => $this->sellerDigestInternal());
@@ -526,6 +528,77 @@ final class CronController
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /** ALERTE SÉCURITÉ : prévient les admins en cas de PIC d'échecs de connexion. */
+    public function securityAlert(Request $request): void
+    {
+        $this->authorize();
+        json_response($this->securityAlertInternal());
+    }
+
+    /** @return array<string,mixed> */
+    private function securityAlertInternal(): array
+    {
+        $win       = max(10, min(1440, (int) ($_ENV['SECURITY_ALERT_WINDOW_MIN'] ?? 60)));
+        $threshold = max(10, (int) ($_ENV['SECURITY_ALERT_THRESHOLD'] ?? 100));
+        $fails = self::scalar("SELECT COUNT(*) FROM login_attempts WHERE success = 0 AND created_at > (NOW() - INTERVAL {$win} MINUTE)", []);
+        if ($fails < $threshold) {
+            return ['ok' => true, 'fails' => $fails, 'alerted' => false];
+        }
+        // Au-delà du seuil : on alerte (chiffres agrégés seulement, jamais les
+        // identifiants en clair). Le verrouillage par compte + la limite par IP
+        // restent la défense ; ceci est une SURVEILLANCE.
+        $ips      = self::scalar("SELECT COUNT(DISTINCT ip) FROM login_attempts WHERE success = 0 AND created_at > (NOW() - INTERVAL {$win} MINUTE)", []);
+        $accounts = self::scalar("SELECT COUNT(DISTINCT email) FROM login_attempts WHERE success = 0 AND created_at > (NOW() - INTERVAL {$win} MINUTE)", []);
+        $to   = Supervision::recipients();
+        $sent = 0;
+        if ($to !== []) {
+            $html = render_partial('emails/base', [
+                'subject'   => t('mail.security_alert.subject'),
+                'preheader' => t('mail.security_alert.intro', ['n' => $fails, 'm' => $win]),
+                'heading'   => '🚨 ' . e(t('mail.security_alert.subject')),
+                'intro'     => e(t('mail.security_alert.intro', ['n' => $fails, 'm' => $win])),
+                'body'      => '<ul style="padding-left:18px;margin:6px 0 14px;line-height:1.8">'
+                    . '<li>' . e(t('mail.security_alert.ips', ['n' => $ips])) . '</li>'
+                    . '<li>' . e(t('mail.security_alert.accounts', ['n' => $accounts])) . '</li></ul>',
+                'cta_url'   => url('/admin'),
+                'cta_label' => t('mail.security_alert.cta'),
+                'accent'    => 'gold',
+            ]);
+            foreach ($to as $email) {
+                try {
+                    if (MailService::send((string) $email, t('mail.security_alert.subject'), $html)) {
+                        $sent++;
+                    }
+                } catch (\Throwable) {
+                }
+            }
+        }
+        return ['ok' => true, 'fails' => $fails, 'alerted' => true, 'sent' => $sent];
+    }
+
+    /** EXPIRATION DES ANNONCES : passe en 'expired' les annonces actives inactives
+     *  depuis LISTING_EXPIRE_DAYS jours (0 = désactivé). Récupérable par le vendeur. */
+    public function expireListings(Request $request): void
+    {
+        $this->authorize();
+        json_response($this->expireListingsInternal());
+    }
+
+    /** @return array<string,mixed> */
+    private function expireListingsInternal(): array
+    {
+        $days = (int) ($_ENV['LISTING_EXPIRE_DAYS'] ?? 180);
+        if ($days <= 0) {
+            return ['ok' => true, 'expired' => 0, 'disabled' => true];
+        }
+        $days = min(3650, $days);
+        // updated_at se rafraîchit à chaque édition/republication → « bumper » une
+        // annonce la garde active. 'expired' la sort des listes publiques mais
+        // reste visible (et réactivable) par son propriétaire.
+        $n = self::safeExec("UPDATE listings SET status = 'expired' WHERE status = 'active' AND updated_at < (NOW() - INTERVAL {$days} DAY)");
+        return ['ok' => true, 'expired' => $n];
     }
 
     /** DELETE/UPDATE de ménage best-effort → nb de lignes, ou 'skip' si indisponible. */
