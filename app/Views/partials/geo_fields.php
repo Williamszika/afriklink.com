@@ -50,6 +50,8 @@ $locked = ($lat ?? '') !== '' && ($lng ?? '') !== '';
 <p class="hint geo-continent" id="shop-continent" data-prefix="🌍 <?= e(t('geo.continent_label')) ?>">
     🌍 <?= e(t('geo.continent_label')) ?> <?= !empty($continent) ? e(t('geo.continent.' . $continent)) : '—' ?>
 </p>
-<p class="hint geo-lock-note" id="geo-lock-note" <?= $locked ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?></p>
+<p class="hint geo-lock-note" id="geo-lock-note" <?= $locked ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?>
+    <button type="button" id="shop-geo-unlock" class="link-button">— <?= e(t('geo.unlock')) ?></button>
+</p>
 <input type="hidden" id="geo-lat" name="geo_lat" value="<?= e((string) ($lat ?? '')) ?>">
 <input type="hidden" id="geo-lng" name="geo_lng" value="<?= e((string) ($lng ?? '')) ?>">

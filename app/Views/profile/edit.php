@@ -5,8 +5,18 @@ $contact   = $hasEmail ? (string) ($user['email'] ?? '') : (string) ($user['phon
 $bd        = old('birthdate') ?: (!empty($user['birthdate']) ? date('d/m/Y', strtotime((string) $user['birthdate'])) : '');
 $g         = old('gender') ?: (string) ($user['gender'] ?? '');
 $autoGeo   = detected_geo(); // localisation détectée (IP/GPS) en secours quand le profil est vide
-$cc        = old('country_code') ?: strtoupper((string) ($user['country_code'] ?? '')) ?: (string) ($autoGeo['country_code'] ?? '');
-$city      = old('city') ?: ((string) ($user['city'] ?? '') ?: (string) ($autoGeo['city'] ?? ''));
+$savedCc   = strtoupper((string) ($user['country_code'] ?? ''));
+$savedCity = (string) ($user['city'] ?? '');
+$cc        = old('country_code') ?: ($savedCc ?: (string) ($autoGeo['country_code'] ?? ''));
+$city      = old('city') ?: ($savedCity ?: (string) ($autoGeo['city'] ?? ''));
+// Profil VIERGE (aucun pays/ville enregistrés, aucune saisie en cours) → pays et
+// ville préremplis ET VERROUILLÉS depuis la géolocalisation quand elle tombe en
+// zone (Afrique/Europe), comme à l'inscription. « Modifier » rouvre tout ; le GPS
+// affine. Un profil déjà renseigné reste librement modifiable.
+$geoFresh    = old('country_code') === '' && old('city') === '' && $savedCc === '' && $savedCity === '';
+$lockCountry = $geoFresh && (string) ($autoGeo['country_code'] ?? '') !== ''
+    && in_array(\App\Services\GeoService::continentOf((string) ($autoGeo['country_code'] ?? '')), ['africa', 'europe'], true);
+$lockCity    = $lockCountry && (string) ($autoGeo['city'] ?? '') !== '';
 $avatarUrl = avatar_url($user, $avatar_version ?? null);
 ?>
 <section class="profile">
@@ -86,18 +96,28 @@ $avatarUrl = avatar_url($user, $avatar_version ?? null);
             <div class="grid-2">
                 <div>
                     <label for="country_code"><?= e(t('field.country')) ?></label>
-                    <select id="country_code" name="country_code" required>
-                        <option value=""><?= e(t('field.choose')) ?></option>
-                        <?php foreach ($countries as $code => $name): ?>
-                            <option value="<?= e($code) ?>" <?= $cc === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?php if ($lockCountry): ?>
+                        <select id="country_code" class="locked-field is-locked" disabled aria-disabled="true" tabindex="-1">
+                            <option value=""><?= e(t('field.choose')) ?></option>
+                            <?php foreach ($countries as $code => $name): ?>
+                                <option value="<?= e($code) ?>" <?= $cc === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="hidden" name="country_code" id="country_code_value" value="<?= e($cc) ?>">
+                    <?php else: ?>
+                        <select id="country_code" name="country_code" required>
+                            <option value=""><?= e(t('field.choose')) ?></option>
+                            <?php foreach ($countries as $code => $name): ?>
+                                <option value="<?= e($code) ?>" <?= $cc === $code ? 'selected' : '' ?>><?= flag_emoji($code) ?> <?= e($name) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php endif; ?>
                     <?php if (has_error('country_code')): ?><p class="field-error"><?= e(error('country_code')) ?></p><?php endif; ?>
                 </div>
                 <div>
                     <label for="city"><?= e(t('field.city')) ?></label>
-                    <input type="text" id="city" name="city" value="<?= e($city) ?>" autocomplete="address-level2">
-                    <?= render_partial('partials/geo_lock_controls') ?>
+                    <input type="text" id="city" name="city" value="<?= e($city) ?>" autocomplete="address-level2"<?= $lockCity ? ' readonly class="is-locked" data-geo-prefill="1"' : '' ?>>
+                    <?= render_partial('partials/geo_lock_controls', ['locked' => $lockCountry || $lockCity]) ?>
                 </div>
             </div>
 

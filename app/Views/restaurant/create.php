@@ -69,7 +69,11 @@ $autoGeo = detected_geo();
             'city' => old('city') !== '' ? old('city') : (string) ($autoGeo['city'] ?? ''),
             'cc'   => old('country_code') !== '' ? old('country_code') : (string) ($autoGeo['country_code'] ?? ''),
             'continent' => $autoGeo['continent'] ?? null,
-            'lat'  => old('geo_lat'), 'lng' => old('geo_lng'),
+            // Coordonnées détectées (IP ou GPS) préremplies → ville/pays verrouillés
+            // dès le chargement, comme à la création d'une boutique. « Modifier »
+            // rouvre la saisie ; 📍 affine au GPS.
+            'lat'  => old('geo_lat') !== '' ? old('geo_lat') : (string) ($autoGeo['lat'] ?? ''),
+            'lng'  => old('geo_lng') !== '' ? old('geo_lng') : (string) ($autoGeo['lng'] ?? ''),
         ]) ?>
 
         <div class="grid-2">

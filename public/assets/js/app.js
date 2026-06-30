@@ -77,6 +77,35 @@ function showToast(msg) {
     });
 })();
 
+// Same escape hatch for the boutique/restaurant location block (geo_fields
+// partial, which uses shop-* ids and the [data-geolocate] flow). The location is
+// locked as soon as a position is known — even an IP-coarse one — so this lets
+// the seller correct a wrong city/country by hand, and tells the auto-geoloc to
+// stop re-locking the fields.
+(function () {
+    'use strict';
+
+    var unlockBtn = document.getElementById('shop-geo-unlock');
+    if (!unlockBtn) { return; }
+
+    unlockBtn.addEventListener('click', function () {
+        var city = document.getElementById('shop-city');
+        if (city) { city.readOnly = false; city.classList.remove('is-locked'); city.dataset.unlocked = '1'; }
+        var country = document.getElementById('shop-country');
+        if (country) {
+            country.disabled = false;
+            country.removeAttribute('aria-disabled');
+            country.classList.remove('is-locked', 'locked-field');
+            country.name = 'country_code';   // re-enabled select submits itself
+            country.dataset.unlocked = '1';  // tells runGeolocate to back off
+        }
+        var hidden = document.getElementById('shop-country-locked');
+        if (hidden && hidden.parentNode) { hidden.parentNode.removeChild(hidden); }
+        var note = document.getElementById('geo-lock-note');
+        if (note) { note.hidden = true; }
+    });
+})();
+
 // Precise city detection on the registration form (target ≤100 m) — fully silent.
 // The server pre-fills from IP (approximate); the browser's Geolocation API (the
 // permission prompt IS the user's consent) refines until accuracy ≤100 m (12 s
@@ -243,7 +272,17 @@ function showToast(msg) {
     // Silent attempt on load — only when the city is empty, so we never overwrite
     // a value already typed or saved (profile / annonce editing). The button
     // always (re)detects on demand.
-    if (!city.value.trim()) { refine('silent'); }
+    if (!city.value.trim()) {
+        refine('silent');
+    } else if (city.dataset.geoPrefill === '1' && city.dataset.unlocked !== '1'
+        && navigator.permissions && navigator.permissions.query) {
+        // City pre-filled by coarse detection (IP/edge) and locked: refine it to a
+        // precise GPS fix — but ONLY if permission is already granted, so we never
+        // raise a new prompt on load. Otherwise the 📍 button stays available.
+        navigator.permissions.query({ name: 'geolocation' }).then(function (p) {
+            if (p.state === 'granted') { refine('silent'); }
+        }).catch(function () { /* indisponible : le bouton 📍 reste là */ });
+    }
 })();
 
 /* ---- Photo de profil : réduction côté navigateur avant envoi ----
@@ -716,8 +755,10 @@ function runGeolocate(btn, silent) {
 
             // Position fournie → ville/pays verrouillés (📍 reste le seul
             // moyen de les actualiser). Le select désactivé n'envoie rien :
-            // un champ caché porte le pays à sa place.
-            if (btn.getAttribute('data-geo-lock') === '1') {
+            // un champ caché porte le pays à sa place. On NE reverrouille PAS un
+            // champ que le vendeur a explicitement rouvert (lien « Modifier »).
+            var manuallyUnlocked = (city && city.dataset.unlocked === '1') || (country && country.dataset.unlocked === '1');
+            if (btn.getAttribute('data-geo-lock') === '1' && !manuallyUnlocked) {
                 if (city) { city.readOnly = true; city.classList.add('is-locked'); }
                 if (country) {
                     country.disabled = true;

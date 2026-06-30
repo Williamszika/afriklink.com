@@ -5,9 +5,16 @@ $conditions = config('listings.conditions', []);
 $currencies = config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']);
 $selCat     = old('category');
 $selCond    = old('condition');
-$geoCur     = currency_for_country((string) (detected_geo()['country_code'] ?? '')) ?? '';
+$autoGeo    = detected_geo();
+$geoCur     = currency_for_country((string) ($autoGeo['country_code'] ?? '')) ?? '';
 $selCur     = old('currency') ?: ($geoCur ?: (string) ($user['preferred_currency'] ?? 'EUR'));
-$city       = old('city') ?: (string) ($user['city'] ?? '');
+// Ville : saisie renvoyée > ville enregistrée du compte > géolocalisation détectée.
+$city       = old('city') ?: ((string) ($user['city'] ?? '') ?: (string) ($autoGeo['city'] ?? ''));
+// Verrouillée quand elle vient d'une détection EN ZONE (Afrique/Europe) et que
+// l'annonceur n'a pas de ville enregistrée. « Modifier » rouvre la saisie ; le
+// GPS l'affine (voir app.js). Hors zone : libre (détection peu fiable).
+$cityFromGeo = old('city') === '' && (string) ($user['city'] ?? '') === '' && (string) ($autoGeo['city'] ?? '') !== '';
+$lockCity    = $cityFromGeo && in_array(\App\Services\GeoService::continentOf((string) ($autoGeo['country_code'] ?? '')), ['africa', 'europe'], true);
 $hasPhone   = !empty($user['phone']);
 $maxPhotos  = (int) config('listings.max_photos', 5);
 $maxVideoS  = (int) config('listings.max_video_seconds', 60);
@@ -86,8 +93,9 @@ $maxVideoS  = (int) config('listings.max_video_seconds', 60);
         </div>
 
         <label for="city"><?= e(t('field.city')) ?></label>
-        <input type="text" id="city" name="city" value="<?= e($city) ?>" maxlength="120">
-        <?= render_partial('partials/geo_lock_controls') ?>
+        <input type="text" id="city" name="city" value="<?= e($city) ?>" maxlength="120"
+               autocomplete="address-level2"<?= $lockCity ? ' readonly class="is-locked" data-geo-prefill="1"' : '' ?>>
+        <?= render_partial('partials/geo_lock_controls', ['locked' => $lockCity]) ?>
 
         <!-- Photos : fichiers, appareil photo, glisser-déposer ou coller -->
         <label><?= e(t('listing.field.photos', ['max' => $maxPhotos])) ?></label>
