@@ -28,16 +28,19 @@ final class AuthController
     }
 
     /**
-     * Step 2 (Particulier): the individual form. The country select is pre-chosen
-     * from the IP (country-level is reliable); the city field intentionally starts
-     * EMPTY — IP-level city is too often wrong (carrier/VPN exit). The browser's
-     * silent GPS refinement fills it only with a precise fix (see app.js).
+     * Step 2 (Particulier): the individual form. Country, city and phone dial code
+     * are pre-filled and LOCKED from the detected location — detected_geo() gives
+     * the best available source (saved account location > precise GPS > IP), and
+     * works on ANY host (it falls back to a server-side IP lookup when no CDN geo
+     * header is present). The browser's silent GPS refinement sharpens the city,
+     * and the "Ce n'est pas ma position ?" link reopens everything (see app.js).
      */
     public function showRegisterParticulier(Request $request): void
     {
+        $geo = detected_geo();
         view('auth/register_particulier', [
-            'detected_country' => detect_country_code(),
-            'detected_city'    => detect_city(),
+            'detected_country' => (string) ($geo['country_code'] ?? ''),
+            'detected_city'    => (string) ($geo['city'] ?? ''),
             'countries'        => countries_list(),
         ]);
     }

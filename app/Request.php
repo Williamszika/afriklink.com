@@ -79,6 +79,16 @@ final class Request
      */
     public function ip(): string
     {
+        return self::resolveIp();
+    }
+
+    /**
+     * Même résolution anti-usurpation, accessible SANS instance (helpers globaux
+     * comme detected_geo() qui ne reçoivent pas l'objet Request). L'en-tête de
+     * transfert n'est honoré que depuis un proxy de confiance ; sinon REMOTE_ADDR.
+     */
+    public static function resolveIp(): string
+    {
         $remote = is_string($_SERVER['REMOTE_ADDR'] ?? null) ? (string) $_SERVER['REMOTE_ADDR'] : '';
         if ($remote !== '' && self::isTrustedProxy($remote)) {
             $fwd = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? '';

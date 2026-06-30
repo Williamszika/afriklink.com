@@ -47,6 +47,25 @@ final class GeoService
         return self::fromNominatim($lat, $lng, $locale) ?? self::fromBigDataCloud($lat, $lng, $locale);
     }
 
+    /**
+     * Géolocalisation APPROXIMATIVE par adresse IP. Repli indépendant de
+     * l'hébergeur : quand aucun en-tête géo de CDN n'est présent (cas d'un
+     * hébergement mutualisé type Hostinger sans Cloudflare géo, ou Vercel absent),
+     * on déduit pays/ville/coordonnées de l'IP publique du visiteur via un service
+     * gratuit, sans clé, en HTTPS. Deux fournisseurs en secours l'un de l'autre.
+     * « Fail-open » : null en cas d'échec ou d'IP privée/réservée (jamais bloquant).
+     * @return ?array{city:?string,country:?string,country_code:?string,continent:?string,lat:?float,lng:?float}
+     */
+    public static function fromIp(string $ip, string $locale = 'fr'): ?array
+    {
+        // IP PUBLIQUE uniquement : interroger pour une IP privée/réservée (LAN,
+        // localhost, CGNAT) est inutile et fuiterait une adresse interne.
+        if ($ip === '' || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return null;
+        }
+        return self::fromIpWhoIs($ip) ?? self::fromIpApiCo($ip);
+    }
+
     /** Nominatim (OpenStreetMap) — User-Agent identifiant requis par leur politique. */
     private static function fromNominatim(float $lat, float $lng, string $locale): ?array
     {
@@ -97,8 +116,51 @@ final class GeoService
         ];
     }
 
+    /** ipwho.is — géolocalisation IP gratuite, sans clé, HTTPS. */
+    private static function fromIpWhoIs(string $ip): ?array
+    {
+        $data = self::getJson('https://ipwho.is/' . rawurlencode($ip), 3);
+        if (!is_array($data) || ($data['success'] ?? null) !== true) {
+            return null;
+        }
+        $cc = isset($data['country_code']) ? strtoupper((string) $data['country_code']) : '';
+        if (preg_match('/^[A-Z]{2}$/', $cc) !== 1) {
+            return null;
+        }
+        return [
+            'city'         => isset($data['city']) && $data['city'] !== '' ? (string) $data['city'] : null,
+            'country'      => isset($data['country']) ? (string) $data['country'] : null,
+            'country_code' => $cc,
+            'continent'    => self::continentOf($cc),
+            'lat'          => isset($data['latitude'])  && is_numeric($data['latitude'])  ? (float) $data['latitude']  : null,
+            'lng'          => isset($data['longitude']) && is_numeric($data['longitude']) ? (float) $data['longitude'] : null,
+        ];
+    }
+
+    /** ipapi.co (secours) — géolocalisation IP gratuite, sans clé, HTTPS. */
+    private static function fromIpApiCo(string $ip): ?array
+    {
+        $data = self::getJson('https://ipapi.co/' . rawurlencode($ip) . '/json/', 3);
+        if (!is_array($data) || !empty($data['error'])) {
+            return null;
+        }
+        // ipapi.co met le code ISO dans « country_code » (et le nom dans « country_name »).
+        $cc = isset($data['country_code']) ? strtoupper((string) $data['country_code']) : '';
+        if (preg_match('/^[A-Z]{2}$/', $cc) !== 1) {
+            return null;
+        }
+        return [
+            'city'         => isset($data['city']) && $data['city'] !== '' ? (string) $data['city'] : null,
+            'country'      => isset($data['country_name']) ? (string) $data['country_name'] : null,
+            'country_code' => $cc,
+            'continent'    => self::continentOf($cc),
+            'lat'          => isset($data['latitude'])  && is_numeric($data['latitude'])  ? (float) $data['latitude']  : null,
+            'lng'          => isset($data['longitude']) && is_numeric($data['longitude']) ? (float) $data['longitude'] : null,
+        ];
+    }
+
     /** GET JSON avec délai court ; null en cas d'échec. @return ?array<string,mixed> */
-    private static function getJson(string $url): ?array
+    private static function getJson(string $url, int $timeout = 6): ?array
     {
         try {
             $ch = curl_init($url);
@@ -107,8 +169,8 @@ final class GeoService
             }
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 6,
-                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_TIMEOUT        => max(1, $timeout),
+                CURLOPT_CONNECTTIMEOUT => min(4, max(1, $timeout)),
                 CURLOPT_HTTPHEADER     => ['Accept: application/json'],
                 CURLOPT_USERAGENT      => 'Afriklink/1.0 (marketplace; ' . (config('app.url') ?: 'https://afriklink.com') . ')',
             ]);

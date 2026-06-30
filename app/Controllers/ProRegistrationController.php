@@ -20,9 +20,13 @@ final class ProRegistrationController
 {
     public function show(Request $request): void
     {
+        // Localisation robuste (compte sauvegardé > GPS précis > IP, et repli IP
+        // côté serveur si aucun en-tête géo de CDN) → pays/ville/indicatif
+        // préremplis et verrouillés quand la détection tombe dans la zone.
+        $geo = detected_geo();
         view('auth/register_pro', [
-            'detected_country' => detect_country_code(),
-            'detected_city'    => detect_city(),
+            'detected_country' => (string) ($geo['country_code'] ?? ''),
+            'detected_city'    => (string) ($geo['city'] ?? ''),
             'countries'        => countries_list(),
         ]);
     }

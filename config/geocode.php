@@ -18,4 +18,9 @@ return [
     // User-Agent requis par Nominatim — METTRE un contact réel en production.
     'user_agent' => env('GEOCODE_USER_AGENT', 'AfrikaLink/1.0 (+https://afriklink.com; contact@afriklink.com)'),
     'timeout'    => (int) env('GEOCODE_TIMEOUT', 5),
+    // Repli de géolocalisation par IP (pays/ville approximatifs) quand aucun
+    // en-tête géo de CDN n'est présent — rend la géoloc fonctionnelle sur tout
+    // hébergeur (ex. Hostinger). Mettre GEO_IP_LOOKUP=0 pour le désactiver et
+    // ne s'appuyer que sur Vercel/Cloudflare.
+    'ip_lookup'  => filter_var(env('GEO_IP_LOOKUP', '1'), FILTER_VALIDATE_BOOL),
 ];

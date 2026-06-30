@@ -406,16 +406,43 @@ function detected_geo(): array
     }
     $cc   = detect_country_code() ?: null;
     $city = detect_city() ?: null;
-    $lat  = request_header('X-Vercel-IP-Latitude');
-    $lng  = request_header('X-Vercel-IP-Longitude');
+    $latH = request_header('X-Vercel-IP-Latitude');
+    $lngH = request_header('X-Vercel-IP-Longitude');
+    $lat  = is_numeric($latH) ? (float) $latH : null;
+    $lng  = is_numeric($lngH) ? (float) $lngH : null;
+    $source = ($cc !== null || $city !== null) ? 'ip' : 'unknown';
+
+    // Repli de géolocalisation INDÉPENDANT DE L'HÉBERGEUR : si les en-têtes géo
+    // du CDN manquent (Vercel absent, ou Cloudflare qui ne donne au mieux que le
+    // pays via CF-IPCountry — cas d'un hébergement mutualisé type Hostinger), on
+    // géolocalise l'IP publique du visiteur côté serveur. UNE seule fois par
+    // session (drapeau geo_ip_tried) pour ne pas rappeler le service à chaque
+    // page, et seulement si pays OU ville manque. Fail-open : jamais bloquant.
+    if (($cc === null || $city === null)
+        && empty($_SESSION['geo_ip_tried'])
+        && config('geocode.ip_lookup', true)
+    ) {
+        $_SESSION['geo_ip_tried'] = true;
+        $ipGeo = \App\Services\GeoService::fromIp(\App\Request::resolveIp(), current_locale());
+        if ($ipGeo !== null && !empty($ipGeo['country_code'])) {
+            // On ne fait que COMPLÉTER les champs absents : un en-tête CDN présent
+            // (ex. pays via Cloudflare) reste prioritaire sur la déduction par IP.
+            $cc   = $cc   ?? $ipGeo['country_code'];
+            $city = $city ?? ($ipGeo['city'] ?? null);
+            $lat  = $lat  ?? ($ipGeo['lat'] ?? null);
+            $lng  = $lng  ?? ($ipGeo['lng'] ?? null);
+            $source = 'ip';
+        }
+    }
+
     $geo = [
         'city'         => $city,
         'country_code' => $cc,
         'country'      => $cc !== null ? country_name($cc) : null,
         'continent'    => \App\Services\GeoService::continentOf($cc),
-        'lat'          => is_numeric($lat) ? (float) $lat : null,
-        'lng'          => is_numeric($lng) ? (float) $lng : null,
-        'source'       => ($cc !== null || $city !== null) ? 'ip' : 'unknown',
+        'lat'          => $lat,
+        'lng'          => $lng,
+        'source'       => $source,
     ];
     if ($geo['source'] !== 'unknown') {
         $_SESSION['geo'] = $geo; // on ne mémorise pas un échec (réessai au prochain coup)
