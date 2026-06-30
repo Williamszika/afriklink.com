@@ -3943,6 +3943,25 @@ $fmtP = static function ($cents) use ($cur): string {
         <textarea id="p-desc" name="description" rows="4" maxlength="<?= (int) config('shop.product_desc_max', 3000) ?>"><?= old('description') ?: e((string) ($product['description'] ?? '')) ?></textarea>
         <?php if (has_error('description')): ?><p class="field-error"><?= e(error('description')) ?></p><?php endif; ?>
 
+        <?php
+        // Localisation PAR ANNONCE : par défaut celle de la boutique (préremplie +
+        // verrouillée), modifiable par article (« Modifier » rouvre la saisie, 📍
+        // affine au GPS). Repli sur la boutique à l'affichage si laissée vide.
+        $plCity = old('city') !== '' ? old('city') : ((string) ($product['city'] ?? '') ?: (string) ($boutique['city'] ?? ''));
+        $plCc   = old('country_code') !== '' ? old('country_code') : ((string) ($product['country_code'] ?? '') ?: (string) ($boutique['country_code'] ?? ''));
+        $plLat  = old('geo_lat') !== '' ? old('geo_lat') : ((string) ($product['geo_lat'] ?? '') ?: (string) ($boutique['geo_lat'] ?? ''));
+        $plLng  = old('geo_lng') !== '' ? old('geo_lng') : ((string) ($product['geo_lng'] ?? '') ?: (string) ($boutique['geo_lng'] ?? ''));
+        ?>
+        <label class="pf-geo-label">📍 <?= e(t('product.f.location')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
+        <p class="hint"><?= e(t('product.f.location_hint')) ?></p>
+        <?= render_partial('partials/geo_fields', [
+            'city'      => $plCity,
+            'cc'        => $plCc,
+            'continent' => \App\Services\GeoService::continentOf($plCc !== '' ? $plCc : null),
+            'lat'       => $plLat,
+            'lng'       => $plLng,
+        ]) ?>
+
         <?php if ($isBeauty): ?>
         <label for="p-inci"><?= e(t('beauty.f.ingredients')) ?> <span class="muted">(<?= e(t('field.optional')) ?>)</span></label>
         <textarea id="p-inci" name="ingredients" rows="3" maxlength="2000" placeholder="Aqua, Glycerin, Titanium Dioxide…"><?= e($bcur('ingredients')) ?></textarea>

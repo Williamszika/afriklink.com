@@ -2314,6 +2314,8 @@ return [
     'pos.r.sales' => ':n Verkauf/Verkäufe',
     'pos.h.report' => 'Z-Bericht',
     'product.f.description' => 'Beschreibung',
+    'product.f.location' => 'Standort des Angebots',
+    'product.f.location_hint' => 'Standardmäßig der Standort Ihres Shops. Ändern Sie ihn, wenn sich dieser Artikel in einer anderen Stadt oder einem anderen Land befindet.',
     'product.specs_title' => 'Spezifikationen',
     'product.f.photos' => 'Fotos (1 bis :max – das erste ist das Hauptfoto)',
     'product.f.photos_hint' => 'JPG, PNG oder WebP. Ein schönes Foto verkauft besser.',

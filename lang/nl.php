@@ -2309,6 +2309,8 @@ return [
     'pos.r.sales' => ':n verkoop/verkopen',
     'pos.h.report' => 'Z-rapport',
     'product.f.description' => 'Beschrijving',
+    'product.f.location' => 'Locatie van de advertentie',
+    'product.f.location_hint' => 'Standaard de locatie van je winkel. Wijzig dit als dit artikel zich in een andere stad of een ander land bevindt.',
     'product.specs_title' => 'Specificaties',
     'product.f.photos' => 'Foto’s (1 tot :max — de eerste is de hoofdfoto)',
     'product.f.photos_hint' => 'JPG, PNG of WebP. Een mooie foto verkoopt beter.',

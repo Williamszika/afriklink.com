@@ -147,6 +147,10 @@ final class Product
             'attributes'        => $data['attributes'] ?? null,
             'video_public_id'   => $data['video_public_id'] ?? null,
             'video_duration'    => $data['video_duration'] ?? null,
+            'city'              => $data['city'] ?? null,
+            'country_code'      => $data['country_code'] ?? null,
+            'geo_lat'           => $data['geo_lat'] ?? null,
+            'geo_lng'           => $data['geo_lng'] ?? null,
         ];
         $out = [];
         foreach ($candidates as $col => $val) {
@@ -233,6 +237,21 @@ final class Product
         } catch (\Throwable) {
             try {
                 db()->exec('ALTER TABLE products ADD COLUMN collection VARCHAR(60) NULL');
+            } catch (\Throwable) {
+                // déjà migré
+            }
+        }
+        // Géolocalisation PAR ANNONCE : ville / pays / coordonnées propres au
+        // produit (repli sur la boutique si vides). Types alignés sur boutiques.
+        try {
+            db()->query('SELECT country_code FROM products LIMIT 1');
+        } catch (\Throwable) {
+            try {
+                db()->exec('ALTER TABLE products
+                    ADD COLUMN city         VARCHAR(128) NULL,
+                    ADD COLUMN country_code CHAR(2)      NULL,
+                    ADD COLUMN geo_lat      DECIMAL(9,6) NULL,
+                    ADD COLUMN geo_lng      DECIMAL(9,6) NULL');
             } catch (\Throwable) {
                 // déjà migré
             }

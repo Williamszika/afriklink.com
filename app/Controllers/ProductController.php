@@ -1084,8 +1084,24 @@ final class ProductController
             }
         }
 
+        // Géolocalisation PAR ANNONCE (facultatif → repli sur la boutique à
+        // l'affichage). Le bloc geo_fields du formulaire renvoie ces 4 champs ;
+        // le pays est validé contre la liste des pays supportés, les coordonnées
+        // sont bornées et n'sont conservées qu'en couple cohérent.
+        $pCity = mb_substr(trim((string) input_string('city', '')), 0, 120);
+        $pCc   = strtoupper(trim((string) input_string('country_code', '')));
+        if (!isset(countries_list()[$pCc])) { $pCc = ''; }
+        $pLat = filter_var((string) input_string('geo_lat', ''), FILTER_VALIDATE_FLOAT);
+        $pLng = filter_var((string) input_string('geo_lng', ''), FILTER_VALIDATE_FLOAT);
+        $pLat = ($pLat !== false && $pLat >= -90 && $pLat <= 90)   ? round((float) $pLat, 6) : null;
+        $pLng = ($pLng !== false && $pLng >= -180 && $pLng <= 180) ? round((float) $pLng, 6) : null;
+        if ($pLat === null || $pLng === null) { $pLat = null; $pLng = null; } // couple cohérent uniquement
+
         return [[
             'name' => $name, 'description' => $description, 'price_cents' => $priceCents,
+            'city' => $pCity !== '' ? $pCity : null,
+            'country_code' => $pCc !== '' ? $pCc : null,
+            'geo_lat' => $pLat, 'geo_lng' => $pLng,
             'promo_price_cents' => $promoCents, 'promo_until' => $promoUntil,
             'audience' => $audience !== '' ? $audience : null,
             'garment_category' => $garment !== '' ? $garment : null,

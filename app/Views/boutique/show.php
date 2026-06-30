@@ -175,6 +175,19 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                                 <?php if (!empty($ratings[(int) $pr['id']]['count'])): ?>
                                     <span class="product-card-rating"><?= render_partial('partials/stars', ['avg' => $ratings[(int) $pr['id']]['avg'], 'count' => $ratings[(int) $pr['id']]['count'], 'small' => true]) ?></span>
                                 <?php endif; ?>
+                                <?php
+                                // Localisation propre à l'annonce : affichée seulement si elle
+                                // diffère de celle de la boutique (déjà visible en en-tête).
+                                $prCity = trim((string) ($pr['city'] ?? ''));
+                                $prCc   = strtoupper(trim((string) ($pr['country_code'] ?? '')));
+                                $prDiffers = ($prCity !== '' || $prCc !== '')
+                                    && ($prCity !== trim((string) ($boutique['city'] ?? ''))
+                                        || $prCc !== strtoupper(trim((string) ($boutique['country_code'] ?? ''))));
+                                $prPlace = $prDiffers ? place_label($prCity !== '' ? $prCity : null, $prCc !== '' ? $prCc : null) : '';
+                                ?>
+                                <?php if ($prPlace !== ''): ?>
+                                    <span class="card-geo"><span class="card-geo__place" title="<?= e($prPlace) ?>">📍 <?= e($prPlace) ?></span></span>
+                                <?php endif; ?>
                             </a>
                             <?= render_partial('partials/wish_heart', ['pid' => (string) $pr['public_id']]) ?>
                             <?= render_partial('partials/compare_toggle', ['pid' => (string) $pr['public_id']]) ?>

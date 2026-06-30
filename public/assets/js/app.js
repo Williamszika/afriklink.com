@@ -101,6 +101,12 @@ function showToast(msg) {
         }
         var hidden = document.getElementById('shop-country-locked');
         if (hidden && hidden.parentNode) { hidden.parentNode.removeChild(hidden); }
+        // Drop the detected coordinates: a hand-typed city must not carry the
+        // previously detected lat/lng (which belonged to another place).
+        ['geo-lat', 'geo-lng'].forEach(function (id) {
+            var f = document.getElementById(id);
+            if (f) { f.value = ''; }
+        });
         var note = document.getElementById('geo-lock-note');
         if (note) { note.hidden = true; }
     });

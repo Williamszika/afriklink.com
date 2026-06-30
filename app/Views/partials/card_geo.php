@@ -9,15 +9,22 @@
  * et Product::search().
  */
 $row  = $row ?? [];
+// Boutique = origine d'expédition / politique de livraison (zones + coordonnées).
 $shop = [
-    'city'             => $row['boutique_city']    ?? ($row['city'] ?? null),
-    'country_code'     => $row['boutique_country'] ?? ($row['country_code'] ?? null),
+    'city'             => $row['boutique_city']    ?? null,
+    'country_code'     => $row['boutique_country'] ?? null,
     'delivery_zones'   => $row['delivery_zones']   ?? null,
     'delivery_methods' => $row['delivery_methods'] ?? null,
-    'geo_lat'          => $row['boutique_lat']     ?? ($row['geo_lat'] ?? null),
-    'geo_lng'          => $row['boutique_lng']     ?? ($row['geo_lng'] ?? null),
+    'geo_lat'          => $row['boutique_lat']     ?? null,
+    'geo_lng'          => $row['boutique_lng']     ?? null,
 ];
-$loc = place_label($shop['city'], $shop['country_code']);
+// Lieu AFFICHÉ : localisation PROPRE de l'annonce (p.city / p.country_code) si
+// renseignée, sinon celle de la boutique (repli).
+$ownCity = trim((string) ($row['product_city'] ?? $row['city'] ?? ''));
+$ownCc   = strtoupper(trim((string) ($row['product_country'] ?? $row['country_code'] ?? '')));
+$placeCity = $ownCity !== '' ? $ownCity : ($shop['city'] ?? null);
+$placeCc   = $ownCc   !== '' ? $ownCc   : ($shop['country_code'] ?? null);
+$loc = place_label($placeCity, $placeCc);
 if ($loc === '') {
     return;
 }

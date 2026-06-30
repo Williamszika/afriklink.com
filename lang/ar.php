@@ -2314,6 +2314,8 @@ return [
     'pos.r.sales' => ':n عملية بيع',
     'pos.h.report' => 'تقرير Z',
     'product.f.description' => 'الوصف',
+    'product.f.location' => 'موقع الإعلان',
+    'product.f.location_hint' => 'الموقع الافتراضي هو موقع متجرك. غيّره إذا كان هذا المنتج في مدينة أو بلد آخر.',
     'product.specs_title' => 'المواصفات',
     'product.f.photos' => 'الصور (1 إلى :max — الأولى هي الرئيسية)',
     'product.f.photos_hint' => 'JPG أو PNG أو WebP. الصورة الجميلة تبيع أفضل.',

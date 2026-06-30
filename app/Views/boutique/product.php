@@ -508,9 +508,13 @@ $dotHtml = static function (array $hexes): string {
                     <?php endif; ?>
                 </p>
                 <?php
-                // Portée de livraison vue par l'acheteur géolocalisé.
+                // Portée de livraison vue par l'acheteur géolocalisé (politique de
+                // la boutique). Le LIEU affiché privilégie la localisation propre
+                // de l'annonce (ville/pays du produit), sinon celle de la boutique.
                 $pfReach = delivery_reach($boutique);
-                $pfPlace = place_label($boutique['city'] ?? null, $boutique['country_code'] ?? null);
+                $pfCity  = trim((string) ($product['city'] ?? '')) ?: (string) ($boutique['city'] ?? '');
+                $pfCc    = strtoupper(trim((string) ($product['country_code'] ?? ''))) ?: (string) ($boutique['country_code'] ?? '');
+                $pfPlace = place_label($pfCity !== '' ? $pfCity : null, $pfCc !== '' ? $pfCc : null);
                 $pfKm    = geo_km_label($pfReach['km']);
                 ?>
                 <?php if ($pfPlace !== '' || in_array($pfReach['status'], ['city', 'country', 'international', 'pickup', 'none'], true)): ?>

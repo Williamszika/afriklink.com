@@ -2335,6 +2335,8 @@ return [
     'pos.r.sales' => ':n sale(s)',
     'pos.h.report' => 'Z-report',
     'product.f.description' => 'Description',
+    'product.f.location' => 'Listing location',
+    'product.f.location_hint' => 'Defaults to your shop\'s location. Change it if this item is in a different city or country.',
     'product.specs_title' => 'Specifications',
     'product.f.photos' => 'Photos (1 to :max — the first one is the main)',
     'product.f.photos_hint' => 'JPG, PNG or WebP. A nice photo sells better.',
