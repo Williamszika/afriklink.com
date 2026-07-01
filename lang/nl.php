@@ -242,6 +242,8 @@ return [
     'pro.submit'       => 'Mijn verkopersaccount aanmaken',
     'pro.rest_later'   => 'U hoeft nu niet alles in te vullen: u vult uw bedrijfsgegevens (rechtsvorm, registratienummer, adres, website…) aan vanuit uw dashboard.',
     'pro.accept_legal' => 'Ik ga akkoord met de Servicevoorwaarden en het Privacybeleid.',
+    'legal.consent_label' => 'Ik heb de voorwaarden en juridische documenten van AfrikaLink gelezen en ga ermee akkoord',
+    'legal.consent_hint' => 'Verplicht om je account aan te maken — open elk document om het te lezen.',
     'seller.profile_title'    => 'Verkopersprofiel',
     'seller.nav.aria'         => 'Verkopersmenu',
     'seller.nav.overview'     => 'Overzicht',

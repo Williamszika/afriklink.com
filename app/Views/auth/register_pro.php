@@ -90,11 +90,7 @@ $lockCity    = $cityVal !== '' && $lockCountry;
             </div>
         </div>
 
-        <label class="check-row">
-            <input type="checkbox" name="accept_legal" value="1" <?= old('accept_legal') === '1' ? 'checked' : '' ?> required>
-            <span><?= e(t('pro.accept_legal')) ?></span>
-        </label>
-        <?php if (has_error('accept_legal')): ?><p class="field-error"><?= e(error('accept_legal')) ?></p><?php endif; ?>
+        <?= render_partial('partials/legal_consent') ?>
 
         <?= render_partial('partials/captcha') ?>
 

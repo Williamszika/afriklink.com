@@ -250,6 +250,8 @@ return [
     'pro.submit'       => 'Créer mon compte vendeur',
     'pro.rest_later'   => 'Pas besoin de tout remplir maintenant : vous compléterez les infos de votre entreprise (statut juridique, n° d’enregistrement, adresse, site…) depuis votre tableau de bord.',
     'pro.accept_legal' => 'J’accepte les Conditions générales et la Politique de confidentialité.',
+    'legal.consent_label' => 'J\'ai lu et j\'accepte les conditions et les documents légaux d\'AfrikaLink',
+    'legal.consent_hint' => 'Obligatoire pour créer votre compte — ouvrez chaque document pour le lire.',
     'seller.profile_title'    => 'Profil vendeur',
     'seller.nav.aria'         => 'Menu vendeur',
     'seller.nav.overview'     => 'Vue d’ensemble',

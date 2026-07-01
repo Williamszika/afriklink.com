@@ -250,6 +250,8 @@ return [
     'pro.submit'       => 'Create my seller account',
     'pro.rest_later'   => 'No need to fill everything now: you’ll complete your business details (legal form, registration number, address, website…) from your dashboard.',
     'pro.accept_legal' => 'I accept the Terms of Service and the Privacy Policy.',
+    'legal.consent_label' => 'I have read and accept AfrikaLink\'s terms and legal documents',
+    'legal.consent_hint' => 'Required to create your account — open each document to read it.',
     'seller.profile_title'    => 'Seller profile',
     'seller.nav.aria'         => 'Seller menu',
     'seller.nav.overview'     => 'Overview',

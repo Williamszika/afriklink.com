@@ -2924,3 +2924,24 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .help-card img { width: 100%; height: auto; display: block; border-bottom: 1px solid #efe8d9; }
 .help-card-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; }
 .help-card-body p { margin: 0; line-height: 1.5; }
+
+/* ─── Consentement légal (formulaires d'inscription) ─────────────────────── */
+.legal-consent { border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px;
+    background: var(--afk-cream, #f7f3ea); margin: 18px 0 8px; transition: border-color .15s, background .15s; }
+.legal-consent.is-error { border-color: var(--danger); background: var(--danger-bg); }
+.legal-consent__check { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; margin: 0; }
+.legal-consent__check input[type=checkbox] { width: 20px; height: 20px; flex: none; margin-top: 2px;
+    accent-color: var(--afk-foret); cursor: pointer; }
+.legal-consent__text { display: flex; flex-direction: column; gap: 3px; }
+.legal-consent__text strong { color: var(--afk-foret-700); font-weight: 700; line-height: 1.35; }
+.legal-consent__hint { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+.legal-consent__docs { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; padding: 0; }
+.legal-consent__docs a { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600;
+    padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--afk-foret);
+    text-decoration: none; background: var(--surface); transition: background .15s, color .15s, transform .15s, box-shadow .15s; }
+.legal-consent__docs a:hover, .legal-consent__docs a:focus-visible { background: var(--afk-foret); color: #fff;
+    border-color: var(--afk-foret); transform: translateY(-1px); box-shadow: 0 4px 12px -6px rgba(16, 61, 48, .5); }
+.legal-consent__ico { font-size: .95rem; line-height: 1; }
+.legal-consent__ext { font-size: .72rem; opacity: .6; }
+.legal-consent__docs a:hover .legal-consent__ext { opacity: 1; }
+.legal-consent__err { margin: 10px 0 0; }

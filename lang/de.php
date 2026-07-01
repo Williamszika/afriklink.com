@@ -247,6 +247,8 @@ return [
     'pro.submit'       => 'Mein Verkäuferkonto erstellen',
     'pro.rest_later'   => 'Sie müssen jetzt nicht alles ausfüllen: Ihre Geschäftsangaben (Rechtsform, Registernummer, Adresse, Website …) vervollständigen Sie über Ihr Dashboard.',
     'pro.accept_legal' => 'Ich akzeptiere die AGB und die Datenschutzerklärung.',
+    'legal.consent_label' => 'Ich habe die Bedingungen und rechtlichen Dokumente von AfrikaLink gelesen und akzeptiere sie',
+    'legal.consent_hint' => 'Erforderlich, um Ihr Konto zu erstellen — öffnen Sie jedes Dokument zum Lesen.',
     'seller.profile_title'    => 'Verkäuferprofil',
     'seller.nav.aria'         => 'Verkäufermenü',
     'seller.nav.overview'     => 'Übersicht',

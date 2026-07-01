@@ -131,6 +131,8 @@ $lockCity = $cityVal !== '' && $lockCountry;
 
         <?= render_partial('partials/captcha') ?>
 
+        <?= render_partial('partials/legal_consent') ?>
+
         <button type="submit" class="btn btn-primary btn-block"><?= e(t('register.particulier_submit')) ?></button>
     </form>
 

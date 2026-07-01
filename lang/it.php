@@ -247,6 +247,8 @@ return [
     'pro.submit'       => 'Crea il mio account venditore',
     'pro.rest_later'   => 'Non è necessario compilare tutto ora: completerai i dati della tua attività (forma giuridica, numero di registrazione, indirizzo, sito web…) dal tuo pannello.',
     'pro.accept_legal' => 'Accetto i Termini di servizio e l’Informativa sulla privacy.',
+    'legal.consent_label' => 'Ho letto e accetto le condizioni e i documenti legali di AfrikaLink',
+    'legal.consent_hint' => 'Obbligatorio per creare il tuo account — apri ogni documento per leggerlo.',
     'seller.profile_title'    => 'Profilo venditore',
     'seller.nav.aria'         => 'Menu venditore',
     'seller.nav.overview'     => 'Panoramica',

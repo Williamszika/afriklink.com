@@ -247,6 +247,8 @@ return [
     'pro.submit'       => 'Criar a minha conta de vendedor',
     'pro.rest_later'   => 'Não é preciso preencher tudo agora: completará os dados do seu negócio (forma jurídica, número de registo, morada, website…) a partir do seu painel.',
     'pro.accept_legal' => 'Aceito os Termos de Serviço e a Política de Privacidade.',
+    'legal.consent_label' => 'Li e aceito as condições e os documentos legais da AfrikaLink',
+    'legal.consent_hint' => 'Obrigatório para criar a sua conta — abra cada documento para o ler.',
     'seller.profile_title'    => 'Perfil de vendedor',
     'seller.nav.aria'         => 'Menu do vendedor',
     'seller.nav.overview'     => 'Visão geral',
