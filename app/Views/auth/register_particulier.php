@@ -112,9 +112,6 @@ $lockCity = $cityVal !== '' && $lockCountry;
             <div>
                 <label for="city"><?= e(t('field.city')) ?></label>
                 <input type="text" id="city" name="city" value="<?= e($cityVal) ?>" autocomplete="address-level2"<?= $lockCity ? ' readonly class="is-locked" data-geo-prefill="1"' : '' ?>>
-                <button type="button" id="geo-detect" class="link-button geo-detect-btn" hidden
-                        data-asking="<?= e(t('geo.asking')) ?>" data-denied="<?= e(t('geo.denied')) ?>"
-                        data-unavailable="<?= e(t('geo.error')) ?>">📍 <?= e(t('geo.btn')) ?></button>
                 <span id="geo-detect-status" class="hint geo-detect-status" aria-live="polite"></span>
             </div>
         </div>
