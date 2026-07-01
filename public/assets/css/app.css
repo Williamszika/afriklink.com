@@ -3051,3 +3051,20 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 
 /* garde le sélecteur de contact (onglets e-mail/téléphone) lisible dans .authx */
 .authx .contact-switch{margin:.2rem 0 0}
+
+/* ── AUTH v2 : sélecteur de contact segmenté (CSS-only, radios) + aside acheteur ── */
+.authx .contact-switch{margin:.2rem 0 0}
+.authx .contact-tabs{display:inline-flex;gap:4px;background:rgba(20,80,46,.06);border:1px solid var(--a-line);border-radius:12px;padding:4px;margin:0 0 .9rem}
+.authx .contact-tab{flex:0 0 auto;text-align:center;padding:.5rem 1rem;border-radius:9px;cursor:pointer;font-weight:600;font-size:.9rem;color:var(--a-muted);display:inline-flex;align-items:center;justify-content:center;gap:.4rem;transition:background .15s,color .15s,box-shadow .15s}
+.authx .contact-tab svg{width:16px;height:16px}
+.authx #cm-email:checked ~ .contact-tabs label[for="cm-email"],
+.authx #cm-phone:checked ~ .contact-tabs label[for="cm-phone"]{background:#fff;color:var(--a-green);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.authx .contact-tab:focus-within{outline:2px solid var(--a-gold);outline-offset:1px}
+
+/* aside acheteur : « Achetez / Vendez » côte à côte */
+.authx .promo .sub{color:rgba(250,244,230,.78);font-size:.92rem;margin:0 0 1rem}
+.authx .split-use{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.1rem}
+.authx .use{background:rgba(250,244,230,.08);border:1px solid rgba(250,244,230,.16);border-radius:12px;padding:.8rem}
+.authx .use .ui{font-size:1.15rem;display:block;margin-bottom:.35rem}
+.authx .use b{font-family:var(--afk-display);font-size:.95rem;display:block}
+.authx .use span{font-size:.8rem;color:rgba(250,244,230,.72)}

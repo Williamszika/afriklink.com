@@ -22,7 +22,7 @@ $lockCity = $cityVal !== '' && $lockCountry;
         <p class="sub"><?= e(t('register.particulier_desc')) ?></p>
     </div>
 
-    <div class="grid grid--solo">
+    <div class="grid">
         <div class="acard">
             <form method="post" action="<?= e(url('/register/particulier')) ?>" novalidate data-consent-gate>
                 <?= csrf_field() ?>
@@ -49,8 +49,8 @@ $lockCity = $cityVal !== '' && $lockCountry;
                         <input type="radio" id="cm-email" name="contact_method" value="email" class="contact-radio" <?= $cm !== 'phone' ? 'checked' : '' ?>>
                         <input type="radio" id="cm-phone" name="contact_method" value="phone" class="contact-radio" <?= $cm === 'phone' ? 'checked' : '' ?>>
                         <div class="contact-tabs">
-                            <label for="cm-email" class="contact-tab"><?= e(t('register.by_email')) ?></label>
-                            <label for="cm-phone" class="contact-tab"><?= e(t('register.by_phone')) ?></label>
+                            <label for="cm-email" class="contact-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> <?= e(t('register.by_email')) ?></label>
+                            <label for="cm-phone" class="contact-tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg> <?= e(t('register.by_phone')) ?></label>
                         </div>
 
                         <div class="contact-panel contact-panel-email">
@@ -169,5 +169,7 @@ $lockCity = $cityVal !== '' && $lockCountry;
                 <button type="submit" class="abtn abtn--cta" data-consent-submit style="margin-top:1.5rem"><?= e(t('register.particulier_submit')) ?></button>
             </form>
         </div>
+
+        <?= render_partial('partials/auth_aside', ['variant' => 'member']) ?>
     </div>
 </div>
