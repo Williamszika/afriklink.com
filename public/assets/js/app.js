@@ -7112,3 +7112,75 @@ document.addEventListener('click', function (ev) {
         });
     }
 })();
+
+/* ---- Auth v2 : mot de passe (œil / jauge de force / concordance) + gate
+   consentement. CSP-safe (aucun script inline) ; piloté par data-* qui portent
+   aussi les libellés i18n → aucune chaîne en dur ici. Amélioration progressive :
+   sans JS tout reste utilisable et le serveur valide. ---- */
+(function () {
+    'use strict';
+
+    // Œil : afficher / masquer (délégué → robuste à tout ajout de champ).
+    document.addEventListener('click', function (ev) {
+        var t = ev.target && ev.target.closest ? ev.target.closest('[data-pwd-toggle]') : null;
+        if (!t) { return; }
+        var input = document.getElementById(t.getAttribute('data-pwd-toggle'));
+        if (!input) { return; }
+        var reveal = input.type === 'password';
+        input.type = reveal ? 'text' : 'password';
+        var lbl = t.getAttribute(reveal ? 'data-hide' : 'data-show');
+        if (lbl) { t.setAttribute('aria-label', lbl); }
+        var eye = t.querySelector('.eye'), off = t.querySelector('.eye-off');
+        if (eye && off) { eye.hidden = reveal; off.hidden = !reveal; }
+    });
+
+    function pwdLevel(pw) {
+        if (!pw) { return 0; }
+        var s = 0;
+        if (pw.length >= 12) { s++; }
+        if (/[A-Z]/.test(pw)) { s++; }
+        if (/[0-9]/.test(pw)) { s++; }
+        if (/[^A-Za-z0-9]/.test(pw)) { s++; }
+        return s;
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-pwd-strength]'), function (input) {
+        var field = input.closest('.afield') || input.parentNode;
+        var bars = field.querySelector('.pwd-strength');
+        var label = field.querySelector('[data-pwd-strength-label]');
+        input.addEventListener('input', function () {
+            var lv = pwdLevel(input.value);
+            if (bars) { bars.setAttribute('data-lvl', String(lv)); }
+            if (label) {
+                if (lv > 0 && bars) {
+                    label.textContent = (bars.getAttribute('data-prefix') || '') + ' : ' + (bars.getAttribute('data-l' + lv) || '') + ' · ';
+                } else { label.textContent = ''; }
+            }
+        });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('input[data-pwd-match]'), function (confirmInput) {
+        var orig = document.getElementById(confirmInput.getAttribute('data-pwd-match'));
+        var field = confirmInput.closest('.afield') || confirmInput.parentNode;
+        var msg = field.querySelector('[data-pwd-match-msg]');
+        function upd() {
+            if (!msg) { return; }
+            if (!confirmInput.value) { msg.className = 'pwd-match'; msg.textContent = ''; return; }
+            var ok = orig && orig.value === confirmInput.value;
+            msg.className = 'pwd-match ' + (ok ? 'ok' : 'no');
+            msg.textContent = (ok ? '✓ ' : '✕ ') + (msg.getAttribute(ok ? 'data-ok' : 'data-no') || '');
+        }
+        confirmInput.addEventListener('input', upd);
+        if (orig) { orig.addEventListener('input', upd); }
+    });
+
+    // Gate consentement : bouton d'envoi désactivé tant que la case légale
+    // n'est pas cochée (le serveur revalide de toute façon).
+    Array.prototype.forEach.call(document.querySelectorAll('form[data-consent-gate]'), function (form) {
+        var box = form.querySelector('input[name="accept_legal"]');
+        var btn = form.querySelector('[data-consent-submit]');
+        if (!box || !btn) { return; }
+        function sync() { btn.disabled = !box.checked; }
+        box.addEventListener('change', sync);
+        sync();
+    });
+})();

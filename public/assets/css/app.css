@@ -2945,3 +2945,109 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .legal-consent__ext { font-size: .72rem; opacity: .6; }
 .legal-consent__docs a:hover .legal-consent__ext { opacity: 1; }
 .legal-consent__err { margin: 10px 0 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTH v2 — design scoped aux pages inscription / connexion (.authx)
+   Reprend la maquette « Devenir vendeur » : vert forêt + or + crème, cartes
+   arrondies, fieldsets numérotés, aside réassurance. Polices auto-hébergées
+   (var --afk-display/body/mono). Rien ici ne touche le reste du site.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.authx{
+  --a-green:#14502E;--a-green-deep:#0E3A21;--a-gold:#C7922E;--a-gold-deep:#9A6F1E;
+  --a-cream:#FAF4E6;--a-paper:#FFFDF7;--a-ink:#1C2418;--a-muted:#5B6453;
+  --a-line:rgba(20,80,46,.16);--a-ok:#2E7D46;--a-err:#B21E4B;
+  --a-wax:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23C7922E' stroke-width='1.1' opacity='.16'%3E%3Ccircle cx='32' cy='32' r='13'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3Crect x='26' y='26' width='12' height='12' transform='rotate(45 32 32)'/%3E%3Cpath d='M0 32h17M47 32h17M32 0v17M32 47v17'/%3E%3C/g%3E%3C/svg%3E");
+  color:var(--a-ink);font-family:var(--afk-body);
+  width:min(1120px,92vw);margin-inline:auto;padding-bottom:3.5rem;
+}
+.authx a{color:inherit;text-decoration:none}
+.authx .pagehead{padding:clamp(1.4rem,4vw,2.6rem) 0 0}
+.authx .backlink{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--afk-mono);font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--a-gold-deep);margin-bottom:1.2rem}
+.authx .eyebrow{font-family:var(--afk-mono);font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--a-gold-deep);margin:0 0 .7rem;display:inline-flex;gap:.5rem;align-items:center}
+.authx .eyebrow::before{content:"◆";color:var(--a-gold);font-size:.7em}
+.authx .pagehead h1{font-family:var(--afk-display);font-weight:800;line-height:1.06;letter-spacing:-.02em;font-size:clamp(1.8rem,4.2vw,2.8rem);max-width:18ch;margin:0;color:var(--a-ink)}
+.authx .pagehead .sub{color:var(--a-muted);max-width:54ch;margin:.7rem 0 0;font-size:1.03rem}
+
+.authx .grid{display:grid;grid-template-columns:1.35fr .9fr;gap:clamp(1.4rem,4vw,2.6rem);padding:clamp(1.4rem,4vw,2.2rem) 0 0;align-items:start}
+.authx .grid--solo{grid-template-columns:min(560px,100%);justify-content:center}
+@media(max-width:920px){.authx .grid{grid-template-columns:1fr}}
+
+.authx .acard{background:var(--a-paper);border:1px solid var(--a-line);border-radius:22px;padding:clamp(1.3rem,4vw,2.3rem)}
+.authx fieldset{border:0;margin:0;padding:0}
+.authx fieldset + fieldset{margin-top:1.6rem;padding-top:1.6rem;border-top:1px solid var(--a-line)}
+.authx legend{font-family:var(--afk-mono);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--a-green);margin-bottom:1rem;display:flex;align-items:center;gap:.55rem}
+.authx legend .n{width:22px;height:22px;border-radius:50%;background:var(--a-green);color:var(--a-cream);display:grid;place-items:center;font-size:.7rem;font-family:var(--afk-body);flex:none}
+
+.authx .afield{margin-bottom:1.05rem}
+.authx .afield:last-child{margin-bottom:0}
+.authx .albl{display:block;font-weight:600;font-size:.92rem;margin-bottom:.35rem;color:var(--a-ink)}
+.authx .albl .req{color:var(--a-gold-deep)}
+.authx .albl .opt{font-weight:400;color:var(--a-muted);font-size:.85em}
+.authx .ahint{font-size:.82rem;color:var(--a-muted);margin:.3rem 0 0}
+.authx input[type=text],.authx input[type=email],.authx input[type=tel],.authx input[type=password],.authx input[type=number],.authx select{
+  width:100%;font-family:var(--afk-body);font-size:1rem;color:var(--a-ink);background:#fff;
+  border:1.5px solid var(--a-line);border-radius:12px;padding:.72rem .85rem;transition:border-color .15s,box-shadow .15s}
+.authx select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%235B6453' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .85rem center;padding-right:2.2rem}
+.authx input:focus,.authx select:focus{outline:0;border-color:var(--a-gold);box-shadow:0 0 0 3px rgba(199,146,46,.18)}
+.authx input.is-locked,.authx select.is-locked,.authx .locked-field{background:rgba(20,80,46,.05);color:var(--a-muted)}
+.authx .phone-row{display:grid;grid-template-columns:minmax(150px,.85fr) 1.35fr;gap:.6rem}
+@media(max-width:440px){.authx .phone-row{grid-template-columns:1fr}}
+.authx .two{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+@media(max-width:520px){.authx .two{grid-template-columns:1fr}}
+.authx .field-error{color:var(--a-err);font-size:.84rem;margin:.35rem 0 0;font-weight:500}
+
+/* mot de passe : œil + jauge + concordance */
+.authx .pwd-wrap{position:relative}
+.authx .pwd-wrap input{padding-right:3rem}
+.authx .pwd-toggle{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:none;border:0;cursor:pointer;color:var(--a-muted);padding:.4rem;border-radius:8px;display:inline-flex}
+.authx .pwd-toggle:hover{color:var(--a-green)}
+.authx .pwd-strength{display:flex;gap:.3rem;margin-top:.5rem}
+.authx .pwd-strength i{height:5px;flex:1;border-radius:3px;background:var(--a-line);transition:background .2s}
+.authx .pwd-strength[data-lvl="1"] i:nth-child(1){background:var(--a-err)}
+.authx .pwd-strength[data-lvl="2"] i:nth-child(-n+2){background:var(--a-gold)}
+.authx .pwd-strength[data-lvl="3"] i:nth-child(-n+3){background:var(--a-gold)}
+.authx .pwd-strength[data-lvl="4"] i{background:var(--a-ok)}
+.authx .pwd-match{font-size:.82rem;margin:.35rem 0 0;display:none;align-items:center;gap:.35rem;font-weight:500}
+.authx .pwd-match.ok{color:var(--a-ok);display:flex}
+.authx .pwd-match.no{color:var(--a-err);display:flex}
+
+/* boutons */
+.authx .abtn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font-family:var(--afk-body);font-weight:600;font-size:1rem;padding:.85rem 1.4rem;border-radius:999px;border:1.5px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .2s,opacity .2s;width:100%}
+.authx .abtn:focus-visible{outline:3px solid var(--a-gold);outline-offset:3px}
+.authx .abtn--cta{background:var(--a-gold);color:var(--a-green-deep)}
+.authx .abtn--cta:hover{transform:translateY(-2px);box-shadow:0 12px 26px -12px rgba(199,146,46,.85)}
+.authx .abtn--primary{background:var(--a-green);color:var(--a-cream)}
+.authx .abtn--primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px -12px rgba(20,80,46,.7)}
+.authx .abtn[disabled]{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.authx .submit-note{font-size:.85rem;color:var(--a-muted);background:rgba(199,146,46,.1);border-radius:10px;padding:.7rem .85rem;margin-top:1rem;display:flex;gap:.5rem}
+.authx .auth-alt{margin:1.3rem 0 0;font-size:.92rem;color:var(--a-muted);text-align:center}
+.authx .auth-alt a{color:var(--a-green);font-weight:600}
+.authx .auth-alt a:hover{color:var(--a-gold-deep)}
+
+/* aside réassurance */
+.authx .aside{display:flex;flex-direction:column;gap:1.1rem;position:sticky;top:84px}
+@media(max-width:920px){.authx .aside{position:static}}
+.authx .promo{background:var(--a-green);color:var(--a-cream);border-radius:22px;padding:1.6rem;position:relative;overflow:hidden}
+.authx .promo::before{content:"";position:absolute;inset:0;background-image:var(--a-wax);background-size:58px;pointer-events:none}
+.authx .promo>*{position:relative}
+.authx .promo .eyebrow{color:var(--a-gold)}
+.authx .promo h3{font-family:var(--afk-display);font-weight:700;font-size:1.28rem;margin:0 0 1rem;line-height:1.15}
+.authx .benefit{display:flex;gap:.75rem;padding:.6rem 0;border-top:1px solid rgba(250,244,230,.16)}
+.authx .benefit:first-of-type{border-top:0}
+.authx .benefit .bi{font-size:1.15rem;flex:none;margin-top:.05rem}
+.authx .benefit b{display:block;font-family:var(--afk-display);font-weight:700;font-size:1rem}
+.authx .benefit span{font-size:.88rem;color:rgba(250,244,230,.78)}
+.authx .mini,.authx .pay{background:var(--a-paper);border:1px solid var(--a-line);border-radius:18px;padding:1.3rem 1.4rem}
+.authx .mstep{display:flex;gap:.7rem;padding:.45rem 0}
+.authx .mstep .num{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--a-gold);color:var(--a-gold-deep);font-family:var(--afk-mono);font-weight:700;font-size:.8rem;display:grid;place-items:center;flex:none}
+.authx .mstep b{font-family:var(--afk-display);font-size:.98rem}
+.authx .mstep p{margin:.15rem 0 0;font-size:.88rem;color:var(--a-muted)}
+.authx .pay .lock{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--a-green);font-weight:600;margin-bottom:.7rem}
+.authx .paybadges{display:flex;flex-wrap:wrap;gap:.4rem}
+.authx .paybadges span{font-family:var(--afk-mono);font-size:.66rem;font-weight:700;background:rgba(20,80,46,.06);color:var(--a-muted);border-radius:6px;padding:.28rem .5rem}
+
+/* le bloc de consentement s'intègre dans la carte (recadrage léger) */
+.authx .legal-consent{background:rgba(20,80,46,.04);border-color:var(--a-line);margin:0}
+
+/* garde le sélecteur de contact (onglets e-mail/téléphone) lisible dans .authx */
+.authx .contact-switch{margin:.2rem 0 0}
