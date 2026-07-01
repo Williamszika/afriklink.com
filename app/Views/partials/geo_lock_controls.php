@@ -11,6 +11,6 @@
         data-asking="<?= e(t('geo.asking')) ?>" data-denied="<?= e(t('geo.denied')) ?>"
         data-unavailable="<?= e(t('geo.error')) ?>">📍 <?= e(t('geo.btn')) ?></button>
 <span id="geo-detect-status" class="hint geo-detect-status" aria-live="polite"></span>
-<p class="hint geo-lock-note" id="geo-lock-note" <?= !empty($locked) ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?>
-    <button type="button" id="geo-unlock" class="link-button">— <?= e(t('geo.unlock')) ?></button>
+<p class="hint geo-lock-note" id="geo-lock-note" <?= !empty($locked) ? '' : 'hidden' ?>>
+    <button type="button" id="geo-unlock" class="link-button"><?= e(t('geo.unlock')) ?></button>
 </p>

@@ -135,7 +135,7 @@ if ($delivery_delay !== '') {
                 <label for="cl-city"><?= e(t('caisse.f.city')) ?></label>
                 <input type="text" id="cl-city" name="client_city" maxlength="80" value="<?= old('client_city') ?: e($prefillCity) ?>" placeholder="<?= e(t('field.city')) ?>"<?= $lockGeo ? ' readonly class="is-locked"' : '' ?>>
                 <?php if ($lockGeo): ?>
-                    <p class="hint geo-lock-note" data-geo-lock-note>🔒 <?= e(t('geo.locked')) ?> <button type="button" class="link-button" data-geo-unlock>— <?= e(t('geo.unlock')) ?></button></p>
+                    <p class="hint geo-lock-note" data-geo-lock-note><button type="button" class="link-button" data-geo-unlock><?= e(t('geo.unlock')) ?></button></p>
                 <?php endif; ?>
                 <label for="cl-addr"><?= e(t('caisse.addr_main')) ?></label>
                 <input type="text" id="cl-addr" name="client_address" maxlength="180" value="<?= old('client_address') ?: e($savedAddr) ?>" placeholder="<?= e(t('caisse.addr_main_ph')) ?>"

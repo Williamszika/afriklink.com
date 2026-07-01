@@ -118,8 +118,8 @@ $lockCity = $cityVal !== '' && $lockCountry;
                 <span id="geo-detect-status" class="hint geo-detect-status" aria-live="polite"></span>
             </div>
         </div>
-        <p class="hint geo-lock-note" id="geo-lock-note" <?= ($lockCountry || $lockCity) ? '' : 'hidden' ?>>🔒 <?= e(t('geo.locked')) ?>
-            <button type="button" id="geo-unlock" class="link-button">— <?= e(t('geo.unlock')) ?></button>
+        <p class="hint geo-lock-note" id="geo-lock-note" <?= ($lockCountry || $lockCity) ? '' : 'hidden' ?>>
+            <button type="button" id="geo-unlock" class="link-button"><?= e(t('geo.unlock')) ?></button>
         </p>
 
         <label for="password"><?= e(t('field.password')) ?></label>
