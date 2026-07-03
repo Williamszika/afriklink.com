@@ -1,0 +1,7 @@
+# AfrikaLink — politique de divulgation de vulnérabilités (RFC 9116).
+# Mettez à jour « Expires » chaque année et « Contact » avec une adresse réelle.
+Contact: mailto:security@afriklink.com
+Expires: 2027-07-01T00:00:00Z
+Preferred-Languages: fr, en
+Canonical: https://afriklink.com/.well-known/security.txt
+Policy: https://github.com/Williamszika/afriklink.com/blob/main/SECURITY.md

@@ -1,0 +1,22 @@
+# Propriétaires du code AfrikaLink.
+#
+# Chaque ligne associe des fichiers à leur(s) propriétaire(s). Quand la
+# protection de branche « Require review from Code Owners » est activée sur
+# GitHub (voir docs/SECURITE.md), TOUTE modification doit être approuvée par le
+# propriétaire avant de pouvoir être fusionnée dans `main`.
+#
+# ⇒ Personne d'autre que le propriétaire ne peut faire entrer du code dans le
+#   site. C'est le « verrou » qui accompagne le scanner automatique.
+
+# Tout le dépôt, par défaut :
+*                       @Williamszika
+
+# Zones les plus sensibles (redondant, mais explicite) :
+/app/                   @Williamszika
+/config/                @Williamszika
+/database/              @Williamszika
+/public/                @Williamszika
+/scripts/               @Williamszika
+/.github/               @Williamszika
+/composer.json          @Williamszika
+/vercel.json            @Williamszika

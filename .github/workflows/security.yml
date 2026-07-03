@@ -1,0 +1,111 @@
+# AfrikaLink — « équipe de sécurité » automatisée (CI).
+# S'exécute à CHAQUE poussée et pull request, plus une fois par semaine. Inspecte
+# le code, bloque la fusion si une faille, un secret, du code suspect ou une
+# intégration inconnue est détecté. Aucune clé/secret requis (règles publiques).
+name: Sécurité
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 6 * * 1'   # tous les lundis 06:17 UTC (contrôle hebdomadaire)
+  workflow_dispatch:        # déclenchement manuel depuis l'onglet Actions
+
+permissions:
+  contents: read
+
+concurrency:
+  group: securite-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 1) Garde déterministe : lint PHP + scanner maison (le vrai verrou, sans dépendance).
+  garde:
+    name: Garde (lint + scanner maison)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Lint de tous les fichiers PHP
+        run: |
+          set -e
+          err=0
+          while IFS= read -r -d '' f; do
+            php -l "$f" >/dev/null || { echo "❌ Erreur de syntaxe : $f"; err=1; }
+          done < <(find app config database api lang public scripts -name '*.php' -not -path '*/vendor/*' -print0)
+          [ "$err" -eq 0 ] && echo "✅ Lint PHP OK"
+          exit $err
+      - name: Scanner de sécurité maison
+        run: php scripts/security_scan.php
+
+  # 2) SAST : semgrep avec les jeux de règles publics (OWASP, injections, secrets, XSS).
+  # RAPPORTE sans bloquer au départ (continue-on-error) : sur une base de code
+  # existante, ces règles larges peuvent remonter des cas à trier. Une fois les
+  # premiers résultats revus, RETIREZ « continue-on-error » pour en faire un
+  # blocage dur. (La garde maison, elle, bloque déjà — zéro faux positif.)
+  semgrep:
+    name: SAST (semgrep)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer semgrep
+        run: pip install --quiet semgrep
+      - name: Analyse statique
+        run: |
+          semgrep scan --error --quiet \
+            --config p/php \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/xss \
+            --config p/command-injection \
+            --config p/owasp-top-ten \
+            --exclude vendor --exclude node_modules --exclude storage --exclude ai-ops
+
+  # 3) Secrets : gitleaks (best-effort ; les secrets sont AUSSI couverts par la garde + semgrep).
+  secrets:
+    name: Secrets (gitleaks)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 4) Dépendances : failles connues (CVE) des paquets Composer.
+  # Rapporte sans bloquer au départ (une CVE dans une dépendance existante ne doit
+  # pas figer tout le pipeline). Retirez « continue-on-error » quand vous voulez
+  # imposer un dépôt sans CVE connue.
+  dependances:
+    name: Dépendances (composer audit)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installer PHP + composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+      - name: Résoudre le verrou puis auditer
+        run: |
+          composer update --no-install --no-interaction --no-progress
+          composer audit --no-interaction
+
+  # 5) Revue des dépendances ajoutées dans une PR (intégrations inconnues côté paquets).
+  revue-dependances:
+    name: Revue des dépendances (PR)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Hook pré-push : lance le scanner de sécurité AVANT d'envoyer du code.
+# Installé via scripts/install-hooks.sh (core.hooksPath = scripts/git-hooks).
+# Contournement exceptionnel : git push --no-verify
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+echo "🛡️  Scan de sécurité avant push…"
+
+if ! php "$ROOT/scripts/security_scan.php"; then
+  echo ""
+  echo "❌ Push REFUSÉ : un problème de sécurité a été détecté ci-dessus."
+  echo "   Corrigez-le puis réessayez. (Contournement risqué : git push --no-verify)"
+  exit 1
+fi
+
+echo "✅ Sécurité OK — push autorisé."
+exit 0

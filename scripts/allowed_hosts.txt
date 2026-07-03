@@ -1,0 +1,68 @@
+# AfrikaLink — hôtes externes AUTORISÉS (intégrations connues et validées).
+#
+# Le scanner de sécurité (scripts/security_scan.php) refuse tout appel vers un
+# hôte externe qui NE figure PAS dans cette liste : c'est ainsi qu'on détecte une
+# « intégration inconnue » ou du code suspect ajouté en douce.
+#
+# ➕ Pour ajouter un service légitime : ajoutez son domaine ici, en connaissance
+#    de cause. Toute nouvelle ligne doit être approuvée par le propriétaire (la
+#    revue de code le montrera).  Un seul hôte par ligne, sans http(s):// ni chemin.
+
+# — Paiements —
+api.stripe.com
+hooks.stripe.com
+js.stripe.com
+stripe.com
+developer.paypal.com
+api-checkout.cinetpay.com
+docs.cinetpay.com
+
+# — Médias (photos/vidéos) —
+api.cloudinary.com
+res.cloudinary.com
+
+# — E-mail / SMS / notifications —
+api.brevo.com
+api.twilio.com
+t.me
+
+# — Géolocalisation & taux de change —
+nominatim.openstreetmap.org
+api.bigdatacloud.net
+api-bdc.net
+ipwho.is
+ipapi.co
+open.er-api.com
+
+# — Anti-robot (captcha) —
+challenges.cloudflare.com
+
+# — Assistant (IA) —
+api.anthropic.com
+
+# — Transporteurs (suivi de colis) —
+www.dhl.com
+www.fedex.com
+www.ups.com
+www.chronopost.fr
+www.laposte.fr
+www.mondialrelay.fr
+www.aramex.com
+gls-group.com
+tracking.dpd.de
+
+# — Réseaux sociaux / partage —
+wa.me
+www.facebook.com
+graph.facebook.com
+www.instagram.com
+www.tiktok.com
+
+# — Standards / SEO / divers —
+afriklink.com
+schema.org
+www.sitemaps.org
+www.w3.org
+www.google.com
+curl.se
+raw.githubusercontent.com
