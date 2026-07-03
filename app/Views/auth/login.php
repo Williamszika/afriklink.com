@@ -7,7 +7,7 @@
 
     <div class="grid grid--solo">
         <div class="acard">
-            <form method="post" action="<?= e(url('/login')) ?>" novalidate>
+            <form method="post" action="<?= e(url('/login')) ?>" novalidate data-submit-once>
                 <?= csrf_field() ?>
 
                 <div class="afield">

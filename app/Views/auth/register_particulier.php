@@ -24,7 +24,7 @@ $lockCity = $cityVal !== '' && $lockCountry;
 
     <div class="grid">
         <div class="acard">
-            <form method="post" action="<?= e(url('/register/particulier')) ?>" novalidate data-consent-gate>
+            <form method="post" action="<?= e(url('/register/particulier')) ?>" novalidate data-consent-gate data-submit-once>
                 <?= csrf_field() ?>
 
                 <!-- 1 · Identité -->
