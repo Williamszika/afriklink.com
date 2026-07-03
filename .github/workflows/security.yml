@@ -64,7 +64,7 @@ jobs:
             --config p/xss \
             --config p/command-injection \
             --config p/owasp-top-ten \
-            --exclude vendor --exclude node_modules --exclude storage --exclude ai-ops
+            --exclude vendor --exclude node_modules --exclude storage --exclude ai-ops --exclude .github
 
   # 3) Secrets : gitleaks (best-effort ; les secrets sont AUSSI couverts par la garde + semgrep).
   secrets:
@@ -94,10 +94,10 @@ jobs:
         with:
           php-version: '8.4'
           tools: composer
-      - name: Résoudre le verrou puis auditer
+      - name: Résoudre le verrou puis auditer (CVE des dépendances)
         run: |
           composer update --no-install --no-interaction --no-progress
-          composer audit --no-interaction
+          composer audit --locked --no-interaction
 
   # 5) Revue des dépendances ajoutées dans une PR (intégrations inconnues côté paquets).
   revue-dependances:

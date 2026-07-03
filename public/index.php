@@ -9,9 +9,13 @@ declare(strict_types=1);
 
 // Dev convenience: under `php -S ... public/index.php`, serve real files directly
 // and route everything else through the front controller. Production uses .htaccess.
+// La cible est bornée SOUS public/ via realpath + préfixe (anti-traversée « ../ »),
+// même si ce bloc ne s'exécute que sous le serveur de dev (cli-server).
 if (PHP_SAPI === 'cli-server') {
-    $file = __DIR__ . (parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
-    if ($file !== __DIR__ . '/' && is_file($file)) {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    $file = realpath(__DIR__ . $path);
+    // nosemgrep: php.lang.security.injection.tainted-filename.tainted-filename -- chemin résolu + confiné à public/
+    if ($file !== false && $file !== __DIR__ && str_starts_with($file, __DIR__ . DIRECTORY_SEPARATOR) && is_file($file)) {
         return false;
     }
 }
