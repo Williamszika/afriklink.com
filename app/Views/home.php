@@ -114,7 +114,7 @@ $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
     <div class="cat-tiles cat-tiles--browse">
         <?php foreach ($catOrder as $ck): $cn = $catCounts[$ck] ?? 0; $thumb = $catThumbs[$ck] ?? null; ?>
             <a class="cat-tile<?= $thumb !== null ? ' cat-tile--photo' : '' ?>" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
-                <span class="cat-tile-ico" aria-hidden="true"><?php if ($thumb !== null): ?><img src="<?= e(CloudinaryService::imageUrl($thumb, 220, 220)) ?>" alt="" loading="lazy" onerror="this.remove()"><span class="cat-tile-fallback"><?= $catIcons[$ck] ?? '🛍️' ?></span><?php else: ?><?= $catIcons[$ck] ?? '🛍️' ?><?php endif; ?></span>
+                <span class="cat-tile-ico" aria-hidden="true"><?php if ($thumb !== null): ?><img src="<?= e(CloudinaryService::imageUrl($thumb, 220, 220)) ?>" alt="" loading="lazy" data-hide-on-error><span class="cat-tile-fallback"><?= $catIcons[$ck] ?? '🛍️' ?></span><?php else: ?><?= $catIcons[$ck] ?? '🛍️' ?><?php endif; ?></span>
                 <span class="cat-tile-name"><?= e(t('listing.cat.' . $ck)) ?></span>
                 <?php if ($cn > 0): ?><span class="cat-tile-count"><?= e(t('home.cat_count', ['n' => $cn])) ?></span><?php endif; ?>
             </a>

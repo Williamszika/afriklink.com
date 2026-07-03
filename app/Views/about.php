@@ -398,7 +398,7 @@ $C = $ABOUT[current_locale()] ?? $ABOUT['en'];
       <div class="ab-founder">
         <div class="ab-portrait">
           <div class="ab-avatar">
-            <img src="<?= e(url('/assets/img/founder.jpeg')) ?>" alt="<?= e($C['founder_name']) ?>" loading="lazy" onerror="this.remove()">
+            <img src="<?= e(url('/assets/img/founder.jpeg')) ?>" alt="<?= e($C['founder_name']) ?>" loading="lazy" data-hide-on-error>
             <span class="ab-avatar__i" aria-hidden="true"><?= e(mb_substr($C['founder_name'], 0, 1)) ?></span>
           </div>
           <span class="ab-portrait__seal" aria-hidden="true"><?= render_partial('partials/logo', ['uid' => 'founder-seal']) ?></span>

@@ -8,10 +8,10 @@ $blocked   = $blocked ?? false;
     <p class="muted"><a href="<?= e(url('/messages')) ?>">← <?= e(t('msg.back_inbox')) ?></a></p>
     <div class="msg-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
         <h1 style="margin:0">💬 <?= e($other_name) ?></h1>
-        <form method="post" action="<?= e(url('/messages/' . $conv['public_id'] . '/bloquer')) ?>" onsubmit="return <?= $i_blocked ? 'true' : "confirm('" . e(t('msg.block_confirm')) . "')" ?>">
+        <form method="post" action="<?= e(url('/messages/' . $conv['public_id'] . '/bloquer')) ?>">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="<?= $i_blocked ? 'unblock' : 'block' ?>">
-            <button type="submit" class="btn btn-ghost btn-sm"><?= e($i_blocked ? t('msg.unblock') : t('msg.block')) ?></button>
+            <button type="submit" class="btn btn-ghost btn-sm"<?= $i_blocked ? '' : ' data-confirm="' . e(t('msg.block_confirm')) . '"' ?>><?= e($i_blocked ? t('msg.unblock') : t('msg.block')) ?></button>
         </form>
     </div>
     <?php if (!empty($conv['subject'])): ?><p class="muted msg-subject">📦 <?= e((string) $conv['subject']) ?></p><?php endif; ?>

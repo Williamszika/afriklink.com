@@ -346,6 +346,16 @@ document.addEventListener('click', function (ev) {
     }
 }, true);
 
+/* ---- Repli d'image CSP-safe : masque une <img data-hide-on-error> qui n'a pas
+   pu charger. Remplace l'attribut onerror inline (interdit par la CSP). L'événement
+   « error » d'une image ne remonte pas → on écoute en phase de CAPTURE. ---- */
+document.addEventListener('error', function (ev) {
+    var t = ev.target;
+    if (t && t.tagName === 'IMG' && t.hasAttribute('data-hide-on-error')) {
+        t.remove();
+    }
+}, true);
+
 /* ---- Copie générique dans le presse-papiers (boutons [data-copy]) ----
    Copie le texte de l'attribut data-copy ; fallback execCommand pour les
    navigateurs sans Clipboard API. Affiche un retour bref « ✓ Copié ! ».

@@ -23,10 +23,9 @@
                 <?= csrf_field() ?>
                 <button class="btn btn-primary"><?= icon('sparkle', ['size' => 16]) ?> Créer 2 boutiques de démo</button>
             </form>
-            <form method="post" action="<?= e(url('/admin/demo/retirer')) ?>" class="inline-form"
-                  onsubmit="return confirm('Retirer toutes les boutiques de démo ?')">
+            <form method="post" action="<?= e(url('/admin/demo/retirer')) ?>" class="inline-form">
                 <?= csrf_field() ?>
-                <button class="btn btn-ghost">Tout retirer</button>
+                <button class="btn btn-ghost" data-confirm="Retirer toutes les boutiques de démo ?">Tout retirer</button>
             </form>
         </div>
         <p class="muted" style="font-size:.85rem;margin-top:10px"><?= icon('info', ['size' => 14]) ?> Après ton test, clique « Tout retirer » — et je supprime cet outil du code.</p>

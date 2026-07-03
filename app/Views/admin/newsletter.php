@@ -46,7 +46,7 @@
         <div class="product-row-actions">
             <button class="btn btn-ghost" type="submit" name="action" value="test"><?= icon('eye', ['size' => 16]) ?> <?= e(t('newsletter.admin_test_btn', ['email' => $me])) ?></button>
             <button class="btn btn-primary" type="submit" name="action" value="all"
-                    onclick="return confirm('<?= e(t('newsletter.admin_confirm', ['n' => $counts['subscribed']])) ?>')">
+                    data-confirm="<?= e(t('newsletter.admin_confirm', ['n' => $counts['subscribed']])) ?>">
                 <?= icon('megaphone', ['size' => 16]) ?> <?= e(t('newsletter.admin_send_btn', ['n' => $counts['subscribed']])) ?>
             </button>
         </div>
