@@ -7211,3 +7211,9 @@ document.addEventListener('click', function (ev) {
     function update() { out.textContent = slugify(src.value) || fallback; }
     src.addEventListener('input', update);
 })();
+
+/* ---- Messagerie : défiler le fil vers le bas à l'ouverture (CSP-safe) ---- */
+(function () {
+    var log = document.querySelector('[data-msg-log]');
+    if (log) { log.scrollTop = log.scrollHeight; }
+})();

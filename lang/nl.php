@@ -2697,4 +2697,14 @@ return [
     'order.prereq' => 'Voeg eerst een product aan uw catalogus toe.',
     'order.uptodate' => 'U bent helemaal bij',
     'order.nothing' => 'Niets te tonen',
+
+    // Messagerie deux volets (design .smsg)
+    'msg.subtitle' => 'Chat met kopers — een snel antwoord maakt vaak de verkoop.',
+    'msg.search_ph' => 'Zoek een gesprek…',
+    'msg.tab_all' => 'Alle',
+    'msg.tab_unread' => 'Ongelezen',
+    'msg.select_convo' => 'Selecteer een gesprek',
+    'msg.select_hint' => 'Kies links een gesprek om de berichten te zien.',
+    'msg.empty_title' => 'Nog geen gesprek',
+    'msg.no_match' => 'Geen resultaten.',
 ];

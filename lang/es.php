@@ -2702,4 +2702,14 @@ return [
     'order.prereq' => 'Primero añade un producto a tu catálogo.',
     'order.uptodate' => 'Estás al día',
     'order.nothing' => 'Nada que mostrar',
+
+    // Messagerie deux volets (design .smsg)
+    'msg.subtitle' => 'Habla con los compradores — una respuesta rápida suele cerrar la venta.',
+    'msg.search_ph' => 'Buscar una conversación…',
+    'msg.tab_all' => 'Todas',
+    'msg.tab_unread' => 'No leídas',
+    'msg.select_convo' => 'Selecciona una conversación',
+    'msg.select_hint' => 'Elige una conversación a la izquierda para ver los mensajes.',
+    'msg.empty_title' => 'Aún no hay conversaciones',
+    'msg.no_match' => 'Sin resultados.',
 ];

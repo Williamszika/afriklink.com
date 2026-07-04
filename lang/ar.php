@@ -2702,4 +2702,14 @@ return [
     'order.prereq' => 'أضف أولًا منتجًا إلى كتالوجك.',
     'order.uptodate' => 'كل شيء محدَّث',
     'order.nothing' => 'لا شيء لعرضه',
+
+    // Messagerie deux volets (design .smsg)
+    'msg.subtitle' => 'تواصل مع المشترين — الرد السريع كثيرًا ما يُتمّ البيع.',
+    'msg.search_ph' => 'ابحث عن محادثة…',
+    'msg.tab_all' => 'الكل',
+    'msg.tab_unread' => 'غير المقروءة',
+    'msg.select_convo' => 'اختر محادثة',
+    'msg.select_hint' => 'اختر محادثة من اليمين لعرض الرسائل.',
+    'msg.empty_title' => 'لا توجد محادثات بعد',
+    'msg.no_match' => 'لا نتائج.',
 ];

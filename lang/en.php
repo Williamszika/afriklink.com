@@ -2723,4 +2723,14 @@ return [
     'order.prereq' => 'First add a product to your catalog.',
     'order.uptodate' => 'You\'re all caught up',
     'order.nothing' => 'Nothing to show',
+
+    // Messagerie deux volets (design .smsg)
+    'msg.subtitle' => 'Chat with buyers — a quick reply often makes the sale.',
+    'msg.search_ph' => 'Search a conversation…',
+    'msg.tab_all' => 'All',
+    'msg.tab_unread' => 'Unread',
+    'msg.select_convo' => 'Select a conversation',
+    'msg.select_hint' => 'Pick a conversation on the left to see the messages.',
+    'msg.empty_title' => 'No conversation yet',
+    'msg.no_match' => 'No results.',
 ];

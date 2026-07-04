@@ -1,38 +1,24 @@
 <?php
-/** Boîte de réception unifiée. @var int $uid  @var list<array> $conversations */
-use App\Models\Conversation;
+/** Boîte de réception unifiée — messagerie deux volets. @var int $uid  @var list<array> $conversations */
 ?>
-<section class="msg-inbox">
-    <h1>💬 <?= e(t('msg.title')) ?></h1>
+<section class="smsg-page">
+    <div class="smsg-topbar">
+        <h1>💬 <?= e(t('msg.title')) ?></h1>
+        <p><?= e(t('msg.subtitle')) ?></p>
+    </div>
 
-    <?php if ($conversations === []): ?>
-        <div class="empty-state">
-            <p style="font-size:2rem;margin:0 0 6px" aria-hidden="true">💬</p>
-            <p><?= e(t('msg.empty')) ?></p>
-            <a class="btn btn-ghost" href="<?= e(url('/explorer')) ?>"><?= e(t('msg.empty_cta')) ?></a>
+    <div class="smsg">
+        <?= render_partial('messages/_list', ['uid' => $uid, 'conversations' => $conversations, 'currentId' => '']) ?>
+
+        <div class="smsg-thread smsg-thread--empty">
+            <div class="smsg-empty">
+                <div class="il" aria-hidden="true">💬</div>
+                <b><?= e($conversations === [] ? t('msg.empty_title') : t('msg.select_convo')) ?></b>
+                <p><?= e($conversations === [] ? t('msg.empty') : t('msg.select_hint')) ?></p>
+                <?php if ($conversations === []): ?>
+                    <a class="btn btn-gold" href="<?= e(url('/explorer')) ?>"><?= icon('search', ['size' => 16]) ?> <?= e(t('msg.empty_cta')) ?></a>
+                <?php endif; ?>
+            </div>
         </div>
-    <?php else: ?>
-        <ul class="conv-list">
-            <?php foreach ($conversations as $c): ?>
-                <?php
-                $isBuyer   = (int) $c['buyer_id'] === $uid;
-                $otherName = $isBuyer
-                    ? Conversation::displayName($c['seller_name'] ?? null, $c['seller_nick'] ?? null)
-                    : Conversation::displayName($c['buyer_name'] ?? null, $c['buyer_nick'] ?? null);
-                $unread = Conversation::isUnread($c, $uid);
-                ?>
-                <li>
-                    <a class="conv-item<?= $unread ? ' is-unread' : '' ?>" href="<?= e(url('/messages/' . $c['public_id'])) ?>">
-                        <span class="conv-top">
-                            <strong class="conv-name"><?= e($otherName) ?></strong>
-                            <span class="conv-time muted"><?= e(date('d/m H:i', strtotime((string) $c['last_at']))) ?></span>
-                        </span>
-                        <?php if (!empty($c['subject'])): ?><span class="conv-subject muted">📦 <?= e((string) $c['subject']) ?></span><?php endif; ?>
-                        <span class="conv-snippet muted"><?= e(mb_strimwidth((string) ($c['last_body'] ?? ''), 0, 90, '…')) ?></span>
-                        <?php if ($unread): ?><span class="conv-badge"><?= e(t('msg.new')) ?></span><?php endif; ?>
-                    </a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
+    </div>
 </section>

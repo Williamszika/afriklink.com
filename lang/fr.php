@@ -2723,4 +2723,14 @@ return [
     'order.prereq' => 'Ajoutez d\'abord un produit à votre catalogue.',
     'order.uptodate' => 'Vous êtes à jour',
     'order.nothing' => 'Rien à afficher',
+
+    // Messagerie deux volets (design .smsg)
+    'msg.subtitle' => 'Échangez avec les acheteurs — une réponse rapide fait souvent la vente.',
+    'msg.search_ph' => 'Rechercher une conversation…',
+    'msg.tab_all' => 'Tous',
+    'msg.tab_unread' => 'Non lus',
+    'msg.select_convo' => 'Sélectionnez une conversation',
+    'msg.select_hint' => 'Choisissez une conversation à gauche pour afficher les messages.',
+    'msg.empty_title' => 'Pas encore de conversation',
+    'msg.no_match' => 'Aucun résultat.',
 ];

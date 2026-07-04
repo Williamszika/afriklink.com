@@ -41,6 +41,8 @@ final class MessageController
             'page_title' => t('msg.title'),
             'uid'        => $uid,
             'conv'       => $conv,
+            // Liste complète des conversations pour le volet gauche (messagerie 2 volets).
+            'conversations' => Conversation::forUser($uid),
             'messages'   => Conversation::messages((int) $conv['id']),
             'other_name' => Conversation::displayName($otherUser['full_name'] ?? null, $otherUser['nickname'] ?? null),
             // État de blocage : 'i_blocked' = j'ai bloqué l'autre (je peux
