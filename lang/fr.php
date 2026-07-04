@@ -2809,4 +2809,19 @@ return [
     'seller.badge_unlocked_desc' => 'Votre vitrine affiche le badge « Vendeur vérifié ». Bravo !',
     'seller.badge_locked_desc' => 'Renseignez votre n° d’enregistrement pour lancer la vérification et obtenir le badge.',
     'seller.verified_mini' => 'Vérifié',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'Vos identifiants de connexion.',
+    'settings.password_sub' => 'Choisissez un mot de passe fort pour protéger votre compte.',
+    'settings.delete_warning' => 'La suppression du compte est définitive et efface vos vitrines, produits et historique.',
+    'privacy.export_or_delete' => 'Exportez ou supprimez vos données',
+    'privacy.you_stay_in_control' => 'Vous gardez le contrôle de vos informations, à tout moment.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];

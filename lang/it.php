@@ -2788,4 +2788,19 @@ return [
     'seller.badge_unlocked_desc' => 'La tua vetrina mostra il badge «Venditore verificato». Bravo!',
     'seller.badge_locked_desc' => 'Inserisci il tuo n. di registrazione per avviare la verifica e ottenere il badge.',
     'seller.verified_mini' => 'Verificato',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'Le tue credenziali di accesso.',
+    'settings.password_sub' => 'Scegli una password forte per proteggere il tuo account.',
+    'settings.delete_warning' => 'L’eliminazione dell’account è definitiva e cancella vetrine, prodotti e cronologia.',
+    'privacy.export_or_delete' => 'Esporta o elimina i tuoi dati',
+    'privacy.you_stay_in_control' => 'Mantieni il controllo delle tue informazioni, in ogni momento.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];

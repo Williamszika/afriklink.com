@@ -2809,4 +2809,19 @@ return [
     'seller.badge_unlocked_desc' => 'Your storefront shows the “Verified seller” badge. Well done!',
     'seller.badge_locked_desc' => 'Add your registration number to start verification and earn the badge.',
     'seller.verified_mini' => 'Verified',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'Your sign-in credentials.',
+    'settings.password_sub' => 'Choose a strong password to protect your account.',
+    'settings.delete_warning' => 'Deleting your account is permanent and erases your storefronts, products and history.',
+    'privacy.export_or_delete' => 'Export or delete your data',
+    'privacy.you_stay_in_control' => 'You stay in control of your information, at any time.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];

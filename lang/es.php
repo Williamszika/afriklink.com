@@ -2788,4 +2788,19 @@ return [
     'seller.badge_unlocked_desc' => 'Su escaparate muestra la insignia «Vendedor verificado». ¡Bien hecho!',
     'seller.badge_locked_desc' => 'Indique su n.º de registro para iniciar la verificación y obtener la insignia.',
     'seller.verified_mini' => 'Verificado',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'Sus credenciales de acceso.',
+    'settings.password_sub' => 'Elija una contraseña segura para proteger su cuenta.',
+    'settings.delete_warning' => 'La eliminación de la cuenta es definitiva y borra sus escaparates, productos e historial.',
+    'privacy.export_or_delete' => 'Exporte o elimine sus datos',
+    'privacy.you_stay_in_control' => 'Usted mantiene el control de su información en todo momento.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];

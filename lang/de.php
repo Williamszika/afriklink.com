@@ -2788,4 +2788,19 @@ return [
     'seller.badge_unlocked_desc' => 'Ihr Schaufenster zeigt das Abzeichen „Verifizierter Verkäufer“. Gut gemacht!',
     'seller.badge_locked_desc' => 'Geben Sie Ihre Registernummer an, um die Verifizierung zu starten und das Abzeichen zu erhalten.',
     'seller.verified_mini' => 'Verifiziert',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'Ihre Anmeldedaten.',
+    'settings.password_sub' => 'Wählen Sie ein starkes Passwort zum Schutz Ihres Kontos.',
+    'settings.delete_warning' => 'Das Löschen des Kontos ist endgültig und entfernt Ihre Schaufenster, Produkte und Ihren Verlauf.',
+    'privacy.export_or_delete' => 'Ihre Daten exportieren oder löschen',
+    'privacy.you_stay_in_control' => 'Sie behalten jederzeit die Kontrolle über Ihre Daten.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];

@@ -2783,4 +2783,19 @@ return [
     'seller.badge_unlocked_desc' => 'Uw etalage toont het badge ‘Geverifieerde verkoper’. Goed gedaan!',
     'seller.badge_locked_desc' => 'Vul uw registratienummer in om de verificatie te starten en de badge te verdienen.',
     'seller.verified_mini' => 'Geverifieerd',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'Uw inloggegevens.',
+    'settings.password_sub' => 'Kies een sterk wachtwoord om uw account te beschermen.',
+    'settings.delete_warning' => 'Het verwijderen van uw account is definitief en wist uw etalages, producten en geschiedenis.',
+    'privacy.export_or_delete' => 'Exporteer of verwijder uw gegevens',
+    'privacy.you_stay_in_control' => 'U houdt altijd de controle over uw gegevens.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];

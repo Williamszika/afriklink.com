@@ -2788,4 +2788,19 @@ return [
     'seller.badge_unlocked_desc' => 'تعرض واجهة متجرك شارة «بائع موثّق». أحسنت!',
     'seller.badge_locked_desc' => 'أدخل رقم تسجيلك لبدء التحقق والحصول على الشارة.',
     'seller.verified_mini' => 'موثّق',
+
+    // --- Réglages vendeur (.sset) ---
+    'settings.account_sub' => 'بيانات تسجيل دخولك.',
+    'settings.password_sub' => 'اختر كلمة مرور قوية لحماية حسابك.',
+    'settings.delete_warning' => 'حذف الحساب نهائي ويمحو متاجرك ومنتجاتك وسجلّك.',
+    'privacy.export_or_delete' => 'صدّر بياناتك أو احذفها',
+    'privacy.you_stay_in_control' => 'تبقى مسيطرًا على معلوماتك في أي وقت.',
+
+    // --- settings.lang.* (endonymes) ---
+    'settings.lang.de' => 'Deutsch',
+    'settings.lang.es' => 'Español',
+    'settings.lang.it' => 'Italiano',
+    'settings.lang.pt' => 'Português',
+    'settings.lang.nl' => 'Nederlands',
+    'settings.lang.ar' => 'العربية',
 ];
