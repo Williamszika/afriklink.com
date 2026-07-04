@@ -7194,3 +7194,20 @@ document.addEventListener('click', function (ev) {
         sync();
     });
 })();
+
+/* ---- Aperçu de « slug » en direct (data-slug-source → data-slug-out) ----
+   Transforme le nom saisi en identifiant d'URL, sans appel serveur. Utilisé sur
+   la création de restaurant (afriklink.com/restaurant/<slug>). CSP-safe. */
+(function () {
+    var src = document.querySelector('[data-slug-source]');
+    var out = document.querySelector('[data-slug-out]');
+    if (!src || !out) { return; }
+    var fallback = out.getAttribute('data-slug-fallback') || out.textContent || '';
+    function slugify(s) {
+        return (s || '').toString().toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+    function update() { out.textContent = slugify(src.value) || fallback; }
+    src.addEventListener('input', update);
+})();

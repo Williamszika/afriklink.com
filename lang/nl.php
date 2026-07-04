@@ -2651,4 +2651,23 @@ return [
     'privacy.delete_keyword_wrong' => 'Typ \':word\' om te bevestigen.',
     'privacy.delete_admin_blocked' => 'Een beheerdersaccount kan hier niet worden verwijderd.',
     'privacy.delete_done' => 'Uw account is verwijderd. Tot ziens en bedankt voor het gebruik van AfrikaLink.',
+
+    // Restaurant — création (design .authx)
+    'resto.create_eyebrow' => 'Nieuw restaurant',
+    'resto.fs.identity' => 'Het restaurant',
+    'resto.fs.location' => 'Locatie & contact',
+    'resto.fs.service' => 'Service & openingstijden',
+    'resto.fs.currency' => 'Valuta',
+    'resto.slug_fallback' => 'mijn-restaurant',
+    'resto.currency_hint' => 'Prijzen worden in deze valuta getoond, met een indicatieve omrekening naar euro voor uw Europese klanten.',
+    'resto.rest_later' => 'Volgende stap: voeg uw menu toe via het dashboard.',
+    'resto.aside.how' => 'Hoe het werkt',
+    'resto.aside.title' => 'Online in 3 stappen',
+    'resto.aside.s1_t' => 'Maak uw restaurant',
+    'resto.aside.s1_d' => 'Naam, keuken, locatie — dat is alles.',
+    'resto.aside.s2_t' => 'Stel uw menu samen',
+    'resto.aside.s2_d' => 'Categorieën, gerechten, maten en prijzen.',
+    'resto.aside.s3_t' => 'Publiceer',
+    'resto.aside.s3_d' => 'Maak het zichtbaar wanneer u klaar bent.',
+    'resto.aside.draft' => 'Uw restaurant begint als concept: alleen u ziet het totdat u het publiceert.',
 ];

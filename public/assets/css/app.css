@@ -3070,6 +3070,14 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .authx .paybadges{display:flex;flex-wrap:wrap;gap:.4rem}
 .authx .paybadges span{font-family:var(--afk-mono);font-size:.66rem;font-weight:700;background:rgba(20,80,46,.06);color:var(--a-muted);border-radius:6px;padding:.28rem .5rem}
 
+/* Restaurant — création : aperçu du slug + note « brouillon » + géo dans la carte */
+.authx .slug-preview{font-family:var(--afk-mono);font-size:.84rem;color:var(--a-green);background:rgba(20,80,46,.05);border:1px dashed var(--a-line);border-radius:10px;padding:.5rem .7rem;margin-top:.5rem;word-break:break-word}
+.authx .slug-preview b{color:var(--a-gold-deep);font-weight:700}
+.authx .draftnote{background:var(--a-paper);border:1px solid var(--a-line);border-radius:16px;padding:1rem 1.15rem;font-size:.9rem;color:var(--a-muted);display:flex;gap:.6rem;align-items:flex-start}
+.authx .geo-authx .geo-row{margin-bottom:.5rem}
+.authx .geo-authx .geo-auto-hint{font-size:.82rem;color:var(--a-gold-deep);font-weight:600}
+.authx .geo-authx .hint{font-size:.82rem;color:var(--a-muted)}
+
 /* le bloc de consentement s'intègre dans la carte (recadrage léger) */
 .authx .legal-consent{background:rgba(20,80,46,.04);border-color:var(--a-line);margin:0}
 

@@ -2656,4 +2656,23 @@ return [
     'privacy.delete_keyword_wrong' => 'Digita «:word» per confermare.',
     'privacy.delete_admin_blocked' => 'Un account amministratore non può essere eliminato qui.',
     'privacy.delete_done' => 'Il tuo account è stato eliminato. Arrivederci e grazie per aver usato AfrikaLink.',
+
+    // Restaurant — création (design .authx)
+    'resto.create_eyebrow' => 'Nuovo ristorante',
+    'resto.fs.identity' => 'Il ristorante',
+    'resto.fs.location' => 'Posizione e contatto',
+    'resto.fs.service' => 'Servizio e orari',
+    'resto.fs.currency' => 'Valuta',
+    'resto.slug_fallback' => 'il-mio-ristorante',
+    'resto.currency_hint' => 'I prezzi vengono mostrati in questa valuta, con una conversione indicativa in euro per i tuoi clienti europei.',
+    'resto.rest_later' => 'Prossimo passo: aggiungi il tuo menu dalla dashboard.',
+    'resto.aside.how' => 'Come funziona',
+    'resto.aside.title' => 'Online in 3 passaggi',
+    'resto.aside.s1_t' => 'Crea il tuo ristorante',
+    'resto.aside.s1_d' => 'Nome, cucina, posizione — tutto qui.',
+    'resto.aside.s2_t' => 'Componi il tuo menu',
+    'resto.aside.s2_d' => 'Categorie, piatti, formati e prezzi.',
+    'resto.aside.s3_t' => 'Pubblica',
+    'resto.aside.s3_d' => 'Rendilo visibile quando sei pronto.',
+    'resto.aside.draft' => 'Il tuo ristorante parte come bozza: solo tu lo vedi finché non lo pubblichi.',
 ];
