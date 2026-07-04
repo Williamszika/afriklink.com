@@ -2711,4 +2711,10 @@ return [
     'wallet.threshold_remaining' => ':amount to go before your first withdrawal',
     'wallet.configure_payout' => 'Payout details',
     'wallet.no_moves' => 'No movement yet',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'Administration',
+    'vitrines.admin' => 'Admin',
+    'vitrines.moderation' => 'Moderation',
+    'vitrines.emails' => 'Emails',
 ];

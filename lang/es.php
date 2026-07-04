@@ -2690,4 +2690,10 @@ return [
     'wallet.threshold_remaining' => 'Faltan :amount para tu primer retiro',
     'wallet.configure_payout' => 'Datos de cobro',
     'wallet.no_moves' => 'Aún no hay movimientos',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'Administración',
+    'vitrines.admin' => 'Admin',
+    'vitrines.moderation' => 'Moderación',
+    'vitrines.emails' => 'Correos',
 ];

@@ -3231,6 +3231,47 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .swal-hist-empty b{font-family:var(--afk-display);font-size:1.05rem}
 .swal-hist-empty p{color:var(--s-muted);font-size:.9rem;margin:.3rem 0 0;max-width:36ch}
 
+/* --- Mes vitrines (.svit, s'appuie sur .sdash) --- */
+.svit-admin{display:flex;gap:.4rem;padding-inline-end:.5rem;margin-inline-end:.3rem;border-inline-end:1px solid var(--s-line)}
+@media(max-width:560px){.svit-admin{border-inline-end:0}}
+.svit-icbtn{width:38px;height:38px;border-radius:11px;border:1.5px solid var(--s-line);background:#fff;color:var(--s-green);display:grid;place-items:center;transition:border-color .15s,transform .15s}
+.svit-icbtn:hover{border-color:var(--s-gold);transform:translateY(-1px)}
+.svit-section{margin-bottom:2rem}
+.svit-section-head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+.svit-section-head h2{font-family:var(--afk-display);font-size:1.2rem;display:flex;align-items:center;gap:.5rem;margin:0}
+.svit-count{font-family:var(--afk-mono);font-size:.72rem;font-weight:700;color:var(--s-muted);background:rgba(20,80,46,.06);border-radius:999px;padding:.2rem .6rem}
+.svit-shops{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:1rem}
+.svit-shop-form{margin:0}
+.svit-shop{width:100%;text-align:start;font:inherit;cursor:pointer;background:var(--s-paper);border:1px solid var(--s-line);border-radius:16px;padding:1.1rem;display:flex;flex-direction:column;gap:.7rem;color:inherit;text-decoration:none;transition:transform .15s,box-shadow .2s,border-color .2s}
+.svit-shop:hover{transform:translateY(-3px);border-color:var(--s-gold);box-shadow:0 16px 34px -26px rgba(20,80,46,.6);text-decoration:none}
+.svit-shop-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem}
+.svit-shop-emoji{width:46px;height:46px;border-radius:13px;background:rgba(20,80,46,.07);display:grid;place-items:center;font-size:1.5rem;flex:none}
+.svit-tag{font-family:var(--afk-mono);font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.22rem .5rem;border-radius:6px;white-space:nowrap}
+.svit-tag--draft{background:rgba(180,122,17,.14);color:var(--s-warn)}
+.svit-tag--active{background:rgba(46,125,70,.15);color:var(--s-ok)}
+.svit-tag--soon{background:rgba(20,80,46,.08);color:var(--s-muted)}
+.svit-shop-cat{display:block;font-family:var(--afk-display);font-weight:700;font-size:1.02rem;line-height:1.15}
+.svit-shop-name{display:block;font-size:.82rem;color:var(--s-muted)}
+.svit-shop-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding-top:.55rem;border-top:1px solid var(--s-line)}
+.svit-manage{font-family:var(--afk-mono);font-size:.74rem;font-weight:700;color:var(--s-gold-deep)}
+.svit-add{align-items:center;justify-content:center;text-align:center;border-style:dashed;color:var(--s-green);gap:.5rem;min-height:180px}
+.svit-add:hover{border-color:var(--s-gold);background:rgba(199,146,46,.04)}
+.svit-add-plus{width:46px;height:46px;border-radius:13px;background:var(--s-green);color:#FAF4E6;display:grid;place-items:center}
+.svit-add b{font-family:var(--afk-display);font-size:1.02rem}
+.svit-add>span:last-child{font-size:.8rem;color:var(--s-muted);max-width:22ch}
+.svit-acts{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:820px){.svit-acts{grid-template-columns:1fr}}
+.svit-act{background:var(--s-paper);border:1px solid var(--s-line);border-radius:16px;padding:1.3rem;display:flex;flex-direction:column;gap:.6rem;color:inherit;text-decoration:none;transition:transform .15s,box-shadow .2s,border-color .2s}
+.svit-act.is-live:hover{transform:translateY(-3px);border-color:var(--s-gold);box-shadow:0 16px 34px -26px rgba(20,80,46,.6);text-decoration:none}
+.svit-act.is-soon{opacity:.72}
+.svit-act-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.svit-act-emoji{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:1.7rem;flex:none;background:rgba(20,80,46,.06)}
+.svit-act.is-live .svit-act-emoji{background:rgba(199,146,46,.14)}
+.svit-act h3{font-family:var(--afk-display);font-size:1.15rem;margin:0}
+.svit-act p{font-size:.88rem;color:var(--s-muted);margin:0;flex:1}
+.svit-act-cta{align-self:flex-start;margin-top:.3rem}
+.svit-act-cta.is-disabled{font-size:.82rem;color:var(--s-muted);opacity:.7}
+
 /* le bloc de consentement s'intègre dans la carte (recadrage léger) */
 .authx .legal-consent{background:rgba(20,80,46,.04);border-color:var(--a-line);margin:0}
 

@@ -2690,4 +2690,10 @@ return [
     'wallet.threshold_remaining' => 'Noch :amount bis zur ersten Auszahlung',
     'wallet.configure_payout' => 'Auszahlungsdaten',
     'wallet.no_moves' => 'Noch keine Bewegung',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'Verwaltung',
+    'vitrines.admin' => 'Admin',
+    'vitrines.moderation' => 'Moderation',
+    'vitrines.emails' => 'E-Mails',
 ];

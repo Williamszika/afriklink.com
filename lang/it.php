@@ -2690,4 +2690,10 @@ return [
     'wallet.threshold_remaining' => 'Ancora :amount al primo prelievo',
     'wallet.configure_payout' => 'Dati di pagamento',
     'wallet.no_moves' => 'Ancora nessun movimento',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'Amministrazione',
+    'vitrines.admin' => 'Admin',
+    'vitrines.moderation' => 'Moderazione',
+    'vitrines.emails' => 'Email',
 ];

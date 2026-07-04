@@ -2690,4 +2690,10 @@ return [
     'wallet.threshold_remaining' => 'يتبقى :amount قبل أول سحب',
     'wallet.configure_payout' => 'بيانات السحب',
     'wallet.no_moves' => 'لا توجد حركة بعد',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'الإدارة',
+    'vitrines.admin' => 'مشرف',
+    'vitrines.moderation' => 'الإشراف',
+    'vitrines.emails' => 'رسائل',
 ];

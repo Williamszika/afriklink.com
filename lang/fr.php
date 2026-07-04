@@ -2711,4 +2711,10 @@ return [
     'wallet.threshold_remaining' => 'Encore :amount avant votre premier retrait',
     'wallet.configure_payout' => 'Coordonnées de retrait',
     'wallet.no_moves' => 'Aucun mouvement pour l\'instant',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'Espace administration',
+    'vitrines.admin' => 'Admin',
+    'vitrines.moderation' => 'Modération',
+    'vitrines.emails' => 'E-mails',
 ];

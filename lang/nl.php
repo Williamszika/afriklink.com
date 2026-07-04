@@ -2685,4 +2685,10 @@ return [
     'wallet.threshold_remaining' => 'Nog :amount tot je eerste uitbetaling',
     'wallet.configure_payout' => 'Uitbetalingsgegevens',
     'wallet.no_moves' => 'Nog geen beweging',
+
+    // Mes vitrines — cluster admin (design .svit)
+    'vitrines.admin_area' => 'Beheer',
+    'vitrines.admin' => 'Admin',
+    'vitrines.moderation' => 'Moderatie',
+    'vitrines.emails' => 'E-mails',
 ];
