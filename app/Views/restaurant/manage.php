@@ -10,7 +10,7 @@ foreach ($items as $it) { $byCat[(int) $it['category_id']][] = $it; }
 ?>
 <div class="seller-shell">
     <?= render_partial('vendeur/_sidebar', ['active' => $active, 'user' => $user, 'profile' => $profile, 'avatar_url' => $avatar_url]) ?>
-    <div class="seller-main">
+    <div class="seller-main resto-manage">
 
         <div class="panel shop-admin-head">
             <div class="shop-logo shop-logo--empty" aria-hidden="true"><?= icon('utensils', ['size' => 34]) ?></div>

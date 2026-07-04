@@ -3078,6 +3078,23 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .authx .geo-authx .geo-auto-hint{font-size:.82rem;color:var(--a-gold-deep);font-weight:600}
 .authx .geo-authx .hint{font-size:.82rem;color:var(--a-muted)}
 
+/* Restaurant — tableau de bord « Gérer » : reprise du langage visuel de la
+   maquette (chiffres dorés/verts, panneaux arrondis, menu en cartes) dans la
+   coquille vendeur existante. Purement cosmétique — aucune fonction modifiée. */
+.resto-manage .panel{border-radius:20px}
+.resto-manage .stat-grid{gap:14px}
+.resto-manage .stat-card{border-radius:16px;padding:16px 18px}
+.resto-manage .stat-card .num{font-family:var(--afk-display,inherit);font-size:2rem;font-weight:800;color:var(--brand);line-height:1;display:flex;align-items:center;gap:8px}
+.resto-manage .stat-card .num .icon{color:var(--afk-or,#C7922E);opacity:1}
+.resto-manage .stat-card .lbl{font-family:var(--afk-mono,inherit);font-size:.74rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:5px}
+.resto-manage .panel-title{font-family:var(--afk-display,inherit)}
+.resto-manage .menu-cat{border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:14px}
+.resto-manage .menu-cat-head{background:rgba(20,80,46,.05);border-bottom:1px solid var(--border);padding:10px 14px;margin:0}
+.resto-manage .menu-cat > .menu-item-row,.resto-manage .menu-cat > .muted{padding-inline:14px}
+.resto-manage .menu-item-row{padding-block:12px;border-bottom:1px solid var(--border)}
+.resto-manage .menu-item-row:last-child{border-bottom:0}
+.resto-manage .menu-item-price{font-family:var(--afk-mono,inherit);color:var(--afk-or-deep,#9A6F1E);font-weight:700}
+
 /* le bloc de consentement s'intègre dans la carte (recadrage léger) */
 .authx .legal-consent{background:rgba(20,80,46,.04);border-color:var(--a-line);margin:0}
 
