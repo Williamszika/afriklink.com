@@ -2696,4 +2696,10 @@ return [
     'vitrines.admin' => 'Admin',
     'vitrines.moderation' => 'Moderazione',
     'vitrines.emails' => 'Email',
+
+    // Commandes — refonte (design .sord)
+    'order.record_phase3' => 'Il pagamento online arriva nella Fase 3.',
+    'order.prereq' => 'Aggiungi prima un prodotto al catalogo.',
+    'order.uptodate' => 'Sei in pari',
+    'order.nothing' => 'Niente da mostrare',
 ];

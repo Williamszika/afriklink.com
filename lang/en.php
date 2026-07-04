@@ -2717,4 +2717,10 @@ return [
     'vitrines.admin' => 'Admin',
     'vitrines.moderation' => 'Moderation',
     'vitrines.emails' => 'Emails',
+
+    // Commandes — refonte (design .sord)
+    'order.record_phase3' => 'Online payment is coming in Phase 3.',
+    'order.prereq' => 'First add a product to your catalog.',
+    'order.uptodate' => 'You\'re all caught up',
+    'order.nothing' => 'Nothing to show',
 ];

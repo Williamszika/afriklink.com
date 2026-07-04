@@ -2696,4 +2696,10 @@ return [
     'vitrines.admin' => 'مشرف',
     'vitrines.moderation' => 'الإشراف',
     'vitrines.emails' => 'رسائل',
+
+    // Commandes — refonte (design .sord)
+    'order.record_phase3' => 'الدفع عبر الإنترنت يصل في المرحلة 3.',
+    'order.prereq' => 'أضف أولًا منتجًا إلى كتالوجك.',
+    'order.uptodate' => 'كل شيء محدَّث',
+    'order.nothing' => 'لا شيء لعرضه',
 ];

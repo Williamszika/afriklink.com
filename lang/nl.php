@@ -2691,4 +2691,10 @@ return [
     'vitrines.admin' => 'Admin',
     'vitrines.moderation' => 'Moderatie',
     'vitrines.emails' => 'E-mails',
+
+    // Commandes — refonte (design .sord)
+    'order.record_phase3' => 'Online betalen komt in Fase 3.',
+    'order.prereq' => 'Voeg eerst een product aan uw catalogus toe.',
+    'order.uptodate' => 'U bent helemaal bij',
+    'order.nothing' => 'Niets te tonen',
 ];
