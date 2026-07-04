@@ -2675,4 +2675,12 @@ return [
     'resto.aside.s3_t' => 'Pubblica',
     'resto.aside.s3_d' => 'Rendilo visibile quando sei pronto.',
     'resto.aside.draft' => 'Il tuo ristorante parte come bozza: solo tu lo vedi finché non lo pubblichi.',
+
+    // Tableau de bord vendeur (design .sdash)
+    'pro.dash.profile_panel' => 'Profilo venditore',
+    'seller.dash.view_shop' => 'Vedi il mio negozio',
+    'seller.dash.create_storefront' => 'Crea una vetrina',
+    'seller.dash.follow' => 'Segui',
+    'seller.dash.d30' => '30 giorni',
+    'seller.dash.units_sold' => ':n venduto/i',
 ];

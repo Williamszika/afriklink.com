@@ -2670,4 +2670,12 @@ return [
     'resto.aside.s3_t' => 'Publiceer',
     'resto.aside.s3_d' => 'Maak het zichtbaar wanneer u klaar bent.',
     'resto.aside.draft' => 'Uw restaurant begint als concept: alleen u ziet het totdat u het publiceert.',
+
+    // Tableau de bord vendeur (design .sdash)
+    'pro.dash.profile_panel' => 'Verkopersprofiel',
+    'seller.dash.view_shop' => 'Mijn winkel bekijken',
+    'seller.dash.create_storefront' => 'Een etalage maken',
+    'seller.dash.follow' => 'Volgen',
+    'seller.dash.d30' => '30 dagen',
+    'seller.dash.units_sold' => ':n verkocht',
 ];

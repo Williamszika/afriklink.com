@@ -2675,4 +2675,12 @@ return [
     'resto.aside.s3_t' => 'Veröffentlichen',
     'resto.aside.s3_d' => 'Sichtbar machen, wenn Sie bereit sind.',
     'resto.aside.draft' => 'Ihr Restaurant startet als Entwurf: Nur Sie sehen es, bis Sie es veröffentlichen.',
+
+    // Tableau de bord vendeur (design .sdash)
+    'pro.dash.profile_panel' => 'Verkäuferprofil',
+    'seller.dash.view_shop' => 'Shop ansehen',
+    'seller.dash.create_storefront' => 'Schaufenster erstellen',
+    'seller.dash.follow' => 'Verfolgen',
+    'seller.dash.d30' => '30 Tage',
+    'seller.dash.units_sold' => ':n verkauft',
 ];

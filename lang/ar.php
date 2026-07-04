@@ -2675,4 +2675,12 @@ return [
     'resto.aside.s3_t' => 'انشُر',
     'resto.aside.s3_d' => 'اجعله ظاهرًا عندما تكون جاهزًا.',
     'resto.aside.draft' => 'يبدأ مطعمك كمسودة: أنت وحدك تراه حتى تنشره.',
+
+    // Tableau de bord vendeur (design .sdash)
+    'pro.dash.profile_panel' => 'ملف البائع',
+    'seller.dash.view_shop' => 'عرض متجري',
+    'seller.dash.create_storefront' => 'إنشاء واجهة',
+    'seller.dash.follow' => 'متابعة',
+    'seller.dash.d30' => '30 يومًا',
+    'seller.dash.units_sold' => 'بيع :n',
 ];

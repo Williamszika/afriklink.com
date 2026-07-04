@@ -2696,4 +2696,12 @@ return [
     'resto.aside.s3_t' => 'Publiez',
     'resto.aside.s3_d' => 'Rendez-le visible quand vous êtes prêt.',
     'resto.aside.draft' => 'Votre restaurant démarre en brouillon : vous seul le voyez tant que vous ne l\'avez pas publié.',
+
+    // Tableau de bord vendeur (design .sdash)
+    'pro.dash.profile_panel' => 'Profil vendeur',
+    'seller.dash.view_shop' => 'Voir ma boutique',
+    'seller.dash.create_storefront' => 'Créer une vitrine',
+    'seller.dash.follow' => 'Suivre',
+    'seller.dash.d30' => '30 jours',
+    'seller.dash.units_sold' => ':n vendu(s)',
 ];

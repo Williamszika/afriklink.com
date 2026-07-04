@@ -2675,4 +2675,12 @@ return [
     'resto.aside.s3_t' => 'Publique',
     'resto.aside.s3_d' => 'Torne-o visível quando estiver pronto.',
     'resto.aside.draft' => 'O seu restaurante começa como rascunho: só você o vê até o publicar.',
+
+    // Tableau de bord vendeur (design .sdash)
+    'pro.dash.profile_panel' => 'Perfil de vendedor',
+    'seller.dash.view_shop' => 'Ver a minha loja',
+    'seller.dash.create_storefront' => 'Criar uma montra',
+    'seller.dash.follow' => 'Acompanhar',
+    'seller.dash.d30' => '30 dias',
+    'seller.dash.units_sold' => ':n vendido(s)',
 ];
