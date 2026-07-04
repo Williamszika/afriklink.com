@@ -3473,3 +3473,81 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .srev-empty .il{width:72px;height:72px;border-radius:20px;background:rgba(224,169,58,.14);display:grid;place-items:center;font-size:2rem;margin-bottom:1rem}
 .srev-empty b{font-family:var(--afk-display);font-size:1.1rem}
 .srev-empty p{color:var(--r-muted);font-size:.9rem;margin:.3rem 0 0;max-width:38ch}
+
+/* --- Publicité (.sads, dans la coquille vendeur) --- */
+.sads{--a-green:#14502E;--a-green-deep:#0E3A21;--a-gold:#C7922E;--a-gold-deep:#9A6F1E;--a-paper:#FFFDF7;--a-ink:#1C2418;--a-muted:#5B6453;--a-line:rgba(20,80,46,.14);--a-ok:#2E7D46;--a-warn:#B47A11;color:var(--a-ink);font-family:var(--afk-body)}
+.sads .btn-green{background:var(--a-green);color:#FAF4E6;border-color:transparent}
+.sads .btn-green:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(20,80,46,.7)}
+.sads .btn-gold{background:var(--a-gold);color:var(--a-green-deep);border-color:transparent}
+.sads .btn-gold:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(199,146,46,.85)}
+.sads .btn[disabled]{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.sads-topbar{margin-bottom:1.3rem}
+.sads-topbar h1{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.5rem,3vw,2rem);margin:0}
+.sads-topbar p{color:var(--a-muted);margin:.35rem 0 0;font-size:.95rem;max-width:64ch}
+.sads-panel{background:var(--a-paper);border:1px solid var(--a-line);border-radius:18px;padding:1.3rem;margin-bottom:1.2rem}
+.sads-hero{background:linear-gradient(150deg,var(--a-green),var(--a-green-deep));color:#FAF4E6;border-radius:20px;padding:1.7rem;position:relative;overflow:hidden;margin-bottom:1.2rem}
+.sads-hero::after{content:"";position:absolute;inset:0;background-image:var(--afk-wax,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23C7922E' stroke-width='1.1' opacity='.16'%3E%3Ccircle cx='32' cy='32' r='13'/%3E%3Ccircle cx='32' cy='32' r='5'/%3E%3C/g%3E%3C/svg%3E"));background-size:64px;opacity:.9;pointer-events:none}
+.sads-hero>*{position:relative}
+.sads-eyebrow{font-family:var(--afk-mono);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--a-gold)}
+.sads-eyebrow::before{content:"◆ "}
+.sads-hero h2{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.5rem,3vw,2rem);margin:.5rem 0 .4rem;max-width:22ch}
+.sads-hero p{color:rgba(250,244,230,.82);max-width:58ch;margin:0}
+.sads-benefits{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-top:1.3rem}
+@media(max-width:640px){.sads-benefits{grid-template-columns:1fr}}
+.sads-benefit{display:flex;gap:.7rem;align-items:flex-start;background:rgba(250,244,230,.08);border:1px solid rgba(250,244,230,.14);border-radius:13px;padding:.85rem}
+.sads-benefit .ic{font-size:1.2rem;flex:none;line-height:1}
+.sads-benefit b{font-family:var(--afk-display);font-size:.98rem;display:block}
+.sads-benefit span{font-size:.85rem;color:rgba(250,244,230,.72)}
+.sads-preview{display:flex;align-items:center;gap:.8rem;background:#fff;border:1.5px dashed var(--a-gold);border-radius:14px;padding:.7rem .9rem;margin-top:1.3rem}
+.sads-badge-spon{font-family:var(--afk-mono);font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--a-gold);color:var(--a-green-deep);border-radius:6px;padding:.2rem .5rem;flex:none}
+.sads-pv-thumb{width:38px;height:38px;border-radius:9px;background:rgba(20,80,46,.08);color:var(--a-muted);display:grid;place-items:center;flex:none}
+.sads-pv-t{font-weight:600;font-size:.9rem;color:var(--a-ink)}
+.sads-pv-s{font-size:.78rem;color:var(--a-muted)}
+.sads-prereq{display:flex;align-items:center;gap:.9rem;background:rgba(180,122,17,.09);border:1px solid rgba(180,122,17,.28);border-radius:16px;padding:1rem 1.2rem;margin-bottom:1.4rem;flex-wrap:wrap}
+.sads-prereq .pic{width:38px;height:38px;border-radius:11px;background:rgba(180,122,17,.16);color:var(--a-warn);display:grid;place-items:center;flex:none}
+.sads-prereq .pt{flex:1;min-width:200px}
+.sads-prereq .pt b{font-family:var(--afk-display);font-size:.98rem}
+.sads-prereq .pt p{margin:.1rem 0 0;font-size:.85rem;color:#7a5410}
+.sads-prereq .btn{margin-inline-start:auto}
+.sads-sec{font-family:var(--afk-display);font-size:1.2rem;display:flex;align-items:center;gap:.5rem;margin:0 0 1rem}
+.sads-sec--flush{margin-bottom:1rem}
+.sads-pkgs{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.4rem}
+@media(max-width:860px){.sads-pkgs{grid-template-columns:1fr}}
+.sads-pkg{background:var(--a-paper);border:1.5px solid var(--a-line);border-radius:18px;padding:1.4rem;display:flex;flex-direction:column;position:relative;transition:transform .15s,box-shadow .2s}
+.sads-pkg:hover{transform:translateY(-3px);box-shadow:0 18px 40px -28px rgba(20,80,46,.55)}
+.sads-pkg.is-featured{border-color:var(--a-gold);box-shadow:0 18px 40px -28px rgba(199,146,46,.6)}
+.sads-ribbon{position:absolute;inset-block-start:-11px;inset-inline-start:1.4rem;background:var(--a-gold);color:var(--a-green-deep);font-family:var(--afk-mono);font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.25rem .6rem;border-radius:999px}
+.sads-pname{font-family:var(--afk-mono);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--a-gold-deep)}
+.sads-price{font-family:var(--afk-display);font-weight:800;font-size:2rem;color:var(--a-green);line-height:1;margin:.5rem 0 .1rem}
+.sads-dur{font-size:.85rem;color:var(--a-muted);margin:.3rem 0 1rem;padding-bottom:1rem;border-bottom:1px solid var(--a-line)}
+.sads-pkg ul{list-style:none;margin:0 0 1.2rem;padding:0;display:flex;flex-direction:column;gap:.5rem;flex:1}
+.sads-pkg li{display:flex;gap:.5rem;align-items:flex-start;font-size:.9rem}
+.sads-pkg li .icon{color:var(--a-ok);flex:none;margin-top:.1rem}
+.sads-billing{display:flex;align-items:center;gap:.4rem;color:var(--a-muted);font-size:.85rem;margin:-.4rem 0 1rem}
+.sads-prods{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.4rem}
+.sads-prod{display:flex;gap:.9rem;align-items:flex-start;background:var(--a-paper);border:1px solid var(--a-line);border-radius:14px;padding:1rem}
+.sads-prod-thumb{width:64px;height:64px;border-radius:12px;overflow:hidden;background:rgba(20,80,46,.06);display:grid;place-items:center;color:var(--a-muted);flex:none}
+.sads-prod-thumb img{width:100%;height:100%;object-fit:cover}
+.sads-prod-body{flex:1;min-width:0}
+.sads-prod-title{font-weight:600;margin:0 0 .3rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.sads-prod-meta{margin:0 0 .5rem;font-size:.9rem;color:var(--a-muted)}
+.sads-cstats{display:flex;gap:1.1rem;flex-wrap:wrap;margin-bottom:.6rem;font-size:.82rem;color:var(--a-muted)}
+.sads-cstats b{font-family:var(--afk-display);color:var(--a-green);font-size:1.05rem;margin-inline-end:.15rem}
+.sads-buy-tiers{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.7rem}
+.sads-buy-tier{cursor:pointer}
+.sads-buy-tier input{position:absolute;opacity:0;width:0;height:0}
+.sads-buy-box{display:flex;flex-direction:column;gap:.1rem;border:1.5px solid var(--a-line);border-radius:11px;padding:.5rem .8rem;background:#fff;transition:border-color .15s,background .15s}
+.sads-buy-box strong{font-size:.86rem}
+.sads-buy-box span{font-family:var(--afk-mono);font-size:.74rem;color:var(--a-muted)}
+.sads-buy-tier input:checked + .sads-buy-box{border-color:var(--a-gold);background:rgba(199,146,46,.08)}
+.sads-buy-tier input:focus-visible + .sads-buy-box{box-shadow:0 0 0 3px rgba(199,146,46,.25)}
+.sads-perf{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:.6rem}
+@media(max-width:560px){.sads-perf{grid-template-columns:1fr}}
+.sads-metric{border:1px solid var(--a-line);border-radius:14px;padding:1rem 1.2rem;background:#fff}
+.sads-metric .ic{width:32px;height:32px;border-radius:9px;background:rgba(20,80,46,.08);color:var(--a-green);display:grid;place-items:center;margin-bottom:.5rem}
+.sads-metric b{font-family:var(--afk-display);font-weight:800;font-size:1.8rem;color:var(--a-green);display:block;line-height:1}
+.sads-metric span{font-size:.82rem;color:var(--a-muted)}
+.sads-perf-empty{text-align:center;color:var(--a-muted);font-size:.88rem;margin:.4rem 0 0}
+.sads-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:2.6rem 1rem}
+.sads-empty .il{width:70px;height:70px;border-radius:20px;background:rgba(20,80,46,.06);display:grid;place-items:center;font-size:2rem;margin-bottom:1rem}
+.sads-empty b{font-family:var(--afk-display);font-size:1.1rem}
