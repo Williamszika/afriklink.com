@@ -152,4 +152,13 @@ $avatarUrl = avatar_url($user, $avatar_version ?? null);
             <button type="submit" class="btn btn-primary"><?= e(t('profile.change_password')) ?></button>
         </form>
     </div>
+
+    <!-- RGPD : accès, portabilité et effacement de mes données -->
+    <div class="panel">
+        <h2 class="panel-title"><?= e(t('privacy.title')) ?></h2>
+        <p class="hint"><?= e(t('privacy.profile_teaser')) ?></p>
+        <div class="dsar-actions">
+            <a class="btn btn-ghost" href="<?= e(url('/profile/donnees')) ?>"><?= e(t('privacy.open')) ?> →</a>
+        </div>
+    </div>
 </section>

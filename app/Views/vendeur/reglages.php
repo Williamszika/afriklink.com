@@ -121,5 +121,14 @@ $prefs      = $prefs ?? ['notify_email' => true, 'notify_sms' => true, 'payout_m
             <button type="submit" class="btn btn-primary"><?= e(t('profile.change_password')) ?></button>
         </form>
 
+        <!-- RGPD : accès, portabilité et effacement de mes données -->
+        <div class="panel">
+            <h2 class="panel-title"><?= e(t('privacy.title')) ?></h2>
+            <p class="hint"><?= e(t('privacy.profile_teaser')) ?></p>
+            <div class="dsar-actions">
+                <a class="btn btn-ghost" href="<?= e(url('/profile/donnees')) ?>"><?= e(t('privacy.open')) ?> →</a>
+            </div>
+        </div>
+
     </div>
 </div>

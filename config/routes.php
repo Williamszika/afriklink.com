@@ -34,6 +34,7 @@ use App\Controllers\ProductController;
 use App\Controllers\ReportController;
 use App\Controllers\RestaurantController;
 use App\Controllers\ProfileController;
+use App\Controllers\PrivacyController;
 use App\Controllers\ProRegistrationController;
 use App\Controllers\OrderController;
 use App\Controllers\PaymentController;
@@ -157,6 +158,12 @@ return [
     ['POST', '/profile/photo/delete',  [ProfileController::class, 'deletePhoto'], ['auth', 'csrf']],
     ['POST', '/profile/preferences',   [ProfileController::class, 'updatePreferences'], ['auth', 'csrf', 'throttle:profile,30,3600']],
     ['GET',  '/avatar/{pid}',          [ProfileController::class, 'avatar'],      []],
+
+    // RGPD — droits en libre-service (accès / portabilité / effacement)
+    ['GET',  '/profile/donnees',        [PrivacyController::class, 'data'],          ['auth']],
+    ['GET',  '/profile/donnees/export', [PrivacyController::class, 'export'],        ['auth', 'throttle:export,10,3600']],
+    ['GET',  '/profile/supprimer',      [PrivacyController::class, 'confirmDelete'], ['auth']],
+    ['POST', '/profile/supprimer',      [PrivacyController::class, 'delete'],        ['auth', 'csrf', 'throttle:delacc,5,3600']],
 
     // Espace vendeur (tableau de bord à menu latéral). « Vue d'ensemble » = /dashboard.
     ['GET',  '/vendeur/vitrines',  [SellerController::class, 'storefronts'],  ['auth']],
