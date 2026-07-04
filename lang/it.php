@@ -2712,4 +2712,10 @@ return [
     'msg.select_hint' => 'Scegli una conversazione a sinistra per vedere i messaggi.',
     'msg.empty_title' => 'Ancora nessuna conversazione',
     'msg.no_match' => 'Nessun risultato.',
+
+    // Avis vendeur (design .srev)
+    'reviews.filter_all' => 'Tutte',
+    'reviews.filter_torespond' => 'Da rispondere',
+    'reviews.empty_filter' => 'Nessuna recensione in questo filtro',
+    'reviews.empty_filter_hint' => 'Prova un altro filtro per vedere altre recensioni.',
 ];

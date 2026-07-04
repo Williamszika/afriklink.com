@@ -2712,4 +2712,10 @@ return [
     'msg.select_hint' => 'اختر محادثة من اليمين لعرض الرسائل.',
     'msg.empty_title' => 'لا توجد محادثات بعد',
     'msg.no_match' => 'لا نتائج.',
+
+    // Avis vendeur (design .srev)
+    'reviews.filter_all' => 'الكل',
+    'reviews.filter_torespond' => 'بانتظار الرد',
+    'reviews.empty_filter' => 'لا مراجعات في هذا التصفية',
+    'reviews.empty_filter_hint' => 'جرّب تصفية أخرى لرؤية المزيد من المراجعات.',
 ];

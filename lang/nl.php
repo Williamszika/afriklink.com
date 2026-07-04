@@ -2707,4 +2707,10 @@ return [
     'msg.select_hint' => 'Kies links een gesprek om de berichten te zien.',
     'msg.empty_title' => 'Nog geen gesprek',
     'msg.no_match' => 'Geen resultaten.',
+
+    // Avis vendeur (design .srev)
+    'reviews.filter_all' => 'Alle',
+    'reviews.filter_torespond' => 'Te beantwoorden',
+    'reviews.empty_filter' => 'Geen review in dit filter',
+    'reviews.empty_filter_hint' => 'Probeer een ander filter voor meer reviews.',
 ];

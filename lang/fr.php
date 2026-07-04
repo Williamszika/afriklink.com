@@ -2733,4 +2733,10 @@ return [
     'msg.select_hint' => 'Choisissez une conversation à gauche pour afficher les messages.',
     'msg.empty_title' => 'Pas encore de conversation',
     'msg.no_match' => 'Aucun résultat.',
+
+    // Avis vendeur (design .srev)
+    'reviews.filter_all' => 'Tous',
+    'reviews.filter_torespond' => 'À répondre',
+    'reviews.empty_filter' => 'Aucun avis dans ce filtre',
+    'reviews.empty_filter_hint' => 'Essayez un autre filtre pour voir plus d\'avis.',
 ];
