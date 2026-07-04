@@ -3651,3 +3651,87 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .saff-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:2.6rem 1rem}
 .saff-empty .il{width:70px;height:70px;border-radius:20px;background:rgba(20,80,46,.06);display:grid;place-items:center;font-size:2rem;margin-bottom:1rem}
 .saff-empty b{font-family:var(--afk-display);font-size:1.1rem}
+
+/* --- Vérification KYC (.skyc, dans la coquille vendeur) --- */
+.skyc{--k-green:#14502E;--k-green-deep:#0E3A21;--k-gold:#C7922E;--k-gold-deep:#9A6F1E;--k-paper:#FFFDF7;--k-ink:#1C2418;--k-muted:#5B6453;--k-line:rgba(20,80,46,.14);--k-ok:#2E7D46;--k-warn:#B47A11;color:var(--k-ink);font-family:var(--afk-body);max-width:900px}
+.skyc .btn-green{background:var(--k-green);color:#FAF4E6;border-color:transparent}
+.skyc .btn-green:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(20,80,46,.7)}
+.skyc .btn-green:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.skyc-topbar{margin-bottom:1.1rem}
+.skyc-topbar h1{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.5rem,3vw,2rem);margin:0}
+.skyc-topbar p{color:var(--k-muted);margin:.35rem 0 0;font-size:.95rem;max-width:60ch}
+.skyc-why{display:flex;align-items:center;gap:.8rem;background:rgba(20,80,46,.05);border:1px solid var(--k-line);border-radius:14px;padding:.9rem 1.1rem;margin-bottom:1.4rem}
+.skyc-why .ic{color:var(--k-gold);flex:none;display:grid;place-items:center}
+.skyc-why b{font-family:var(--afk-display)}
+.skyc-why span{color:var(--k-muted);font-size:.9rem}
+.skyc-notice{display:flex;gap:.55rem;align-items:flex-start;background:rgba(180,122,17,.09);border:1px solid rgba(180,122,17,.28);border-radius:12px;padding:.75rem 1rem;font-size:.88rem;color:#7a5410;margin-bottom:1rem}
+.skyc-notice svg{flex:none;margin-top:.05rem;color:var(--k-gold-deep)}
+.skyc-notice--err{background:rgba(178,30,75,.07);border-color:rgba(178,30,75,.25);color:#8a1739}
+.skyc-notice--err svg{color:#8a1739}
+
+/* Stepper */
+.skyc-levels{list-style:none;margin:0;padding:0}
+.skyc-level{display:grid;grid-template-columns:auto 1fr;gap:1rem}
+.skyc-rail{display:flex;flex-direction:column;align-items:center}
+.skyc-node{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--afk-display);font-weight:800;flex:none;border:2px solid var(--k-line);background:#fff;color:var(--k-muted);z-index:1}
+.skyc-node--active{background:var(--k-green);border-color:var(--k-green);color:#FAF4E6}
+.skyc-node--done{background:var(--k-ok);border-color:var(--k-ok);color:#fff}
+.skyc-node--review{background:var(--k-gold);border-color:var(--k-gold);color:var(--k-green-deep)}
+.skyc-node--locked{background:#fff;border-color:var(--k-line);color:var(--k-muted)}
+.skyc-conn{flex:1;width:2px;background:var(--k-line);margin:.3rem 0;min-height:18px}
+.skyc-conn.is-done{background:var(--k-ok)}
+
+.skyc-card{background:var(--k-paper);border:1px solid var(--k-line);border-radius:16px;padding:1.3rem;margin-bottom:1.2rem;min-width:0}
+.skyc-card.is-locked{opacity:.72;background:rgba(20,80,46,.02)}
+.skyc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;margin-bottom:.2rem}
+.skyc-htext h2{font-family:var(--afk-display);font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:.5rem;margin:0}
+.skyc-hic{width:26px;height:26px;border-radius:8px;background:rgba(20,80,46,.07);color:var(--k-green);display:grid;place-items:center;flex:none}
+.skyc-htext p{color:var(--k-muted);font-size:.88rem;margin:.25rem 0 0;max-width:48ch}
+.skyc-badge{font-family:var(--afk-mono);font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:.24rem .55rem;border-radius:6px;white-space:nowrap;flex:none;display:inline-flex;align-items:center;gap:.3rem}
+.skyc-badge svg{width:11px;height:11px}
+.lb-todo{background:rgba(180,122,17,.14);color:var(--k-warn)}
+.lb-review{background:rgba(199,146,46,.16);color:var(--k-gold-deep)}
+.lb-done{background:rgba(46,125,70,.15);color:var(--k-ok)}
+.lb-lock{background:rgba(20,80,46,.08);color:var(--k-muted)}
+
+/* États non-formulaire */
+.skyc-hint{display:flex;align-items:center;gap:.4rem;font-size:.88rem;color:var(--k-muted);margin:.9rem 0 0}
+.skyc-hint--ok{color:var(--k-ok)}
+.skyc-locked-msg{display:flex;align-items:center;gap:.6rem;color:var(--k-muted);font-size:.9rem;background:rgba(20,80,46,.04);border-radius:10px;padding:.8rem 1rem;margin-top:.8rem}
+.skyc-locked-msg svg{flex:none;color:var(--k-muted)}
+.skyc-submitted{display:flex;gap:.8rem;align-items:center;background:rgba(199,146,46,.1);border:1px solid rgba(199,146,46,.3);border-radius:12px;padding:1rem 1.2rem;margin-top:1rem}
+.skyc-submitted .sic{width:40px;height:40px;border-radius:11px;background:var(--k-gold);color:var(--k-green-deep);display:grid;place-items:center;flex:none}
+.skyc-submitted b{font-family:var(--afk-display)}
+.skyc-submitted p{margin:.1rem 0 0;font-size:.86rem;color:#7a5410}
+
+/* Formulaire */
+.skyc-form{margin-top:1rem}
+.skyc-instr{display:flex;gap:.5rem;background:rgba(199,146,46,.08);border:1px solid rgba(199,146,46,.25);border-radius:10px;padding:.6rem .8rem;font-size:.85rem;color:#7a5410;margin-bottom:1rem}
+.skyc-instr svg{width:17px;height:17px;color:var(--k-gold-deep);flex:none;margin-top:.1rem}
+.skyc-two{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+@media(max-width:520px){.skyc-two{grid-template-columns:1fr}}
+.skyc-field{margin-bottom:1rem}
+.skyc-field label{display:block;font-weight:600;font-size:.86rem;margin-bottom:.3rem}
+.skyc-field .req{color:var(--k-gold-deep)}
+.skyc-field input[type=text],.skyc-field select{width:100%;font-family:var(--afk-body);font-size:.95rem;color:var(--k-ink);background:#fff;border:1.5px solid var(--k-line);border-radius:10px;padding:.65rem .8rem}
+.skyc-field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%235B6453' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center;padding-inline-end:2rem}
+.skyc-field input:focus,.skyc-field select:focus{outline:0;border-color:var(--k-gold);box-shadow:0 0 0 3px rgba(199,146,46,.16)}
+
+/* Zones de dépôt (enveloppent le vrai .kyc-input) */
+.skyc-slots{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.4rem}
+@media(max-width:520px){.skyc-slots{grid-template-columns:1fr}}
+.skyc-drop{position:relative}
+.skyc-drop-lab{display:flex;gap:.8rem;align-items:center;border:1.5px dashed var(--k-line);border-radius:12px;padding:.9rem;background:#fff;cursor:pointer;transition:border-color .15s;min-height:64px}
+.skyc-drop:hover .skyc-drop-lab{border-color:var(--k-gold)}
+.skyc-drop:focus-within .skyc-drop-lab{border-color:var(--k-gold);box-shadow:0 0 0 3px rgba(199,146,46,.16)}
+.skyc-drop .dic{width:40px;height:40px;border-radius:10px;background:rgba(20,80,46,.07);color:var(--k-green);display:grid;place-items:center;flex:none}
+.skyc-drop-txt{min-width:0}
+.skyc-drop-txt strong{font-size:.9rem;display:block;font-weight:600}
+.skyc-drop-txt .opt,.skyc-drop-txt .req{font-weight:400}
+.skyc-drop-txt .opt{color:var(--k-muted)}
+.skyc-drop-txt .req{color:var(--k-gold-deep)}
+.skyc-drop-txt small{display:block;color:var(--k-muted);font-size:.78rem;margin-top:.1rem}
+.skyc-drop .kyc-input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.skyc-drop-state{margin-inline-start:auto;font-size:1rem;flex:none;z-index:1}
+.skyc-privacy{display:flex;gap:.5rem;align-items:flex-start;font-size:.82rem;color:var(--k-muted);margin:1rem 0}
+.skyc-privacy svg{flex:none;margin-top:.1rem;color:var(--k-green)}

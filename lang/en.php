@@ -2791,4 +2791,10 @@ return [
     'aff.split_ref_d' => 'gets the rest of the rate.',
     'aff.products_head' => 'Your affiliate products',
     'aff.enable_hint' => 'Enable at least one product below to make your offers shareable.',
+
+    // --- Vérification KYC (.skyc) ---
+    'kyc.why_title' => 'Why verify?',
+    'kyc.why_desc' => 'Verification unlocks the “Verified seller” badge — it reassures buyers and helps you sell.',
+    'kyc.submitted_title' => 'Documents sent',
+    'kyc.file_hint' => 'PNG or JPG, clearly legible. 10 MB max.',
 ];

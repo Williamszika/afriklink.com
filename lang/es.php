@@ -2770,4 +2770,10 @@ return [
     'aff.split_ref_d' => 'recibe el resto de la tasa.',
     'aff.products_head' => 'Sus productos afiliados',
     'aff.enable_hint' => 'Active al menos un producto abajo para que sus ofertas se puedan compartir.',
+
+    // --- Vérification KYC (.skyc) ---
+    'kyc.why_title' => '¿Por qué verificar?',
+    'kyc.why_desc' => 'La verificación desbloquea la insignia «Vendedor verificado» — genera confianza y ayuda a vender.',
+    'kyc.submitted_title' => 'Documentos enviados',
+    'kyc.file_hint' => 'PNG o JPG, bien legible. 10 MB máx.',
 ];

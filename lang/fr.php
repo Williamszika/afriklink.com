@@ -2791,4 +2791,10 @@ return [
     'aff.split_ref_d' => 'touche le reste du taux.',
     'aff.products_head' => 'Vos produits affiliés',
     'aff.enable_hint' => 'Activez au moins un produit ci-dessous pour rendre vos offres partageables.',
+
+    // --- Vérification KYC (.skyc) ---
+    'kyc.why_title' => 'Pourquoi vérifier ?',
+    'kyc.why_desc' => 'La vérification débloque le badge « Vendeur vérifié » — il rassure les acheteurs et fait vendre.',
+    'kyc.submitted_title' => 'Pièces envoyées',
+    'kyc.file_hint' => 'PNG ou JPG, bien lisible. 10 Mo max.',
 ];

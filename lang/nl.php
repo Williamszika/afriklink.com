@@ -2765,4 +2765,10 @@ return [
     'aff.split_ref_d' => 'krijgt de rest van het tarief.',
     'aff.products_head' => 'Uw affiliate-producten',
     'aff.enable_hint' => 'Schakel hieronder minstens één product in om uw aanbod deelbaar te maken.',
+
+    // --- Vérification KYC (.skyc) ---
+    'kyc.why_title' => 'Waarom verifiëren?',
+    'kyc.why_desc' => 'Verificatie ontgrendelt het badge ‘Geverifieerde verkoper’ — dat wekt vertrouwen en verkoopt.',
+    'kyc.submitted_title' => 'Documenten verzonden',
+    'kyc.file_hint' => 'PNG of JPG, goed leesbaar. Max. 10 MB.',
 ];

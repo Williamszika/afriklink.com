@@ -2770,4 +2770,10 @@ return [
     'aff.split_ref_d' => 'erhält den Rest des Satzes.',
     'aff.products_head' => 'Ihre Affiliate-Produkte',
     'aff.enable_hint' => 'Aktivieren Sie unten mindestens ein Produkt, damit Ihre Angebote geteilt werden können.',
+
+    // --- Vérification KYC (.skyc) ---
+    'kyc.why_title' => 'Warum verifizieren?',
+    'kyc.why_desc' => 'Die Verifizierung schaltet das Abzeichen „Verifizierter Verkäufer“ frei — das schafft Vertrauen und verkauft.',
+    'kyc.submitted_title' => 'Dokumente gesendet',
+    'kyc.file_hint' => 'PNG oder JPG, gut lesbar. Max. 10 MB.',
 ];
