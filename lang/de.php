@@ -27,6 +27,7 @@ return [
     // Home
     'home.hero_title'      => 'Der Marktplatz, der Afrika und die Welt verbindet',
     'home.hero_subtitle'   => 'Shops, Restaurants, Salons und Dienstleistungen – lokal und international verkaufen und kaufen, über Sprachen und Währungen hinweg.',
+    'home.seo_desc'        => 'Afriklink verbindet Afrika und Europa: Shops, Restaurants, Salons und Dienste. Lokal und international kaufen und verkaufen, in 8 Sprachen und Währungen.',
     'home.hero_kicker'     => 'Westafrika ↔ Europa',
     'home.hub.title'       => 'Ihre 4 Welten, eine Plattform',
     'home.hub.browse'      => 'Durchsuchen',

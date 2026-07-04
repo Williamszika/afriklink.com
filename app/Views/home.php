@@ -48,6 +48,10 @@ foreach (array_merge($sponsored, $promo_products) as $sp) {
 }
 $slideCount = count($dealSlides);
 ?>
+<?php /* Titre principal (H1) unique de la page d'accueil : masqué visuellement
+   (le « héros » visuel est le carrousel de pubs / la grille catégories) mais lu
+   par les lecteurs d'écran et indexé — corrige l'absence de H1 en SEO/a11y. */ ?>
+<h1 class="sr-only"><?= e(t('home.hero_title')) ?></h1>
 <?php if ($dealSlides !== []): ?>
 <!-- Publicité — carrousel défilant en tête de l'accueil (pubs des vendeurs) -->
 <section class="afk-block afk-carousel-wrap">

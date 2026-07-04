@@ -27,6 +27,7 @@ return [
     // Home
     'home.hero_title'      => 'The marketplace connecting Africa and the world',
     'home.hero_subtitle'   => 'Shops, restaurants, salons and services — sell and buy locally and internationally, across languages and currencies.',
+    'home.seo_desc'        => 'Afriklink connects Africa and Europe: shops, restaurants, salons and services. Buy and sell locally and internationally, in 8 languages and currencies.',
     'home.hero_kicker'     => 'West Africa ↔ Europe',
     'home.hub.title'       => 'Your 4 universes, one platform',
     'home.hub.browse'      => 'Browse',

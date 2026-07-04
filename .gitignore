@@ -4,6 +4,13 @@
 # Composer dependencies (installed via `composer install`)
 /vendor/
 
+# Node / Playwright (tests e2e) — jamais versionnés
+/node_modules/
+/package-lock.json
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # Runtime storage (logs, uploads, cache) — keep dirs, ignore contents
 /storage/logs/*
 /storage/uploads/*

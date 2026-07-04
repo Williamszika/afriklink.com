@@ -35,6 +35,11 @@ final class HomeController
         $annonces  = \App\Models\Listing::recentActive(12);
         $boutiques = \App\Models\Boutique::recentPublished(12);
         view('home', [
+            // SEO / AEO : titre descriptif (50-60 car. avec « — Afriklink ») et
+            // méta-description riche (~155 car.) pour un meilleur aperçu Google
+            // et une meilleure citabilité par les moteurs de réponse.
+            'page_title'      => t('home.hero_title'),
+            'meta'            => ['description' => t('home.seo_desc')],
             'categories'      => \App\Services\Categories::live(),
             'sponsored'       => $sponsored,
             'promo_products'  => $promoProducts,

@@ -27,6 +27,7 @@ return [
     // Home
     'home.hero_title'      => 'Il marketplace che collega l’Africa e il mondo',
     'home.hero_subtitle'   => 'Negozi, ristoranti, saloni e servizi — vendi e acquista a livello locale e internazionale, in più lingue e valute.',
+    'home.seo_desc'        => 'Afriklink collega Africa ed Europa: negozi, ristoranti, saloni e servizi. Compra e vendi a livello locale e internazionale, in 8 lingue e con più valute.',
     'home.hero_kicker'     => 'Africa occidentale ↔ Europa',
     'home.hub.title'       => 'I tuoi 4 universi, un’unica piattaforma',
     'home.hub.browse'      => 'Sfoglia',

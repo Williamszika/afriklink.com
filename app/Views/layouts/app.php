@@ -47,6 +47,44 @@ $metaImage = (string) ($meta['image'] ?? '');
     <?php if (!empty($meta['jsonld'])): ?>
         <script type="application/ld+json"><?= $meta['jsonld'] /* JSON déjà encodé ; bloc de données, exempt de CSP script-src */ ?></script>
     <?php endif; ?>
+    <?php
+    // Données structurées SITE (Organization + WebSite) présentes sur toutes les
+    // pages : identité stable pour Google (résultats enrichis, Sitelinks
+    // Searchbox) et pour les moteurs de réponse (ChatGPT, Perplexity, Gemini)
+    // qui citent des sources fiables. Bloc de DONNÉES (type application/ld+json,
+    // non exécuté) : exempt de la CSP script-src.
+    $siteLd = json_encode([
+        '@context' => 'https://schema.org',
+        '@graph'   => [
+            [
+                '@type' => 'Organization',
+                '@id'   => url('/') . '#org',
+                'name'  => $appName,
+                'url'   => url('/'),
+                'logo'  => asset('img/logo-cauri.svg'),
+            ],
+            [
+                '@type'       => 'WebSite',
+                '@id'         => url('/') . '#site',
+                'name'        => $appName,
+                'url'         => url('/'),
+                'inLanguage'  => current_locale(),
+                'publisher'   => ['@id' => url('/') . '#org'],
+                'potentialAction' => [
+                    '@type'  => 'SearchAction',
+                    'target' => [
+                        '@type'       => 'EntryPoint',
+                        'urlTemplate' => url('/explorer') . '?q={search_term_string}',
+                    ],
+                    'query-input' => 'required name=search_term_string',
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    ?>
+    <?php if ($siteLd !== false): ?>
+        <script type="application/ld+json"><?= $siteLd ?></script>
+    <?php endif; ?>
 </head>
 <?php
 // Auto-activation de la position précise : une fois juste après connexion

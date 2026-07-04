@@ -22,6 +22,7 @@ return [
     // Home
     'home.hero_title'      => 'De marktplaats die Afrika en de wereld verbindt',
     'home.hero_subtitle'   => 'Winkels, restaurants, salons en diensten — verkoop en koop lokaal en internationaal, in verschillende talen en valuta.',
+    'home.seo_desc'        => 'Afriklink verbindt Afrika en Europa: winkels, restaurants, salons en diensten. Koop en verkoop lokaal én internationaal, in 8 talen en meerdere valuta\'s.',
     'home.hero_kicker'     => 'West-Afrika ↔ Europa',
     'home.hub.title'       => 'Uw 4 universa, één platform',
     'home.hub.browse'      => 'Bladeren',
