@@ -272,8 +272,15 @@ final class SellerController
         $program = null;
         if ($shop !== null) {
             $aff = \App\Models\Boutique::affiliationOf((int) $shop['id']);
+            // Le programme est piloté produit par produit (/affiliation/mes-produits) :
+            // le vrai signal « actif » = au moins un produit partagé. On compte sans
+            // rien inventer, à partir du catalogue de la boutique.
+            $catalog = \App\Models\Product::forBoutiqueAffiliation((int) $shop['id']);
+            $shared  = 0;
+            foreach ($catalog as $p) { if ((int) ($p['affiliate_enabled'] ?? 0) === 1) { $shared++; } }
             $program = [
                 'boutique' => $shop, 'enabled' => $aff['enabled'], 'rate' => $aff['rate'],
+                'shared'   => $shared, 'catalog' => count($catalog),
                 'stats'    => \App\Models\Affiliate::programStats((int) $shop['id']),
                 'recent'   => \App\Models\Affiliate::programRecent((int) $shop['id'], 8),
                 'series'   => \App\Models\Affiliate::programSeries((int) $shop['id'], 14),
