@@ -2776,4 +2776,16 @@ return [
     'kyc.why_desc' => 'Die Verifizierung schaltet das Abzeichen „Verifizierter Verkäufer“ frei — das schafft Vertrauen und verkauft.',
     'kyc.submitted_title' => 'Dokumente gesendet',
     'kyc.file_hint' => 'PNG oder JPG, gut lesbar. Max. 10 MB.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'Ihr Shop',
+    'seller.profile_company_sub' => 'Diese Angaben erscheinen in Ihrem Schaufenster.',
+    'seller.profile_contact' => 'Kontaktdaten',
+    'seller.profile_contact_sub' => 'Wie Ihre Kunden Sie erreichen.',
+    'seller.badge_unlocked' => 'Abzeichen freigeschaltet',
+    'seller.badge_locked' => 'Abzeichen gesperrt',
+    'seller.verified_seller' => 'Verifizierter Verkäufer',
+    'seller.badge_unlocked_desc' => 'Ihr Schaufenster zeigt das Abzeichen „Verifizierter Verkäufer“. Gut gemacht!',
+    'seller.badge_locked_desc' => 'Geben Sie Ihre Registernummer an, um die Verifizierung zu starten und das Abzeichen zu erhalten.',
+    'seller.verified_mini' => 'Verifiziert',
 ];

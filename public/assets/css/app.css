@@ -3735,3 +3735,85 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .skyc-drop-state{margin-inline-start:auto;font-size:1rem;flex:none;z-index:1}
 .skyc-privacy{display:flex;gap:.5rem;align-items:flex-start;font-size:.82rem;color:var(--k-muted);margin:1rem 0}
 .skyc-privacy svg{flex:none;margin-top:.1rem;color:var(--k-green)}
+
+/* --- Profil vendeur (.sprof, dans la coquille vendeur) --- */
+.sprof{--p-green:#14502E;--p-green-deep:#0E3A21;--p-gold:#C7922E;--p-gold-deep:#9A6F1E;--p-paper:#FFFDF7;--p-ink:#1C2418;--p-muted:#5B6453;--p-line:rgba(20,80,46,.14);--p-ok:#2E7D46;--p-warn:#B47A11;color:var(--p-ink);font-family:var(--afk-body)}
+.sprof .btn-green{background:var(--p-green);color:#FAF4E6;border-color:transparent}
+.sprof .btn-green:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(20,80,46,.7)}
+.sprof .btn-gold{background:var(--p-gold);color:var(--p-green-deep);border-color:transparent}
+.sprof .btn-gold:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(199,146,46,.85)}
+.sprof-topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.3rem}
+.sprof-topbar h1{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.5rem,3vw,2rem);margin:0}
+.sprof-topbar p{color:var(--p-muted);margin:.35rem 0 0;font-size:.95rem;max-width:60ch}
+.sprof-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:1.2rem;align-items:start}
+@media(max-width:940px){.sprof-grid{grid-template-columns:1fr}}
+.sprof-col{min-width:0}
+.sprof-panel{background:var(--p-paper);border:1px solid var(--p-line);border-radius:18px;padding:1.3rem;margin-bottom:1.2rem}
+.sprof-sec{font-family:var(--afk-display);font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:.5rem;margin:0 0 .2rem}
+.sprof-sub{color:var(--p-muted);font-size:.86rem;margin:0 0 1.1rem}
+.sprof-field{margin-bottom:1rem}
+.sprof-field:last-child{margin-bottom:0}
+.sprof-field label{display:block;font-weight:600;font-size:.86rem;margin-bottom:.3rem}
+.sprof .opt{color:var(--p-muted);font-weight:400}
+.sprof input[type=text],.sprof input[type=tel],.sprof input[type=url],.sprof select,.sprof textarea{width:100%;font-family:var(--afk-body);font-size:.95rem;color:var(--p-ink);background:#fff;border:1.5px solid var(--p-line);border-radius:10px;padding:.65rem .8rem}
+.sprof textarea{resize:vertical;min-height:84px}
+.sprof select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%235B6453' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .7rem center;padding-inline-end:2rem}
+.sprof input:focus,.sprof select:focus,.sprof textarea:focus{outline:0;border-color:var(--p-gold);box-shadow:0 0 0 3px rgba(199,146,46,.16)}
+.sprof-two{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+@media(max-width:560px){.sprof-two{grid-template-columns:1fr}}
+.sprof-other{margin-top:.6rem}
+.sprof-err{color:#b21e4b;font-size:.82rem;margin:.35rem 0 0}
+.sprof-note{display:flex;gap:.5rem;background:rgba(199,146,46,.1);border:1px solid rgba(199,146,46,.3);border-radius:11px;padding:.7rem .85rem;font-size:.85rem;color:#7a5410;margin-top:.2rem}
+.sprof-note svg{flex:none;color:var(--p-gold-deep);margin-top:.1rem}
+
+/* Interrupteur WhatsApp (case stylée, sans JS) */
+.sprof-switch-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;border:1px solid var(--p-line);border-radius:12px;padding:.75rem .9rem;background:#fff;cursor:pointer;margin-bottom:0}
+.sprof-switch-row .l{display:flex;align-items:center;gap:.6rem;font-weight:600;font-size:.92rem}
+.sprof-switch-row .l svg{color:var(--p-green);flex:none}
+.sprof-switch-input{position:absolute;opacity:0;width:0;height:0}
+.sprof-switch{width:50px;height:28px;border-radius:999px;background:rgba(20,80,46,.18);position:relative;flex:none;transition:background .2s}
+.sprof-switch::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sprof-switch-input:checked + .sprof-switch{background:var(--p-green)}
+.sprof-switch-input:checked + .sprof-switch::after{inset-inline-start:auto;inset-inline-end:3px}
+.sprof-switch-input:focus-visible + .sprof-switch{box-shadow:0 0 0 3px rgba(199,146,46,.35)}
+
+/* Puces langues (cases stylées, sans JS) */
+.sprof-chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.sprof-chip{cursor:pointer;display:inline-flex}
+.sprof-chip-input{position:absolute;opacity:0;width:0;height:0}
+.sprof-chip-face{display:inline-flex;align-items:center;gap:.3rem;border:1.5px solid var(--p-line);background:#fff;border-radius:999px;padding:.4rem .85rem;font-weight:500;font-size:.86rem;transition:background .15s,color .15s,border-color .15s}
+.sprof-chip:hover .sprof-chip-face{border-color:var(--p-gold)}
+.sprof-chip-input:checked + .sprof-chip-face{background:var(--p-green);color:#FAF4E6;border-color:var(--p-green)}
+.sprof-chip-input:checked + .sprof-chip-face::before{content:"✓ ";font-weight:700}
+.sprof-chip-input:focus-visible + .sprof-chip-face{box-shadow:0 0 0 3px rgba(199,146,46,.3)}
+.sprof-savebar{display:flex;align-items:center;gap:.7rem;margin-top:.2rem}
+
+/* Aside */
+.sprof-aside{position:sticky;top:1rem;display:flex;flex-direction:column;gap:1.2rem}
+@media(max-width:940px){.sprof-aside{position:static}}
+.sprof-logo-card{background:var(--p-paper);border:1px solid var(--p-line);border-radius:18px;padding:1.3rem;text-align:center}
+.sprof-logo-img,.sprof-logo-tile{width:120px;height:120px;border-radius:22px;margin:0 auto .9rem;display:block;object-fit:cover}
+.sprof-logo-tile{background:radial-gradient(circle at 30% 25%,#1d6b3e,var(--p-green));color:#FAF4E6;display:grid;place-items:center;font-family:var(--afk-display);font-weight:800;font-size:3rem;position:relative;overflow:hidden}
+.sprof-logo-tile::after{content:"";position:absolute;inset:0;background-image:var(--afk-wax,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%23C7922E' stroke-width='1' opacity='.4'%3E%3Ccircle cx='24' cy='24' r='9'/%3E%3Ccircle cx='24' cy='24' r='3.5'/%3E%3C/g%3E%3C/svg%3E"));background-size:48px;opacity:.5}
+.sprof-logo-form{display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.sprof-file{max-width:100%;font-size:.8rem;color:var(--p-muted)}
+.sprof-file::file-selector-button{font-family:var(--afk-body);font-weight:600;font-size:.8rem;padding:.4rem .8rem;border-radius:999px;border:1.5px solid var(--p-line);background:#fff;color:var(--p-green);cursor:pointer;margin-inline-end:.6rem}
+.sprof-logo-del{margin-top:.5rem}
+.sprof-logo-note{font-size:.8rem;color:var(--p-muted);margin:.6rem 0 0}
+
+/* Carte badge */
+.sprof-badge-card{border-radius:18px;padding:1.3rem;border:1px solid var(--p-line)}
+.sprof-badge-card.is-locked{background:var(--p-paper)}
+.sprof-badge-card.is-unlocked{background:linear-gradient(135deg,rgba(46,125,70,.1),rgba(199,146,46,.08));border-color:rgba(46,125,70,.35)}
+.sprof-badge-card .bh{display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem}
+.sprof-badge-card .bic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none}
+.sprof-badge-card.is-locked .bic{background:rgba(20,80,46,.08);color:var(--p-muted)}
+.sprof-badge-card.is-unlocked .bic{background:var(--p-ok);color:#fff}
+.sprof-badge-card .bt b{font-family:var(--afk-display);font-size:1rem;display:block}
+.sprof-badge-card .bt span{font-size:.8rem;color:var(--p-muted)}
+.sprof-badge-card p{font-size:.85rem;color:var(--p-muted);margin:0 0 1rem}
+.sprof-preview{background:#fff;border:1px solid var(--p-line);border-radius:12px;padding:.8rem;display:flex;align-items:center;gap:.6rem}
+.sprof-preview .pav{width:36px;height:36px;border-radius:10px;background:var(--p-green);color:#FAF4E6;display:grid;place-items:center;font-family:var(--afk-display);font-weight:800;flex:none}
+.sprof-preview .pn{font-weight:700;font-family:var(--afk-display);display:flex;align-items:center;gap:.35rem;min-width:0;flex-wrap:wrap}
+.sprof-vbadge{display:inline-flex;align-items:center;gap:.2rem;font-family:var(--afk-mono);font-size:.6rem;font-weight:700;color:var(--p-ok);background:rgba(46,125,70,.13);border-radius:5px;padding:.12rem .35rem}
+.sprof-vbadge svg{width:10px;height:10px}

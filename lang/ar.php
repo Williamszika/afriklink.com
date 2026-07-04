@@ -2776,4 +2776,16 @@ return [
     'kyc.why_desc' => 'يفتح التحقق شارة «بائع موثّق» — تطمئن المشترين وتزيد المبيعات.',
     'kyc.submitted_title' => 'تم إرسال المستندات',
     'kyc.file_hint' => 'PNG أو JPG، واضحة تمامًا. 10 ميغابايت كحد أقصى.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'متجرك',
+    'seller.profile_company_sub' => 'تظهر هذه المعلومات في واجهة متجرك.',
+    'seller.profile_contact' => 'بيانات الاتصال',
+    'seller.profile_contact_sub' => 'كيف يصل إليك عملاؤك.',
+    'seller.badge_unlocked' => 'شارة مُفعّلة',
+    'seller.badge_locked' => 'شارة مقفلة',
+    'seller.verified_seller' => 'بائع موثّق',
+    'seller.badge_unlocked_desc' => 'تعرض واجهة متجرك شارة «بائع موثّق». أحسنت!',
+    'seller.badge_locked_desc' => 'أدخل رقم تسجيلك لبدء التحقق والحصول على الشارة.',
+    'seller.verified_mini' => 'موثّق',
 ];

@@ -2776,4 +2776,16 @@ return [
     'kyc.why_desc' => 'La verificación desbloquea la insignia «Vendedor verificado» — genera confianza y ayuda a vender.',
     'kyc.submitted_title' => 'Documentos enviados',
     'kyc.file_hint' => 'PNG o JPG, bien legible. 10 MB máx.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'Su tienda',
+    'seller.profile_company_sub' => 'Esta información aparece en su escaparate.',
+    'seller.profile_contact' => 'Datos de contacto',
+    'seller.profile_contact_sub' => 'Cómo le contactan sus clientes.',
+    'seller.badge_unlocked' => 'Insignia desbloqueada',
+    'seller.badge_locked' => 'Insignia bloqueada',
+    'seller.verified_seller' => 'Vendedor verificado',
+    'seller.badge_unlocked_desc' => 'Su escaparate muestra la insignia «Vendedor verificado». ¡Bien hecho!',
+    'seller.badge_locked_desc' => 'Indique su n.º de registro para iniciar la verificación y obtener la insignia.',
+    'seller.verified_mini' => 'Verificado',
 ];

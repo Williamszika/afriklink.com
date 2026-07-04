@@ -2797,4 +2797,16 @@ return [
     'kyc.why_desc' => 'Verification unlocks the “Verified seller” badge — it reassures buyers and helps you sell.',
     'kyc.submitted_title' => 'Documents sent',
     'kyc.file_hint' => 'PNG or JPG, clearly legible. 10 MB max.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'Your shop',
+    'seller.profile_company_sub' => 'This information appears on your storefront.',
+    'seller.profile_contact' => 'Contact details',
+    'seller.profile_contact_sub' => 'How your customers reach you.',
+    'seller.badge_unlocked' => 'Badge unlocked',
+    'seller.badge_locked' => 'Badge locked',
+    'seller.verified_seller' => 'Verified seller',
+    'seller.badge_unlocked_desc' => 'Your storefront shows the “Verified seller” badge. Well done!',
+    'seller.badge_locked_desc' => 'Add your registration number to start verification and earn the badge.',
+    'seller.verified_mini' => 'Verified',
 ];

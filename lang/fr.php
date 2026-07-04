@@ -2797,4 +2797,16 @@ return [
     'kyc.why_desc' => 'La vérification débloque le badge « Vendeur vérifié » — il rassure les acheteurs et fait vendre.',
     'kyc.submitted_title' => 'Pièces envoyées',
     'kyc.file_hint' => 'PNG ou JPG, bien lisible. 10 Mo max.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'Votre boutique',
+    'seller.profile_company_sub' => 'Ces informations s’affichent sur votre vitrine.',
+    'seller.profile_contact' => 'Coordonnées & contact',
+    'seller.profile_contact_sub' => 'Comment vos clients vous joignent.',
+    'seller.badge_unlocked' => 'Badge débloqué',
+    'seller.badge_locked' => 'Badge verrouillé',
+    'seller.verified_seller' => 'Vendeur vérifié',
+    'seller.badge_unlocked_desc' => 'Votre vitrine affiche le badge « Vendeur vérifié ». Bravo !',
+    'seller.badge_locked_desc' => 'Renseignez votre n° d’enregistrement pour lancer la vérification et obtenir le badge.',
+    'seller.verified_mini' => 'Vérifié',
 ];

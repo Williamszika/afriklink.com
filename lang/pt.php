@@ -2776,4 +2776,16 @@ return [
     'kyc.why_desc' => 'A verificação desbloqueia o selo «Vendedor verificado» — tranquiliza os compradores e ajuda a vender.',
     'kyc.submitted_title' => 'Documentos enviados',
     'kyc.file_hint' => 'PNG ou JPG, bem legível. 10 MB máx.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'A sua loja',
+    'seller.profile_company_sub' => 'Estas informações aparecem na sua vitrine.',
+    'seller.profile_contact' => 'Dados de contacto',
+    'seller.profile_contact_sub' => 'Como os seus clientes o contactam.',
+    'seller.badge_unlocked' => 'Selo desbloqueado',
+    'seller.badge_locked' => 'Selo bloqueado',
+    'seller.verified_seller' => 'Vendedor verificado',
+    'seller.badge_unlocked_desc' => 'A sua vitrine mostra o selo «Vendedor verificado». Parabéns!',
+    'seller.badge_locked_desc' => 'Indique o seu n.º de registo para iniciar a verificação e obter o selo.',
+    'seller.verified_mini' => 'Verificado',
 ];

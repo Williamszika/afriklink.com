@@ -2776,4 +2776,16 @@ return [
     'kyc.why_desc' => 'La verifica sblocca il badge «Venditore verificato» — rassicura gli acquirenti e fa vendere.',
     'kyc.submitted_title' => 'Documenti inviati',
     'kyc.file_hint' => 'PNG o JPG, ben leggibile. Max 10 MB.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'La tua bottega',
+    'seller.profile_company_sub' => 'Queste informazioni appaiono nella tua vetrina.',
+    'seller.profile_contact' => 'Recapiti e contatto',
+    'seller.profile_contact_sub' => 'Come ti raggiungono i clienti.',
+    'seller.badge_unlocked' => 'Badge sbloccato',
+    'seller.badge_locked' => 'Badge bloccato',
+    'seller.verified_seller' => 'Venditore verificato',
+    'seller.badge_unlocked_desc' => 'La tua vetrina mostra il badge «Venditore verificato». Bravo!',
+    'seller.badge_locked_desc' => 'Inserisci il tuo n. di registrazione per avviare la verifica e ottenere il badge.',
+    'seller.verified_mini' => 'Verificato',
 ];

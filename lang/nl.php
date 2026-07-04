@@ -2771,4 +2771,16 @@ return [
     'kyc.why_desc' => 'Verificatie ontgrendelt het badge ‘Geverifieerde verkoper’ — dat wekt vertrouwen en verkoopt.',
     'kyc.submitted_title' => 'Documenten verzonden',
     'kyc.file_hint' => 'PNG of JPG, goed leesbaar. Max. 10 MB.',
+
+    // --- Profil vendeur (.sprof) ---
+    'seller.your_shop' => 'Uw winkel',
+    'seller.profile_company_sub' => 'Deze gegevens verschijnen in uw etalage.',
+    'seller.profile_contact' => 'Contactgegevens',
+    'seller.profile_contact_sub' => 'Hoe uw klanten u bereiken.',
+    'seller.badge_unlocked' => 'Badge ontgrendeld',
+    'seller.badge_locked' => 'Badge vergrendeld',
+    'seller.verified_seller' => 'Geverifieerde verkoper',
+    'seller.badge_unlocked_desc' => 'Uw etalage toont het badge ‘Geverifieerde verkoper’. Goed gedaan!',
+    'seller.badge_locked_desc' => 'Vul uw registratienummer in om de verificatie te starten en de badge te verdienen.',
+    'seller.verified_mini' => 'Geverifieerd',
 ];
