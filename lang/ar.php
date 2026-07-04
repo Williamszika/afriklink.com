@@ -2683,4 +2683,11 @@ return [
     'seller.dash.follow' => 'متابعة',
     'seller.dash.d30' => '30 يومًا',
     'seller.dash.units_sold' => 'بيع :n',
+
+    // Portefeuille — refonte (design .swal)
+    'wallet.threshold_of' => 'الحد :amount',
+    'wallet.threshold_reached' => 'تم بلوغ :amount',
+    'wallet.threshold_remaining' => 'يتبقى :amount قبل أول سحب',
+    'wallet.configure_payout' => 'بيانات السحب',
+    'wallet.no_moves' => 'لا توجد حركة بعد',
 ];

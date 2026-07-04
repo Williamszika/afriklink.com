@@ -2683,4 +2683,11 @@ return [
     'seller.dash.follow' => 'Acompanhar',
     'seller.dash.d30' => '30 dias',
     'seller.dash.units_sold' => ':n vendido(s)',
+
+    // Portefeuille — refonte (design .swal)
+    'wallet.threshold_of' => 'Limite :amount',
+    'wallet.threshold_reached' => ':amount atingidos',
+    'wallet.threshold_remaining' => 'Faltam :amount para o primeiro levantamento',
+    'wallet.configure_payout' => 'Dados de pagamento',
+    'wallet.no_moves' => 'Ainda sem movimentos',
 ];

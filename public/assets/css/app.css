@@ -3185,6 +3185,52 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .sdash-nba-body span{color:rgba(255,255,255,.8);font-size:.9rem}
 .sdash-nba-cta{flex:none}
 
+/* --- Portefeuille (.swal, s'appuie sur .sdash) --- */
+.swal-balance{background:linear-gradient(150deg,var(--s-green),var(--s-green-deep));color:#FAF4E6;border-radius:20px;padding:1.6rem 1.7rem;position:relative;overflow:hidden}
+.swal-balance>*{position:relative}
+.swal-balance .lab{font-family:var(--afk-mono);font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#ffe6b0}
+.swal-balance .amt{font-family:var(--afk-display);font-weight:800;font-size:clamp(2.4rem,6vw,3.4rem);line-height:1;margin:.5rem 0}
+.swal-balance .lock{display:inline-flex;align-items:center;gap:.45rem;font-size:.84rem;color:rgba(250,244,230,.85);background:rgba(250,244,230,.1);border:1px solid rgba(250,244,230,.2);padding:.35rem .7rem;border-radius:999px}
+.swal-thr{margin-top:1.2rem}
+.swal-thr .cap{display:flex;justify-content:space-between;gap:.6rem;font-family:var(--afk-mono);font-size:.7rem;color:rgba(250,244,230,.8);margin-bottom:.4rem}
+.swal-thr .swal-thr-note{margin:.4rem 0 0}
+.swal-thr .bar{height:8px;background:rgba(250,244,230,.16);border-radius:999px;overflow:hidden}
+.swal-thr .bar i{display:block;height:100%;min-width:6px;background:var(--s-gold);border-radius:999px}
+.swal-balance .acts{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.3rem}
+.swal-balance .btn-light{background:#FAF4E6;color:var(--s-green);border-color:transparent}
+.swal-ghost-on-green{background:rgba(250,244,230,.12);color:#FAF4E6;border-color:rgba(250,244,230,.25)}
+.swal-ghost-on-green:hover{background:rgba(250,244,230,.2)}
+.swal-earn .row{display:flex;align-items:center;gap:.8rem;padding:.75rem 0;border-top:1px solid var(--s-line)}
+.swal-earn .row:first-child{border-top:0}
+.swal-earn .ic{width:36px;height:36px;border-radius:10px;background:rgba(20,80,46,.08);display:grid;place-items:center;font-size:1rem;flex:none}
+.swal-earn .v{font-family:var(--afk-display);font-weight:800;font-size:1.4rem;color:var(--s-green);line-height:1}
+.swal-earn .k{font-size:.82rem;color:var(--s-muted);margin-top:.15rem}
+.swal-sf{padding:.7rem 0;border-top:1px solid var(--s-line)}
+.swal-sf:first-child{border-top:0}
+.swal-sf .top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.4rem}
+.swal-sf .nm{font-weight:600;display:flex;align-items:center;gap:.5rem;min-width:0}
+.swal-sf .dot{width:9px;height:9px;border-radius:3px;flex:none}
+.swal-sf .amt{font-family:var(--afk-display);font-weight:700;color:var(--s-green);white-space:nowrap}
+.swal-sf .amt small{font-family:var(--afk-mono);font-weight:700;color:var(--s-muted);font-size:.72rem;margin-inline-start:.35rem}
+.swal-sf .bar{height:7px;background:rgba(20,80,46,.08);border-radius:999px;overflow:hidden}
+.swal-sf .bar i{display:block;height:100%;border-radius:999px}
+.swal-wd-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:.6rem 0 1rem}
+@media(max-width:560px){.swal-wd-grid{grid-template-columns:1fr}}
+.swal-lbl{display:block;font-weight:600;font-size:.86rem;margin-bottom:.3rem;color:var(--s-ink)}
+.swal-ledger{display:flex;flex-direction:column}
+.swal-led-row{display:flex;align-items:center;justify-content:space-between;gap:.7rem;padding:.7rem 0;border-top:1px solid var(--s-line)}
+.swal-led-row:first-child{border-top:0}
+.swal-led-main{min-width:0;display:flex;flex-direction:column}
+.swal-led-main b{font-weight:600;font-size:.92rem}
+.swal-led-main span{font-family:var(--afk-mono);font-size:.74rem;color:var(--s-muted)}
+.swal-led-amt{font-family:var(--afk-display);font-weight:700;white-space:nowrap}
+.swal-led-amt.is-credit{color:var(--s-ok)}
+.swal-led-amt.is-debit{color:var(--s-hibiscus)}
+.swal-hist-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:2.4rem 1rem}
+.swal-hist-empty .il{width:60px;height:60px;border-radius:16px;background:rgba(20,80,46,.06);display:grid;place-items:center;font-size:1.7rem;margin-bottom:.9rem}
+.swal-hist-empty b{font-family:var(--afk-display);font-size:1.05rem}
+.swal-hist-empty p{color:var(--s-muted);font-size:.9rem;margin:.3rem 0 0;max-width:36ch}
+
 /* le bloc de consentement s'intègre dans la carte (recadrage léger) */
 .authx .legal-consent{background:rgba(20,80,46,.04);border-color:var(--a-line);margin:0}
 

@@ -2704,4 +2704,11 @@ return [
     'seller.dash.follow' => 'Suivre',
     'seller.dash.d30' => '30 jours',
     'seller.dash.units_sold' => ':n vendu(s)',
+
+    // Portefeuille — refonte (design .swal)
+    'wallet.threshold_of' => 'Seuil :amount',
+    'wallet.threshold_reached' => ':amount atteints',
+    'wallet.threshold_remaining' => 'Encore :amount avant votre premier retrait',
+    'wallet.configure_payout' => 'Coordonnées de retrait',
+    'wallet.no_moves' => 'Aucun mouvement pour l\'instant',
 ];

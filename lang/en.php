@@ -2704,4 +2704,11 @@ return [
     'seller.dash.follow' => 'Track',
     'seller.dash.d30' => '30 days',
     'seller.dash.units_sold' => ':n sold',
+
+    // Portefeuille — refonte (design .swal)
+    'wallet.threshold_of' => 'Threshold :amount',
+    'wallet.threshold_reached' => ':amount reached',
+    'wallet.threshold_remaining' => ':amount to go before your first withdrawal',
+    'wallet.configure_payout' => 'Payout details',
+    'wallet.no_moves' => 'No movement yet',
 ];

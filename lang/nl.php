@@ -2678,4 +2678,11 @@ return [
     'seller.dash.follow' => 'Volgen',
     'seller.dash.d30' => '30 dagen',
     'seller.dash.units_sold' => ':n verkocht',
+
+    // Portefeuille — refonte (design .swal)
+    'wallet.threshold_of' => 'Drempel :amount',
+    'wallet.threshold_reached' => ':amount bereikt',
+    'wallet.threshold_remaining' => 'Nog :amount tot je eerste uitbetaling',
+    'wallet.configure_payout' => 'Uitbetalingsgegevens',
+    'wallet.no_moves' => 'Nog geen beweging',
 ];
