@@ -2818,4 +2818,7 @@ return [
     'footer.col_sell' => 'Verkaufen',
     'footer.col_legal' => 'Rechtliches',
     'footer.support' => 'Hilfe',
+
+    // --- Vitrine boutique (.shop-page) ---
+    'shop.contact_cta' => 'Kontakt',
 ];

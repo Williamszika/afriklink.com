@@ -2818,4 +2818,7 @@ return [
     'footer.col_sell' => 'بيع',
     'footer.col_legal' => 'قانوني',
     'footer.support' => 'الدعم',
+
+    // --- Vitrine boutique (.shop-page) ---
+    'shop.contact_cta' => 'تواصل',
 ];

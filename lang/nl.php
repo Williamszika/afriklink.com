@@ -2813,4 +2813,7 @@ return [
     'footer.col_sell' => 'Verkopen',
     'footer.col_legal' => 'Juridisch',
     'footer.support' => 'Ondersteuning',
+
+    // --- Vitrine boutique (.shop-page) ---
+    'shop.contact_cta' => 'Contact',
 ];

@@ -2839,4 +2839,7 @@ return [
     'footer.col_sell' => 'Sell',
     'footer.col_legal' => 'Legal',
     'footer.support' => 'Support',
+
+    // --- Vitrine boutique (.shop-page) ---
+    'shop.contact_cta' => 'Contact',
 ];

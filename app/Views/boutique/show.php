@@ -61,6 +61,14 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
         <div class="notice notice-info"><p><?= e(t('shop.owner_draft')) ?> — <a href="<?= e(url('/boutique/gerer')) ?>"><?= e(t('shop.manage_link')) ?></a></p></div>
     <?php endif; ?>
 
+    <nav class="shop-crumb" aria-label="breadcrumb">
+        <a href="<?= e(url('/')) ?>"><?= e(t('nav.home')) ?></a>
+        <span class="sep" aria-hidden="true">›</span>
+        <a href="<?= e(url('/explorer')) ?>"><?= e(t('nav.explore')) ?></a>
+        <span class="sep" aria-hidden="true">›</span>
+        <span class="shop-crumb-cur"><?= e((string) $boutique['name']) ?></span>
+    </nav>
+
     <div class="shop-hero">
         <?= render_partial('partials/shop_banner', ['images' => $banners, 'w' => 1100, 'h' => 300]) ?>
         <?php if ($ctSet !== []): ?>
@@ -97,6 +105,11 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     <p class="shop-rating"><?= render_partial('partials/stars', ['avg' => $shop_rating['avg'], 'count' => $shop_rating['count']]) ?></p>
                 <?php endif; ?>
             </div>
+            <?php if ($ctPrimaries !== [] || $waPhone !== ''): ?>
+                <div class="shopx-actions">
+                    <a class="btn btn-gold btn-sm" href="#shop-contact"><?= icon('chat', ['size' => 15]) ?> <?= e(t('shop.contact_cta')) ?></a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -217,7 +230,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                 </div>
             <?php endif; ?>
             <?php if ($ctPrimaries !== []): ?>
-                <div class="panel shop-contact-panel">
+                <div class="panel shop-contact-panel" id="shop-contact">
                     <h2 class="panel-title"><?= icon('chat', ['size' => 18]) ?> <?= e(t('shop.contact_title')) ?></h2>
                     <div class="contact-buttons">
                         <?php foreach ($ctPrimaries as $ch): $pm = ContactChannels::meta($ch); ?>
@@ -230,7 +243,7 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     </div>
                 </div>
             <?php elseif ($waPhone !== ''): ?>
-                <div class="panel shop-contact-panel">
+                <div class="panel shop-contact-panel" id="shop-contact">
                     <a class="btn btn-primary btn-block btn-wa" rel="noopener" target="_blank"
                        href="https://wa.me/<?= e($waPhone) ?>"><img class="social-logo" src="<?= e(social_logo('whatsapp')) ?>" alt="" width="22" height="22"> <?= e(t('listing.contact_whatsapp')) ?></a>
                 </div>
