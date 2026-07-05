@@ -4042,21 +4042,21 @@ a.home-uni:hover{transform:translateY(-4px);box-shadow:0 20px 44px -28px rgba(0,
 .home-adwrap{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--h-line)}
 .home-adlabel{position:absolute;top:.7rem;inset-inline-start:.7rem;z-index:3;font-family:var(--afk-mono);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(28,36,24,.6);color:#fff;border-radius:6px;padding:.2rem .5rem;backdrop-filter:blur(4px)}
 .home-adtrack{display:flex;transition:transform .5s ease;will-change:transform}
-.home-adslide{min-width:100%;min-height:210px;display:flex;align-items:center;gap:1.5rem;padding:1.8rem clamp(1.4rem,4vw,3rem);position:relative;overflow:hidden;color:var(--h-cream)}
+.home-adslide{min-width:100%;min-height:290px;display:flex;align-items:center;gap:1.9rem;padding:2.5rem clamp(1.6rem,4.4vw,3.6rem);position:relative;overflow:hidden;color:var(--h-cream)}
 .home-adslide::after{content:"";position:absolute;inset:0;background-image:var(--afk-wax);background-size:60px;opacity:.55;pointer-events:none}
 .home-adslide>*{position:relative;z-index:1}
 .home-ad-txt{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;max-width:62ch}
 .home-ad-k{font-family:var(--afk-mono);font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
-.home-ad-h{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.3rem,3vw,2rem);color:#fff;line-height:1.1}
-.home-ad-p{opacity:.9;font-size:.95rem;margin:.1rem 0 .3rem}
-.home-ad-price{font-family:var(--afk-display);font-weight:800;font-size:1.05rem;color:#fff;margin:.1rem 0 .4rem}
+.home-ad-h{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.55rem,3.4vw,2.45rem);color:#fff;line-height:1.08}
+.home-ad-p{opacity:.9;font-size:1.02rem;margin:.15rem 0 .35rem}
+.home-ad-price{font-family:var(--afk-display);font-weight:800;font-size:1.2rem;color:#fff;margin:.15rem 0 .5rem}
 .home-ad-price .price-was{color:rgba(255,255,255,.7);font-weight:400}
 .home-ad-price .price-approx{color:rgba(255,255,255,.8);font-family:var(--afk-mono);font-size:.8rem;font-weight:400}
 .home-ad-cta{margin-top:.3rem}
 .home-adslide .btn-light{background:var(--h-cream);color:var(--h-green);border-color:transparent}
 .home-adslide .btn-light:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(0,0,0,.5)}
-.home-ad-visual{flex:none;font-size:4.5rem;line-height:1;width:120px;height:120px;display:grid;place-items:center}
-.home-ad-visual img{width:120px;height:120px;object-fit:cover;border-radius:16px;box-shadow:0 12px 30px -14px rgba(0,0,0,.5)}
+.home-ad-visual{flex:none;font-size:5.6rem;line-height:1;width:156px;height:156px;display:grid;place-items:center}
+.home-ad-visual img{width:156px;height:156px;object-fit:cover;border-radius:18px;box-shadow:0 14px 34px -14px rgba(0,0,0,.5)}
 @media(max-width:640px){.home-ad-visual{display:none}}
 .home-adslide.ad1{background:linear-gradient(130deg,#C7922E,#9A6F1E)}
 .home-adslide.ad2{background:linear-gradient(130deg,#1d6b3e,#0E3A21)}
