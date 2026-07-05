@@ -2824,4 +2824,12 @@ return [
     'settings.lang.pt' => 'Português',
     'settings.lang.nl' => 'Nederlands',
     'settings.lang.ar' => 'العربية',
+
+    // --- Accueil (.home) ---
+    'home.uni.shop_sub' => 'Produits en tout genre',
+    'home.uni.restaurant_sub' => 'Menus & commande directe',
+    'home.uni.salon_sub' => 'Beauté & réservation',
+    'home.uni.service_sub' => 'Savoir-faire près de vous',
+    'home.soon' => 'Bientôt',
+    'home.spotlight_title' => 'Coups de cœur sponsorisés',
 ];

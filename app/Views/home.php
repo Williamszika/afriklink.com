@@ -1,262 +1,262 @@
 <?php
 use App\Services\CloudinaryService;
 
-$sponsored       = $sponsored ?? [];
-$promo_products  = $promo_products ?? [];
+$sponsored           = $sponsored ?? [];
+$promo_products      = $promo_products ?? [];
 $promo_product_mains = $promo_product_mains ?? [];
-$products        = $products ?? [];
-$product_mains   = $product_mains ?? [];
-$recently_viewed = $recently_viewed ?? [];
-$for_you         = $for_you ?? [];
-$reco_mains      = $reco_mains ?? [];
-$boutiques       = $boutiques ?? [];
-$restaurants     = $restaurants ?? [];
-$annonces        = $annonces ?? [];
-$annonce_mains   = $annonce_mains ?? [];
-$verified_sellers     = $verified_sellers ?? [];
-$promo_annonces       = $promo_annonces ?? [];
-$promo_annonce_mains  = $promo_annonce_mains ?? [];
-$verticals = [
-    ['key' => 'shop',       'icon' => '🛍️', 'alt' => ''],
-    ['key' => 'restaurant', 'icon' => '🍽️', 'alt' => 'afk-uni__ic--alt1'],
-    ['key' => 'salon',      'icon' => '💈', 'alt' => 'afk-uni__ic--alt2'],
-    ['key' => 'service',    'icon' => '🛠️', 'alt' => 'afk-uni__ic--alt3'],
+$products            = $products ?? [];
+$product_mains       = $product_mains ?? [];
+$recently_viewed     = $recently_viewed ?? [];
+$for_you             = $for_you ?? [];
+$reco_mains          = $reco_mains ?? [];
+$boutiques           = $boutiques ?? [];
+$restaurants         = $restaurants ?? [];
+$annonces            = $annonces ?? [];
+$annonce_mains       = $annonce_mains ?? [];
+$verified_sellers    = $verified_sellers ?? [];
+$promo_annonces      = $promo_annonces ?? [];
+$promo_annonce_mains = $promo_annonce_mains ?? [];
+$categories          = $categories ?? [];
+$loggedIn            = current_user() !== null;
+
+// Univers : liens vers des destinations RÉELLES uniquement. Boutiques → l'explorateur
+// (le marché) ; Restaurants → la section de la page si des restaurants existent ;
+// Salons/Services ne sont pas encore ouverts aux acheteurs → étiquette « Bientôt ».
+$hasResto = !empty($restaurants);
+$univers = [
+    ['key' => 'shop',       'emj' => '🛍️', 'cls' => 'u1', 'href' => url('/explorer'),                       'soon' => false],
+    ['key' => 'restaurant', 'emj' => '🍽️', 'cls' => 'u2', 'href' => $hasResto ? '#home-restaurants' : null, 'soon' => false],
+    ['key' => 'salon',      'emj' => '💈', 'cls' => 'u3', 'href' => null,                                    'soon' => true],
+    ['key' => 'service',    'emj' => '🛠️', 'cls' => 'u4', 'href' => null,                                    'soon' => true],
 ];
+
+// Catégories « vivantes » (classées par contenu réellement publié, calc. contrôleur).
 $catIcons = [
     'mode' => '👗', 'electronique' => '📱', 'maison' => '🏠', 'beaute' => '💄',
     'alimentation' => '🍲', 'auto' => '🚗', 'artisanat' => '🎨', 'bebe' => '👶',
     'sport' => '⚽', 'autres' => '🛍️',
 ];
-// Catégories « vivantes » : classées par contenu réellement publié (annonces +
-// produits des boutiques), calculées dans le contrôleur (App\Services\Categories).
-$categories = $categories ?? [];
-$loggedIn   = current_user() !== null;
-?>
-<?php
-// Carrousel de pub en TÊTE : UNIQUEMENT les vraies pubs des vendeurs (campagnes
-// sponsorisées + produits en promo). L'invitation « Promouvoir mon offre » vit
-// dans l'espace vendeur (Publicité), pas ici. Carrousel masqué s'il n'y a aucune pub.
-$slideMains = $reco_mains + $promo_product_mains;
-$dealSlides = [];
-$seenSlide  = [];
-foreach (array_merge($sponsored, $promo_products) as $sp) {
-    $sid = (int) $sp['id'];
-    if (isset($seenSlide[$sid])) { continue; }
-    $seenSlide[$sid] = true;
-    $dealSlides[] = $sp;
-    if (count($dealSlides) >= 6) { break; }
-}
-$slideCount = count($dealSlides);
-?>
-<?php /* Titre principal (H1) unique de la page d'accueil : masqué visuellement
-   (le « héros » visuel est le carrousel de pubs / la grille catégories) mais lu
-   par les lecteurs d'écran et indexé — corrige l'absence de H1 en SEO/a11y. */ ?>
-<h1 class="sr-only"><?= e(t('home.hero_title')) ?></h1>
-<?php if ($dealSlides !== []): ?>
-<!-- Publicité — carrousel défilant en tête de l'accueil (pubs des vendeurs) -->
-<section class="afk-block afk-carousel-wrap">
-<div class="afk-carousel" data-carousel<?= $slideCount > 1 ? ' data-autoplay="6000"' : '' ?> aria-roledescription="carrousel" aria-label="<?= e(t('ads.label')) ?>">
-    <div class="afk-carousel__viewport">
-        <div class="afk-carousel__track">
-            <?php foreach ($dealSlides as $i => $p):
-                $onPromo = !empty($p['promo_price_cents']) && (int) $p['promo_price_cents'] > 0
-                    && (int) $p['promo_price_cents'] < (int) $p['price_cents']
-                    && (empty($p['promo_until']) || strtotime((string) $p['promo_until']) > time());
-                $now = $onPromo ? (int) $p['promo_price_cents'] : (int) $p['price_cents'];
-                $old = $onPromo ? (int) $p['price_cents'] : null;
-                $pct = $old ? (int) round(($old - $now) / max(1, $old) * 100) : 0;
-                $img = $slideMains[(int) $p['id']] ?? null;
-                $cur = (string) ($p['currency'] ?? 'EUR');
-                $href = !empty($p['campaign_pid'])
-                    ? url('/sp/' . $p['campaign_pid'])
-                    : url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']);
-            ?>
-            <a class="afk-carousel__slide afk-ad afk-ad--t<?= $i % 4 ?>" href="<?= e($href) ?>" role="group" aria-roledescription="diapo">
-                <div class="afk-ad__text">
-                    <span class="afk-ad__eyebrow">⚡ <?= e(t('carousel.deal')) ?><?= $pct > 0 ? ' · −' . $pct . '%' : '' ?></span>
-                    <h2 class="afk-ad__title"><?= e(mb_strimwidth((string) $p['name'], 0, 58, '…')) ?></h2>
-                    <div class="afk-ad__price"><span class="afk-ad__now"><?= e(format_price_local($now, $cur)) ?></span><?php if ($old !== null): ?> <span class="afk-ad__old"><?= e(format_price_local($old, $cur)) ?></span><?php endif; ?></div>
-                    <span class="afk-btn afk-btn--gold afk-btn--lg"><?= e(t('carousel.shop')) ?></span>
-                </div>
-                <div class="afk-ad__media">
-                    <?php if ($img !== null): ?><img src="<?= e(CloudinaryService::imageUrl($img, 360, 360)) ?>" alt="" loading="lazy"><?php else: ?><span class="afk-ad__emoji" aria-hidden="true">🛍️</span><?php endif; ?>
-                    <?php if ($pct > 0): ?><span class="afk-ad__badge">−<?= $pct ?>%</span><?php endif; ?>
-                </div>
-            </a>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php if ($slideCount > 1): ?>
-        <button class="afk-carousel__arrow afk-carousel__arrow--prev" type="button" aria-label="<?= e(t('carousel.prev')) ?>" data-prev>‹</button>
-        <button class="afk-carousel__arrow afk-carousel__arrow--next" type="button" aria-label="<?= e(t('carousel.next')) ?>" data-next>›</button>
-        <div class="afk-carousel__dots">
-            <?php for ($d = 0; $d < $slideCount; $d++): ?>
-                <button class="afk-carousel__dot<?= $d === 0 ? ' is-active' : '' ?>" type="button" aria-label="<?= e(t('carousel.go', ['n' => $d + 1])) ?>" data-dot="<?= $d ?>"></button>
-            <?php endfor; ?>
-        </div>
-    <?php endif; ?>
-</div>
-</section>
-<?php endif; ?>
-
-<!-- Hero déplacé vers la page « À propos » (/a-propos) -->
-
-<?php
-// Navigation par CATÉGORIE — toujours visible (pattern des grandes marketplaces :
-// rayon/department grid juste sous le héros), avec compteur en direct si du contenu existe.
 $catOrder  = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'auto', 'artisanat', 'bebe', 'sport'];
 $catCounts = [];
 foreach ($categories as $c) { $catCounts[(string) $c['key']] = (int) ($c['count'] ?? 0); }
-// Visuel de chaque catégorie = photo de sa meilleure vente (repli : émoji).
 $catThumbs = \App\Models\Product::categoryThumbs($catOrder);
-?>
-<section class="afk-cats afk-block" aria-label="<?= e(t('home.categories_title')) ?>">
-    <div class="afk-head">
-        <h2 class="afk-h2"><?= e(t('home.categories_title')) ?></h2>
-        <a class="afk-link-all" href="<?= e(url('/explorer')) ?>"><?= e(t('common.see_all')) ?> →</a>
-    </div>
-    <div class="cat-tiles cat-tiles--browse">
-        <?php foreach ($catOrder as $ck): $cn = $catCounts[$ck] ?? 0; $thumb = $catThumbs[$ck] ?? null; ?>
-            <a class="cat-tile<?= $thumb !== null ? ' cat-tile--photo' : '' ?>" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
-                <span class="cat-tile-ico" aria-hidden="true"><?php if ($thumb !== null): ?><img src="<?= e(CloudinaryService::imageUrl($thumb, 220, 220)) ?>" alt="" loading="lazy" data-hide-on-error><span class="cat-tile-fallback"><?= $catIcons[$ck] ?? '🛍️' ?></span><?php else: ?><?= $catIcons[$ck] ?? '🛍️' ?><?php endif; ?></span>
-                <span class="cat-tile-name"><?= e(t('listing.cat.' . $ck)) ?></span>
-                <?php if ($cn > 0): ?><span class="cat-tile-count"><?= e(t('home.cat_count', ['n' => $cn])) ?></span><?php endif; ?>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
 
-<?php if (!empty($products)): ?>
-<!-- Produits du catalogue — visibles dès l'ouverture de l'accueil -->
-<section class="live-section afk-block">
-    <div class="afk-spotlight__bar">
-        <h2><?= icon('store', ['size' => 18]) ?> <?= e(t('home.products_title')) ?>
-            <?php $buyerGeo = detected_geo(); $buyerPlace = $buyerGeo['country'] ?? null; ?>
-            <?php if ($buyerPlace): ?><span class="near-hint">· <?= e(t('home.near_you', ['place' => $buyerPlace])) ?></span><?php endif; ?>
-        </h2>
-        <a class="afk-link-all" href="<?= e(url('/explorer')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
-    </div>
-    <div class="product-grid">
-        <?php foreach ($products as $p): $pm = $product_mains[(int) $p['id']] ?? null; ?>
-            <a class="product-card" href="<?= e(url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id'])) ?>">
-                <span class="product-card-img">
-                    <?php if ($pm !== null): ?><img src="<?= e(CloudinaryService::imageUrl($pm, 320, 320, true)) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('package') ?></span><?php endif; ?>
-                    <?php if (\App\Models\Product::isPromoted($p)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
-                </span>
-                <span class="product-card-name"><?= e(tr_content('product', (int) $p['id'], 'name', (string) $p['name'])) ?></span>
-                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $p['price_cents'], 'cur' => (string) $p['currency']]) ?></span>
+// Coups de cœur sponsorisés : uniquement les vraies pubs des vendeurs (campagnes +
+// promos), dédupliquées, en grille (l'enregistrement des impressions se fait au
+// contrôleur, indépendamment de l'affichage).
+$slideMains = $reco_mains + $promo_product_mains;
+$deals = [];
+$seen  = [];
+foreach (array_merge($sponsored, $promo_products) as $sp) {
+    $sid = (int) $sp['id'];
+    if (isset($seen[$sid])) { continue; }
+    $seen[$sid] = true;
+    $deals[] = $sp;
+    if (count($deals) >= 8) { break; }
+}
+
+/** Carte produit .home (image + badge promo + cœur + titre + prix + géo). */
+$productCard = static function (array $p, ?string $img, ?string $href = null, bool $sponsored = false) {
+    $onPromo = !empty($p['promo_price_cents']) && (int) $p['promo_price_cents'] > 0
+        && (int) $p['promo_price_cents'] < (int) $p['price_cents']
+        && (empty($p['promo_until']) || strtotime((string) $p['promo_until']) > time());
+    $now = $onPromo ? (int) $p['promo_price_cents'] : (int) $p['price_cents'];
+    $old = $onPromo ? (int) $p['price_cents'] : null;
+    $cur = (string) ($p['currency'] ?? 'EUR');
+    $url = $href ?? url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']);
+    ob_start(); ?>
+    <div class="home-pcard-wrap">
+        <a class="home-pcard" href="<?= e($url) ?>">
+            <span class="home-pthumb">
+                <?php if ($img !== null): ?><img src="<?= e(CloudinaryService::imageUrl($img, 320, 320, true)) ?>" alt="" loading="lazy"><?php else: ?><span class="home-pthumb-empty" aria-hidden="true"><?= icon('package', ['size' => 30]) ?></span><?php endif; ?>
+                <?php if ($sponsored || \App\Models\Product::isPromoted($p)): ?><span class="home-spon"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+            </span>
+            <span class="home-pbody">
+                <span class="home-ptitle"><?= e(tr_content('product', (int) $p['id'], 'name', (string) $p['name'])) ?></span>
+                <span class="home-pprice"><?= render_partial('partials/price_dual', ['cents' => $now, 'cur' => $cur, 'compare' => $old]) ?></span>
                 <?= render_partial('partials/card_geo', ['row' => $p]) ?>
-            </a>
-        <?php endforeach; ?>
+            </span>
+        </a>
+        <?= render_partial('partials/wish_heart', ['pid' => (string) $p['public_id']]) ?>
     </div>
-</section>
-<?php endif; ?>
+    <?php return (string) ob_get_clean();
+};
+?>
+<div class="home">
 
-<?php if (!empty($promo_annonces)): ?>
-<section class="live-section afk-block">
-    <h2><?= icon('sparkle', ['size' => 18]) ?> <?= e(t('home.featured_annonces')) ?></h2>
-    <div class="product-grid">
-        <?php foreach ($promo_annonces as $a): $am = $promo_annonce_mains[(int) $a['id']] ?? null; ?>
-            <a class="product-card" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
-                <span class="product-card-img">
-                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320, !empty($a['clean_bg']))) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('tag') ?></span><?php endif; ?>
-                    <span class="promo-badge"><?= e(t('ads.badge')) ?></span>
+    <!-- ===== HÉROS ===== -->
+    <section class="home-hero">
+        <div class="home-hero-in">
+            <span class="home-kicker"><?= e(t('home.hero_kicker')) ?></span>
+            <h1><?= e(t('home.hero_title')) ?></h1>
+            <p><?= e(t('home.hero_subtitle')) ?></p>
+            <form class="home-hero-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
+                <span class="box">
+                    <?= icon('search', ['size' => 19]) ?>
+                    <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
                 </span>
-                <span class="product-card-name"><?= e((string) $a['title']) ?></span>
-                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $a['price_cents'], 'cur' => (string) $a['currency']]) ?></span>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
-<?php endif; ?>
+                <button type="submit" class="btn btn-gold"><?= e(t('explore.search_btn')) ?></button>
+            </form>
+            <div class="home-hero-trust">
+                <span><?= icon('lock', ['size' => 16]) ?> <?= e(t('home.why.secure_t')) ?></span>
+                <span><?= icon('shield', ['size' => 16]) ?> <?= e(t('home.why.verified_t')) ?></span>
+                <span><?= icon('globe', ['size' => 16]) ?> <?= e(t('home.why.ship_t')) ?></span>
+            </div>
+        </div>
+    </section>
 
-<?php if (!empty($boutiques)): ?>
-<section class="live-section afk-block">
-    <h2><?= icon('store', ['size' => 18]) ?> <?= e(t('home.boutiques_title')) ?></h2>
-    <div class="vendor-grid">
-        <?php foreach ($boutiques as $b): ?>
-            <a class="vendor-card" href="<?= e(url('/boutique/' . $b['slug'])) ?>">
-                <span class="vendor-logo"><?php if (!empty($b['logo_public_id'])): ?><img src="<?= e(CloudinaryService::imageUrl((string) $b['logo_public_id'], 160, 160)) ?>" alt="" loading="lazy"><?php else: ?><?= icon('store', ['size' => 30]) ?><?php endif; ?></span>
-                <span class="vendor-name"><?= e((string) $b['name']) ?></span>
-                <?php if (!empty($verified_sellers[(int) $b['user_id']])): ?><span class="vendor-verified" title="<?= e(t('shop.verified_seller')) ?>">✓ <?= e(t('home.verified_short')) ?></span><?php endif; ?>
-                <?php if (!empty($b['category'])): ?><span class="vendor-sub muted"><?= e(t('listing.cat.' . $b['category'])) ?></span><?php endif; ?>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
-<?php endif; ?>
+    <!-- ===== UNIVERS ===== -->
+    <section class="home-sec">
+        <div class="home-head"><div><span class="home-kicker"><?= e(t('home.hero_kicker')) ?></span><h2 class="home-h2"><?= e(t('home.hub.title')) ?></h2></div></div>
+        <div class="home-univers">
+            <?php foreach ($univers as $u): $inner = '<span class="emj" aria-hidden="true">' . $u['emj'] . '</span>'
+                . '<h3>' . e(t('home.vertical.' . $u['key'] . '.title')) . '</h3>'
+                . '<span class="sub">' . e(t('home.uni.' . $u['key'] . '_sub')) . '</span>'
+                . ($u['soon'] ? '<span class="home-soon">' . e(t('home.soon')) . '</span>' : ''); ?>
+                <?php if ($u['href'] !== null): ?>
+                    <a class="home-uni <?= e($u['cls']) ?>" href="<?= e($u['href']) ?>"><?= $inner ?></a>
+                <?php else: ?>
+                    <div class="home-uni <?= e($u['cls']) ?> is-soon"><?= $inner ?></div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+    </section>
 
-<?php if (!empty($restaurants)): ?>
-<section class="live-section afk-block">
-    <h2><?= icon('utensils', ['size' => 18]) ?> <?= e(t('home.restaurants_title')) ?></h2>
-    <div class="vendor-grid">
-        <?php foreach ($restaurants as $r): $sub = trim((string) ($r['tagline'] ?? '')) ?: trim((string) ($r['cuisine'] ?? '')); ?>
-            <a class="vendor-card" href="<?= e(url('/restaurant/' . $r['slug'])) ?>">
-                <span class="vendor-logo"><?php $rlogo = $r['logo_public_id'] ?: $r['banner_public_id']; if (!empty($rlogo)): ?><img src="<?= e(CloudinaryService::imageUrl((string) $rlogo, 160, 160)) ?>" alt="" loading="lazy"><?php else: ?><?= icon('utensils', ['size' => 30]) ?><?php endif; ?></span>
-                <span class="vendor-name"><?= e((string) $r['name']) ?></span>
-                <?php if ($sub !== ''): ?><span class="vendor-sub muted"><?= e(mb_strimwidth($sub, 0, 40, '…')) ?></span><?php endif; ?>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
-<?php endif; ?>
+    <!-- ===== CATÉGORIES ===== -->
+    <section class="home-sec" aria-label="<?= e(t('home.categories_title')) ?>">
+        <div class="home-head"><h2 class="home-h2"><?= e(t('home.categories_title')) ?></h2><a class="home-seeall" href="<?= e(url('/explorer')) ?>"><?= e(t('common.see_all')) ?> →</a></div>
+        <div class="home-cats">
+            <?php foreach ($catOrder as $ck): $cn = $catCounts[$ck] ?? 0; $thumb = $catThumbs[$ck] ?? null; ?>
+                <a class="home-cat<?= $thumb !== null ? ' has-photo' : '' ?>" href="<?= e(url('/explorer?categorie=' . $ck)) ?>">
+                    <span class="home-cat-ic" aria-hidden="true"><?php if ($thumb !== null): ?><img src="<?= e(CloudinaryService::imageUrl($thumb, 160, 160)) ?>" alt="" loading="lazy" data-hide-on-error><span class="fb"><?= $catIcons[$ck] ?? '🛍️' ?></span><?php else: ?><?= $catIcons[$ck] ?? '🛍️' ?><?php endif; ?></span>
+                    <span class="home-cat-n"><?= e(t('listing.cat.' . $ck)) ?></span>
+                    <?php if ($cn > 0): ?><span class="home-cat-c"><?= e(t('home.cat_count', ['n' => $cn])) ?></span><?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
 
-<?php if (!empty($annonces)): ?>
-<section class="live-section afk-block">
-    <h2><?= icon('tag', ['size' => 18]) ?> <?= e(t('home.annonces_title')) ?></h2>
-    <div class="product-grid">
-        <?php foreach ($annonces as $a): $am = $annonce_mains[(int) $a['id']] ?? null; ?>
-            <a class="product-card" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
-                <span class="product-card-img">
-                    <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320, !empty($a['clean_bg']))) ?>" alt="" loading="lazy"><?php else: ?><span class="listing-thumb-empty" aria-hidden="true"><?= icon('tag') ?></span><?php endif; ?>
-                    <?php if (\App\Models\Listing::isPromoted($a)): ?><span class="promo-badge"><?= e(t('ads.badge')) ?></span><?php endif; ?>
-                </span>
-                <span class="product-card-name"><?= e((string) $a['title']) ?></span>
-                <span class="product-card-price"><?= render_partial('partials/price_dual', ['cents' => (int) $a['price_cents'], 'cur' => (string) $a['currency']]) ?></span>
-            </a>
-        <?php endforeach; ?>
-    </div>
-</section>
-<?php endif; ?>
-
-<?php if (!empty($recently_viewed) || !empty($for_you)): ?>
-<section class="reco-rails afk-block">
-    <?php if (!empty($recently_viewed)): ?>
-        <?= render_partial('partials/product_rail', ['icon' => 'clock', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains]) ?>
+    <!-- ===== COUPS DE CŒUR SPONSORISÉS ===== -->
+    <?php if ($deals !== []): ?>
+    <section class="home-sec">
+        <div class="home-head"><div><span class="home-kicker"><?= e(t('carousel.deal')) ?></span><h2 class="home-h2"><?= e(t('home.spotlight_title')) ?></h2></div><a class="home-seeall" href="<?= e(url('/explorer')) ?>"><?= e(t('spotlight.see_all')) ?> →</a></div>
+        <div class="home-pgrid">
+            <?php foreach ($deals as $p):
+                $img  = $slideMains[(int) $p['id']] ?? null;
+                $href = !empty($p['campaign_pid']) ? url('/sp/' . $p['campaign_pid']) : null;
+                echo $productCard($p, $img, $href, true);
+            endforeach; ?>
+        </div>
+    </section>
     <?php endif; ?>
-    <?php if (!empty($for_you)): ?>
-        <?= render_partial('partials/product_rail', ['icon' => 'lightbulb', 'title' => t('reco.for_you'), 'products' => $for_you, 'mains' => $reco_mains]) ?>
+
+    <!-- ===== PRODUITS DU CATALOGUE ===== -->
+    <?php if (!empty($products)): ?>
+    <section class="home-sec">
+        <div class="home-head">
+            <div>
+                <h2 class="home-h2"><?= e(t('home.products_title')) ?></h2>
+                <?php $buyerGeo = detected_geo(); $buyerPlace = $buyerGeo['country'] ?? null; ?>
+                <?php if ($buyerPlace): ?><span class="home-sub"><?= e(t('home.near_you', ['place' => $buyerPlace])) ?></span><?php endif; ?>
+            </div>
+            <a class="home-seeall" href="<?= e(url('/explorer')) ?>"><?= e(t('spotlight.see_all')) ?> →</a>
+        </div>
+        <div class="home-pgrid">
+            <?php foreach ($products as $p): echo $productCard($p, $product_mains[(int) $p['id']] ?? null); endforeach; ?>
+        </div>
+    </section>
     <?php endif; ?>
-</section>
-<?php endif; ?>
 
-<section id="verticals" class="afk-block">
-    <div class="afk-head"><div><span class="afk-kicker"><?= e(t('home.hero_kicker')) ?></span><h2 class="afk-h2"><?= e(t('home.verticals_title')) ?></h2></div></div>
-    <div class="afk-grid afk-grid-4">
-        <?php foreach ($verticals as $v): ?>
-            <article class="afk-uni">
-                <div class="afk-uni__ic <?= e($v['alt']) ?>" aria-hidden="true"><?= $v['icon'] ?></div>
-                <h3 class="afk-h3"><?= e(t('home.vertical.' . $v['key'] . '.title')) ?></h3>
-                <p><?= e(t('home.vertical.' . $v['key'] . '.desc')) ?></p>
-            </article>
-        <?php endforeach; ?>
-    </div>
-</section>
+    <!-- ===== BOUTIQUES EN VEDETTE ===== -->
+    <?php if (!empty($boutiques)): ?>
+    <section class="home-sec" id="home-boutiques">
+        <div class="home-head"><h2 class="home-h2"><?= e(t('home.boutiques_title')) ?></h2></div>
+        <div class="home-sgrid">
+            <?php foreach ($boutiques as $b): $bl = (string) ($b['logo_public_id'] ?? ''); $bi = abs(crc32((string) $b['slug'])) % 4; ?>
+                <a class="home-scard" href="<?= e(url('/boutique/' . $b['slug'])) ?>">
+                    <span class="home-scover cov<?= $bi ?>"></span>
+                    <span class="home-slogo"><?php if ($bl !== ''): ?><img src="<?= e(CloudinaryService::imageUrl($bl, 160, 160)) ?>" alt="" loading="lazy"><?php else: ?><?= e(mb_strtoupper(mb_substr((string) $b['name'], 0, 1))) ?><?php endif; ?></span>
+                    <span class="home-sbody">
+                        <span class="home-sname"><?= e((string) $b['name']) ?><?php if (!empty($verified_sellers[(int) $b['user_id']])): ?> <span class="home-vbadge"><?= icon('check', ['size' => 10]) ?> <?= e(t('home.verified_short')) ?></span><?php endif; ?></span>
+                        <?php if (!empty($b['category'])): ?><span class="home-smeta"><?= e(t('listing.cat.' . $b['category'])) ?></span><?php endif; ?>
+                    </span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
 
-<section class="afk-seller afk-block">
-    <div>
-        <h2 class="afk-h2"><?= e(t('home.seller_cta_title')) ?></h2>
-        <p><?= e(t('home.seller_cta_text')) ?></p>
-    </div>
-    <a class="afk-btn afk-btn--dark afk-btn--lg" href="<?= e(url($loggedIn ? '/vendre' : '/register/vendeur')) ?>"><?= e(t('home.seller_cta_btn')) ?></a>
-</section>
+    <!-- ===== RESTAURANTS ===== -->
+    <?php if (!empty($restaurants)): ?>
+    <section class="home-sec" id="home-restaurants">
+        <div class="home-head"><h2 class="home-h2"><?= e(t('home.restaurants_title')) ?></h2></div>
+        <div class="home-rgrid">
+            <?php foreach ($restaurants as $r): $sub = trim((string) ($r['tagline'] ?? '')) ?: trim((string) ($r['cuisine'] ?? '')); $rl = (string) ($r['logo_public_id'] ?: $r['banner_public_id']); ?>
+                <a class="home-rcard" href="<?= e(url('/restaurant/' . $r['slug'])) ?>">
+                    <span class="home-rthumb"><?php if ($rl !== ''): ?><img src="<?= e(CloudinaryService::imageUrl($rl, 200, 200)) ?>" alt="" loading="lazy"><?php else: ?><span aria-hidden="true">🍽️</span><?php endif; ?></span>
+                    <span class="home-rbody">
+                        <span class="home-rname"><?= e((string) $r['name']) ?></span>
+                        <?php if ($sub !== ''): ?><span class="home-rmeta"><?= e(mb_strimwidth($sub, 0, 48, '…')) ?></span><?php endif; ?>
+                        <span class="home-rtag"><?= icon('utensils', ['size' => 13]) ?> <?= e(t('home.restaurants_title')) ?></span>
+                    </span>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
 
-<!-- Bandeau garanties — tout en bas, chaque pilier mène à sa page « système » -->
-<section class="afk-guar afk-block" aria-label="<?= e(t('home.why_title')) ?>">
-    <div class="afk-guar__grid">
-        <a class="afk-guar__item" href="<?= e(url('/paiements-securises')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('lock', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.secure_t')) ?></strong><span><?= e(t('home.why.secure_d')) ?></span></span></a>
-        <a class="afk-guar__item" href="<?= e(url('/vendeurs-verifies')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('shield', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.verified_t')) ?></strong><span><?= e(t('home.why.verified_d')) ?></span></span></a>
-        <a class="afk-guar__item" href="<?= e(url('/local-international')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('globe', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.ship_t')) ?></strong><span><?= e(t('home.why.ship_d')) ?></span></span></a>
-        <a class="afk-guar__item" href="<?= e(url('/assistance')) ?>"><span class="afk-guar__ic" aria-hidden="true"><?= icon('chat', ['size' => 24]) ?></span><span class="afk-guar__txt"><strong><?= e(t('home.why.support_t')) ?></strong><span><?= e(t('home.why.support_d')) ?></span></span></a>
-    </div>
-</section>
+    <!-- ===== ANNONCES ===== -->
+    <?php $allAnnonces = array_merge($promo_annonces, $annonces); if ($allAnnonces !== []): ?>
+    <section class="home-sec">
+        <div class="home-head"><h2 class="home-h2"><?= e(t('home.annonces_title')) ?></h2></div>
+        <div class="home-pgrid">
+            <?php $shownA = []; foreach ($allAnnonces as $a): $aid = (int) $a['id']; if (isset($shownA[$aid])) { continue; } $shownA[$aid] = true;
+                $am = ($promo_annonce_mains[$aid] ?? null) ?? ($annonce_mains[$aid] ?? null); ?>
+                <div class="home-pcard-wrap">
+                    <a class="home-pcard" href="<?= e(url('/annonce/' . $a['public_id'])) ?>">
+                        <span class="home-pthumb">
+                            <?php if ($am !== null): ?><img src="<?= e(CloudinaryService::imageUrl($am, 320, 320)) ?>" alt="" loading="lazy"><?php else: ?><span class="home-pthumb-empty" aria-hidden="true"><?= icon('tag', ['size' => 30]) ?></span><?php endif; ?>
+                            <?php if (\App\Models\Listing::isPromoted($a)): ?><span class="home-spon"><?= e(t('ads.badge')) ?></span><?php endif; ?>
+                        </span>
+                        <span class="home-pbody">
+                            <span class="home-ptitle"><?= e((string) $a['title']) ?></span>
+                            <span class="home-pprice"><?= render_partial('partials/price_dual', ['cents' => (int) $a['price_cents'], 'cur' => (string) $a['currency']]) ?></span>
+                        </span>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- ===== RECOMMANDATIONS ===== -->
+    <?php if (!empty($recently_viewed) || !empty($for_you)): ?>
+    <section class="home-sec home-reco">
+        <?php if (!empty($recently_viewed)): ?>
+            <?= render_partial('partials/product_rail', ['icon' => 'clock', 'title' => t('reco.recent'), 'products' => $recently_viewed, 'mains' => $reco_mains]) ?>
+        <?php endif; ?>
+        <?php if (!empty($for_you)): ?>
+            <?= render_partial('partials/product_rail', ['icon' => 'lightbulb', 'title' => t('reco.for_you'), 'products' => $for_you, 'mains' => $reco_mains]) ?>
+        <?php endif; ?>
+    </section>
+    <?php endif; ?>
+
+    <!-- ===== CONFIANCE ===== -->
+    <section class="home-sec" aria-label="<?= e(t('home.why_title')) ?>">
+        <div class="home-trust">
+            <a class="home-titem" href="<?= e(url('/paiements-securises')) ?>"><span class="ic"><?= icon('lock', ['size' => 24]) ?></span><span class="tx"><b><?= e(t('home.why.secure_t')) ?></b><span><?= e(t('home.why.secure_d')) ?></span></span></a>
+            <a class="home-titem" href="<?= e(url('/vendeurs-verifies')) ?>"><span class="ic"><?= icon('shield', ['size' => 24]) ?></span><span class="tx"><b><?= e(t('home.why.verified_t')) ?></b><span><?= e(t('home.why.verified_d')) ?></span></span></a>
+            <a class="home-titem" href="<?= e(url('/local-international')) ?>"><span class="ic"><?= icon('globe', ['size' => 24]) ?></span><span class="tx"><b><?= e(t('home.why.ship_t')) ?></b><span><?= e(t('home.why.ship_d')) ?></span></span></a>
+            <a class="home-titem" href="<?= e(url('/assistance')) ?>"><span class="ic"><?= icon('chat', ['size' => 24]) ?></span><span class="tx"><b><?= e(t('home.why.support_t')) ?></b><span><?= e(t('home.why.support_d')) ?></span></span></a>
+        </div>
+    </section>
+
+    <!-- ===== CTA VENDEUR ===== -->
+    <section class="home-sec">
+        <div class="home-vcta">
+            <div><h2><?= e(t('home.seller_cta_title')) ?></h2><p><?= e(t('home.seller_cta_text')) ?></p></div>
+            <a class="btn btn-green btn-lg" href="<?= e(url($loggedIn ? '/vendre' : '/register/vendeur')) ?>"><?= e(t('home.seller_cta_btn')) ?></a>
+        </div>
+    </section>
+
+</div>

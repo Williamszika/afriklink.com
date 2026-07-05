@@ -2803,4 +2803,12 @@ return [
     'settings.lang.pt' => 'Português',
     'settings.lang.nl' => 'Nederlands',
     'settings.lang.ar' => 'العربية',
+
+    // --- Accueil (.home) ---
+    'home.uni.shop_sub' => 'Prodotti di ogni tipo',
+    'home.uni.restaurant_sub' => 'Menu e ordine diretto',
+    'home.uni.salon_sub' => 'Bellezza e prenotazione',
+    'home.uni.service_sub' => 'Competenze vicino a te',
+    'home.soon' => 'Presto',
+    'home.spotlight_title' => 'Preferiti sponsorizzati',
 ];

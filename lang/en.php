@@ -2824,4 +2824,12 @@ return [
     'settings.lang.pt' => 'Português',
     'settings.lang.nl' => 'Nederlands',
     'settings.lang.ar' => 'العربية',
+
+    // --- Accueil (.home) ---
+    'home.uni.shop_sub' => 'All kinds of products',
+    'home.uni.restaurant_sub' => 'Menus & direct ordering',
+    'home.uni.salon_sub' => 'Beauty & booking',
+    'home.uni.service_sub' => 'Skills near you',
+    'home.soon' => 'Coming soon',
+    'home.spotlight_title' => 'Sponsored picks',
 ];

@@ -2798,4 +2798,12 @@ return [
     'settings.lang.pt' => 'Português',
     'settings.lang.nl' => 'Nederlands',
     'settings.lang.ar' => 'العربية',
+
+    // --- Accueil (.home) ---
+    'home.uni.shop_sub' => 'Producten van allerlei aard',
+    'home.uni.restaurant_sub' => 'Menu\'s & direct bestellen',
+    'home.uni.salon_sub' => 'Schoonheid & reserveren',
+    'home.uni.service_sub' => 'Vakmanschap bij u in de buurt',
+    'home.soon' => 'Binnenkort',
+    'home.spotlight_title' => 'Gesponsorde favorieten',
 ];
