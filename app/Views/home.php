@@ -105,6 +105,64 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
         </div>
     </section>
 
+    <!-- ===== BANNIÈRE PUBLICITÉ (carrousel) ===== -->
+    <?php
+    // Bandeau publicitaire : les vraies mises en avant payantes des vendeurs
+    // ($deals = sponsorisés + promos, dédupliqués) + un panneau libre-service
+    // « votre pub ici ». Toujours affiché (au minimum le panneau libre-service).
+    // Le carrousel réutilise le moteur CSP-safe de app.js ([data-carousel]).
+    $adSlides = array_slice($deals, 0, 3);
+    $adGrads  = ['ad1', 'ad2', 'ad4'];
+    $adTotal  = count($adSlides) + 1;
+    ?>
+    <section class="home-adband" aria-label="<?= e(t('ads.label')) ?>">
+        <div class="home-adwrap"<?= $adTotal > 1 ? ' data-carousel data-autoplay="5500"' : '' ?>>
+            <span class="home-adlabel"><?= e(t('ads.label')) ?></span>
+            <div class="afk-carousel__track home-adtrack">
+                <?php foreach ($adSlides as $k => $p):
+                    $img = $slideMains[(int) $p['id']] ?? null;
+                    $onPromo = !empty($p['promo_price_cents']) && (int) $p['promo_price_cents'] > 0
+                        && (int) $p['promo_price_cents'] < (int) $p['price_cents']
+                        && (empty($p['promo_until']) || strtotime((string) $p['promo_until']) > time());
+                    $now  = $onPromo ? (int) $p['promo_price_cents'] : (int) $p['price_cents'];
+                    $old  = $onPromo ? (int) $p['price_cents'] : null;
+                    $cur  = (string) ($p['currency'] ?? 'EUR');
+                    $href = !empty($p['campaign_pid'])
+                        ? url('/sp/' . $p['campaign_pid'])
+                        : url('/boutique/' . $p['boutique_slug'] . '/p/' . $p['public_id']);
+                ?>
+                <a class="afk-carousel__slide home-adslide <?= $adGrads[$k % 3] ?>" href="<?= e($href) ?>">
+                    <span class="home-ad-txt">
+                        <span class="home-ad-k"><?= e(t('ads.badge')) ?></span>
+                        <span class="home-ad-h"><?= e(tr_content('product', (int) $p['id'], 'name', (string) $p['name'])) ?></span>
+                        <span class="home-ad-price"><?= render_partial('partials/price_dual', ['cents' => $now, 'cur' => $cur, 'compare' => $old]) ?></span>
+                        <span class="btn btn-light home-ad-cta"><?= e(t('home.ad_cta')) ?> →</span>
+                    </span>
+                    <span class="home-ad-visual" aria-hidden="true"><?php if ($img !== null): ?><img src="<?= e(CloudinaryService::imageUrl($img, 360, 360, true)) ?>" alt="" loading="lazy"><?php else: ?>🛍️<?php endif; ?></span>
+                </a>
+                <?php endforeach; ?>
+                <a class="afk-carousel__slide home-adslide ad3" href="<?= e(url('/vendeur/publicite')) ?>">
+                    <span class="home-ad-txt">
+                        <span class="home-ad-k"><?= e(t('home.ad_self_k')) ?></span>
+                        <span class="home-ad-h"><?= e(t('home.ad_self_title')) ?></span>
+                        <span class="home-ad-p"><?= e(t('home.ad_self_text')) ?></span>
+                        <span class="btn btn-light home-ad-cta"><?= e(t('home.ad_self_btn')) ?> →</span>
+                    </span>
+                    <span class="home-ad-visual" aria-hidden="true">📣</span>
+                </a>
+            </div>
+            <?php if ($adTotal > 1): ?>
+                <button type="button" class="home-adnav prev" data-prev aria-label="<?= e(t('carousel.prev')) ?>"><?= icon('chevron', ['size' => 18]) ?></button>
+                <button type="button" class="home-adnav next" data-next aria-label="<?= e(t('carousel.next')) ?>"><?= icon('chevron', ['size' => 18]) ?></button>
+                <div class="home-addots">
+                    <?php for ($d = 0; $d < $adTotal; $d++): ?>
+                        <button type="button" data-dot="<?= $d ?>" class="<?= $d === 0 ? 'is-active' : '' ?>" aria-label="<?= e(t('carousel.go', ['n' => $d + 1])) ?>"></button>
+                    <?php endfor; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+
     <!-- ===== UNIVERS ===== -->
     <section class="home-sec">
         <div class="home-head"><div><span class="home-kicker"><?= e(t('home.hero_kicker')) ?></span><h2 class="home-h2"><?= e(t('home.hub.title')) ?></h2></div></div>
@@ -136,20 +194,6 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
         </div>
     </section>
 
-    <!-- ===== COUPS DE CŒUR SPONSORISÉS ===== -->
-    <?php if ($deals !== []): ?>
-    <section class="home-sec">
-        <div class="home-head"><div><span class="home-kicker"><?= e(t('carousel.deal')) ?></span><h2 class="home-h2"><?= e(t('home.spotlight_title')) ?></h2></div><a class="home-seeall" href="<?= e(url('/explorer')) ?>"><?= e(t('spotlight.see_all')) ?> →</a></div>
-        <div class="home-pgrid">
-            <?php foreach ($deals as $p):
-                $img  = $slideMains[(int) $p['id']] ?? null;
-                $href = !empty($p['campaign_pid']) ? url('/sp/' . $p['campaign_pid']) : null;
-                echo $productCard($p, $img, $href, true);
-            endforeach; ?>
-        </div>
-    </section>
-    <?php endif; ?>
-
     <!-- ===== PRODUITS DU CATALOGUE ===== -->
     <?php if (!empty($products)): ?>
     <section class="home-sec">
@@ -167,10 +211,19 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
     </section>
     <?php endif; ?>
 
+    <!-- ===== BANDEAU PUBLICITÉ MILIEU (libre-service) ===== -->
+    <section class="home-sec home-adstrip-sec">
+        <a class="home-adstrip" href="<?= e(url('/vendeur/publicite')) ?>">
+            <span class="home-adstrip-k"><?= e(t('ads.label')) ?></span>
+            <span class="home-adstrip-m"><?= e(t('home.adstrip_title')) ?><span><?= e(t('home.adstrip_sub')) ?></span></span>
+            <span class="btn btn-light home-adstrip-cta"><?= e(t('home.adstrip_btn')) ?> →</span>
+        </a>
+    </section>
+
     <!-- ===== BOUTIQUES EN VEDETTE ===== -->
     <?php if (!empty($boutiques)): ?>
     <section class="home-sec" id="home-boutiques">
-        <div class="home-head"><h2 class="home-h2"><?= e(t('home.boutiques_title')) ?></h2></div>
+        <div class="home-head"><h2 class="home-h2"><?= e(t('home.boutiques_title')) ?></h2><a class="home-seeall" href="<?= e(url('/explorer')) ?>"><?= e(t('home.see_all_boutiques')) ?> →</a></div>
         <div class="home-sgrid">
             <?php foreach ($boutiques as $b): $bl = (string) ($b['logo_public_id'] ?? ''); $bi = abs(crc32((string) $b['slug'])) % 4; ?>
                 <a class="home-scard" href="<?= e(url('/boutique/' . $b['slug'])) ?>">
@@ -182,6 +235,10 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
                     </span>
                 </a>
             <?php endforeach; ?>
+            <a class="home-scard home-seeall-card" href="<?= e(url('/explorer')) ?>">
+                <span class="home-seeall-plus" aria-hidden="true"><?= icon('plus', ['size' => 26]) ?></span>
+                <span class="home-seeall-t"><?= e(t('home.see_all_boutiques')) ?></span>
+            </a>
         </div>
     </section>
     <?php endif; ?>
@@ -197,7 +254,7 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
                     <span class="home-rbody">
                         <span class="home-rname"><?= e((string) $r['name']) ?></span>
                         <?php if ($sub !== ''): ?><span class="home-rmeta"><?= e(mb_strimwidth($sub, 0, 48, '…')) ?></span><?php endif; ?>
-                        <span class="home-rtag"><?= icon('utensils', ['size' => 13]) ?> <?= e(t('home.restaurants_title')) ?></span>
+                        <span class="home-rstatus"><span class="home-rdot" aria-hidden="true"></span> <?= e(t('home.online')) ?></span>
                     </span>
                 </a>
             <?php endforeach; ?>

@@ -292,23 +292,25 @@ form input:focus, form select:focus, form textarea:focus { outline: 2px solid va
 .muted { color: var(--muted); }
 
 /* Footer */
-/* Bandeau d'actualités défilant (ticker) — bas de page, CSP-safe (animation CSS) */
-.ticker { display:flex; align-items:stretch; background:var(--brand-dark, #0B2C22); color:#eafaf2; border-top:1px solid rgba(255,255,255,.08); overflow:hidden; }
-.ticker-tag { flex:none; display:inline-flex; align-items:center; gap:5px; font-weight:800; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; padding:9px 13px; background:var(--brand, #103D30); color:#fff; white-space:nowrap; }
+/* Bandeau d'actualités défilant (ticker) — look « Live », CSP-safe (animation CSS) */
+.ticker { display:flex; align-items:stretch; background:#14502E; color:#FAF4E6; border-top:1px solid rgba(255,255,255,.08); overflow:hidden; position:relative; }
+.ticker-tag { flex:none; display:inline-flex; align-items:center; gap:7px; font-family:var(--afk-mono, ui-monospace, monospace); font-weight:700; font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; padding:9px 15px; background:#B21E4B; color:#fff; white-space:nowrap; }
+.ticker-blip { width:8px; height:8px; border-radius:50%; background:#fff; flex:none; animation:ticker-blink 1.2s infinite; }
+@keyframes ticker-blink { 0%,100% { opacity:1; } 50% { opacity:.3; } }
 .ticker-viewport { flex:1; overflow:hidden; min-width:0; }
-.ticker-track { display:inline-flex; align-items:center; gap:34px; padding-left:24px; white-space:nowrap; will-change:transform; animation:ticker-scroll 42s linear infinite; }
+.ticker-track { display:inline-flex; align-items:center; gap:34px; padding-inline-start:24px; white-space:nowrap; will-change:transform; animation:ticker-scroll 42s linear infinite; }
 .ticker:hover .ticker-track, .ticker-track:focus-within { animation-play-state:paused; }
-.ticker-item { color:#dff3e9; font-size:.86rem; display:inline-flex; align-items:center; gap:6px; padding:9px 0; }
-.ticker-item:hover { color:#fff; text-decoration:underline; }
+.ticker-item { color:rgba(250,244,230,.9); font-size:.84rem; display:inline-flex; align-items:center; gap:6px; padding:9px 0; }
+.ticker-item:hover { color:#E5A02E; text-decoration:none; }
 .ticker-ico { font-size:.95em; line-height:1; }
 .ticker--closing { color:#ffd9b3; }
 .ticker--stock { color:#ffd0d0; }
-/* Annonces du staff (admin/modérateur) : EN ROUGE, mises en avant. */
-.ticker--admin { color:#ff6b6b; font-weight:800; }
-.ticker--admin:hover { color:#ff9090; }
+/* Annonces du staff (admin/modérateur) : mises en avant. */
+.ticker--admin { color:#ff8a8a; font-weight:800; }
+.ticker--admin:hover { color:#ffb0b0; }
 .ticker--admin .ticker-ico { filter:none; }
 @keyframes ticker-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .ticker-track { animation:none; } .ticker-viewport { overflow-x:auto; } }
+@media (prefers-reduced-motion: reduce) { .ticker-track { animation:none; } .ticker-viewport { overflow-x:auto; } .ticker-blip { animation:none; } }
 
 /* Annonces « À la une » — back-office (liste/validation) + page d'article */
 .ann-admin { max-width:820px; }
@@ -4034,6 +4036,65 @@ a.home-uni:hover{transform:translateY(-4px);box-shadow:0 20px 44px -28px rgba(0,
 .home-vcta{background:linear-gradient(135deg,var(--h-gold),#b07e1f);color:var(--h-green-deep);border-radius:22px;padding:1.8rem;display:flex;align-items:center;justify-content:space-between;gap:1.4rem;flex-wrap:wrap}
 .home-vcta h2{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.35rem,2.6vw,2rem)}
 .home-vcta p{margin:.4rem 0 0;max-width:44ch}
+
+/* Bannière publicité (carrousel, moteur app.js [data-carousel]) */
+.home-adband{padding:.2rem 0 1rem}
+.home-adwrap{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--h-line)}
+.home-adlabel{position:absolute;top:.7rem;inset-inline-start:.7rem;z-index:3;font-family:var(--afk-mono);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(28,36,24,.6);color:#fff;border-radius:6px;padding:.2rem .5rem;backdrop-filter:blur(4px)}
+.home-adtrack{display:flex;transition:transform .5s ease;will-change:transform}
+.home-adslide{min-width:100%;min-height:210px;display:flex;align-items:center;gap:1.5rem;padding:1.8rem clamp(1.4rem,4vw,3rem);position:relative;overflow:hidden;color:var(--h-cream)}
+.home-adslide::after{content:"";position:absolute;inset:0;background-image:var(--afk-wax);background-size:60px;opacity:.55;pointer-events:none}
+.home-adslide>*{position:relative;z-index:1}
+.home-ad-txt{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;max-width:62ch}
+.home-ad-k{font-family:var(--afk-mono);font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85}
+.home-ad-h{font-family:var(--afk-display);font-weight:800;font-size:clamp(1.3rem,3vw,2rem);color:#fff;line-height:1.1}
+.home-ad-p{opacity:.9;font-size:.95rem;margin:.1rem 0 .3rem}
+.home-ad-price{font-family:var(--afk-display);font-weight:800;font-size:1.05rem;color:#fff;margin:.1rem 0 .4rem}
+.home-ad-price .price-was{color:rgba(255,255,255,.7);font-weight:400}
+.home-ad-price .price-approx{color:rgba(255,255,255,.8);font-family:var(--afk-mono);font-size:.8rem;font-weight:400}
+.home-ad-cta{margin-top:.3rem}
+.home-adslide .btn-light{background:var(--h-cream);color:var(--h-green);border-color:transparent}
+.home-adslide .btn-light:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(0,0,0,.5)}
+.home-ad-visual{flex:none;font-size:4.5rem;line-height:1;width:120px;height:120px;display:grid;place-items:center}
+.home-ad-visual img{width:120px;height:120px;object-fit:cover;border-radius:16px;box-shadow:0 12px 30px -14px rgba(0,0,0,.5)}
+@media(max-width:640px){.home-ad-visual{display:none}}
+.home-adslide.ad1{background:linear-gradient(130deg,#C7922E,#9A6F1E)}
+.home-adslide.ad2{background:linear-gradient(130deg,#1d6b3e,#0E3A21)}
+.home-adslide.ad3{background:linear-gradient(130deg,#B21E4B,#7d1435)}
+.home-adslide.ad4{background:linear-gradient(130deg,#2b6d52,#14502E)}
+.home-addots{position:absolute;bottom:.8rem;inset-inline-start:50%;transform:translateX(-50%);z-index:3;display:flex;gap:.4rem}
+.home-addots button{width:8px;height:8px;border-radius:999px;border:0;background:rgba(255,255,255,.45);cursor:pointer;padding:0;transition:width .2s,background .2s}
+.home-addots button.is-active{width:22px;background:#fff}
+.home-adnav{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.85);color:var(--h-green-deep);cursor:pointer;display:grid;place-items:center}
+.home-adnav svg{width:18px;height:18px}
+.home-adnav.prev{inset-inline-start:.7rem}
+.home-adnav.next{inset-inline-end:.7rem}
+.home-adnav.prev svg{transform:rotate(90deg)}
+.home-adnav.next svg{transform:rotate(-90deg)}
+[dir=rtl] .home-adnav.prev svg{transform:rotate(-90deg)}
+[dir=rtl] .home-adnav.next svg{transform:rotate(90deg)}
+@media(max-width:640px){.home-adnav{display:none}}
+
+/* Bandeau publicité milieu (libre-service) */
+.home-adstrip-sec{padding-top:0}
+.home-adstrip{display:flex;align-items:center;gap:1rem;background:linear-gradient(120deg,#2b6d52,#14502E);color:var(--h-cream);border-radius:18px;padding:1.1rem 1.4rem;position:relative;overflow:hidden}
+.home-adstrip::after{content:"";position:absolute;inset:0;background-image:var(--afk-wax);background-size:52px;opacity:.5;pointer-events:none}
+.home-adstrip>*{position:relative;z-index:1}
+.home-adstrip-k{font-family:var(--afk-mono);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;background:rgba(255,255,255,.18);border-radius:6px;padding:.15rem .45rem;flex:none}
+.home-adstrip-m{flex:1;font-weight:600}
+.home-adstrip-m span{display:block;font-size:.82rem;opacity:.85;font-weight:400;margin-top:.15rem}
+.home-adstrip .btn-light{background:var(--h-cream);color:var(--h-green);border-color:transparent;flex:none;white-space:nowrap}
+@media(max-width:640px){.home-adstrip{flex-wrap:wrap}.home-adstrip-cta{width:100%}}
+
+/* Carte « voir toutes les boutiques » (pointillés) */
+.home-seeall-card{display:grid;place-items:center;text-align:center;gap:.4rem;min-height:150px;padding:1rem;background:transparent;border:1.5px dashed var(--h-line);color:var(--h-green)}
+.home-seeall-card:hover{border-color:var(--h-gold);background:rgba(199,146,46,.05);transform:translateY(-3px)}
+.home-seeall-plus{display:inline-flex;color:var(--h-gold-deep)}
+.home-seeall-t{font-weight:600;font-size:.9rem}
+
+/* Restaurant : statut « en ligne » */
+.home-rstatus{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--h-ok);font-weight:600;margin-top:.5rem}
+.home-rdot{width:7px;height:7px;border-radius:50%;background:var(--h-ok);flex:none}
 
 /* ===== En-tête public partagé (.pubhd) ===== */
 .pubhd{--p-green:#14502E;--p-green-deep:#0E3A21;--p-gold:#C7922E;--p-gold-deep:#9A6F1E;--p-hib:#B21E4B;--p-cream:#FAF4E6;--p-paper:#FFFDF7;--p-ink:#1C2418;--p-muted:#5B6453;--p-line:rgba(20,80,46,.14);position:sticky;top:0;z-index:60;background:rgba(250,244,230,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--p-line);font-family:var(--afk-body)}

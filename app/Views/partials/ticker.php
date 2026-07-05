@@ -18,7 +18,7 @@ if ($ticker === []) {
 }
 ?>
 <aside class="ticker" aria-label="<?= e(t('ticker.label')) ?>">
-    <span class="ticker-tag"><?= icon('megaphone', ['size' => 14]) ?> <?= e(t('ticker.label')) ?></span>
+    <span class="ticker-tag"><span class="ticker-blip" aria-hidden="true"></span> <?= e(t('ticker.label')) ?></span>
     <div class="ticker-viewport">
         <div class="ticker-track">
             <?php for ($pass = 0; $pass < 2; $pass++): ?>
