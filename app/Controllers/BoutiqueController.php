@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Models\Boutique;
+use App\Models\Follow;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\ProProfile;
@@ -468,6 +469,8 @@ final class BoutiqueController
             'mains'    => \App\Models\Product::mainPhotos($ids),
             'ratings'  => $ratings,
             'shop_rating' => Review::summaryForBoutique((int) $boutique['id']),
+            'is_following'     => Follow::isFollowing((int) (current_user_id() ?? 0), (int) $boutique['id']),
+            'followers_count'  => Follow::countFor((int) $boutique['id']),
             'shipping_zones' => \App\Models\ShippingZone::forBoutique((int) $boutique['id']),
             'page_title' => (string) $boutique['name'],
             'meta' => [
@@ -476,6 +479,23 @@ final class BoutiqueController
                 'url'         => url('/boutique/' . $boutique['slug']),
             ],
         ]);
+    }
+
+    /** Suivre / ne plus suivre une boutique (compte connecté requis). */
+    public function follow(Request $request): void
+    {
+        $boutique = Boutique::findBySlug((string) $request->param('slug', ''));
+        if ($boutique === null || ($boutique['status'] ?? '') !== 'published') {
+            abort(404);
+        }
+        $userId = (int) (current_user_id() ?? 0);
+        // On ne suit pas sa propre boutique.
+        if ((int) $boutique['user_id'] === $userId) {
+            redirect('/boutique/' . $boutique['slug']);
+        }
+        $now = Follow::toggle($userId, (int) $boutique['id']);
+        flash('success', $now ? t('shop.follow_done') : t('shop.unfollow_done'));
+        redirect('/boutique/' . $boutique['slug']);
     }
 
     /** Page produit publique : /boutique/{slug}/p/{pid} */

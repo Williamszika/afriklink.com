@@ -100,14 +100,27 @@ if (preg_match('/^#[0-9a-fA-F]{6}$/', $accentHex)) {
                     <?php $heroPlace = place_label($boutique['city'] ?? null, $boutique['country_code'] ?: $cc); ?>
                     <?php if ($heroPlace !== ''): ?> <?= e($heroPlace) ?><?php endif; ?>
                     <?php if ($openNow !== null): ?> <span class="hours-badge <?= $openNow ? 'is-open' : 'is-closed' ?>"><?= icon('clock', ['size' => 12]) ?> <?= e($openNow ? t('shop.open_now') : t('shop.closed_now')) ?></span><?php endif; ?>
+                    <?php if (!empty($followers_count)): ?> <span class="shopx-followers"><?= icon('users', ['size' => 13]) ?> <?= e(t('shop.followers', ['n' => (int) $followers_count])) ?></span><?php endif; ?>
                 </p>
                 <?php if (!empty($shop_rating['count'])): ?>
                     <p class="shop-rating"><?= render_partial('partials/stars', ['avg' => $shop_rating['avg'], 'count' => $shop_rating['count']]) ?></p>
                 <?php endif; ?>
             </div>
-            <?php if ($ctPrimaries !== [] || $waPhone !== ''): ?>
+            <?php $sxContact = $ctPrimaries !== [] || $waPhone !== ''; $sxFollow = empty($is_owner); if ($sxContact || $sxFollow): ?>
                 <div class="shopx-actions">
-                    <a class="btn btn-gold btn-sm" href="#shop-contact"><?= icon('chat', ['size' => 15]) ?> <?= e(t('shop.contact_cta')) ?></a>
+                    <?php if ($sxFollow): ?>
+                        <?php if (current_user() !== null): ?>
+                            <form method="post" action="<?= e(url('/boutique/' . $boutique['slug'] . '/suivre')) ?>" class="inline-form">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm shopx-follow<?= !empty($is_following) ? ' is-following' : '' ?>"><?= icon('heart', ['size' => 15]) ?> <?= e(!empty($is_following) ? t('shop.following') : t('shop.follow')) ?></button>
+                            </form>
+                        <?php else: ?>
+                            <a class="btn btn-sm shopx-follow" href="<?= e(url('/login')) ?>"><?= icon('heart', ['size' => 15]) ?> <?= e(t('shop.follow')) ?></a>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    <?php if ($sxContact): ?>
+                        <a class="btn btn-gold btn-sm" href="#shop-contact"><?= icon('chat', ['size' => 15]) ?> <?= e(t('shop.contact_cta')) ?></a>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
         </div>

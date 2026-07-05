@@ -2816,4 +2816,11 @@ return [
 
     // --- Vitrine boutique (.shop-page) ---
     'shop.contact_cta' => 'Contact',
+
+    // --- Suivre une boutique ---
+    'shop.follow' => 'Volgen',
+    'shop.following' => 'Volgend',
+    'shop.followers' => ':n volgers',
+    'shop.follow_done' => 'U volgt nu deze winkel.',
+    'shop.unfollow_done' => 'U volgt deze winkel niet meer.',
 ];

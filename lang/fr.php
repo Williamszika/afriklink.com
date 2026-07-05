@@ -2842,4 +2842,11 @@ return [
 
     // --- Vitrine boutique (.shop-page) ---
     'shop.contact_cta' => 'Contacter',
+
+    // --- Suivre une boutique ---
+    'shop.follow' => 'Suivre',
+    'shop.following' => 'Suivi(e)',
+    'shop.followers' => ':n abonné(s)',
+    'shop.follow_done' => 'Vous suivez cette boutique.',
+    'shop.unfollow_done' => 'Vous ne suivez plus cette boutique.',
 ];

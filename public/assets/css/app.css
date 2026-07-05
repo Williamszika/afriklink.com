@@ -4165,3 +4165,12 @@ a.home-uni:hover{transform:translateY(-4px);box-shadow:0 20px 44px -28px rgba(0,
 .shop-page .product-actions{padding:.7rem .85rem .85rem;display:flex;flex-direction:column;gap:.45rem;margin-top:auto}
 .shop-page .buy-now-btn{background:var(--sx-green);color:var(--sx-cream);border:0;border-radius:10px;font-weight:600}
 .shop-page .empty-state{text-align:center;color:var(--sx-muted);padding:2rem 1rem;background:rgba(20,80,46,.03);border-radius:14px}
+
+/* Bouton « Suivre » + compteur d'abonnés (vitrine) */
+.shop-page .shopx-follow{background:var(--sx-green);color:var(--sx-cream);border:1.5px solid transparent;border-radius:999px;font-weight:600}
+.shop-page .shopx-follow:hover{transform:translateY(-1px);box-shadow:0 8px 20px -12px rgba(20,80,46,.7)}
+.shop-page .shopx-follow.is-following{background:#fff;color:var(--sx-green);border-color:var(--sx-line)}
+.shop-page .shopx-follow.is-following svg{fill:var(--sx-hib);stroke:var(--sx-hib)}
+.shop-page .shopx-follow.is-following:hover{border-color:var(--sx-hib);color:var(--sx-hib)}
+.shop-page .shopx-followers{display:inline-flex;align-items:center;gap:.3rem;color:var(--sx-muted);font-size:.85rem}
+.shop-page .shopx-followers svg{opacity:.8}

@@ -2821,4 +2821,11 @@ return [
 
     // --- Vitrine boutique (.shop-page) ---
     'shop.contact_cta' => 'تواصل',
+
+    // --- Suivre une boutique ---
+    'shop.follow' => 'متابعة',
+    'shop.following' => 'متابَع',
+    'shop.followers' => ':n متابِع',
+    'shop.follow_done' => 'أصبحت تتابع هذا المتجر.',
+    'shop.unfollow_done' => 'لم تعد تتابع هذا المتجر.',
 ];

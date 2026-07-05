@@ -299,6 +299,7 @@ return [
     ['POST', '/boutique/{slug}/p/{pid}/avis',         [BoutiqueController::class, 'storeReview'],      ['auth', 'csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/{slug}/p/{pid}/alerte-stock', [BoutiqueController::class, 'storeStockAlert'],  ['csrf', 'throttle:review,10,3600']],
     ['POST', '/boutique/{slug}/assistant',            [BoutiqueController::class, 'assistant'],        ['csrf', 'throttle:assistant,30,3600']],
+    ['POST', '/boutique/{slug}/suivre',               [BoutiqueController::class, 'follow'],            ['auth', 'csrf', 'throttle:follow,60,3600']],
     ['POST', '/boutique/avis/{rid}/masquer',  [BoutiqueController::class, 'hideReview'],  ['auth', 'csrf']],
     ['POST', '/boutique/politique',           [BoutiqueController::class, 'updatePolicy'], ['auth', 'csrf']],
     ['POST', '/boutique/promotions',              [BoutiqueController::class, 'createDiscount'], ['auth', 'csrf']],
