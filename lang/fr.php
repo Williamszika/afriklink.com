@@ -2832,4 +2832,11 @@ return [
     'home.uni.service_sub' => 'Savoir-faire près de vous',
     'home.soon' => 'Bientôt',
     'home.spotlight_title' => 'Coups de cœur sponsorisés',
+
+    // --- En-tête / pied de page publics (.pubhd/.pubft) ---
+    'nav.browse_all' => 'Tout explorer',
+    'footer.col_discover' => 'Découvrir',
+    'footer.col_sell' => 'Vendre',
+    'footer.col_legal' => 'Légal',
+    'footer.support' => 'Assistance',
 ];

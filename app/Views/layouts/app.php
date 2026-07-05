@@ -100,95 +100,95 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
 ?>
 <body<?= $geoAutoprompt ? ' data-geo-autoprompt="1"' : '' ?> data-geo-session-url="<?= e(url('/api/geo/session')) ?>">
 
-<!-- Barre d'infos : position détectée (drapeau + ville) à gauche, langues à droite -->
-<div class="topbar">
-    <div class="container topbar-inner">
-        <button type="button" class="geo-chip" data-geo-chip
-                title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
-            <span class="geo-chip-flag" data-geo-chip-flag aria-hidden="true"><?= $geoFlag ?></span>
-            <span data-geo-chip-text><?= e($geoChip) ?></span>
-        </button>
-        <span class="topbar-spacer"></span>
-        <?php $langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano', 'pt' => 'Português', 'nl' => 'Nederlands', 'ar' => 'العربية']; ?>
-        <details class="cur-switch lang-dd">
-            <summary title="Langue / Language"><?= e(strtoupper(current_locale())) ?> ▾</summary>
-            <div class="cur-menu">
-                <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
-                    <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>" href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?> · <?= e($langNames[$loc] ?? $loc) ?></a>
-                <?php endforeach; ?>
-            </div>
-        </details>
-        <details class="cur-switch">
-            <summary title="<?= e(t('field.currency')) ?>" aria-label="<?= e(t('field.currency')) ?>"><?= e(current_currency()) ?> ▾</summary>
-            <div class="cur-menu">
-                <?php foreach (config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']) as $c): ?>
-                    <a class="<?= $c === current_currency() ? 'is-active' : '' ?>" href="<?= e(url('/devise/' . $c)) ?>"><?= e($c) ?></a>
-                <?php endforeach; ?>
-            </div>
-        </details>
-    </div>
-</div>
-
-<header class="site-header">
-    <div class="container header-inner">
-        <a class="brand" href="<?= e(url('/')) ?>">
-            <span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'hdr']) ?></span>
-            <span class="brand-text">Afrik<span>link</span></span>
+<?php
+$langNames = ['fr' => 'Français', 'en' => 'English', 'de' => 'Deutsch', 'es' => 'Español', 'it' => 'Italiano', 'pt' => 'Português', 'nl' => 'Nederlands', 'ar' => 'العربية'];
+$wishCount    = \App\Services\Wishlist::count();
+$cartCount    = \App\Services\Cart::count();
+$compareCount = \App\Services\Compare::count();
+// Rayons de navigation (liens réels : l'explorateur filtré par catégorie).
+$pubhdCats = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'artisanat'];
+?>
+<header class="pubhd">
+    <div class="container pubhd-bar">
+        <a class="pubhd-brand" href="<?= e(url('/')) ?>">
+            <span class="pubhd-logo"><?= render_partial('partials/logo', ['uid' => 'hdr']) ?></span>
+            <span class="pubhd-wordmark">Afrik<span>link</span></span>
         </a>
 
-        <form class="header-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
+        <form class="pubhd-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
+            <span class="pubhd-search-ic" aria-hidden="true"><?= icon('search', ['size' => 18]) ?></span>
             <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
-            <button type="submit" aria-label="<?= e(t('explore.search_btn')) ?>"><?= icon('search', ['size' => 18]) ?></button>
+            <button type="submit" class="pubhd-search-btn" aria-label="<?= e(t('explore.search_btn')) ?>"><?= icon('search', ['size' => 18]) ?></button>
         </form>
 
-        <nav class="main-nav" aria-label="<?= e(t('nav.primary')) ?>">
-            <a href="<?= e(url('/')) ?>" class="<?= $navPath === '/' ? 'is-active' : '' ?>"><?= e(t('nav.home')) ?></a>
-            <a href="<?= e(url('/explorer')) ?>" class="<?= str_starts_with($navPath, '/explorer') ? 'is-active' : '' ?>"><?= e(t('nav.explore')) ?></a>
-            <a href="<?= e(url('/a-propos')) ?>" class="<?= $navPath === '/a-propos' ? 'is-active' : '' ?>"><?= e(t('nav.about')) ?></a>
-        </nav>
+        <div class="pubhd-actions">
+            <button type="button" class="pubhd-geo" data-geo-chip title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
+                <span class="pubhd-geo-flag" data-geo-chip-flag aria-hidden="true"><?= $geoFlag ?></span>
+                <span class="pubhd-geo-txt" data-geo-chip-text><?= e($geoChip) ?></span>
+            </button>
 
-        <div class="nav-actions">
-            <?php
-            $wishCount = \App\Services\Wishlist::count();
-            $cartCount    = \App\Services\Cart::count();
-            $compareCount = \App\Services\Compare::count();
-            ?>
-            <div class="nav-dd" data-dd>
-                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/panier/apercu')) ?>" href="<?= e(url('/panier')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('cart.title')) ?>" aria-label="<?= e(t('cart.title')) ?>"><?= icon('cart') ?><span class="nav-badge" data-global-cart-count <?= $cartCount > 0 ? '' : 'hidden' ?>><?= (int) $cartCount ?></span></a>
+            <details class="pubhd-dd lang-dd">
+                <summary title="Langue / Language"><?= e(strtoupper(current_locale())) ?> ▾</summary>
+                <div class="pubhd-menu">
+                    <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
+                        <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>" href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?> · <?= e($langNames[$loc] ?? $loc) ?></a>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+            <details class="pubhd-dd">
+                <summary title="<?= e(t('field.currency')) ?>" aria-label="<?= e(t('field.currency')) ?>"><?= e(current_currency()) ?> ▾</summary>
+                <div class="pubhd-menu">
+                    <?php foreach (config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']) as $c): ?>
+                        <a class="<?= $c === current_currency() ? 'is-active' : '' ?>" href="<?= e(url('/devise/' . $c)) ?>"><?= e($c) ?></a>
+                    <?php endforeach; ?>
+                </div>
+            </details>
+
+            <div class="nav-dd pubhd-ddw" data-dd>
+                <a class="pubhd-ic" data-dd-toggle data-dd-url="<?= e(url('/favoris/apercu')) ?>" href="<?= e(url('/favoris')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>"><?= icon('heart') ?><span class="pubhd-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
             </div>
-            <div class="nav-dd" data-dd>
-                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/favoris/apercu')) ?>" href="<?= e(url('/favoris')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>"><?= icon('heart') ?><span class="nav-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
+            <div class="nav-dd pubhd-ddw pubhd-hide-sm" data-dd>
+                <a class="pubhd-ic" data-dd-toggle data-dd-url="<?= e(url('/comparer/apercu')) ?>" href="<?= e(url('/comparer')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>"><?= icon('compare') ?><span class="pubhd-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
             </div>
-            <div class="nav-dd" data-dd>
-                <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/comparer/apercu')) ?>" href="<?= e(url('/comparer')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('compare.title')) ?>" aria-label="<?= e(t('compare.title')) ?>"><?= icon('compare') ?><span class="nav-badge" data-compare-count <?= $compareCount > 0 ? '' : 'hidden' ?>><?= (int) $compareCount ?></span></a>
+            <div class="nav-dd pubhd-ddw" data-dd>
+                <a class="pubhd-ic" data-dd-toggle data-dd-url="<?= e(url('/panier/apercu')) ?>" href="<?= e(url('/panier')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('cart.title')) ?>" aria-label="<?= e(t('cart.title')) ?>"><?= icon('cart') ?><span class="pubhd-badge pubhd-badge--hot" data-global-cart-count <?= $cartCount > 0 ? '' : 'hidden' ?>><?= (int) $cartCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
             </div>
+
             <?php if ($user !== null): ?>
                 <?php if (is_staff($user)): ?>
-                    <a class="btn btn-ghost" href="<?= e(url('/admin')) ?>"><?= icon('grid', ['size' => 18]) ?> <?= e(t('nav.admin')) ?></a>
-                    <a class="btn btn-ghost" href="<?= e(url('/admin/kyc')) ?>"><?= icon('shield', ['size' => 18]) ?> <?= e(t('nav.moderation')) ?></a>
-                    <a class="btn btn-ghost" href="<?= e(url('/admin/annonces')) ?>" title="<?= e(t('ann.admin_title')) ?>"><?= icon('megaphone', ['size' => 18]) ?> <?php if (is_admin($user) && ($annPending = \App\Models\Announcement::pendingCount()) > 0): ?><span class="nav-badge"><?= (int) $annPending ?></span><?php endif; ?></a>
-                    <a class="btn btn-ghost" href="<?= e(url('/admin/retraits')) ?>" title="<?= e(t('wallet.admin_title')) ?>"><?= icon('wallet', ['size' => 18]) ?> <?php if (($wdPending = \App\Models\Wallet::pendingCount()) > 0): ?><span class="nav-badge"><?= (int) $wdPending ?></span><?php endif; ?></a>
-                    <a class="btn btn-ghost" href="<?= e(url('/admin/email')) ?>" title="<?= e(t('admin.mail.title')) ?>" aria-label="<?= e(t('admin.mail.title')) ?>">✉️</a>
+                    <a class="pubhd-ic pubhd-hide-sm" href="<?= e(url('/admin')) ?>" title="<?= e(t('nav.admin')) ?>" aria-label="<?= e(t('nav.admin')) ?>"><?= icon('grid', ['size' => 18]) ?></a>
+                    <a class="pubhd-ic pubhd-hide-sm" href="<?= e(url('/admin/kyc')) ?>" title="<?= e(t('nav.moderation')) ?>" aria-label="<?= e(t('nav.moderation')) ?>"><?= icon('shield', ['size' => 18]) ?></a>
+                    <a class="pubhd-ic pubhd-hide-sm" href="<?= e(url('/admin/annonces')) ?>" title="<?= e(t('ann.admin_title')) ?>" aria-label="<?= e(t('ann.admin_title')) ?>"><?= icon('megaphone', ['size' => 18]) ?><?php if (is_admin($user) && ($annPending = \App\Models\Announcement::pendingCount()) > 0): ?><span class="pubhd-badge"><?= (int) $annPending ?></span><?php endif; ?></a>
+                    <a class="pubhd-ic pubhd-hide-sm" href="<?= e(url('/admin/retraits')) ?>" title="<?= e(t('wallet.admin_title')) ?>" aria-label="<?= e(t('wallet.admin_title')) ?>"><?= icon('wallet', ['size' => 18]) ?><?php if (($wdPending = \App\Models\Wallet::pendingCount()) > 0): ?><span class="pubhd-badge"><?= (int) $wdPending ?></span><?php endif; ?></a>
+                    <a class="pubhd-ic pubhd-hide-sm" href="<?= e(url('/admin/email')) ?>" title="<?= e(t('admin.mail.title')) ?>" aria-label="<?= e(t('admin.mail.title')) ?>">✉️</a>
                 <?php endif; ?>
                 <?php $notifUnread = \App\Models\Notification::unreadCount((int) $user['id']); ?>
-                <div class="nav-dd" data-dd>
-                    <a class="btn btn-ghost nav-icon" data-dd-toggle data-dd-url="<?= e(url('/notifications/apercu')) ?>" href="<?= e(url('/notifications')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>"><?= icon('bell') ?><span class="nav-badge" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
+                <div class="nav-dd pubhd-ddw" data-dd>
+                    <a class="pubhd-ic" data-dd-toggle data-dd-url="<?= e(url('/notifications/apercu')) ?>" href="<?= e(url('/notifications')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('notif.title')) ?>" aria-label="<?= e(t('notif.title')) ?>"><?= icon('bell') ?><span class="pubhd-badge pubhd-badge--hot" <?= $notifUnread > 0 ? '' : 'hidden' ?>><?= (int) $notifUnread ?></span></a>
                     <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
                 </div>
-                <a class="btn btn-ghost" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
-                <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form">
+                <a class="btn btn-green btn-sm pubhd-cta" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
+                <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form pubhd-hide-sm">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-ghost"><?= e(t('nav.logout')) ?></button>
+                    <button type="submit" class="pubhd-login"><?= e(t('nav.logout')) ?></button>
                 </form>
             <?php else: ?>
-                <a class="btn btn-ghost" href="<?= e(url('/login')) ?>"><?= e(t('nav.login')) ?></a>
-                <a class="btn btn-primary" href="<?= e(url('/register')) ?>"><?= e(t('nav.register')) ?></a>
+                <a class="pubhd-login pubhd-hide-sm" href="<?= e(url('/login')) ?>"><?= e(t('nav.login')) ?></a>
+                <a class="btn btn-green btn-sm pubhd-cta" href="<?= e(url('/register')) ?>"><?= e(t('nav.register')) ?></a>
             <?php endif; ?>
         </div>
     </div>
+
+    <nav class="container pubhd-cats" aria-label="<?= e(t('home.categories_title')) ?>">
+        <a class="pubhd-cat is-all <?= str_starts_with($navPath, '/explorer') ? 'is-active' : '' ?>" href="<?= e(url('/explorer')) ?>"><?= e(t('nav.browse_all')) ?></a>
+        <?php foreach ($pubhdCats as $ck): ?>
+            <a class="pubhd-cat" href="<?= e(url('/explorer?categorie=' . $ck)) ?>"><?= e(t('listing.cat.' . $ck)) ?></a>
+        <?php endforeach; ?>
+        <a class="pubhd-cat pubhd-cat--end <?= $navPath === '/a-propos' ? 'is-active' : '' ?>" href="<?= e(url('/a-propos')) ?>"><?= e(t('nav.about')) ?></a>
+    </nav>
 </header>
 
 <?= render_partial('partials/geo_suggest') ?>
@@ -210,35 +210,57 @@ $navPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?:
     <?= $content ?>
 </main>
 
-<footer class="site-footer">
-    <div class="container footer-inner">
-        <div class="footer-top">
-            <div class="footer-brand">
-                <a class="brand" href="<?= e(url('/')) ?>">
-                    <span class="brand-logo"><?= render_partial('partials/logo', ['uid' => 'ftr']) ?></span>
-                    <span class="brand-text">Afrik<span>link</span></span>
+<footer class="pubft">
+    <div class="container pubft-in">
+        <div class="pubft-top">
+            <div class="pubft-brand">
+                <a class="pubhd-brand" href="<?= e(url('/')) ?>">
+                    <span class="pubhd-logo"><?= render_partial('partials/logo', ['uid' => 'ftr']) ?></span>
+                    <span class="pubhd-wordmark">Afrik<span>link</span></span>
                 </a>
-                <p class="footer-tag"><?= e(t('home.hero_subtitle')) ?></p>
+                <p class="pubft-desc"><?= e(t('home.hero_subtitle')) ?></p>
+                <?= render_partial('partials/payment_strip', ['label' => false, 'secure' => false]) ?>
             </div>
-            <nav class="footer-nav" aria-label="legal">
-                <a href="<?= e(url('/a-propos')) ?>"><?= e(t('nav.about')) ?></a>
-                <a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a>
-                <a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a>
-                <a href="<?= e(url('/retractation')) ?>"><?= e(t('footer.withdrawal')) ?></a>
-                <a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a>
-                <a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a>
-            </nav>
-            <div class="footer-news">
-                <p class="footer-news-title"><?= e(t('newsletter.title')) ?></p>
-                <form method="post" action="<?= e(url('/newsletter')) ?>" class="footer-news-form">
+            <div class="pubft-col">
+                <h4><?= e(t('footer.col_discover')) ?></h4>
+                <ul>
+                    <li><a href="<?= e(url('/explorer')) ?>"><?= e(t('nav.explore')) ?></a></li>
+                    <li><a href="<?= e(url('/a-propos')) ?>"><?= e(t('nav.about')) ?></a></li>
+                    <li><a href="<?= e(url('/vendeurs-verifies')) ?>"><?= e(t('home.why.verified_t')) ?></a></li>
+                    <li><a href="<?= e(url('/paiements-securises')) ?>"><?= e(t('home.why.secure_t')) ?></a></li>
+                </ul>
+            </div>
+            <div class="pubft-col">
+                <h4><?= e(t('footer.col_sell')) ?></h4>
+                <ul>
+                    <li><a href="<?= e(url('/register/vendeur')) ?>"><?= e(t('home.cta_sell')) ?></a></li>
+                    <li><a href="<?= e(url('/local-international')) ?>"><?= e(t('home.why.ship_t')) ?></a></li>
+                    <li><a href="<?= e(url('/assistance')) ?>"><?= e(t('footer.support')) ?></a></li>
+                </ul>
+            </div>
+            <div class="pubft-col">
+                <h4><?= e(t('footer.col_legal')) ?></h4>
+                <ul>
+                    <li><a href="<?= e(url('/mentions-legales')) ?>"><?= e(t('footer.impressum')) ?></a></li>
+                    <li><a href="<?= e(url('/cgv')) ?>"><?= e(t('footer.terms')) ?></a></li>
+                    <li><a href="<?= e(url('/retractation')) ?>"><?= e(t('footer.withdrawal')) ?></a></li>
+                    <li><a href="<?= e(url('/confidentialite')) ?>"><?= e(t('footer.privacy')) ?></a></li>
+                    <li><a href="<?= e(url('/confidentialite')) ?>#cookies"><?= e(t('footer.cookies')) ?></a></li>
+                </ul>
+            </div>
+            <div class="pubft-news">
+                <h4><?= e(t('newsletter.title')) ?></h4>
+                <form method="post" action="<?= e(url('/newsletter')) ?>" class="pubft-news-form">
                     <?= csrf_field() ?>
                     <input type="email" name="email" required maxlength="191" placeholder="<?= e(t('newsletter.ph')) ?>" aria-label="<?= e(t('newsletter.title')) ?>">
-                    <button type="submit" class="btn btn-primary btn-sm"><?= e(t('newsletter.btn')) ?></button>
+                    <button type="submit" class="btn btn-gold btn-sm"><?= e(t('newsletter.btn')) ?></button>
                 </form>
             </div>
         </div>
-        <?= render_partial('partials/payment_strip', ['label' => true, 'secure' => true]) ?>
-        <p class="footer-bottom">&copy; <?= date('Y') ?> <?= e(config('app.name', 'Afriklink')) ?></p>
+        <div class="pubft-bottom">
+            <span>&copy; <?= date('Y') ?> <?= e(config('app.name', 'Afriklink')) ?></span>
+            <span><?= e(t('home.hero_kicker')) ?></span>
+        </div>
     </div>
 </footer>
 

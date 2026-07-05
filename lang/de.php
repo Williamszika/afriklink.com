@@ -2811,4 +2811,11 @@ return [
     'home.uni.service_sub' => 'Fachwissen in Ihrer Nähe',
     'home.soon' => 'Demnächst',
     'home.spotlight_title' => 'Gesponserte Favoriten',
+
+    // --- En-tête / pied de page publics (.pubhd/.pubft) ---
+    'nav.browse_all' => 'Alles entdecken',
+    'footer.col_discover' => 'Entdecken',
+    'footer.col_sell' => 'Verkaufen',
+    'footer.col_legal' => 'Rechtliches',
+    'footer.support' => 'Hilfe',
 ];

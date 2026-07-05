@@ -2811,4 +2811,11 @@ return [
     'home.uni.service_sub' => 'خبرات بالقرب منك',
     'home.soon' => 'قريبًا',
     'home.spotlight_title' => 'مختارات مموّلة',
+
+    // --- En-tête / pied de page publics (.pubhd/.pubft) ---
+    'nav.browse_all' => 'استكشاف الكل',
+    'footer.col_discover' => 'اكتشف',
+    'footer.col_sell' => 'بيع',
+    'footer.col_legal' => 'قانوني',
+    'footer.support' => 'الدعم',
 ];

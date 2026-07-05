@@ -2832,4 +2832,11 @@ return [
     'home.uni.service_sub' => 'Skills near you',
     'home.soon' => 'Coming soon',
     'home.spotlight_title' => 'Sponsored picks',
+
+    // --- En-tête / pied de page publics (.pubhd/.pubft) ---
+    'nav.browse_all' => 'Browse all',
+    'footer.col_discover' => 'Discover',
+    'footer.col_sell' => 'Sell',
+    'footer.col_legal' => 'Legal',
+    'footer.support' => 'Support',
 ];

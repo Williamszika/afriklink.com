@@ -2811,4 +2811,11 @@ return [
     'home.uni.service_sub' => 'Profesionales cerca de usted',
     'home.soon' => 'Pronto',
     'home.spotlight_title' => 'Selección patrocinada',
+
+    // --- En-tête / pied de page publics (.pubhd/.pubft) ---
+    'nav.browse_all' => 'Explorar todo',
+    'footer.col_discover' => 'Descubrir',
+    'footer.col_sell' => 'Vender',
+    'footer.col_legal' => 'Legal',
+    'footer.support' => 'Asistencia',
 ];

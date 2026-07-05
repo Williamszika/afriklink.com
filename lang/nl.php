@@ -2806,4 +2806,11 @@ return [
     'home.uni.service_sub' => 'Vakmanschap bij u in de buurt',
     'home.soon' => 'Binnenkort',
     'home.spotlight_title' => 'Gesponsorde favorieten',
+
+    // --- En-tête / pied de page publics (.pubhd/.pubft) ---
+    'nav.browse_all' => 'Alles verkennen',
+    'footer.col_discover' => 'Ontdekken',
+    'footer.col_sell' => 'Verkopen',
+    'footer.col_legal' => 'Juridisch',
+    'footer.support' => 'Ondersteuning',
 ];
