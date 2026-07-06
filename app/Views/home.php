@@ -84,28 +84,10 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
 ?>
 <div class="home">
 
-    <!-- ===== HÉROS ===== -->
-    <section class="home-hero">
-        <div class="home-hero-in">
-            <span class="home-kicker"><?= e(t('home.hero_kicker')) ?></span>
-            <h1><?= e(t('home.hero_title')) ?></h1>
-            <p><?= e(t('home.hero_subtitle')) ?></p>
-            <form class="home-hero-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
-                <span class="box">
-                    <?= icon('search', ['size' => 19]) ?>
-                    <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
-                </span>
-                <button type="submit" class="btn btn-gold"><?= e(t('explore.search_btn')) ?></button>
-            </form>
-            <div class="home-hero-trust">
-                <span><?= icon('lock', ['size' => 16]) ?> <?= e(t('home.why.secure_t')) ?></span>
-                <span><?= icon('shield', ['size' => 16]) ?> <?= e(t('home.why.verified_t')) ?></span>
-                <span><?= icon('globe', ['size' => 16]) ?> <?= e(t('home.why.ship_t')) ?></span>
-            </div>
-        </div>
-    </section>
+    <!-- Titre de page (masqué visuellement) — conservé pour le SEO et les lecteurs d'écran. -->
+    <h1 class="sr-only"><?= e(t('home.hero_title')) ?></h1>
 
-    <!-- ===== BANNIÈRE PUBLICITÉ (carrousel) ===== -->
+    <!-- ===== BANNIÈRE PUBLICITÉ (carrousel, en tête de page) ===== -->
     <?php
     // Bandeau publicitaire : les vraies mises en avant payantes des vendeurs
     // ($deals = sponsorisés + promos, dédupliqués) + un panneau libre-service
