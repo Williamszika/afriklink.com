@@ -108,6 +108,9 @@ $compareCount = \App\Services\Compare::count();
 // Rayons de navigation (liens réels : l'explorateur filtré par catégorie).
 $pubhdCats = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'artisanat'];
 ?>
+<!-- En-tête verrouillé : barre utilitaire + en-tête épinglés ensemble en
+     haut de page au défilement (position sticky portée par .pubhd-stick). -->
+<div class="pubhd-stick">
 <!-- Barre utilitaire (design validé) : localisation détectée à gauche ;
      langue, devise et compte à droite. -->
 <div class="pubhd-util">
@@ -199,6 +202,7 @@ $pubhdCats = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'artis
         <a class="pubhd-cat pubhd-cat--end <?= $navPath === '/a-propos' ? 'is-active' : '' ?>" href="<?= e(url('/a-propos')) ?>"><?= e(t('nav.about')) ?></a>
     </nav>
 </header>
+</div><!-- /.pubhd-stick -->
 
 <?= render_partial('partials/geo_suggest') ?>
 

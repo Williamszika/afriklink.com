@@ -4138,7 +4138,9 @@ a.home-uni:hover{transform:translateY(-4px);box-shadow:0 20px 40px -26px rgba(12
 @media(max-width:560px){.pubhd-util-geo{display:none}.pubhd-util-in{justify-content:flex-end}}
 
 /* ===== En-tête public partagé (.pubhd) ===== */
-.pubhd{--p-green:#14502E;--p-green-deep:#0E3A21;--p-gold:#C7922E;--p-gold-deep:#9A6F1E;--p-hib:#B21E4B;--p-cream:#FAF4E6;--p-paper:#FFFDF7;--p-ink:#1C2418;--p-muted:#5B6453;--p-line:rgba(20,80,46,.14);position:sticky;top:0;z-index:60;background:rgba(250,244,230,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--p-line);font-family:var(--afk-body)}
+/* Barre utilitaire + en-tête épinglés ensemble en haut au défilement. */
+.pubhd-stick{position:sticky;top:0;z-index:60}
+.pubhd{--p-green:#14502E;--p-green-deep:#0E3A21;--p-gold:#C7922E;--p-gold-deep:#9A6F1E;--p-hib:#B21E4B;--p-cream:#FAF4E6;--p-paper:#FFFDF7;--p-ink:#1C2418;--p-muted:#5B6453;--p-line:rgba(20,80,46,.14);background:rgba(250,244,230,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--p-line);font-family:var(--afk-body)}
 .pubhd-bar{display:flex;align-items:center;gap:1rem;padding:.65rem 0}
 .pubhd-brand{display:inline-flex;align-items:center;gap:.5rem;flex:none;color:var(--p-green)}
 /* Logo cauri sur pastille « jeton » vert (clin d'œil : le cauri était une monnaie). */
