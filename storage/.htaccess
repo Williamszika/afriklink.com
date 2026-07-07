@@ -1,0 +1,15 @@
+# Défense en profondeur : le dossier storage/ (journaux, cache, uploads privés)
+# ne doit JAMAIS être servi sur le web. Le seul dossier exposé est public/.
+# Ce fichier bloque tout accès HTTP si jamais storage/ se retrouvait sous la
+# racine web (mauvaise configuration d'hébergement).
+
+# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2 (repli)
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

@@ -58,7 +58,7 @@ use App\Controllers\WebhookController;
 return [
     // ---- Public -------------------------------------------------------
     ['GET',  '/',                  [HomeController::class, 'index'],          []],
-    ['GET',  '/explorer',          [HomeController::class, 'explore'],        []],
+    ['GET',  '/explorer',          [HomeController::class, 'explore'],        ['throttle:explore,300,3600']],
     // Agnès — assistant d'aide du site : endpoint de chat + centre d'aide.
     ['POST', '/agnes',             [AssistantController::class, 'message'],   ['csrf', 'throttle:agnes,40,3600']],
     ['GET',  '/aide',              [AssistantController::class, 'center'],     []],
@@ -280,7 +280,7 @@ return [
     ['POST', '/boutique/produits',                [ProductController::class, 'store'],     ['auth', 'csrf', 'throttle:product,60,3600']],
     ['GET',  '/boutique/produits/{pid}/modifier', [ProductController::class, 'edit'],      ['auth']],
     ['POST', '/boutique/produits/{pid}/modifier', [ProductController::class, 'update'],    ['auth', 'csrf', 'throttle:product,60,3600']],
-    ['POST', '/boutique/produits/{pid}/statut',   [ProductController::class, 'setStatus'], ['auth', 'csrf']],
+    ['POST', '/boutique/produits/{pid}/statut',   [ProductController::class, 'setStatus'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     // Caisse + commande en ligne : panier public (client, éventuellement non connecté)
     ['POST', '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisseStore'], ['csrf', 'throttle:border,80,3600']],
     ['GET',  '/boutique/{slug}/caisse',    [BoutiqueController::class, 'caisse'],      []],
@@ -301,11 +301,11 @@ return [
     ['POST', '/boutique/{slug}/assistant',            [BoutiqueController::class, 'assistant'],        ['csrf', 'throttle:assistant,30,3600']],
     ['POST', '/boutique/{slug}/suivre',               [BoutiqueController::class, 'follow'],            ['auth', 'csrf', 'throttle:follow,60,3600']],
     ['POST', '/boutique/avis/{rid}/masquer',  [BoutiqueController::class, 'hideReview'],  ['auth', 'csrf']],
-    ['POST', '/boutique/politique',           [BoutiqueController::class, 'updatePolicy'], ['auth', 'csrf']],
-    ['POST', '/boutique/promotions',              [BoutiqueController::class, 'createDiscount'], ['auth', 'csrf']],
-    ['POST', '/boutique/promotions/{id}/statut',  [BoutiqueController::class, 'toggleDiscount'], ['auth', 'csrf']],
+    ['POST', '/boutique/politique',           [BoutiqueController::class, 'updatePolicy'], ['auth', 'csrf', 'throttle:shop,300,3600']],
+    ['POST', '/boutique/promotions',              [BoutiqueController::class, 'createDiscount'], ['auth', 'csrf', 'throttle:shop,300,3600']],
+    ['POST', '/boutique/promotions/{id}/statut',  [BoutiqueController::class, 'toggleDiscount'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['POST', '/boutique/livraison/zones',             [BoutiqueController::class, 'createShippingZone'], ['auth', 'csrf', 'throttle:shop,300,3600']],
-    ['POST', '/boutique/livraison/zones/{zid}/suppr', [BoutiqueController::class, 'deleteShippingZone'], ['auth', 'csrf']],
+    ['POST', '/boutique/livraison/zones/{zid}/suppr', [BoutiqueController::class, 'deleteShippingZone'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     ['POST', '/boutique/livraison/transporteurs',     [BoutiqueController::class, 'updateCarriers'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     // Vitrine publique
     ['GET',  '/boutique/{slug}/p/{pid}', [BoutiqueController::class, 'product'], []],
@@ -324,7 +324,7 @@ return [
     ['POST', '/restaurant/plat/{mid}/contenance', [RestaurantController::class, 'setVariantStatus'], ['auth', 'csrf']],
     ['POST', '/restaurant/paiement',             [RestaurantController::class, 'updatePayment'],   ['auth', 'csrf']],
     ['POST', '/restaurant/livraison/zones',             [RestaurantController::class, 'createDeliveryArea'], ['auth', 'csrf', 'throttle:shop,300,3600']],
-    ['POST', '/restaurant/livraison/zones/{zid}/suppr', [RestaurantController::class, 'deleteDeliveryArea'], ['auth', 'csrf']],
+    ['POST', '/restaurant/livraison/zones/{zid}/suppr', [RestaurantController::class, 'deleteDeliveryArea'], ['auth', 'csrf', 'throttle:shop,300,3600']],
     // Commandes restaurant : panier public + suivi côté restaurateur
     ['GET',  '/restaurant/commandes',            [RestaurantController::class, 'orders'],          ['auth']],
     ['POST', '/restaurant/commandes/{ref}/statut', [RestaurantController::class, 'setOrderStatus'], ['auth', 'csrf']],

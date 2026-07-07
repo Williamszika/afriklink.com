@@ -17,6 +17,9 @@ return [
     'env'   => $_ENV['APP_ENV'] ?? 'production',
     'debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOL),
     'url'   => $_ENV['APP_URL'] ?? '',
+    // Hôtes approuvés (liste séparée par des virgules) pour la construction des
+    // liens absolus quand APP_URL est vide — barrière anti-empoisonnement Host.
+    'trusted_hosts' => $_ENV['APP_TRUSTED_HOSTS'] ?? '',
     'key'   => $_ENV['APP_KEY'] ?? '',
     'session_driver' => $sessionDriver,
 

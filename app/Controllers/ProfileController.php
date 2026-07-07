@@ -183,6 +183,14 @@ final class ProfileController
         if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             $this->photoFail('validation.avatar_invalid');
         }
+        // Garde anti « bombe de décompression » : un petit fichier peut déclarer
+        // des dimensions énormes (ex. 25000×25000) qui saturent la mémoire lors
+        // de la décompression GD. On refuse AVANT tout traitement.
+        $w = (int) ($info[0] ?? 0);
+        $h = (int) ($info[1] ?? 0);
+        if ($w < 1 || $h < 1 || $w > 10000 || $h > 10000 || ($w * $h) > 40_000_000) {
+            $this->photoFail('validation.avatar_invalid');
+        }
 
         $raw = (string) file_get_contents((string) $file['tmp_name']);
         $processed = $this->squareThumbnail($raw, $mime);

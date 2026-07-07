@@ -157,7 +157,10 @@ final class WebhookController
                     break;
 
                 case 'charge.refunded':
-                    Payment::setStatus($ref, 'cancelled');
+                    // Reprise d'argent (clawback) idempotente : sans elle, on
+                    // rembourse l'acheteur tout en laissant la part vendeur ET la
+                    // commission d'apporteur créditées et retirables (perte sèche).
+                    PaymentSettlement::reverse($payment);
                     break;
             }
         } catch (\Throwable $e) {

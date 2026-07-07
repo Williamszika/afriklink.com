@@ -2833,4 +2833,6 @@ return [
     'home.adstrip_btn' => 'Meer weten',
     'home.see_all_boutiques' => 'Alle winkels bekijken',
     'home.online' => 'Online',
+    'notify.refunded.title' => 'Bestelling terugbetaald',
+    'notify.refunded.body' => 'Bestelling :ref is terugbetaald; de bijbehorende inkomsten zijn teruggedraaid.',
 ];

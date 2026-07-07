@@ -37,6 +37,13 @@ final class AdminNewsletterController
         $ctaLbl  = trim((string) input_string('cta_label', ''));
         $action  = whitelist((string) input_string('action', ''), ['test', 'all'], 'test');
 
+        // Moindre privilège : la diffusion de MASSE (à tous les abonnés) est
+        // réservée aux administrateurs. Un modérateur (staff non-admin) ne peut
+        // envoyer qu'un e-mail de test à lui-même — pas diffuser via la marque.
+        if ($action === 'all' && !is_admin()) {
+            abort(404);
+        }
+
         if ($subject === '' || $message === '') {
             flash('error', t('newsletter.admin_need_content'));
             redirect('/admin/newsletter');

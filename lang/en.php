@@ -2859,4 +2859,6 @@ return [
     'home.adstrip_btn' => 'Learn more',
     'home.see_all_boutiques' => 'See all shops',
     'home.online' => 'Online',
+    'notify.refunded.title' => 'Order refunded',
+    'notify.refunded.body' => 'Order :ref was refunded; the related earnings were reversed.',
 ];

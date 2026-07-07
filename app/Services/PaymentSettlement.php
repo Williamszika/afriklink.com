@@ -112,4 +112,74 @@ final class PaymentSettlement
             Order::setPaymentStatus($orderId, 'failed');
         }
     }
+
+    /**
+     * Reprise d'argent (clawback) après REMBOURSEMENT ou ANNULATION d'une commande
+     * DÉJÀ PAYÉE en ligne. Point UNIQUE, symétrique de confirm() : appelé par le
+     * webhook `charge.refunded` (Stripe), la vérification CinetPay « cancelled »,
+     * et l'annulation d'une commande payée (vendeur ou acheteur).
+     *
+     * Sans lui, un remboursement rend l'argent à l'acheteur mais laisse la part
+     * vendeur ET la commission de l'apporteur créditées et retirables (perte sèche).
+     *
+     * IDEMPOTENT : le passage « payé → remboursé » est revendiqué atomiquement en
+     * base (Payment::claimRefunded) ; le corps ne s'exécute donc qu'une seule fois.
+     *
+     * @return bool true si la reprise a été effectuée MAINTENANT
+     */
+    public static function reverse(array $payment): bool
+    {
+        $ref = (string) ($payment['public_id'] ?? '');
+        if ($ref === '') {
+            return false;
+        }
+        // Verrou d'idempotence : ne reprend que si le paiement était « payé »
+        // (donc potentiellement crédité) et bascule en « remboursé » une seule fois.
+        if (!Payment::claimRefunded($ref)) {
+            return false;
+        }
+
+        $sellerId = (int) ($payment['user_id'] ?? 0);
+        $orderId  = (int) ($payment['order_id'] ?? 0);
+        $kind     = (string) ($payment['kind'] ?? 'boutique');
+
+        try {
+            // 1) Reprise du crédit VENDEUR versé sous la référence du paiement.
+            if ($sellerId > 0) {
+                \App\Models\Wallet::reverseByRef($sellerId, $ref, 'refund');
+            }
+            // 2) Reprise de la commission d'AFFILIATION versée pour cette commande.
+            if ($orderId > 0 && $kind !== 'restaurant' && ($pub = Order::publicIdById($orderId)) !== null) {
+                \App\Models\Affiliate::reverseBoutiqueOrder($orderId, $pub);
+            }
+            // 3) La commande n'est plus « payée » → blocage de l'expédition, cohérence.
+            if ($orderId > 0) {
+                if ($kind === 'restaurant') {
+                    RestaurantOrder::setPaymentStatus($orderId, 'refunded', $ref);
+                } else {
+                    Order::setPaymentStatus($orderId, 'refunded', $ref);
+                }
+            }
+        } catch (\Throwable $e) {
+            if (function_exists('log_message')) {
+                log_message('critical', 'PaymentSettlement::reverse — reprise échouée pour ' . $ref . ' — ' . $e->getMessage());
+            }
+        }
+
+        // Alerte vendeur (best-effort).
+        try {
+            if ($sellerId > 0) {
+                Notification::push(
+                    $sellerId,
+                    'order_refunded',
+                    t('notify.refunded.title'),
+                    t('notify.refunded.body', ['ref' => strtoupper(substr($ref, 0, 6))]),
+                    $kind === 'restaurant' ? '/restaurant/commandes' : '/vendeur/commandes',
+                );
+            }
+        } catch (\Throwable) {
+        }
+
+        return true;
+    }
 }

@@ -2838,4 +2838,6 @@ return [
     'home.adstrip_btn' => 'اعرف المزيد',
     'home.see_all_boutiques' => 'عرض كل المتاجر',
     'home.online' => 'متصل',
+    'notify.refunded.title' => 'تم استرداد الطلب',
+    'notify.refunded.body' => 'تم استرداد الطلب :ref؛ وتمت استعادة الأرباح المقابلة.',
 ];

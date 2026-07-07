@@ -50,6 +50,11 @@ final class AccountData
             'kyc'            => self::rows(
                 'SELECT id, level, status, doc_type, id_first_name, id_last_name, submitted_at, reviewed_at
                    FROM kyc_submissions WHERE user_id = :id', ['id' => $userId]),
+            'fiche_pro'      => self::rows(
+                'SELECT company_name, legal_name, legal_form, reg_number, vat_number, description,
+                        address, website, languages, payout_method, payout_destination,
+                        verification_status, created_at, updated_at
+                   FROM pro_profiles WHERE user_id = :id', ['id' => $userId]),
             'notifications'  => self::rows(
                 'SELECT id, type, title, body, link, read_at, created_at
                    FROM notifications WHERE user_id = :id ORDER BY id DESC LIMIT 500', ['id' => $userId]),

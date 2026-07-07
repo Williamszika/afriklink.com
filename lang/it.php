@@ -2838,4 +2838,6 @@ return [
     'home.adstrip_btn' => 'Scopri di più',
     'home.see_all_boutiques' => 'Vedi tutti i negozi',
     'home.online' => 'Online',
+    'notify.refunded.title' => 'Ordine rimborsato',
+    'notify.refunded.body' => 'L\'ordine :ref è stato rimborsato; i guadagni corrispondenti sono stati stornati.',
 ];

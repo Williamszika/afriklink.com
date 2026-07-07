@@ -333,9 +333,15 @@ final class RestaurantController
             abort(404);
         }
         $raw = json_decode((string) ($_POST['cart_json'] ?? '[]'), true);
+        // Garde-fou anti-abus (DoS) : borner le nombre de lignes AVANT toute
+        // boucle/requête, comme le panier boutique. Un panier réel n'a jamais
+        // plus de quelques dizaines de lignes ; sans ce plafond, un attaquant
+        // non authentifié déclenche des centaines de milliers de lookups en une
+        // seule requête et sature la base pour tout le site.
+        $raw = is_array($raw) ? array_slice($raw, 0, 50) : [];
         $entries = [];
-        foreach (is_array($raw) ? $raw : [] as $e) {
-            $id = (string) ($e['id'] ?? '');
+        foreach ($raw as $e) {
+            $id = (string) (is_array($e) ? ($e['id'] ?? '') : '');
             if ($id !== '') {
                 $entries[] = ['id' => $id, 'size' => (string) ($e['size'] ?? ''), 'qty' => max(1, min(99, (int) ($e['qty'] ?? 0)))];
             }

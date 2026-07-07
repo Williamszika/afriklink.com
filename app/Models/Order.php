@@ -148,7 +148,7 @@ final class Order
     public static function setPaymentStatus(int $id, string $status, ?string $ref = null): void
     {
         self::migrate();
-        if (!in_array($status, ['unpaid', 'pending', 'paid', 'failed'], true)) {
+        if (!in_array($status, ['unpaid', 'pending', 'paid', 'failed', 'refunded'], true)) {
             return;
         }
         $sql = 'UPDATE orders SET payment_status = :s' . ($ref !== null ? ', payment_ref = :r' : '') . ' WHERE id = :id';

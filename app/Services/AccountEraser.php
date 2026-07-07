@@ -43,6 +43,41 @@ final class AccountEraser
         self::run('DELETE FROM messages WHERE sender_id = :id', ['id' => $userId]);
         self::run('DELETE FROM conversations WHERE buyer_id = :id OR seller_id = :id', ['id' => $userId]);
 
+        // 3bis) KYC (Art.17 — catégorie la PLUS sensible : pièces d'identité).
+        //   On supprime d'ABORD les fichiers d'identité chez l'hébergeur d'images
+        //   (Cloudinary), PUIS les lignes documents (via la soumission), AVANT que
+        //   les soumissions ne soient effacées en section 4.
+        try {
+            $docs = db()->prepare(
+                'SELECT kd.cloud_public_id FROM kyc_documents kd
+                   JOIN kyc_submissions ks ON ks.id = kd.submission_id
+                  WHERE ks.user_id = :id'
+            );
+            $docs->execute(['id' => $userId]);
+            foreach ($docs->fetchAll(\PDO::FETCH_COLUMN) as $pub) {
+                if ($pub !== null && $pub !== '') {
+                    \App\Services\CloudinaryService::destroyKyc((string) $pub);
+                }
+            }
+        } catch (\Throwable) {
+            // best-effort : une panne de suppression distante ne bloque pas l'effacement.
+        }
+        self::run(
+            'DELETE kd FROM kyc_documents kd JOIN kyc_submissions ks ON ks.id = kd.submission_id
+              WHERE ks.user_id = :id',
+            ['id' => $userId]
+        );
+
+        // 3ter) Fiche entreprise vendeur : effacer les données personnelles/sensibles
+        //   (adresse, immatriculation, TVA, site, COORDONNÉES DE PAIEMENT). Les
+        //   factures des commandes conservées gardent leurs propres copies légales.
+        self::run(
+            "UPDATE pro_profiles SET address = NULL, reg_number = NULL, vat_number = NULL,
+                    website = NULL, description = NULL, payout_method = NULL, payout_destination = NULL
+              WHERE user_id = :id",
+            ['id' => $userId]
+        );
+
         // 4) Données purement personnelles (par user_id).
         foreach ([
             'user_addresses', 'user_avatars', 'notifications', 'email_verifications',

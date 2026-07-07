@@ -169,6 +169,15 @@ final class OrderController
             // transition réussie ci-dessus, donc pas de double restauration).
             if ($action === 'cancel') {
                 Order::restoreStock((int) $order['id']);
+                // Reprise d'argent : si la commande était réglée EN LIGNE, on
+                // annule les crédits portefeuille (vendeur + apporteur) — sinon
+                // l'annulation rembourse l'acheteur en laissant l'argent versé.
+                if ((string) ($order['payment_status'] ?? 'unpaid') === 'paid') {
+                    $pay = \App\Models\Payment::latestForOrder((int) $order['id'], 'boutique');
+                    if ($pay !== null) {
+                        \App\Services\PaymentSettlement::reverse($pay);
+                    }
+                }
             }
             flash('success', t('order.status_flash', ['status' => t('order.status.' . $to)]));
             // Expédition : le vendeur peut joindre un transporteur + un numéro de

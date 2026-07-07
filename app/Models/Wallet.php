@@ -73,6 +73,39 @@ final class Wallet
         self::entry($userId, 'debit', $amountCents, $currency, $source, $ref);
     }
 
+    /**
+     * Reprise d'argent (clawback) IDEMPOTENTE pour une référence donnée : débite
+     * l'utilisateur du montant NET encore crédité sous cette référence
+     * (Σ crédits − Σ débits pour ce ref). Un second appel voit un net nul et ne
+     * fait rien → jamais de double reprise. Renvoie le montant repris (centimes).
+     * Sert à annuler un crédit de vente/commission après remboursement/annulation.
+     */
+    public static function reverseByRef(int $userId, ?string $ref, string $source = 'refund'): int
+    {
+        if ($userId <= 0 || $ref === null || $ref === '') {
+            return 0;
+        }
+        try {
+            self::ensureTables();
+            $stmt = db()->prepare(
+                "SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount_cents ELSE -amount_cents END), 0) AS net,
+                        MAX(currency) AS cur
+                   FROM wallet_entries WHERE user_id = :u AND ref = :r"
+            );
+            $stmt->execute(['u' => $userId, 'r' => $ref]);
+            $row = $stmt->fetch();
+            $net = (int) ($row['net'] ?? 0);
+            $cur = (string) ($row['cur'] ?? 'EUR');
+            if ($net <= 0) {
+                return 0;
+            }
+            self::entry($userId, 'debit', $net, $cur, $source, $ref);
+            return $net;
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     private static function entry(int $userId, string $type, int $amountCents, string $currency, string $source, ?string $ref): void
     {
         if ($amountCents <= 0) {

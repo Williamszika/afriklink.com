@@ -2859,4 +2859,6 @@ return [
     'home.adstrip_btn' => 'En savoir plus',
     'home.see_all_boutiques' => 'Voir toutes les boutiques',
     'home.online' => 'En ligne',
+    'notify.refunded.title' => 'Commande remboursée',
+    'notify.refunded.body' => 'La commande :ref a été remboursée ; les gains correspondants ont été repris.',
 ];

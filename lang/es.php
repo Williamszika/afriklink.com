@@ -2838,4 +2838,6 @@ return [
     'home.adstrip_btn' => 'Saber más',
     'home.see_all_boutiques' => 'Ver todas las tiendas',
     'home.online' => 'En línea',
+    'notify.refunded.title' => 'Pedido reembolsado',
+    'notify.refunded.body' => 'El pedido :ref fue reembolsado; las ganancias correspondientes se revirtieron.',
 ];

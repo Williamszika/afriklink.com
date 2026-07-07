@@ -2838,4 +2838,6 @@ return [
     'home.adstrip_btn' => 'Mehr erfahren',
     'home.see_all_boutiques' => 'Alle Shops ansehen',
     'home.online' => 'Online',
+    'notify.refunded.title' => 'Bestellung erstattet',
+    'notify.refunded.body' => 'Bestellung :ref wurde erstattet; die zugehörigen Einnahmen wurden zurückgebucht.',
 ];

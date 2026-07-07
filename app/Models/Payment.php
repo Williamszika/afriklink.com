@@ -11,7 +11,7 @@ namespace App\Models;
  */
 final class Payment
 {
-    public const STATUSES = ['pending', 'paid', 'failed', 'cancelled'];
+    public const STATUSES = ['pending', 'paid', 'failed', 'cancelled', 'refunded'];
 
     public static function ensureTable(): void
     {
@@ -149,6 +149,22 @@ final class Payment
             $args['pr'] = $providerRef;
         }
         $stmt->execute($args);
+        return $stmt->rowCount() === 1;
+    }
+
+    /**
+     * Revendique ATOMIQUEMENT le passage « payé → remboursé ». Ne réussit qu'une
+     * seule fois, et uniquement si le paiement était réellement « payé » (donc
+     * potentiellement crédité au portefeuille). Garantit une reprise d'argent
+     * (clawback) au plus une fois, quelle que soit la source (webhook, annulation).
+     */
+    public static function claimRefunded(string $ref): bool
+    {
+        if ($ref === '') {
+            return false;
+        }
+        $stmt = db()->prepare("UPDATE payments SET status = 'refunded' WHERE public_id = :r AND status = 'paid'");
+        $stmt->execute(['r' => $ref]);
         return $stmt->rowCount() === 1;
     }
 }

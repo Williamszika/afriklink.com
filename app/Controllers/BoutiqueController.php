@@ -1585,6 +1585,18 @@ final class BoutiqueController
         if ($order === null) {
             abort(404);
         }
+        // Intégrité : pour une commande passée par un membre CONNECTÉ, seul cet
+        // acheteur (ou le vendeur) peut déclencher le règlement — on ne se fie pas
+        // à la seule connaissance de la référence. Les commandes invité
+        // (buyer_user_id vide) restent réglables via leur lien (checkout invité).
+        $buyerId = (int) ($order['buyer_user_id'] ?? 0);
+        if ($buyerId > 0) {
+            $uid = (int) (current_user_id() ?? 0);
+            $sellerId = (int) ($order['user_id'] ?? 0);
+            if ($uid !== $buyerId && $uid !== $sellerId) {
+                abort(404);
+            }
+        }
         $payment = Payment::latestForOrder((int) $order['id']);
         // Le bac à sable ne règle QUE des paiements en simulation : un vrai
         // paiement passe forcément par la vérification du PSP (payReturn).

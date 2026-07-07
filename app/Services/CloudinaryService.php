@@ -270,9 +270,18 @@ final class CloudinaryService
             self::destroyKyc($publicId);
             return null;
         }
+        // Allowlist de FORMAT (vérité serveur) : une pièce d'identité est une
+        // photo ou un PDF. On REFUSE et on supprime tout autre format — notamment
+        // SVG/HTML qui, servi à un relecteur, porterait du script (XSS stocké).
+        $format = strtolower((string) ($data['format'] ?? ''));
+        if (!in_array($format, ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif', 'pdf'], true)) {
+            self::$lastError = 'bad_format';
+            self::destroyKyc($publicId);
+            return null;
+        }
         return [
             'bytes'   => $bytes,
-            'format'  => (string) ($data['format'] ?? ''),
+            'format'  => $format,
             'version' => (int) ($data['version'] ?? 0),
         ];
     }

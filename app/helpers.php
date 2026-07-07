@@ -73,6 +73,11 @@ function env(string $key, mixed $default = null): mixed
 /** Append a structured line to a log file in storage/logs. Never log secrets. */
 function log_message(string $level, string $message, array $context = [], string $channel = 'app'): void
 {
+    // Anti-injection de journal (forge de lignes) : neutraliser tout retour à la
+    // ligne / caractère de contrôle dans le message, souvent alimenté par des
+    // données utilisateur. json_encode() échappe déjà les sauts de ligne du
+    // contexte ; le message brut, lui, doit être assaini.
+    $message = (string) preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $message);
     $line = sprintf(
         "[%s] %s: %s%s\n",
         (new DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
@@ -298,8 +303,19 @@ function url(string $path = ''): string
 {
     $base = rtrim((string) config('app.url', ''), '/');
     if ($base === '') {
+        // APP_URL non défini : repli sur l'hôte courant, MAIS sans jamais faire
+        // confiance aveuglément à l'en-tête Host (empoisonnement de lien de
+        // réinitialisation/vérification). On n'accepte que les hôtes explicitement
+        // approuvés (APP_TRUSTED_HOSTS) ou une adresse locale ; sinon on neutralise
+        // vers 'localhost' pour ne jamais fabriquer de lien vers un domaine attaquant.
         $scheme = request_is_https() ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $host   = (string) ($_SERVER['HTTP_HOST'] ?? '');
+        $bare   = strtolower((string) preg_replace('/:\d+$/', '', $host));
+        $allow  = array_filter(array_map('trim', explode(',', strtolower((string) config('app.trusted_hosts', '')))));
+        $isLocal = $bare === 'localhost' || $bare === '127.0.0.1' || $bare === '::1' || str_ends_with($bare, '.localhost');
+        if ($bare === '' || (!$isLocal && !in_array($bare, $allow, true))) {
+            $host = 'localhost';
+        }
         $base = $scheme . '://' . $host;
     }
     return $base . '/' . ltrim($path, '/');

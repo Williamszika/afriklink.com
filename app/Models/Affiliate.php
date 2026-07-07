@@ -335,6 +335,33 @@ final class Affiliate
         }
     }
 
+    /**
+     * Reprise d'argent après remboursement/annulation d'une commande boutique
+     * réglée en ligne : si une commission d'affiliation a été VERSÉE (paid_out_at
+     * non nul), on la reprend du portefeuille de l'apporteur (débit idempotent par
+     * référence) et on remet la conversion à « non versée ». Renvoie la commission
+     * reprise (centimes). Idempotent : un second appel ne reprend rien.
+     */
+    public static function reverseBoutiqueOrder(int $orderId, string $orderPublicId): int
+    {
+        self::ensureTables();
+        try {
+            $stmt = db()->prepare('SELECT id, affiliate_id, paid_out_at FROM affiliate_conversions WHERE order_public_id = :o LIMIT 1');
+            $stmt->execute(['o' => $orderPublicId]);
+            $conv = $stmt->fetch();
+            if ($conv === false || $conv['paid_out_at'] === null) {
+                return 0; // aucune commission versée à reprendre
+            }
+            $back = Wallet::reverseByRef((int) $conv['affiliate_id'], $orderPublicId, 'refund');
+            // Remet la conversion à « non versée » pour cohérence des états.
+            $upd = db()->prepare('UPDATE affiliate_conversions SET paid_out_at = NULL WHERE id = :id');
+            $upd->execute(['id' => (int) $conv['id']]);
+            return $back;
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
     /** Total (centimes) d'une commande boutique — base du prorata d'encaissement. */
     private static function orderTotalCents(int $orderId): int
     {

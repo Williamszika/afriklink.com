@@ -80,7 +80,7 @@ $metaImage = (string) ($meta['image'] ?? '');
                 ],
             ],
         ],
-    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     ?>
     <?php if ($siteLd !== false): ?>
         <script type="application/ld+json"><?= $siteLd ?></script>
