@@ -4117,7 +4117,12 @@ a.home-uni:hover{transform:translateY(-4px);box-shadow:0 20px 40px -26px rgba(12
 .home-rdot{width:7px;height:7px;border-radius:50%;background:var(--h-ok);flex:none}
 
 /* ===== Barre utilitaire (localisation + langue/devise/compte) — design validé ===== */
-.pubhd-util{position:relative;z-index:70;--p-gold:#C7922E;--p-line:rgba(20,80,46,.14);background:linear-gradient(180deg,#14502E,#0E3A21);color:#DFEAE4;font-family:var(--afk-body)}
+.pubhd-util{position:relative;z-index:70;--p-green:#14502E;--p-green-deep:#0E3A21;--p-gold:#C7922E;--p-gold-deep:#9A6F1E;--p-hib:#B21E4B;--p-cream:#FAF4E6;--p-paper:#FFFDF7;--p-ink:#1C2418;--p-muted:#5B6453;--p-line:rgba(20,80,46,.14);background:linear-gradient(180deg,#14502E,#0E3A21);color:#DFEAE4;font-family:var(--afk-body)}
+/* Les menus déroulants sont des cartes blanches : forcer un texte foncé
+   lisible (sinon ils héritent du texte clair de la barre sombre). */
+.pubhd-util .pubhd-menu{color:var(--p-ink)}
+.pubhd-util .pubhd-menu a{color:var(--p-ink)}
+.pubhd-util .pubhd-menu a.is-active{color:var(--p-cream)}
 .pubhd-util-in{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:38px;padding:.34rem 0;flex-wrap:wrap}
 .pubhd-util-geo{display:inline-flex;align-items:center;gap:.45rem;background:none;border:0;padding:0;color:#B7C9C1;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
 .pubhd-util-geo:hover{color:#fff}
