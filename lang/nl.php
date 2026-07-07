@@ -2844,4 +2844,9 @@ return [
     'mail.exists.body' => 'Iemand probeerde zich zojuist aan te melden bij :app met dit adres, maar er bestaat al een account. Als jij dit was, log in of stel je wachtwoord opnieuw in. Zo niet, negeer deze e-mail.',
     'mail.exists.cta' => 'Inloggen',
     'mail.exists.reset' => 'Wachtwoord vergeten?',
+    'home.cta_shop' => 'Begin met winkelen',
+    'home.stat_langs' => 'talen',
+    'home.stat_curr' => 'valuta\'s',
+    'home.stat_uni' => 'werelden',
+    'home.uni_explore' => 'Ontdekken',
 ];

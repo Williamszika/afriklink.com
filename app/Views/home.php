@@ -84,21 +84,38 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
 ?>
 <div class="home">
 
-    <!-- Titre de page (masqué visuellement) — conservé pour le SEO et les lecteurs d'écran. -->
-    <h1 class="sr-only"><?= e(t('home.hero_title')) ?></h1>
-
-    <!-- ===== BANNIÈRE PUBLICITÉ (carrousel, en tête de page) ===== -->
+    <!-- ===== HÉROS (design validé : carte verte cauris + publicité RÉELLE à droite) ===== -->
     <?php
-    // Bandeau publicitaire : les vraies mises en avant payantes des vendeurs
-    // ($deals = sponsorisés + promos, dédupliqués) + un panneau libre-service
-    // « votre pub ici ». Toujours affiché (au minimum le panneau libre-service).
-    // Le carrousel réutilise le moteur CSP-safe de app.js ([data-carousel]).
+    // Colonne droite du héros = bandeau publicitaire RÉEL (mises en avant payantes
+    // des vendeurs : $deals = sponsorisés + promos dédupliqués) + un panneau
+    // libre-service « votre pub ici ». Carrousel CSP-safe ([data-carousel] de app.js).
     $adSlides = array_slice($deals, 0, 3);
     $adGrads  = ['ad1', 'ad2', 'ad4'];
     $adTotal  = count($adSlides) + 1;
+    // Chiffres du héros : comptés sur la config réelle (jamais inventés).
+    $nLang = count(config('app.locales', ['fr', 'en', 'de', 'es', 'it', 'pt', 'nl', 'ar']));
+    $nCurr = count(config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']));
+    $nUni  = count($univers);
     ?>
-    <section class="home-adband" aria-label="<?= e(t('ads.label')) ?>">
-        <div class="home-adwrap"<?= $adTotal > 1 ? ' data-carousel data-autoplay="5500"' : '' ?>>
+    <section class="home-hero" aria-label="<?= e(t('home.hero_title')) ?>">
+        <div class="home-herowrap">
+            <div class="home-hero-in">
+                <div class="home-hero-copy">
+                    <span class="home-hero-badge">🌍 <?= e(t('home.hero_kicker')) ?></span>
+                    <h1 class="home-hero-h1"><?= e(t('home.hero_title')) ?></h1>
+                    <p class="home-hero-lead"><?= e(t('home.hero_subtitle')) ?></p>
+                    <div class="home-hero-btns">
+                        <a class="btn btn-gold btn-lg" href="<?= e(url('/explorer')) ?>"><?= e(t('home.cta_shop')) ?> →</a>
+                        <a class="btn btn-ghost btn-lg" href="<?= e(url($loggedIn ? '/vendre' : '/register/vendeur')) ?>"><?= e(t('home.cta_sell')) ?></a>
+                    </div>
+                    <div class="home-hero-stats">
+                        <div><span class="n"><?= (int) $nLang ?></span><span class="l"><?= e(t('home.stat_langs')) ?></span></div>
+                        <div><span class="n"><?= (int) $nCurr ?></span><span class="l"><?= e(t('home.stat_curr')) ?></span></div>
+                        <div><span class="n"><?= (int) $nUni ?></span><span class="l"><?= e(t('home.stat_uni')) ?></span></div>
+                    </div>
+                </div>
+                <div class="home-hero-ad" aria-label="<?= e(t('ads.label')) ?>">
+                    <div class="home-adwrap"<?= $adTotal > 1 ? ' data-carousel data-autoplay="5500"' : '' ?>>
             <span class="home-adlabel"><?= e(t('ads.label')) ?></span>
             <div class="afk-carousel__track home-adtrack">
                 <?php foreach ($adSlides as $k => $p):
@@ -142,17 +159,22 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
                     <?php endfor; ?>
                 </div>
             <?php endif; ?>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- ===== UNIVERS ===== -->
     <section class="home-sec">
-        <div class="home-head"><div><span class="home-kicker"><?= e(t('home.hero_kicker')) ?></span><h2 class="home-h2"><?= e(t('home.hub.title')) ?></h2></div></div>
+        <div class="home-head"><h2 class="home-h2"><?= e(t('home.hub.title')) ?></h2></div>
         <div class="home-univers">
             <?php foreach ($univers as $u): $inner = '<span class="emj" aria-hidden="true">' . $u['emj'] . '</span>'
                 . '<h3>' . e(t('home.vertical.' . $u['key'] . '.title')) . '</h3>'
                 . '<span class="sub">' . e(t('home.uni.' . $u['key'] . '_sub')) . '</span>'
-                . ($u['soon'] ? '<span class="home-soon">' . e(t('home.soon')) . '</span>' : ''); ?>
+                . ($u['soon']
+                    ? '<span class="home-soon">' . e(t('home.soon')) . '</span>'
+                    : '<span class="home-uni-go">' . e(t('home.uni_explore')) . ' →</span>'); ?>
                 <?php if ($u['href'] !== null): ?>
                     <a class="home-uni <?= e($u['cls']) ?>" href="<?= e($u['href']) ?>"><?= $inner ?></a>
                 <?php else: ?>

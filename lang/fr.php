@@ -2870,4 +2870,9 @@ return [
     'mail.exists.body' => 'Une inscription vient d\'être tentée sur :app avec cette adresse, mais un compte existe déjà. Si c\'était vous, connectez-vous ou réinitialisez votre mot de passe. Sinon, ignorez cet e-mail.',
     'mail.exists.cta' => 'Se connecter',
     'mail.exists.reset' => 'Mot de passe oublié ?',
+    'home.cta_shop' => 'Commencer mes achats',
+    'home.stat_langs' => 'langues',
+    'home.stat_curr' => 'devises',
+    'home.stat_uni' => 'univers',
+    'home.uni_explore' => 'Explorer',
 ];

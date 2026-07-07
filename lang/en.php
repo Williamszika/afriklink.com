@@ -2870,4 +2870,9 @@ return [
     'mail.exists.body' => 'Someone just tried to sign up on :app with this address, but an account already exists. If this was you, log in or reset your password. Otherwise, ignore this email.',
     'mail.exists.cta' => 'Log in',
     'mail.exists.reset' => 'Forgot password?',
+    'home.cta_shop' => 'Start shopping',
+    'home.stat_langs' => 'languages',
+    'home.stat_curr' => 'currencies',
+    'home.stat_uni' => 'universes',
+    'home.uni_explore' => 'Explore',
 ];

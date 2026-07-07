@@ -2849,4 +2849,9 @@ return [
     'mail.exists.body' => 'Alguém acabou de tentar registar-se em :app com este endereço, mas já existe uma conta. Se foi você, inicie sessão ou redefina a palavra-passe. Caso contrário, ignore este e-mail.',
     'mail.exists.cta' => 'Iniciar sessão',
     'mail.exists.reset' => 'Esqueceu-se da palavra-passe?',
+    'home.cta_shop' => 'Começar a comprar',
+    'home.stat_langs' => 'idiomas',
+    'home.stat_curr' => 'moedas',
+    'home.stat_uni' => 'universos',
+    'home.uni_explore' => 'Explorar',
 ];
