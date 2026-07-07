@@ -2840,4 +2840,13 @@ return [
     'home.online' => 'Online',
     'notify.refunded.title' => 'Ordine rimborsato',
     'notify.refunded.body' => 'L\'ordine :ref è stato rimborsato; i guadagni corrispondenti sono stati stornati.',
+    'flash.register_pending' => 'Controlla la tua casella per completare la registrazione.',
+    'register.pending_title' => 'Quasi fatto',
+    'register.pending_lead' => 'Se ti sei registrato con un\'e-mail, ti abbiamo appena inviato un messaggio per confermare l\'indirizzo. Puoi anche accedere.',
+    'register.pending_login' => 'Accedi',
+    'register.pending_home' => 'Torna alla home',
+    'mail.exists.subject' => 'Informazioni sul tuo account AfrikaLink',
+    'mail.exists.body' => 'Qualcuno ha appena provato a registrarsi su :app con questo indirizzo, ma esiste già un account. Se sei stato tu, accedi o reimposta la password. Altrimenti ignora questa e-mail.',
+    'mail.exists.cta' => 'Accedi',
+    'mail.exists.reset' => 'Password dimenticata?',
 ];

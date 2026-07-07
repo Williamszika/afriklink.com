@@ -2861,4 +2861,13 @@ return [
     'home.online' => 'Online',
     'notify.refunded.title' => 'Order refunded',
     'notify.refunded.body' => 'Order :ref was refunded; the related earnings were reversed.',
+    'flash.register_pending' => 'Check your inbox to finish signing up.',
+    'register.pending_title' => 'Almost done',
+    'register.pending_lead' => 'If you signed up with an email, we just sent you a message to confirm your address. You can also log in to your account.',
+    'register.pending_login' => 'Log in',
+    'register.pending_home' => 'Back to home',
+    'mail.exists.subject' => 'About your AfrikaLink account',
+    'mail.exists.body' => 'Someone just tried to sign up on :app with this address, but an account already exists. If this was you, log in or reset your password. Otherwise, ignore this email.',
+    'mail.exists.cta' => 'Log in',
+    'mail.exists.reset' => 'Forgot password?',
 ];

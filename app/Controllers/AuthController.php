@@ -45,6 +45,33 @@ final class AuthController
         ]);
     }
 
+    /** Page neutre de fin d'inscription (anti-énumération de comptes). */
+    public function registerPending(Request $request): void
+    {
+        view('auth/register_pending');
+    }
+
+    /**
+     * E-mail « vous avez déjà un compte » envoyé au TITULAIRE lorsqu'une nouvelle
+     * inscription réutilise une adresse existante. Permet de renvoyer une réponse
+     * NEUTRE au visiteur (aucune révélation de l'existence du compte) tout en
+     * informant la vraie personne. Best-effort (ne bloque jamais l'inscription).
+     */
+    public static function sendAccountExistsEmail(string $email): void
+    {
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return;
+        }
+        try {
+            $app  = (string) config('app.name', 'AfrikaLink');
+            $html = '<p>' . e(t('mail.exists.body', ['app' => $app])) . '</p>'
+                . '<p><a href="' . e(url('/login')) . '">' . e(t('mail.exists.cta')) . '</a>'
+                . ' &middot; <a href="' . e(url('/forgot-password')) . '">' . e(t('mail.exists.reset')) . '</a></p>';
+            MailService::send($email, t('mail.exists.subject'), $html);
+        } catch (\Throwable) {
+        }
+    }
+
     public function registerParticulier(Request $request): void
     {
         $password  = (string) ($_POST['password'] ?? '');
@@ -66,10 +93,14 @@ final class AuthController
         $phone  = null;
 
         $errors = [];
+        // Contact déjà utilisé : on NE le signale PAS comme une erreur de champ
+        // (ce serait un oracle d'énumération de comptes). On le mémorise pour
+        // renvoyer une réponse NEUTRE plus bas, identique au cas « nouveau ».
+        $contactTaken = false;
         if ($method === 'email') {
             $email = input_email('email');
             if ($email === null)               { $errors['email'] = t('validation.email_invalid'); }
-            elseif (User::emailExists($email)) { $errors['email'] = t('validation.email_taken'); }
+            elseif (User::emailExists($email)) { $contactTaken = true; }
         } else {
             $dial     = dial_code(strtoupper((string) input_string('dial_country', '')));
             $national = ltrim((string) preg_replace('/\D+/', '', (string) input_string('phone_number', '')), '0');
@@ -77,7 +108,7 @@ final class AuthController
                 $errors['phone'] = t('validation.phone_invalid');
             } else {
                 $phone = '+' . $dial . $national;
-                if (User::phoneExists($phone)) { $errors['phone'] = t('validation.phone_taken'); }
+                if (User::phoneExists($phone)) { $contactTaken = true; }
             }
         }
 
@@ -95,6 +126,19 @@ final class AuthController
             keep_old($_POST);
             set_errors($errors);
             redirect('/register/particulier');
+        }
+
+        // Tous les champs sont valides. Si le contact est DÉJÀ utilisé, on ne crée
+        // PAS un second compte et on prévient le titulaire par e-mail — mais le
+        // visiteur reçoit exactement la même page que pour une inscription réussie
+        // (anti-énumération : aucun signal « ce compte existe »).
+        if ($contactTaken) {
+            if ($email !== null) {
+                self::sendAccountExistsEmail($email);
+            }
+            clear_old();
+            flash('success', t('flash.register_pending'));
+            redirect('/inscription/en-attente');
         }
 
         $userId = User::create([
@@ -123,13 +167,13 @@ final class AuthController
             // Inscription par e-mail : abonnement automatique à la newsletter.
             \App\Models\NewsletterSubscriber::subscribe($email, current_locale(), 'signup');
             $this->sendVerificationEmail(['id' => $userId, 'email' => $email]);
-            flash('success', t('flash.registered'));
-            redirect('/verify-email/notice');
         }
 
-        // Phone account: email verification N/A (SMS verification is a future step).
-        flash('success', t('flash.registered_phone'));
-        redirect('/dashboard');
+        // Destination NEUTRE, identique au cas « contact déjà utilisé » ci-dessus,
+        // pour ne pas distinguer les deux situations (anti-énumération). Le compte
+        // est bien créé et la session ouverte ; l'utilisateur peut naviguer.
+        flash('success', t('flash.register_pending'));
+        redirect('/inscription/en-attente');
     }
 
     /* ---- Login / logout ----------------------------------------- */

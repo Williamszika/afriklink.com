@@ -2835,4 +2835,13 @@ return [
     'home.online' => 'Online',
     'notify.refunded.title' => 'Bestelling terugbetaald',
     'notify.refunded.body' => 'Bestelling :ref is terugbetaald; de bijbehorende inkomsten zijn teruggedraaid.',
+    'flash.register_pending' => 'Controleer je inbox om je aanmelding te voltooien.',
+    'register.pending_title' => 'Bijna klaar',
+    'register.pending_lead' => 'Als je je met een e-mail hebt aangemeld, hebben we je zojuist een bevestigingsbericht gestuurd. Je kunt ook inloggen.',
+    'register.pending_login' => 'Inloggen',
+    'register.pending_home' => 'Terug naar start',
+    'mail.exists.subject' => 'Over je AfrikaLink-account',
+    'mail.exists.body' => 'Iemand probeerde zich zojuist aan te melden bij :app met dit adres, maar er bestaat al een account. Als jij dit was, log in of stel je wachtwoord opnieuw in. Zo niet, negeer deze e-mail.',
+    'mail.exists.cta' => 'Inloggen',
+    'mail.exists.reset' => 'Wachtwoord vergeten?',
 ];

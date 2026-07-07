@@ -2840,4 +2840,13 @@ return [
     'home.online' => 'متصل',
     'notify.refunded.title' => 'تم استرداد الطلب',
     'notify.refunded.body' => 'تم استرداد الطلب :ref؛ وتمت استعادة الأرباح المقابلة.',
+    'flash.register_pending' => 'تحقّق من بريدك لإتمام التسجيل.',
+    'register.pending_title' => 'أوشكت على الانتهاء',
+    'register.pending_lead' => 'إذا سجّلت ببريد إلكتروني، فقد أرسلنا إليك للتو رسالة لتأكيد عنوانك. يمكنك أيضًا تسجيل الدخول.',
+    'register.pending_login' => 'تسجيل الدخول',
+    'register.pending_home' => 'العودة إلى الرئيسية',
+    'mail.exists.subject' => 'بخصوص حسابك في AfrikaLink',
+    'mail.exists.body' => 'حاول أحدهم للتو التسجيل في :app بهذا العنوان، لكن يوجد حساب بالفعل. إن كان ذلك أنت، فسجّل الدخول أو أعد تعيين كلمة المرور. وإلا فتجاهل هذه الرسالة.',
+    'mail.exists.cta' => 'تسجيل الدخول',
+    'mail.exists.reset' => 'هل نسيت كلمة المرور؟',
 ];

@@ -2840,4 +2840,13 @@ return [
     'home.online' => 'Online',
     'notify.refunded.title' => 'Bestellung erstattet',
     'notify.refunded.body' => 'Bestellung :ref wurde erstattet; die zugehörigen Einnahmen wurden zurückgebucht.',
+    'flash.register_pending' => 'Prüfen Sie Ihr Postfach, um die Registrierung abzuschließen.',
+    'register.pending_title' => 'Fast geschafft',
+    'register.pending_lead' => 'Wenn Sie sich per E-Mail registriert haben, wurde Ihnen soeben eine Bestätigungsnachricht gesendet. Sie können sich auch anmelden.',
+    'register.pending_login' => 'Anmelden',
+    'register.pending_home' => 'Zur Startseite',
+    'mail.exists.subject' => 'Zu Ihrem AfrikaLink-Konto',
+    'mail.exists.body' => 'Es wurde soeben versucht, sich bei :app mit dieser Adresse zu registrieren, aber es existiert bereits ein Konto. Wenn Sie das waren, melden Sie sich an oder setzen Sie Ihr Passwort zurück. Andernfalls ignorieren Sie diese E-Mail.',
+    'mail.exists.cta' => 'Anmelden',
+    'mail.exists.reset' => 'Passwort vergessen?',
 ];

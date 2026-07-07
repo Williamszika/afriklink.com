@@ -102,6 +102,10 @@ return [
     ['POST', '/register/particulier',   [AuthController::class, 'registerParticulier'],    ['guest', 'csrf', 'throttle:register,10,3600']],
     ['GET',  '/register/vendeur', [ProRegistrationController::class, 'show'],   ['guest']],
     ['POST', '/register/vendeur', [ProRegistrationController::class, 'submit'], ['guest', 'csrf', 'throttle:register,10,3600']],
+    // Page neutre de fin d'inscription (anti-énumération) : réponse identique
+    // que le contact soit nouveau ou déjà utilisé. Publique (pas de 'guest' :
+    // l'inscription connecte parfois l'utilisateur, la page reste accessible).
+    ['GET',  '/inscription/en-attente', [AuthController::class, 'registerPending'], []],
 
     ['GET',  '/login',             [AuthController::class, 'showLogin'],      ['guest']],
     ['POST', '/login',             [AuthController::class, 'login'],          ['guest', 'csrf', 'throttle:login,10,900']],

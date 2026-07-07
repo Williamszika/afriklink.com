@@ -46,11 +46,14 @@ final class ProRegistrationController
             $errors['full_name'] = t('validation.required');
         }
 
+        // Contact déjà utilisé : mémorisé (pas d'erreur de champ) pour une réponse
+        // NEUTRE anti-énumération — voir AuthController::registerParticulier.
+        $contactTaken = false;
         $email = input_email('email');
         if ($email === null) {
             $errors['email'] = t('validation.email_invalid');
         } elseif (User::emailExists($email)) {
-            $errors['email'] = t('validation.email_taken');
+            $contactTaken = true;
         }
 
         $dial     = dial_code(strtoupper((string) input_string('dial_country', '')));
@@ -61,7 +64,7 @@ final class ProRegistrationController
         } else {
             $phone = '+' . $dial . $national;
             if (User::phoneExists($phone)) {
-                $errors['phone'] = t('validation.phone_taken');
+                $contactTaken = true;
             }
         }
 
@@ -99,6 +102,18 @@ final class ProRegistrationController
             redirect('/register/vendeur');
         }
 
+        // Réponse NEUTRE anti-énumération : si le contact est déjà utilisé, on ne
+        // crée pas un second compte et on prévient le titulaire par e-mail — le
+        // visiteur voit la même page que pour une inscription réussie.
+        if ($contactTaken) {
+            if ($email !== null) {
+                AuthController::sendAccountExistsEmail((string) $email);
+            }
+            clear_old();
+            flash('success', t('flash.register_pending'));
+            redirect('/inscription/en-attente');
+        }
+
         $userId = User::create([
             'email'              => $email,
             'phone'              => $phone,
@@ -132,7 +147,7 @@ final class ProRegistrationController
             . '<p style="color:#666;font-size:13px">' . e($link) . '</p>'
         );
 
-        flash('success', t('flash.registered_pro'));
-        redirect('/verify-email/notice');
+        flash('success', t('flash.register_pending'));
+        redirect('/inscription/en-attente');
     }
 }
