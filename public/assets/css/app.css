@@ -4116,6 +4116,22 @@ a.home-uni:hover{transform:translateY(-4px);box-shadow:0 20px 40px -26px rgba(12
 .home-rstatus{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;color:var(--h-ok);font-weight:600;margin-top:.5rem}
 .home-rdot{width:7px;height:7px;border-radius:50%;background:var(--h-ok);flex:none}
 
+/* ===== Barre utilitaire (localisation + langue/devise/compte) — design validé ===== */
+.pubhd-util{position:relative;z-index:70;--p-gold:#C7922E;--p-line:rgba(20,80,46,.14);background:linear-gradient(180deg,#14502E,#0E3A21);color:#DFEAE4;font-family:var(--afk-body)}
+.pubhd-util-in{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:38px;padding:.34rem 0;flex-wrap:wrap}
+.pubhd-util-geo{display:inline-flex;align-items:center;gap:.45rem;background:none;border:0;padding:0;color:#B7C9C1;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
+.pubhd-util-geo:hover{color:#fff}
+.pubhd-util-flag{font-size:1.02rem;line-height:1}
+.pubhd-util-right{display:flex;align-items:center;gap:.5rem}
+.pubhd-util-div{width:1px;height:16px;background:rgba(255,255,255,.2)}
+.pubhd-util .pubhd-dd>summary{color:#E8F0EC;background:transparent;border:1px solid rgba(255,255,255,.2);font-size:.76rem;padding:.28rem .7rem}
+.pubhd-util .pubhd-dd>summary:hover{border-color:rgba(255,255,255,.45)}
+.pubhd-util-login{background:none;border:0;cursor:pointer;font-family:var(--afk-body);font-weight:700;font-size:.8rem;color:#DFEAE4;padding:.3rem .4rem;white-space:nowrap;text-decoration:none}
+.pubhd-util-login:hover{color:#fff}
+.pubhd-util-signup{background:var(--p-gold);color:#0E3A21;border-radius:999px;padding:.35rem .9rem;font-weight:800;font-size:.78rem;white-space:nowrap;text-decoration:none}
+.pubhd-util-signup:hover{background:#b07e1f;color:#0E3A21}
+@media(max-width:560px){.pubhd-util-geo{display:none}.pubhd-util-in{justify-content:flex-end}}
+
 /* ===== En-tête public partagé (.pubhd) ===== */
 .pubhd{--p-green:#14502E;--p-green-deep:#0E3A21;--p-gold:#C7922E;--p-gold-deep:#9A6F1E;--p-hib:#B21E4B;--p-cream:#FAF4E6;--p-paper:#FFFDF7;--p-ink:#1C2418;--p-muted:#5B6453;--p-line:rgba(20,80,46,.14);position:sticky;top:0;z-index:60;background:rgba(250,244,230,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--p-line);font-family:var(--afk-body)}
 .pubhd-bar{display:flex;align-items:center;gap:1rem;padding:.65rem 0}

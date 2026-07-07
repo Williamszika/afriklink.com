@@ -108,27 +108,17 @@ $compareCount = \App\Services\Compare::count();
 // Rayons de navigation (liens réels : l'explorateur filtré par catégorie).
 $pubhdCats = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'artisanat'];
 ?>
-<header class="pubhd">
-    <div class="container pubhd-bar">
-        <a class="pubhd-brand" href="<?= e(url('/')) ?>">
-            <span class="pubhd-logo"><?= render_partial('partials/logo', ['uid' => 'hdr']) ?></span>
-            <span class="pubhd-wordmark">Afrik<span>link</span></span>
-        </a>
-
-        <form class="pubhd-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
-            <span class="pubhd-search-ic" aria-hidden="true"><?= icon('search', ['size' => 18]) ?></span>
-            <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
-            <button type="submit" class="pubhd-search-btn" aria-label="<?= e(t('explore.search_btn')) ?>"><?= icon('search', ['size' => 18]) ?></button>
-        </form>
-
-        <div class="pubhd-actions">
-            <button type="button" class="pubhd-geo" data-geo-chip title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
-                <span class="pubhd-geo-flag" data-geo-chip-flag aria-hidden="true"><?= $geoFlag ?></span>
-                <span class="pubhd-geo-txt" data-geo-chip-text><?= e($geoChip) ?></span>
-            </button>
-
+<!-- Barre utilitaire (design validé) : localisation détectée à gauche ;
+     langue, devise et compte à droite. -->
+<div class="pubhd-util">
+    <div class="container pubhd-util-in">
+        <button type="button" class="pubhd-util-geo" data-geo-chip title="<?= e(t('geo.chip_title')) ?>" <?= $geoChip === '' ? 'hidden' : '' ?>>
+            <span class="pubhd-util-flag" data-geo-chip-flag aria-hidden="true"><?= $geoFlag ?></span>
+            <span data-geo-chip-text><?= e($geoChip) ?></span>
+        </button>
+        <div class="pubhd-util-right">
             <details class="pubhd-dd lang-dd">
-                <summary title="Langue / Language"><?= e(strtoupper(current_locale())) ?> ▾</summary>
+                <summary title="Langue / Language">🌐 <?= e(strtoupper(current_locale())) ?> ▾</summary>
                 <div class="pubhd-menu">
                     <?php foreach (config('app.locales', ['fr', 'en']) as $loc): ?>
                         <a class="<?= $loc === current_locale() ? 'is-active' : '' ?>" href="<?= e(url('/lang/' . $loc)) ?>"><?= e(strtoupper($loc)) ?> · <?= e($langNames[$loc] ?? $loc) ?></a>
@@ -143,7 +133,33 @@ $pubhdCats = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'artis
                     <?php endforeach; ?>
                 </div>
             </details>
+            <span class="pubhd-util-div" aria-hidden="true"></span>
+            <?php if ($user !== null): ?>
+                <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="pubhd-util-login"><?= e(t('nav.logout')) ?></button>
+                </form>
+            <?php else: ?>
+                <a class="pubhd-util-login" href="<?= e(url('/login')) ?>"><?= e(t('nav.login')) ?></a>
+                <a class="pubhd-util-signup" href="<?= e(url('/register')) ?>"><?= e(t('nav.register')) ?></a>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<header class="pubhd">
+    <div class="container pubhd-bar">
+        <a class="pubhd-brand" href="<?= e(url('/')) ?>">
+            <span class="pubhd-logo"><?= render_partial('partials/logo', ['uid' => 'hdr']) ?></span>
+            <span class="pubhd-wordmark">Afrik<span>link</span></span>
+        </a>
 
+        <form class="pubhd-search" method="get" action="<?= e(url('/explorer')) ?>" role="search">
+            <span class="pubhd-search-ic" aria-hidden="true"><?= icon('search', ['size' => 18]) ?></span>
+            <input type="search" name="q" placeholder="<?= e(t('explore.search_ph')) ?>" aria-label="<?= e(t('explore.search_ph')) ?>">
+            <button type="submit" class="pubhd-search-btn" aria-label="<?= e(t('explore.search_btn')) ?>"><?= icon('search', ['size' => 18]) ?></button>
+        </form>
+
+        <div class="pubhd-actions">
             <div class="nav-dd pubhd-ddw" data-dd>
                 <a class="pubhd-ic" data-dd-toggle data-dd-url="<?= e(url('/favoris/apercu')) ?>" href="<?= e(url('/favoris')) ?>" aria-haspopup="true" aria-expanded="false" title="<?= e(t('wish.title')) ?>" aria-label="<?= e(t('wish.title')) ?>"><?= icon('heart') ?><span class="pubhd-badge" data-wish-count <?= $wishCount > 0 ? '' : 'hidden' ?>><?= (int) $wishCount ?></span></a>
                 <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
@@ -171,13 +187,6 @@ $pubhdCats = ['mode', 'electronique', 'maison', 'beaute', 'alimentation', 'artis
                     <div class="nav-dd-panel" data-dd-panel hidden><div class="nav-dd-body" data-dd-body><p class="nav-dd-loading"><?= e(t('common.loading')) ?></p></div></div>
                 </div>
                 <a class="btn btn-green btn-sm pubhd-cta" href="<?= e(url('/dashboard')) ?>"><?= e(t('nav.dashboard')) ?></a>
-                <form method="post" action="<?= e(url('/logout')) ?>" class="inline-form pubhd-hide-sm">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="pubhd-login"><?= e(t('nav.logout')) ?></button>
-                </form>
-            <?php else: ?>
-                <a class="pubhd-login pubhd-hide-sm" href="<?= e(url('/login')) ?>"><?= e(t('nav.login')) ?></a>
-                <a class="btn btn-green btn-sm pubhd-cta" href="<?= e(url('/register')) ?>"><?= e(t('nav.register')) ?></a>
             <?php endif; ?>
         </div>
     </div>
