@@ -2875,4 +2875,6 @@ return [
     'home.stat_curr' => 'devises',
     'home.stat_uni' => 'univers',
     'home.uni_explore' => 'Explorer',
+    'home.hero_title_em' => 'Afrique',
+    'home.hub_sub' => 'Tout pour acheter, manger, réserver et faire appel à un pro — au même endroit.',
 ];

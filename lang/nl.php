@@ -2849,4 +2849,6 @@ return [
     'home.stat_curr' => 'valuta\'s',
     'home.stat_uni' => 'werelden',
     'home.uni_explore' => 'Ontdekken',
+    'home.hero_title_em' => 'Afrika',
+    'home.hub_sub' => 'Alles om te winkelen, eten, boeken en een vakman inhuren — op één plek.',
 ];

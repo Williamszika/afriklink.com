@@ -2854,4 +2854,6 @@ return [
     'home.stat_curr' => 'monedas',
     'home.stat_uni' => 'universos',
     'home.uni_explore' => 'Explorar',
+    'home.hero_title_em' => 'África',
+    'home.hub_sub' => 'Todo para comprar, comer, reservar y contratar a un profesional — en un solo lugar.',
 ];

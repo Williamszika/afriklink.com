@@ -3930,6 +3930,7 @@ html.ab-reveal .about-page .reveal.in{opacity:1;transform:none}
 .home-hero-copy{min-width:0}
 .home-hero-badge{display:inline-flex;align-items:center;gap:.45rem;background:rgba(250,244,230,.12);border:1px solid rgba(250,244,230,.24);border-radius:999px;padding:.4rem .9rem;font-size:.82rem;font-weight:600;color:#EAF3EF}
 .home-hero-h1{font-family:var(--afk-display);font-weight:800;letter-spacing:-.02em;font-size:clamp(2rem,4.6vw,3.25rem);line-height:1.05;margin:1rem 0 0;color:#fff;max-width:16ch;text-wrap:balance}
+.home-hero-h1 .hg{color:var(--h-gold)}
 .home-hero-lead{color:#C8D6CF;font-size:clamp(1rem,1.5vw,1.15rem);line-height:1.55;max-width:48ch;margin:1rem 0 1.5rem}
 .home-hero-btns{display:flex;gap:.7rem;flex-wrap:wrap}
 .home-hero .btn-ghost{background:rgba(250,244,230,.1);color:#fff;border:1px solid rgba(250,244,230,.3)}

@@ -96,13 +96,21 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
     $nLang = count(config('app.locales', ['fr', 'en', 'de', 'es', 'it', 'pt', 'nl', 'ar']));
     $nCurr = count(config('app.currencies', ['EUR', 'USD', 'XOF', 'NGN', 'GBP']));
     $nUni  = count($univers);
+    // Titre du héros avec le mot du continent en or (fidèle à la maquette).
+    // Tout est échappé ; on n'insère que notre propre balise <span> autour d'un
+    // mot issu des fichiers de langue (jamais d'une saisie utilisateur).
+    $heroTitle = (string) t('home.hero_title');
+    $heroEm    = (string) t('home.hero_title_em');
+    $heroTitleHtml = ($heroEm !== '' && mb_strpos($heroTitle, $heroEm) !== false)
+        ? str_replace(e($heroEm), '<span class="hg">' . e($heroEm) . '</span>', e($heroTitle))
+        : e($heroTitle);
     ?>
     <section class="home-hero" aria-label="<?= e(t('home.hero_title')) ?>">
         <div class="home-herowrap">
             <div class="home-hero-in">
                 <div class="home-hero-copy">
                     <span class="home-hero-badge">🌍 <?= e(t('home.hero_kicker')) ?></span>
-                    <h1 class="home-hero-h1"><?= e(t('home.hero_title')) ?></h1>
+                    <h1 class="home-hero-h1"><?= $heroTitleHtml ?></h1>
                     <p class="home-hero-lead"><?= e(t('home.hero_subtitle')) ?></p>
                     <div class="home-hero-btns">
                         <a class="btn btn-gold btn-lg" href="<?= e(url('/explorer')) ?>"><?= e(t('home.cta_shop')) ?> →</a>
@@ -167,7 +175,7 @@ $productCard = static function (array $p, ?string $img, ?string $href = null, bo
 
     <!-- ===== UNIVERS ===== -->
     <section class="home-sec">
-        <div class="home-head"><h2 class="home-h2"><?= e(t('home.hub.title')) ?></h2></div>
+        <div class="home-head"><div><h2 class="home-h2"><?= e(t('home.hub.title')) ?></h2><span class="home-sub"><?= e(t('home.hub_sub')) ?></span></div></div>
         <div class="home-univers">
             <?php foreach ($univers as $u): $inner = '<span class="emj" aria-hidden="true">' . $u['emj'] . '</span>'
                 . '<h3>' . e(t('home.vertical.' . $u['key'] . '.title')) . '</h3>'

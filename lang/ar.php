@@ -2854,4 +2854,6 @@ return [
     'home.stat_curr' => 'عملات',
     'home.stat_uni' => 'عوالم',
     'home.uni_explore' => 'استكشاف',
+    'home.hero_title_em' => 'إفريقيا',
+    'home.hub_sub' => 'كل ما يلزم للتسوق والأكل والحجز والاستعانة بمحترف — في مكان واحد.',
 ];

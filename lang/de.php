@@ -2854,4 +2854,6 @@ return [
     'home.stat_curr' => 'Währungen',
     'home.stat_uni' => 'Welten',
     'home.uni_explore' => 'Entdecken',
+    'home.hero_title_em' => 'Afrika',
+    'home.hub_sub' => 'Alles zum Einkaufen, Essen, Buchen und Beauftragen von Profis — an einem Ort.',
 ];

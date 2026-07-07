@@ -2875,4 +2875,6 @@ return [
     'home.stat_curr' => 'currencies',
     'home.stat_uni' => 'universes',
     'home.uni_explore' => 'Explore',
+    'home.hero_title_em' => 'Africa',
+    'home.hub_sub' => 'Everything to shop, eat, book and hire a pro — in one place.',
 ];

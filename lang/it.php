@@ -2854,4 +2854,6 @@ return [
     'home.stat_curr' => 'valute',
     'home.stat_uni' => 'universi',
     'home.uni_explore' => 'Esplora',
+    'home.hero_title_em' => 'Africa',
+    'home.hub_sub' => 'Tutto per acquistare, mangiare, prenotare e contattare un pro — in un unico posto.',
 ];
